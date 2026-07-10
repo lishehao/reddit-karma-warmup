@@ -50,15 +50,15 @@ The main task remains the user's only operational entrypoint. A user command suc
 3. Convert the request into a contract: lane(s), target/count, duration, pool, language, `operation_stop_at`, and watch deadline.
 4. Execute the first due slot immediately in the ordinary task. Never enter Goal Mode or call `create_goal` for installation, `BOOTSTRAP`, `MISSION`, first-hour observation, or multi-hour waiting; delayed continuation belongs to one-shot heartbeats.
 5. Reuse each matching lane task. Create and name a lane task only when no valid owner exists.
-6. Send each owner its delta: objective, remaining count, pool, stop time, first due slot, and model `gpt-5.6-luna/xhigh`.
+6. Send each owner its delta: objective, remaining count, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
 7. Require immediate execution. The main task performs no Reddit mutation while lane tasks are available.
 8. For `BOOTSTRAP`, keep the main task's read-only watch for the full first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
-9. Verify results and worker heartbeat handoff, delete the main task's temporary trigger, return the compact Chinese report, and enter `IDLE`.
+9. Verify results and worker heartbeat creation/handoff, delete the main task's temporary trigger, return the compact Chinese report, and enter `IDLE`. A runtime that omits persisted next-run fields lowers timing confidence but does not invalidate a successfully created heartbeat.
 10. In `IDLE`, do not poll. A later user command begins a new `MISSION` from current state.
 
 ## Zero-Account Defaults
 
-- Main model: `gpt-5.6-sol/xhigh`. Every lane worker: `gpt-5.6-luna/xhigh`.
+- Main model: `gpt-5.6-sol/xhigh`. Every lane worker: `gpt-5.6-luna/high`.
 - Default duration: `3 hours`; comment planning target: `10/hour`, therefore `30` across the default run when enough candidates pass; daily planning target remains `60`.
 - First hour: target `10` passing comments across at least `3` lower-restriction communities. After each verified comment, use a local `60-120 sec` pause; discovery, reading, drafting, and checks are additional.
 - Presence: truthful minimum profile setup plus `1-3` high-fit joins when due.
@@ -72,8 +72,9 @@ The main task remains the user's only operational entrypoint. A user command suc
 - Real account actions require the already logged-in Chrome Browser control. Never enter credentials and never substitute Computer Use, the in-app Browser, Playwright, or ordinary Web Search.
 - Each worker owns a dedicated Reddit tab and optional Tab Group. Workers do not inspect, wait for, compare, or modify other workers' tabs, targets, actions, or automations.
 - Each worker owns at most one next one-shot heartbeat for its lane and may mutate only an automation targeting that same task/lane.
-- Main and worker deadlines use actual local time plus UTC readback. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
+- Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
 - Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use one verified one-shot heartbeat, and the current turn ends after reporting that handoff.
+- Heartbeat capability and heartbeat timing observability are separate. Successful create/update with an automation ID/card proves capability; missing `next_run_at` or hidden display time means `created_unreadable`, not failure. Continue current Reddit work, never ask the user to repair an unexposed field, and validate timing when the heartbeat actually fires.
 - The user's latest explicit duration, count, language, target community, and lane override defaults. Counts remain candidate- and rule-gated.
 - Main posts require same-day rules, eligibility, flair, frequency, and moderation-state checks. Ordinary comments require target-context and obvious-risk checks.
 - Every verified comment/reply appends its measured character count, word count, sentence form, and length tier. Before drafting the next one, consult the latest `10` comment/reply entries and choose a context-appropriate length instead of defaulting to a repeated two-sentence shape.

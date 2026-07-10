@@ -41,7 +41,7 @@ Profile edits, joins, flair, notification sweeps, and verified no-action results
 
 ## Acceptance And Recovery
 
-A lane with a first outward action reaches `first_round_ok` only after `submit_verified`, `surface_visible`, and `survivor_visible`, plus verified worker heartbeat handoff when continuation is required.
+A lane with a first outward action reaches `first_round_ok` only after `submit_verified`, `surface_visible`, and `survivor_visible`, plus a successfully created worker heartbeat handoff when continuation is required. Exact persisted timing should be verified when exposed; `created_unreadable` is acceptable until the heartbeat's first real wakeup proves or disproves timing.
 
 Non-publishing lanes use action-specific acceptance instead of permalink checks:
 
@@ -49,7 +49,7 @@ Non-publishing lanes use action-specific acceptance instead of permalink checks:
 - `主页维护`: the due profile/join work is verified, or the lane records a concrete valid no-action result.
 - `消息跟进`: Notifications and recent own activity were swept, with any reply processed through the normal outward checks.
 
-These lanes still require a verified next heartbeat when continuation is due.
+These lanes still require a successfully created next heartbeat when continuation is due. Hidden persisted timing is recorded as `created_unreadable` and does not pause the lane.
 
 On `visibility_failed`:
 

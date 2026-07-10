@@ -58,7 +58,7 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 
 ## Scheduling And Report
 
-Execute the first browse slot immediately. For a continuing run, reconcile against the stop time and schedule one next one-shot trigger for this lane; do not create a fixed recurrence or catch up missed slots.
+Execute the first browse slot immediately. Every execution-heartbeat resume must also complete its current qualified-read slot and record the read/vote/no-vote result as `slot_proof` before scheduling another trigger. For a continuing run, reconcile against the stop time and schedule one next one-shot trigger for this lane; do not create a fixed recurrence or catch up missed slots.
 
 Use the shared compact report:
 

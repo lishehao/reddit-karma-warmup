@@ -39,7 +39,7 @@ Reuse valid owners; otherwise create these tasks:
 
 Each worker starts now in its own Reddit tab. Do not wait for another lane. Posts remain optional and never replace the comment target.
 
-Before the coordinator sends any final response, at least one enabled requested lane must return verified `start_proof`. If workers are still preparing, only planned, or cannot be read immediately, the coordinator runs the first requested micro-slot sequentially. It may then return ownership of later slots to the workers.
+Before the coordinator sends any final response, every enabled requested lane must return verified `start_proof`. If any worker is still preparing, only planned, or cannot be read immediately, the coordinator runs that lane's first requested micro-slot sequentially. It may then return ownership of later slots to the workers.
 
 ### A3. Main First-Hour Watch
 
@@ -132,7 +132,7 @@ first_due = now or exact time
 
 Every worker must load only its lane references, start the first due action immediately, verify visible results, update its local history, maintain at most one next trigger, and keep all status in its own task. Workers never callback or coordinate sibling lanes.
 
-A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. It creates its continuation heartbeat only after the first micro-slot is verified.
+A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. Every later execution-heartbeat response must include `slot_proof`. It creates its continuation heartbeat only after the current micro-slot is verified.
 
 ## User-Facing Messages
 

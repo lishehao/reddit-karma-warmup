@@ -40,13 +40,13 @@ Second-level pre-submit pauses remain local waits.
 
 After creating the one-shot heartbeat and reading back every field the runtime actually exposes, end the current turn. Do not emit repeated “not due yet” turns, poll the clock, use Goal Mode, or use automatic continuation while waiting for the heartbeat.
 
-This handoff is legal only after the current turn has verified `START_NOW_PROOF`. The heartbeat resumes the next incomplete slot. If no requested action/no-action sweep has happened yet, return to lane execution instead of scheduling.
+This handoff is legal only after the initial command turn has verified `START_NOW_PROOF_BY_LANE`, or an execution-lane heartbeat turn has verified `SLOT_PROOF`. The heartbeat resumes the next incomplete slot. On resume, execute that slot before creating another heartbeat. If no requested action/no-action sweep happened in the current execution turn, return to lane execution instead of scheduling.
 
 ## One-Shot Contract
 
 Create only the next continuation for the current lane. Do not install a fixed recurring schedule unless the user explicitly asks for one.
 
-Use the `scheduler_clock_mode` detected by the installer Markdown's no-Reddit create/readback probe when it is available. The current known desktop runtime may use `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC; in that mode, `11:29:43 Asia/Shanghai` is written as `03:29:43 UTC`. Another machine must not assume this result. Prefer an explicit one-shot target accepted by the automation tool. If the runtime hides persisted timing, keep the intended local and UTC pair in the heartbeat prompt and classify the result as `created_unreadable` rather than blocking current work.
+Use the `scheduler_clock_mode` detected by the repository README's no-Reddit create/readback probe when it is available. The current known desktop runtime may use `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC; in that mode, `11:29:43 Asia/Shanghai` is written as `03:29:43 UTC`. Another machine must not assume this result. Prefer an explicit one-shot target accepted by the automation tool. If the runtime hides persisted timing, keep the intended local and UTC pair in the heartbeat prompt and classify the result as `created_unreadable` rather than blocking current work.
 
 Before creation, record:
 

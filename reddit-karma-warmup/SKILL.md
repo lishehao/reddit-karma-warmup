@@ -48,13 +48,15 @@ The main task remains the user's only operational entrypoint. A user command suc
 An operation command means execute now, not plan now and act on the next heartbeat. In the same user turn that receives `开始`, a duration, a count, or a concrete operation:
 
 1. Open/reclaim the relevant Chrome lane tab and perform the first requested micro-slot.
-2. Produce `start_proof`: at least one verified requested action, or a verified browser sweep with concrete no-action/blocker evidence.
+2. Produce `start_proof_by_lane`: every explicitly requested/enabled lane records one verified requested action, or a verified browser sweep with concrete no-action/blocker evidence.
 3. Only after `start_proof`, create the next heartbeat when more work remains.
 4. Only after action verification and heartbeat handoff may the turn send its final report.
 
-Reading references, inspecting tasks, planning, dispatching a worker, creating a heartbeat, or saying `已启动` is not `start_proof`. A no-action result must name the surfaces/candidates actually checked and the concrete gate that rejected them; “still preparing” is not valid. Commentary may say work is starting, but never send a final `已启动` acknowledgement before proof.
+Reading references, inspecting tasks, planning, dispatching a worker, creating a heartbeat, or saying `已启动` is not proof. A no-action result must name the surfaces/candidates actually checked and the concrete gate that rejected them; “still preparing” is not valid. Commentary may say work is starting, but never send a final `已启动` acknowledgement before proof. For a multi-lane command, do not claim the whole mission started until every enabled lane has proof; a lane without proof is still not started.
 
 When an authorized lane worker can execute and be read back in the current turn, delegate and wait for its first proof. If worker dispatch is unavailable, not authorized, delayed, or returns only a plan, the current task executes the first micro-slot sequentially. Background ownership may take over subsequent slots; it must never delay the user's first visible action.
+
+The same gate applies to every execution-lane heartbeat resume: complete and verify the current slot (`slot_proof`) before scheduling a successor or ending the turn. A chain of heartbeats with no intervening lane action/no-action sweep is invalid. Read-only coordinator-watch heartbeats may observe already-started lanes, but they cannot be used to manufacture missing lane proof.
 
 ## Canonical Main Flow
 
@@ -63,7 +65,7 @@ When an authorized lane worker can execute and be read back in the current turn,
 3. Convert the request into a contract: lane(s), target/count, duration, pool, language, `operation_stop_at`, and watch deadline.
 4. Reuse each matching lane task when authorized and immediately controllable; create/name one only when allowed and no valid owner exists.
 5. Send each owner its delta: objective, remaining count, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
-6. Pass the `Start-Now Gate` in this same turn. Read the worker's verified first result; if it cannot produce proof now, execute the first micro-slot sequentially in the current task. Never enter Goal Mode or call `create_goal`.
+6. Pass the `Start-Now Gate` in this same turn for every enabled lane. Read each worker's verified first result; if one cannot produce proof now, execute that lane's first micro-slot sequentially in the current task. Never enter Goal Mode or call `create_goal`.
 7. Verify the first result. Only now may a worker/current task create a one-shot heartbeat for delayed continuation.
 8. For `BOOTSTRAP`, keep the main task's read-only watch through one-shot heartbeats for the first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
 9. Return the compact Chinese report with actual first-round evidence and heartbeat handoff, then end the current turn. A runtime that omits persisted next-run fields lowers timing confidence but does not invalidate a successfully created heartbeat.

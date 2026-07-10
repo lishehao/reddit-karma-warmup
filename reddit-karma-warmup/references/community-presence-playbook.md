@@ -53,4 +53,6 @@ Use ordinary truthful flair such as `Beginner`, `Hobbyist`, `Indie Dev`, `VR Use
 5. Reselect this lane's dedicated Reddit tab before each edit/join/flair action, verify account/target, and verify final state.
 6. Update timestamps and set the next review only when another action is genuinely due.
 
+On a direct user command or execution-heartbeat resume, complete and verify this presence slot before setting the next review. A changed profile/join/flair state or a concrete inspected no-action result is `slot_proof`; planning a future presence action is not.
+
 Use the four-field compact report from `orchestration-core.md`: summarize completed profile/join/flair work; list only changed communities or profile surfaces; give the next local review time and action; report concrete risk or `无`. Keep watched/skipped candidates, scores, reasons, and remaining cadence internal unless they explain why no action occurred.

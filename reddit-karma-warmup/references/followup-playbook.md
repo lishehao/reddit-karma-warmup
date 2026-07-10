@@ -49,6 +49,8 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 
 ## Next Sweep
 
+On a direct user command or execution-heartbeat resume, complete the current Notifications + known-permalink/recent-activity sweep before scheduling another check. The processed reply/close result or the concrete quiet-queue sweep is `slot_proof`; merely deciding the next sweep time is not.
+
 - normal queue: `20-40 min`
 - active direct exchange: `12-20 min`
 - quiet queue: `40-90 min`

@@ -22,7 +22,7 @@ Do not expose this record unless the user asks for technical detail.
 1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Reuse current account/runtime state instead of repeating healthy checks.
 3. Reuse existing lane owners and send only changed mission fields.
-4. Enforce same-turn `start_proof`: read a worker's first verified result or execute the first micro-slot sequentially when worker proof is unavailable.
+4. Enforce same-turn `start_proof_by_lane`: read every enabled worker's first verified result or execute the missing lane's first micro-slot sequentially when worker proof is unavailable.
 5. Observe the first hour of BOOTSTRAP and the bounded start of ongoing missions.
 6. Verify results, visibility, deadlines, and worker heartbeat handoff.
 7. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
@@ -69,8 +69,8 @@ watch_deadline = min(operation_stop_at, start + 60m)
 
 The main task keeps one read-only one-shot trigger at a time:
 
-- initial progress read: same user turn, before final response, until `start_proof`
-- first delayed progress read: within `5-10 min` after `start_proof`
+- initial progress read: same user turn, before final response, until every enabled lane has `start_proof`
+- first delayed progress read: within `5-10 min` after `start_proof_by_lane`
 - first permalink visibility: immediate and `15-30 min` delayed check
 - progress reads: about every `10-15 min` when useful
 - final read: exactly at `watch_deadline`
@@ -141,7 +141,7 @@ Optional commentary during the first active tool sequence; never final:
 正在执行第一轮；完成首个可验证动作后汇报，并再安排下一轮。
 ```
 
-The first final response is allowed only after `start_proof`; then use exactly:
+The first final response is allowed only after `start_proof_by_lane`; then use exactly:
 
 ```text
 本轮完成：<完成事项和数量>。

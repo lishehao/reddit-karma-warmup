@@ -22,6 +22,7 @@ Maintain one small state record:
 | `browser_context` | this lane's dedicated `tab_id`, optional `group_id`, current URL, and confirmed account |
 | `action_log` | verified actions and candidate skips |
 | `next_trigger` | at most one one-shot continuation per lane |
+| `turn_gate` | `proof_by_lane` for a user command and `slot_proof` for each execution-lane heartbeat resume |
 
 Do not create large parallel state tables unless the user asks for an export.
 
@@ -46,7 +47,7 @@ Every first run and resume follows the same state machine:
 | `SCHEDULE` | Create one next one-shot trigger if needed and read timing back when exposed. | verified, created_unreadable, or manual fallback |
 | `REPORT` | Return compact operational record. | turn ends |
 
-First activation must reach `ACT` or a verified no-action/blocker result before both `SCHEDULE` and `REPORT`. `START_NOW_PROOF` is a hard transition guard: no path from `SCOPE`, `ROUTE`, `NAME`, `PLAN_SLOT`, or worker dispatch may jump directly to `SCHEDULE`/`REPORT`. A heartbeat resume starts at `PROBE`, refreshes `HISTORY`, and continues the next incomplete slot.
+Every enabled lane on first activation must reach `ACT` or a verified no-action/blocker result before both `SCHEDULE` and `REPORT`. `START_NOW_PROOF_BY_LANE` is a hard transition guard: no path from `SCOPE`, `ROUTE`, `NAME`, `PLAN_SLOT`, or worker dispatch may jump directly to `SCHEDULE`/`REPORT`. An execution-lane heartbeat resume starts at `PROBE`, refreshes `HISTORY`, completes the current slot, records `SLOT_PROOF`, and only then schedules its successor. A coordinator-watch heartbeat is read-only and may only observe lanes that already passed their start gate.
 
 ## Scope And Authorization
 
@@ -128,7 +129,7 @@ If Chrome remains unavailable after recovery attempts, report `chrome_unavailabl
 
 If authorized worker tools do not exist, run the lanes sequentially in that order. If internal worker fan-out is allowed, each worker owns one lane and one future trigger. User-visible task creation still requires an explicit user request.
 
-For the first turn of a new operation, delegation is valid only when the coordinator can read a worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. If immediate worker proof is unavailable, run the first requested micro-slot sequentially in the current task and hand later slots to the registered worker.
+For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. If any immediate worker proof is unavailable, run that lane's first requested micro-slot sequentially in the current task and hand later slots to the registered worker.
 
 The `Loci Reddit运营` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. Load `coordinator-playbook.md`. Workers do not send routine callbacks to it.
 
@@ -188,7 +189,7 @@ After each slot:
 - if creation succeeds but persisted timing is hidden, record `created_unreadable`, keep the trigger, finish the current slot, and validate timing at the next real wakeup; do not pause Reddit work or ask the user to repair it
 - if creation itself fails, finish the current slot and report a manual next local/UTC time
 
-Never run this scheduling section until the current operation has `START_NOW_PROOF`. The first heartbeat may resume the second slot, never the first.
+Never run this scheduling section until the current user-command turn has `START_NOW_PROOF_BY_LANE`, or the current execution-heartbeat turn has `SLOT_PROOF`. The first heartbeat may resume the second slot, never the first; every later heartbeat must execute its own slot before creating another.
 
 ## Compact Report Schema
 

@@ -179,6 +179,8 @@ Weak: `Any tips for beginners?`
 
 ## Proactive Slot Report
 
+On a direct user command or execution-heartbeat resume, finish and verify the current comment/post micro-slot before scheduling or reporting. Record the permalink/action as `slot_proof`, or record the exact candidates/surfaces checked and rejection gate as verified no-action proof. Planning the next post/comment window is not a completed slot.
+
 Use the four-field compact report from `orchestration-core.md`:
 
 - `本轮完成`：已完成的评论、主帖及数量

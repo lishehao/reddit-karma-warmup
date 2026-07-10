@@ -76,7 +76,7 @@ Heartbeat 创建与删除成功即可证明能力可用。若运行时不显示 
 
 用户回复“开始”或给出具体运营指令后，调用已安装的 `$reddit-karma-warmup` 并由 Skill 接管全部运营细节。不要再次运行安装流程。
 
-必须在同一个用户 turn 先通过 Chrome 完成并验证至少一个请求相关动作，或形成真实浏览后的具体无动作/阻塞证据。读 Skill、做计划、派发任务、创建 Heartbeat 或回复“已启动”都不算开始。只有首个微轮次获得 `start_proof` 后，Heartbeat 才能承接下一轮。
+必须在同一个用户 turn 让每条明确启用的工作线通过 Chrome 完成并验证一个请求相关微轮次，或形成真实浏览后的具体无动作/阻塞证据。读 Skill、做计划、派发任务、创建 Heartbeat 或回复“已启动”都不算开始；任一工作线没有 proof，就不能声称整项任务已启动。只有取得 `start_proof_by_lane` 后，Heartbeat 才能承接下一轮。此后每次执行型 Heartbeat 唤醒也必须先完成当前 slot 并记录 `slot_proof`，再安排后继 Heartbeat；禁止连续排期却不执行。
 
 ## Requirements
 

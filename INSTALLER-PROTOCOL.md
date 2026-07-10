@@ -2,7 +2,7 @@
 
 Machine execution protocol. Follow it directly after the user-facing bootstrap Prompt fetches this file. Do not ask the user to read or copy this protocol.
 
-Protocol version: `2026.07.10.26`
+Protocol version: `2026.07.10.27`
 
 ## Execute
 
@@ -95,17 +95,17 @@ bootstrap_state: not_started | in_progress | initialized | needs_repair
 
 同时保存两个时间的本地日期、时区、UTC offset 和 UTC instant。它们都是硬截止时间，不因任务延迟、代理位置或错过 Heartbeat 自动顺延。
 
-用户确认后不要创建 Goal。主任务立即执行或派发第一轮，并维护一个临时只读 one-shot Heartbeat；在 `startup_watch_deadline` 做最终验收与交接：评论首小时目标 10 条，内容浏览完成 8–12 条有效阅读并应用投票门槛，首条发布内容通过立即和延迟可见性检查，每个执行任务成功创建不超过 `operation_stop_at` 的下一次 Heartbeat；运行时暴露时间字段时必须回读校验，未暴露时记为 `created_unreadable` 并在真实唤醒时校验。主任务删除临时检查并进入 `IDLE`。
+用户确认后不要创建 Goal。主任务必须在同一个用户 turn 先执行或派发第一轮，并取得 `start_proof`：至少一个请求相关的 Chrome 动作已执行并验证，或完成真实浏览后得到具体无动作/阻塞证据。读 Skill、做计划、派发任务、创建 Heartbeat、回复“已启动”都不算 `start_proof`。只有 `start_proof` 成立后，才维护临时只读 one-shot Heartbeat 并在 `startup_watch_deadline` 做最终验收与交接：评论首小时目标 10 条，内容浏览完成 8–12 条有效阅读并应用投票门槛，首条发布内容通过立即和延迟可见性检查，每个执行任务成功创建不超过 `operation_stop_at` 的下一次 Heartbeat；运行时暴露时间字段时必须回读校验，未暴露时记为 `created_unreadable` 并在真实唤醒时校验。
 
 确认后，本消息授权：把当前主任务命名为“Loci Reddit运营”，作为长期唯一入口；本次运行类型为 BOOTSTRAP。任务创建+读取+发送能力完整时，创建并立即启动 4 个执行任务，分别命名为“主动评论”“消息跟进”“主页维护”“内容浏览”；主动发帖默认关闭。主任务负责首小时观察、技术修复和最终交接；执行任务不向主任务做 routine Callback。任务能力不完整时，在当前任务按跟进 -> 主页维护 -> 内容浏览 -> 主动评论顺序执行。
 
-派发后立即只向用户返回：“已启动：主动评论首小时目标 10 条，消息跟进、主页维护和内容浏览同步运行；第一小时结束后汇报。”然后继续执行，不等待用户回复。
+派发时可以用 commentary 告知“正在执行第一轮”，但不得用 final 回复“已启动”后结束当前 turn。主任务必须在当前 turn 读取到执行任务的 `start_proof`；若执行任务只返回计划、尚未动作、无法立即执行或无法回读，主任务就在当前任务中顺序完成首个请求相关微轮次。取得实际动作/permalink 或真实浏览后的无动作证据后，才能创建下一次 Heartbeat，并用四字段结果结束本轮。
 
 主任务内部遵循 `INTAKE -> PREFLIGHT -> DISPATCH -> STARTUP_ACCEPTANCE -> AUTO_REPAIR -> HEARTBEAT_WATCH -> HANDOFF -> IDLE`。它自动处理 Chrome 重连、独立 Tab 恢复、任务重试、scheduler 时间修正、Heartbeat 回读和模型/任务能力回退，不进入 Goal Mode，不让用户选择 worker、读取 Thread ID 或理解技术日志。仅登录失效、验证码/限流/锁定、Chrome Browser control 持续不可用或其他必须由用户完成的修复才中断并请求用户操作。
 
 主任务把 dependency report 作为 handoff 传给每个执行任务，包括账号、当地时间、scheduler_clock_mode、thread/model fallback，并保存每个执行任务的 ID、工作线、目标和完成条件。主任务优先请求 gpt-5.6-sol + Extra High，执行任务统一请求 gpt-5.6-luna + High；环境不能覆盖时继承实际最强可用组合。
 
-第一轮必须先执行，并到达已验证动作、已验证无动作结果或具体阻塞，再安排后续 heartbeat。每个执行任务只能修改 target_thread_id 等于自己且属于自己 lane 的 automation；其他 lane 只读。
+第一轮必须在收到用户指令的同一 turn 执行，并到达已验证动作、真实浏览后的已验证无动作结果或具体阻塞，再安排后续 heartbeat 或发送 final。规划、任务派发、Heartbeat 创建和“已启动”文案不能替代执行。每个执行任务只能修改 target_thread_id 等于自己且属于自己 lane 的 automation；其他 lane 只读。
 
 首次安装并开始运营时，主动评论任务立即执行完整首小时批次：所有健康档位（包括纯新 `K0`）都以首小时 `10` 条合格评论为目标。每条评论成功发布并验证后，用本地短暂停留等待 `60–120 秒`再发布下一条；寻找帖子、阅读、写作、Double-Check A/B 和结果验证仍然必须完成。只有出现明确账号/可见性阻塞，或者没有足够合格候选时，首小时才少于 `10` 条。
 
@@ -113,7 +113,7 @@ bootstrap_state: not_started | in_progress | initialized | needs_repair
 
 内容浏览任务每个 slot 真实读完 `8–12` 条内容，覆盖 `2–4` 个合格社区；标题扫过、重复内容、广告和误触不计数。每个 slot 最多进行 `1` 次 Upvote 或 Downvote：Upvote 仅用于足够有趣、有质量且符合真实兴趣画像的内容；Downvote 仅用于明确 spam、误导、骚扰、违规或不贡献内容，普通观点不合不点踩。比例是机会窗口，不是强制配额；没有达到门槛的内容就完成 `0` 次投票。
 
-每条工作线最多保留一个下一次 one-shot heartbeat。按可用的 scheduler_clock_mode 写 RRULE；若时间字段可读，创建后必须回读实际 next_run_at 并换算成 UTC 和当地时间，发现错误时更新原 automation，不创建重复任务。若时间字段不可读，创建成功后记为 `created_unreadable`，保留目标当地时间和 UTC 在 heartbeat prompt 中，继续当前工作并在真实唤醒时校验；不得因此删除成功的 heartbeat 或暂停 Reddit 操作。
+每条工作线最多保留一个下一次 one-shot heartbeat。按可用的 scheduler_clock_mode 写 RRULE；若时间字段可读，创建后必须回读实际 next_run_at 并换算成 UTC 和当地时间，发现错误时更新原 automation，不创建重复任务。若时间字段不可读，创建成功后记为 `created_unreadable`，保留目标当地时间和 UTC 在 heartbeat prompt 中，继续当前工作并在真实唤醒时校验；不得因此删除成功的 heartbeat 或暂停 Reddit 操作。Heartbeat 只承接下一轮，永远不能替代本轮首个动作。
 
 任何执行任务都不得创建或保留发生在 `operation_stop_at` 或之后的 Heartbeat。主任务的首小时观察只通过 one-shot Heartbeat 唤醒：先在 `5–10 分钟`读取一次初始进度，按 `15–30 分钟`窗口检查首条可见性，之后按需安排下一次检查，并在 `startup_watch_deadline` 做强制终检。等待期间必须结束当前 turn，禁止目标模式、连续自动续跑、轮询时钟或重复汇报“还没到时间”。只有终检时所有启用工作线都通过首轮验收才记为启动通过；否则准确汇报缺口。终检后必须删除主任务 Heartbeat 并进入 IDLE，不能继续主动跟进或静默延长截止时间。
 
@@ -139,15 +139,15 @@ HTTPS 下载 GitHub archive -> 临时解压 -> 读取 manifest -> 校验目标 S
 -> 创建并删除无 Reddit scheduler 探针 -> 可回读时得到 scheduler_clock_mode；不可回读时记 CREATED_UNREADABLE 并继续
 -> 缺少硬依赖：返回 required_missing + repair_actions，停止
 -> READY：携带账号只询问一次 -> 用户确认
--> 计算 operation_stop_at 与 startup_watch_deadline -> 不创建 Goal，准备首小时 one-shot Heartbeat
+-> 计算 operation_stop_at 与 startup_watch_deadline -> 不创建 Goal；先完成首个请求相关 Chrome 微轮次
 -> 主任务改名“Loci Reddit运营” -> 创建评论、跟进、主页维护、内容浏览 4 个任务（或顺序降级）
--> 向用户返回一行“已启动”；技术状态全部留在内部
+-> 当前 turn 取得 start_proof；执行任务不能立即证明时由主任务顺序执行首个微轮次
 -> 每个执行任务建立自己的 Reddit Tab / 可选 Tab Group；彼此互不感知
 -> 主动评论首小时目标 10 条 -> 每条验证后本地等待 60–120 秒
 -> 内容浏览每 slot 有效阅读 8–12 条 -> 达到门槛时最多投 1 票，未达到则 0 票
 -> 评论/发帖/回复执行 Double-Check A -> 写作 -> Double-Check B；内容浏览执行阅读与投票门槛
 -> 发布后立即验证 permalink -> 主任务检查第二 Reddit 页面
--> 每个执行任务只维护自己的 lane automation
+-> 首个动作验证后，每个执行任务才维护自己的 lane automation
 -> 写一个下一次 heartbeat -> 时间字段可读则回读 next_run_at；不可读则在真实唤醒时校验
 -> 首小时内主任务持续只读回访、复查可见性和自动修复
 -> 第一小时边界强制终检 -> 删除临时健康 heartbeat

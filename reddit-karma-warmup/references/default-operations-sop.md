@@ -23,7 +23,7 @@ vote_cap_per_browse_slot = 1 combined upvote/downvote
 ```
 
 4. Keep the first-hour watch in ordinary task mode. Execute current work now and use one coordinator-owned one-shot heartbeat at a time for delayed checks; never enter Goal Mode.
-5. Use `gpt-5.6-sol/xhigh` for the main task and `gpt-5.6-luna/xhigh` for every worker.
+5. Use `gpt-5.6-sol/xhigh` for the main task and `gpt-5.6-luna/high` for every worker.
 
 ### A2. Dispatch Once
 
@@ -100,7 +100,7 @@ remaining_target
 
 1. Reuse the matching lane task from the registry. Create one only when no valid owner exists.
 2. Send only the mission delta; do not resend installation instructions or reset history.
-3. The owner immediately executes the first due slot using `gpt-5.6-luna/xhigh`.
+3. The owner immediately executes the first due slot using `gpt-5.6-luna/high`.
 4. If the owner already has a next trigger, update that same trigger to the new remaining target/deadline; do not stack another.
 5. Main reads the owner until verified one-shot completion or the bounded watch deadline, then reports and returns to `IDLE`.
 
@@ -118,7 +118,7 @@ Every worker receives:
 role = WORKER
 lane = [comments|posts|follow-up|presence|browsing]
 model = gpt-5.6-luna
-thinking_effort = xhigh
+thinking_effort = high
 account = u/name
 mission_id
 target/count/pool/urls

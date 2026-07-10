@@ -4,7 +4,7 @@ Use for duration/count planning, multi-round operation, waits longer than one ac
 
 ## Planning Rule
 
-Plan the session once, but execute one small slot at a time. The first slot starts immediately.
+Plan the session once, but execute one small slot at a time. The first slot starts in the same user turn. Scheduling is not execution: no heartbeat may be the first operational result after the user says start.
 
 Accept `duration only`, `count only`, or both:
 
@@ -39,6 +39,8 @@ After each slot, replace future rows when actual time, candidate quality, Reddit
 Second-level pre-submit pauses remain local waits.
 
 After creating the one-shot heartbeat and reading back every field the runtime actually exposes, end the current turn. Do not emit repeated “not due yet” turns, poll the clock, use Goal Mode, or use automatic continuation while waiting for the heartbeat.
+
+This handoff is legal only after the current turn has verified `START_NOW_PROOF`. The heartbeat resumes the next incomplete slot. If no requested action/no-action sweep has happened yet, return to lane execution instead of scheduling.
 
 ## One-Shot Contract
 

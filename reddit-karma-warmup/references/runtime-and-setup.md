@@ -8,7 +8,7 @@ This skill is instruction-only. It has no bundled scripts and does not require a
 
 ## Version And Upgrade
 
-The user-facing `INSTALL-AND-USE.md` is a short copyable Prompt. It fetches the canonical machine protocol from `https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/INSTALLER-PROTOCOL.md`; that protocol downloads the public repository archive from `https://codeload.github.com/lishehao/reddit-karma-warmup/zip/refs/heads/main` over HTTPS and selects the `reddit-karma-warmup/` directory. Git, GitHub CLI, and a local clone are not required. Read the downloaded root `manifest.json` and compare `name` plus `version` before dependency preflight.
+The repository root `README.md` is the single installation entrypoint and machine protocol. It downloads the public archive from `https://codeload.github.com/lishehao/reddit-karma-warmup/zip/refs/heads/main` over HTTPS and selects the `reddit-karma-warmup/` directory. Git, GitHub CLI, and a local clone are not required. Do not look for a second installer document. Read the downloaded Skill `manifest.json` and compare `name` plus `version` before dependency preflight.
 
 - no installed copy: install normally
 - installed copy without a manifest: treat as legacy, back up, then upgrade
@@ -73,13 +73,14 @@ Do not treat the first dropped/stale connection as failure. Run the Chrome recov
 
 ## Runtime Start
 
-The distribution Markdown owns installation and dependency preflight. Once it reports the environment ready and the user confirms start, restore its handoff instead of repeating the audit:
+The repository `README.md` owns installation and dependency preflight. Once it reports the environment ready and the user confirms start, restore its handoff instead of repeating the audit:
 
 1. Restore the reported Chrome account, heartbeat support, task/model fallback, local timezone, and detected `scheduler_clock_mode`.
 2. Confirm the already-validated Chrome control remains connected and still shows that Reddit account; read current local time and UTC again.
 3. Choose the requested mode and execute the first slot immediately.
-4. Run the scheduler smoke test when the installed environment is new or previously drifted, without replacing the first operating slot.
-5. Report any runtime regression precisely. Do not silently replace Chrome control with Computer Use, the in-app Browser, Playwright, or another browser surface.
+4. Do not send a final `已启动` acknowledgement until that slot yields a verified requested action or browser-backed no-action/blocker. Planning, worker dispatch, and heartbeat creation do not satisfy this gate.
+5. Run the scheduler smoke test when the installed environment is new or previously drifted, after start proof and without replacing the first operating slot.
+6. Report any runtime regression precisely. Do not silently replace Chrome control with Computer Use, the in-app Browser, Playwright, or another browser surface.
 
 When installation/preflight is healthy but the user has not supplied an operating scope, return exactly this guided prompt with the blank line preserved:
 

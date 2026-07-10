@@ -46,7 +46,7 @@ Every first run and resume follows the same state machine:
 | `SCHEDULE` | Create one next one-shot trigger if needed and read timing back when exposed. | verified, created_unreadable, or manual fallback |
 | `REPORT` | Return compact operational record. | turn ends |
 
-First activation must reach `ACT` or a verified no-action/blocker result before `SCHEDULE`. A heartbeat resume starts at `PROBE`, refreshes `HISTORY`, and continues the next incomplete slot.
+First activation must reach `ACT` or a verified no-action/blocker result before both `SCHEDULE` and `REPORT`. `START_NOW_PROOF` is a hard transition guard: no path from `SCOPE`, `ROUTE`, `NAME`, `PLAN_SLOT`, or worker dispatch may jump directly to `SCHEDULE`/`REPORT`. A heartbeat resume starts at `PROBE`, refreshes `HISTORY`, and continues the next incomplete slot.
 
 ## Scope And Authorization
 
@@ -128,6 +128,8 @@ If Chrome remains unavailable after recovery attempts, report `chrome_unavailabl
 
 If authorized worker tools do not exist, run the lanes sequentially in that order. If internal worker fan-out is allowed, each worker owns one lane and one future trigger. User-visible task creation still requires an explicit user request.
 
+For the first turn of a new operation, delegation is valid only when the coordinator can read a worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. If immediate worker proof is unavailable, run the first requested micro-slot sequentially in the current task and hand later slots to the registered worker.
+
 The `Loci Reddit运营` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. Load `coordinator-playbook.md`. Workers do not send routine callbacks to it.
 
 The coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, but only through its verified one-shot heartbeat. Dispatch and early acceptance are insufficient: it runs the mandatory boundary sweep at `startup_watch_deadline`. It must not use Goal Mode or generate progress-only turns while waiting. After that handoff, workers continue independently and the coordinator becomes user-driven again.
@@ -185,6 +187,8 @@ After each slot:
 - if continuing, create one one-shot trigger for this lane; verify local time, UTC time, repeat-off state, and scheduler readback when those fields are exposed
 - if creation succeeds but persisted timing is hidden, record `created_unreadable`, keep the trigger, finish the current slot, and validate timing at the next real wakeup; do not pause Reddit work or ask the user to repair it
 - if creation itself fails, finish the current slot and report a manual next local/UTC time
+
+Never run this scheduling section until the current operation has `START_NOW_PROOF`. The first heartbeat may resume the second slot, never the first.
 
 ## Compact Report Schema
 

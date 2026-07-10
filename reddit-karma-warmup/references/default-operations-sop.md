@@ -39,11 +39,13 @@ Reuse valid owners; otherwise create these tasks:
 
 Each worker starts now in its own Reddit tab. Do not wait for another lane. Posts remain optional and never replace the comment target.
 
+Before the coordinator sends any final response, at least one enabled requested lane must return verified `start_proof`. If workers are still preparing, only planned, or cannot be read immediately, the coordinator runs the first requested micro-slot sequentially. It may then return ownership of later slots to the workers.
+
 ### A3. Main First-Hour Watch
 
 The main task is read-only across workers:
 
-1. Read initial progress within `5-10 min`.
+1. Read initial progress in the same user turn, before final response. `5-10 min` is the first delayed recheck window after start proof, not permission to defer initial execution.
 2. As soon as the first outward permalink appears, apply `startup-health-check.md` without pausing the comment worker.
 3. Recheck that permalink in the `15-30 min` visibility window.
 4. Read worker progress about every `10-15 min` as useful and automatically repair recoverable setup/scheduler issues.
@@ -101,8 +103,9 @@ remaining_target
 1. Reuse the matching lane task from the registry. Create one only when no valid owner exists.
 2. Send only the mission delta; do not resend installation instructions or reset history.
 3. The owner immediately executes the first due slot using `gpt-5.6-luna/high`.
-4. If the owner already has a next trigger, update that same trigger to the new remaining target/deadline; do not stack another.
-5. Main reads the owner until verified one-shot completion or the bounded watch deadline, then reports and returns to `IDLE`.
+4. Main reads the owner in the current turn until it returns a verified requested action or concrete browser-backed no-action/blocker. If it returns only planning/acknowledgement or cannot execute now, main runs the first micro-slot sequentially.
+5. Only after that proof, update/create the owner's next trigger for the new remaining target/deadline; do not stack another.
+6. Main reports the actual result, not merely `已启动`, and then continues bounded observation through one-shot heartbeats or returns to `IDLE` as appropriate.
 
 ## Flow C: STATUS And Control
 
@@ -129,12 +132,14 @@ first_due = now or exact time
 
 Every worker must load only its lane references, start the first due action immediately, verify visible results, update its local history, maintain at most one next trigger, and keep all status in its own task. Workers never callback or coordinate sibling lanes.
 
+A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. It creates its continuation heartbeat only after the first micro-slot is verified.
+
 ## User-Facing Messages
 
-Start acknowledgement:
+Optional start commentary while tools are running; never use as the final answer:
 
 ```text
-已启动：主动评论首小时目标 10 条，消息跟进、主页维护和内容浏览同步运行；第一小时结束后汇报。
+正在执行第一轮；完成首个可验证动作后汇报，并再安排下一轮。
 ```
 
 User-required repair only:
@@ -145,4 +150,4 @@ User-required repair only:
 完成后回复“继续”。
 ```
 
-All normal handoffs use the four-field report from `SKILL.md`.
+The first final response and all normal handoffs use the four-field report from `SKILL.md`, with an actual action/permalink or concrete verified no-action evidence.

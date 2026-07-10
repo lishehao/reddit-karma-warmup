@@ -22,19 +22,21 @@ Do not expose this record unless the user asks for technical detail.
 1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Reuse current account/runtime state instead of repeating healthy checks.
 3. Reuse existing lane owners and send only changed mission fields.
-4. Observe the first hour of BOOTSTRAP and the bounded start of ongoing missions.
-5. Verify results, visibility, deadlines, and worker heartbeat handoff.
-6. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
-7. Return one concise Chinese result and enter `IDLE`.
+4. Enforce same-turn `start_proof`: read a worker's first verified result or execute the first micro-slot sequentially when worker proof is unavailable.
+5. Observe the first hour of BOOTSTRAP and the bounded start of ongoing missions.
+6. Verify results, visibility, deadlines, and worker heartbeat handoff.
+7. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
+8. Return one concise Chinese result and enter `IDLE`.
 
 It does not:
 
-- publish comments/posts/replies or edit the profile when workers are available
+- publish comments/posts/replies or edit the profile when the owning worker can execute and return current-turn proof; sequential first-slot fallback is allowed when it cannot
 - create a second main task
 - recreate an existing lane task merely because a new mission arrived
 - poll after its watch deadline
 - require workers to callback
 - ask the user to interpret task IDs, models, UTC math, automation fields, or logs
+- send a final `已启动` message when no requested Chrome action or verified no-action sweep has occurred
 
 ## Worker Registry And Reuse
 
@@ -67,7 +69,8 @@ watch_deadline = min(operation_stop_at, start + 60m)
 
 The main task keeps one read-only one-shot trigger at a time:
 
-- first progress read: within `5-10 min`
+- initial progress read: same user turn, before final response, until `start_proof`
+- first delayed progress read: within `5-10 min` after `start_proof`
 - first permalink visibility: immediate and `15-30 min` delayed check
 - progress reads: about every `10-15 min` when useful
 - final read: exactly at `watch_deadline`
@@ -132,13 +135,13 @@ Never redirect the user to a lane task. Parse, route, verify, and answer in the 
 
 ## User Reports
 
-After first dispatch:
+Optional commentary during the first active tool sequence; never final:
 
 ```text
-已启动：主动评论首小时目标 10 条，消息跟进、主页维护和内容浏览同步运行；第一小时结束后汇报。
+正在执行第一轮；完成首个可验证动作后汇报，并再安排下一轮。
 ```
 
-After watch/handoff, use exactly:
+The first final response is allowed only after `start_proof`; then use exactly:
 
 ```text
 本轮完成：<完成事项和数量>。

@@ -22,7 +22,7 @@ Maintain one small state record:
 | `browser_context` | this lane's dedicated `tab_id`, optional `group_id`, current URL, and confirmed account |
 | `action_log` | verified actions and candidate skips |
 | `next_trigger` | at most one one-shot continuation per lane |
-| `turn_gate` | `proof_by_lane` for a user command and `slot_proof` for each execution-lane heartbeat resume |
+| `turn_gate` | `start_proof_by_lane` for a user command and `slot_proof` for each execution-lane heartbeat resume |
 
 Do not create large parallel state tables unless the user asks for an export.
 

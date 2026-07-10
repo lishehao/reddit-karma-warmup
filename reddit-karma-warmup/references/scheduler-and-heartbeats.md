@@ -9,8 +9,8 @@ Plan the session once, but execute one small slot at a time. The first slot star
 Accept `duration only`, `count only`, or both:
 
 - Duration only: derive a quality-gated recommendation from account tier and lane.
-- Daily 60 comment mode: plan around `10 comments/hour`; require at least `6h` for the full target. For shorter windows, cap the plan at `10 x available hours` and do not catch up after a late or missed slot.
-- Newly installed/started broad operation: make the proactive comment lane's first hour an immediate `10`-comment target. Use a local `60-120 sec` pause after each verified submission; no heartbeat is needed for that short pause.
+- Explicit Daily 60 comment mode: plan around `10 comments/hour`; require at least `6h` for the full target. For shorter windows, cap the plan at `10 x available hours` and do not catch up after a late or missed slot.
+- Newly installed/started broad operation: execute all four lane micro-slots immediately using the selected intensity envelope. Use a local `60-120 sec` pause after each verified comment; no heartbeat is needed for that short pause.
 - Count only: estimate a minimum window from work time, spacing, preflight, and verification.
 - Both: spread the requested work across the window; do not front-load it.
 
@@ -83,8 +83,7 @@ If the stored next run is exactly one local UTC offset away from the intended in
 
 Choose the next interval from lane state:
 
-- follow-up: normally `20-40 min`; shorter only for an active direct exchange, longer for a quiet queue
-- presence: based on next due profile/join/flair action, usually much longer than one comment slot
+- follow-up: use low `45-60 min`, standard `30-45 min`, or high `20-30 min`; shorter only for an active direct exchange, longer for a quiet queue
 - comments: next incomplete workload slot after required spacing and candidate availability
 - posts: next eligible post window after live rules, same-subreddit history, and diversity checks
 
@@ -109,4 +108,4 @@ The smoke test never opens Reddit or changes account state.
 
 Triggers in different lanes coexist independently. A worker inspects only its own lane trigger and keeps at most one next one-shot trigger for that lane. It does not scan, compare, pause, delete, or reschedule another lane because of shared Chrome/account use, overlapping times, targets, or actions.
 
-Before mutating an automation, verify only that `target_thread_id` is the current task and the prompt belongs to the current lane. A follow-up task cannot mutate comment/post/presence automations; a comment task cannot mutate post/follow-up/presence automations, and so on. When one user policy affects several lanes, each owner updates only its own trigger after receiving that instruction.
+Before mutating an automation, verify only that `target_thread_id` is the current task and the prompt belongs to the current lane. A follow-up task cannot mutate comment/post/browsing automations; a comment task cannot mutate post/follow-up/browsing automations, and so on. When one user policy affects several lanes, each owner updates only its own trigger after receiving that instruction.

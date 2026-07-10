@@ -1,12 +1,12 @@
 ---
 name: reddit-karma-warmup
 description: >-
-  Run authorized Reddit community operations through the user's logged-in Chrome session. Use for zero-account bootstrap, proactive comments or posts, notification/reply follow-up, profile/community presence, read-only browsing with occasional genuine votes, multi-hour scheduling, later missions dispatched through the stable Loci Reddit operations task, or packaging and inspecting this workflow.
+  Run authorized Reddit community operations through the user's logged-in Chrome session. Use for zero-account bootstrap, proactive comments, main posts, notification/reply follow-up, natural browsing with occasional genuine votes, duration/intensity-based operations, later missions dispatched through the stable Loci Reddit operations task, or packaging and inspecting this workflow.
 ---
 
 # Reddit Karma Warmup
 
-Use one stable user-facing task named `Loci Reddit运营` and five internal lane tasks: `主动评论`, `主动发帖`, `消息跟进`, `主页维护`, and `内容浏览`. The main task accepts commands and coordinates; lane tasks execute Reddit actions.
+Use one stable user-facing task named `Loci Reddit运营` and four internal operation lanes: `主动评论`, `主动发帖`, `消息跟进`, and `自然浏览`. The main task is the only user-facing command surface; lane tasks are internal execution details.
 
 ## Select Runtime Context
 
@@ -24,8 +24,8 @@ Lane references:
 
 - comments/posts: `references/proactive-playbook.md`, `references/outbound-copy-gate.md`, and `references/publish-consistency.md`
 - notifications/replies: `references/followup-playbook.md`; add copy/publish gates only when replying
-- profile/join/flair: `references/community-presence-playbook.md`
-- browsing/occasional votes: `references/browse-vote-playbook.md`
+- bootstrap-only profile/join/flair setup: `references/community-presence-playbook.md`
+- natural browsing with optional genuine upvote/downvote: `references/browse-vote-playbook.md`
 - no user target pool: `references/loci-subreddit-pool-v1.md`
 - 8-12 hour run: `references/twelve-hour-ops-template.md`
 - model assignment: `references/model-runtime.md`
@@ -38,7 +38,7 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - If Chrome control or Reddit login is missing on a first-time setup, keep installation complete, return one novice repair action from `runtime-and-setup.md`, and resume preflight when the user replies `继续`. Never create an account, enter credentials, or start workers before the logged-in account is confirmed.
 - User replies `开始` with no other scope: enter `BOOTSTRAP`, default to `3 hours`, and start the first actions immediately.
 - A later user command in `Loci Reddit运营`: enter `MISSION`; reuse existing lane tasks and never rerun installation or bootstrap after `bootstrap_state=initialized`, even while the account remains `K0 fresh_bootstrap`.
-- A user asks what is possible: list comments, posts, follow-up, profile/community presence, and browsing with optional genuine votes; do not mutate until they issue an operation command.
+- A user asks what is possible: list comments, posts, follow-up, and natural browsing (including gated Upvote/Downvote); do not mutate until they issue an operation command.
 - A lane worker receives a resume heartbeat: restore its own history and unfinished target; do not create a main task or restart the session.
 
 The main task remains the user's only operational entrypoint. A user command such as `评论 20 条` routes to `主动评论`; it does not rename the main task or make the main task publish.
@@ -49,7 +49,7 @@ An operation command means execute now, not plan now and act on the next heartbe
 
 1. Open/reclaim the relevant Chrome lane tab and perform the first requested micro-slot.
 2. Produce `start_proof_by_lane`: every explicitly requested/enabled lane records one verified requested action, or a verified browser sweep with concrete no-action/blocker evidence.
-3. Only after `start_proof`, create the next heartbeat when more work remains.
+3. Only after `start_proof_by_lane`, create the next heartbeat when more work remains.
 4. Only after action verification and heartbeat handoff may the turn send its final report.
 
 Reading references, inspecting tasks, planning, dispatching a worker, creating a heartbeat, or saying `已启动` is not proof. A no-action result must name the surfaces/candidates actually checked and the concrete gate that rejected them; “still preparing” is not valid. Commentary may say work is starting, but never send a final `已启动` acknowledgement before proof. For a multi-lane command, do not claim the whole mission started until every enabled lane has proof; a lane without proof is still not started.
@@ -62,9 +62,9 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 
 1. Classify the request as `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Restore the known Chrome account, worker registry, account tier, history, scheduler clock mode, and active operations. Reconnect recoverable Chrome state automatically.
-3. Convert the request into a contract: lane(s), target/count, duration, pool, language, `operation_stop_at`, and watch deadline.
+3. Convert the request into a contract: lane(s), target/count, duration, intensity, pool, language, `operation_stop_at`, and watch deadline. `运营` enables all four lanes; a named action enables only that lane.
 4. Reuse each matching lane task when authorized and immediately controllable; create/name one only when allowed and no valid owner exists.
-5. Send each owner its delta: objective, remaining count, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
+5. Send each owner its delta: objective, remaining count, intensity, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
 6. Pass the `Start-Now Gate` in this same turn for every enabled lane. Read each worker's verified first result; if one cannot produce proof now, execute that lane's first micro-slot sequentially in the current task. Never enter Goal Mode or call `create_goal`.
 7. Verify the first result. Only now may a worker/current task create a one-shot heartbeat for delayed continuation.
 8. For `BOOTSTRAP`, keep the main task's read-only watch through one-shot heartbeats for the first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
@@ -74,12 +74,12 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 ## Zero-Account Defaults
 
 - Main model: `gpt-5.6-sol/xhigh`. Every lane worker: `gpt-5.6-luna/high`.
-- Default duration: `3 hours`; comment planning target: `10/hour`, therefore `30` across the default run when enough candidates pass; daily planning target remains `60`.
-- First hour: target `10` passing comments across at least `3` lower-restriction communities. After each verified comment, use a local `60-120 sec` pause; discovery, reading, drafting, and checks are additional.
-- Presence: truthful minimum profile setup plus `1-3` high-fit joins when due.
+- Default operation: `3 hours` at `standard` intensity, automatically decomposed across comments, posts, follow-up, and natural browsing.
+- Profile/community setup is a one-time bootstrap step only when the visible account is incomplete; it is not a recurring operation lane.
+- Comment/post volumes come from the intensity envelope and account tier. After each verified comment, use a local `60-120 sec` pause; discovery, reading, drafting, and checks are additional.
 - Follow-up: inspect Notifications and recent own activity; reply only to actionable items.
-- Browsing: read `8-12` qualified items per slot across eligible communities and cast at most one combined genuine vote when the dedicated gate passes; a zero-vote slot is valid.
-- Posts: off by default during bootstrap unless the user requests them or a fully eligible native candidate passes live preflight.
+- Natural browsing: read `8-12` qualified items per slot across eligible communities and cast at most one combined genuine vote when the dedicated gate passes; a zero-vote slot is valid.
+- The post lane is enabled during broad operation, but publishing still requires a fully eligible native candidate and live preflight; a verified no-post result is valid.
 - The main task checks the first outward permalink immediately, again after `15-30 min`, and at the first-hour boundary while workers continue independently.
 
 ## Shared Invariants
@@ -91,7 +91,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 - Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use one verified one-shot heartbeat, and the current turn ends after reporting that handoff.
 - A heartbeat is continuation-only. Never create it as the first operational outcome after a user command, and never use its future wakeup to defer the first requested Chrome micro-slot.
 - Heartbeat capability and heartbeat timing observability are separate. Successful create/update with an automation ID/card proves capability; missing `next_run_at` or hidden display time means `created_unreadable`, not failure. Continue current Reddit work, never ask the user to repair an unexposed field, and validate timing when the heartbeat actually fires.
-- The user's latest explicit duration, count, language, target community, and lane override defaults. Counts remain candidate- and rule-gated.
+- The user's latest explicit duration, intensity, count, language, target community, and lane override defaults. Counts remain candidate- and rule-gated.
 - Main posts require same-day rules, eligibility, flair, frequency, and moderation-state checks. Ordinary comments require target-context and obvious-risk checks.
 - Every verified comment/reply appends its measured character count, word count, sentence form, and length tier. Before drafting the next one, consult the latest `10` comment/reply entries and choose a context-appropriate length instead of defaulting to a repeated two-sentence shape.
 - Pool layers are gates: `B/B+` may enter action discovery when row rules fit; `A` is research-first; `A0/No-go` are read-only.

@@ -8,7 +8,7 @@ Maintain one small state record:
 
 | Field | Meaning |
 |-|-|
-| `scope` | run kind, mission ID, user request, authorization, duration/count, language, pool, stop time |
+| `scope` | run kind, mission ID, user request, authorization, duration/intensity/count, language, pool, stop time |
 | `environment` | Chrome capability, account, connection/recovery status, local time/timezone/UTC, scheduler support, detected `scheduler_clock_mode`, and authorized worker support |
 | `account_tier` | `K0 New`, `K1 Growing`, or `K2 Established`; separate `bootstrap_state` records workflow initialization without changing tier |
 | `model_runtime` | coordinator request/actual `gpt-5.6-sol/xhigh`, worker request/actual `gpt-5.6-luna/high`, fallback reason |
@@ -52,7 +52,7 @@ Every enabled lane on first activation must reach `ACT` or a verified no-action/
 ## Scope And Authorization
 
 - The user's latest explicit request overrides defaults for lane, target, language, duration, count, pool, and output.
-- Broad operation with no duration/count defaults to `3 hours` and four lanes: follow-up, presence, comments, and browsing. Posts remain optional.
+- `运营` enables four lanes: comments, posts, follow-up, and natural browsing. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
 - User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator requests `gpt-5.6-sol/xhigh`, workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
 - Session-level authorization covers ordinary actions in the active session and its one-shot continuations. Do not ask before every item.
 - Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action.
@@ -78,8 +78,7 @@ Default titles:
 | proactive comment lane | `主动评论` |
 | proactive post lane | `主动发帖` |
 | follow-up lane | `消息跟进` |
-| presence lane | `主页维护` |
-| browsing lane | `内容浏览` |
+| browsing lane | `自然浏览` |
 
 The user-facing task always keeps `Loci Reddit运营`, including for a single-lane MISSION. Only an explicitly handed-off WORKER task uses a lane title. Account tier and mission type never change these titles.
 
@@ -122,7 +121,6 @@ If Chrome remains unavailable after recovery attempts, report `chrome_unavailabl
 | Lane | Owns | Must not do |
 |-|-|-|
 | `follow-up` | notifications, supplied URLs, own recent posts/comments, mod/Automod | unrelated discovery or new main posts |
-| `presence` | profile, join/subscribe, truthful flair/tag | publish comments/posts unless separately scoped |
 | `comments` | new comments on existing threads | notifications, main posts, or voting |
 | `posts` | new main posts and full live preflight | ordinary comment volume or notifications |
 | `browsing` | qualified reading and optional gated upvote/downvote decisions | comments, posts, replies, profile edits, joins, or Notifications |

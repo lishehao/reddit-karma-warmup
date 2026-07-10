@@ -23,7 +23,7 @@ The worker records after its first outward action:
 - local submit time and timezone
 - immediate reload result and any Reddit/Automod message
 
-For the proactive comment lane, write this first-action marker as soon as the first permalink exists, then continue toward the `10`-comment first-hour target. The coordinator's delayed visibility check runs in parallel; do not pause the worker merely because that check is pending. A concrete failed visibility/account result stops further comments.
+For the proactive comment lane, write this first-action marker as soon as the first permalink exists, then continue within the selected first-hour intensity envelope. The coordinator's delayed visibility check runs in parallel; do not pause the worker merely because that check is pending. A concrete failed visibility/account result stops further comments.
 
 The coordinator then uses its own read-only acceptance tab:
 
@@ -37,7 +37,7 @@ The coordinator then uses its own read-only acceptance tab:
 6. Reopen the same permalink and second surface. Record `survivor_visible` only if both still pass.
 7. If a separate signed-out/Guest Chrome context is already available, optionally open the permalink there and record `public_visible`; otherwise do not claim anonymous visibility.
 
-Profile edits, joins, flair, notification sweeps, and verified no-action results have no public visibility gate. Validate only their own final UI state and heartbeat handoff.
+Bootstrap profile edits/joins, notification sweeps, browsing, and verified no-action results have no public visibility gate. Validate only their own final UI state and heartbeat handoff.
 
 ## Acceptance And Recovery
 
@@ -45,8 +45,7 @@ A lane with a first outward action reaches `first_round_ok` only after `submit_v
 
 Non-publishing lanes use action-specific acceptance instead of permalink checks:
 
-- `内容浏览`: `8-12` qualified reads are logged and the vote gate was applied; `0` votes is valid. If a vote was cast, a refresh confirms the selected arrow remains active.
-- `主页维护`: the due profile/join work is verified, or the lane records a concrete valid no-action result.
+- `自然浏览`: `8-12` qualified reads are logged and the vote gate was applied; `0` votes is valid. If a vote was cast, a refresh confirms the selected arrow remains active.
 - `消息跟进`: Notifications and recent own activity were swept, with any reply processed through the normal outward checks.
 
 These lanes still require a successfully created next heartbeat when continuation is due. Hidden persisted timing is recorded as `created_unreadable` and does not pause the lane.

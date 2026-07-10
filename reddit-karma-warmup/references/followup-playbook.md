@@ -4,7 +4,7 @@ Use only for notifications, supplied Reddit URLs, replies to the account's own r
 
 ## Cadence And Surfaces
 
-Default to one lightweight sweep every `20-40 min` while the session is active.
+Derive the base sweep cadence from operation intensity while the session is active: low `45-60 min`, standard `30-45 min`, high `20-30 min`.
 
 Check:
 
@@ -51,14 +51,14 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 
 On a direct user command or execution-heartbeat resume, complete the current Notifications + known-permalink/recent-activity sweep before scheduling another check. The processed reply/close result or the concrete quiet-queue sweep is `slot_proof`; merely deciding the next sweep time is not.
 
-- normal queue: `20-40 min`
+- normal queue: selected intensity cadence
 - active direct exchange: `12-20 min`
 - quiet queue: `40-90 min`
 - several replies or uncertainty: `57-96 min`
 
 Choose from state, not random imitation. Schedule one next one-shot trigger, verify local/UTC readback, and never stack another follow-up trigger for the same slot.
 
-The follow-up lane owns only its follow-up automation. It may read proactive comment, post, or presence automation status for context, but must not pause, resume, delete, or rewrite those triggers. If a global policy affects them, update the follow-up trigger only and report the other implications to their owner tasks or coordinator.
+The follow-up lane owns only its follow-up automation. It may read proactive comment, post, or browsing automation status for context, but must not pause, resume, delete, or rewrite those triggers. If a global policy affects them, update the follow-up trigger only and report the other implications to their owner tasks or coordinator.
 
 ## Follow-Up Report
 

@@ -14,25 +14,24 @@ Use for about `8-12h`, overnight, or other long low-frequency runs. This is a pl
 
 | Window | Default work |
 |-|-|
-| H0-H1 | Account/time check, minimal profile setup, `1-3` strong joins, one `8-12` qualified-read browse slot with at most one gated vote, then target `10` short passing comments across at least `3` communities with a `60-120 sec` pause after each verified submission. The coordinator checks the first permalink in parallel. |
-| H1-H3 | Continue the daily target after first-hour reconciliation and optionally preflight the first post. |
-| H3-H6 | If clean, continue in comment slots toward roughly `25-35` cumulative comments across diverse communities. |
-| H6-H8 | Continue toward `40-45`; optional second post only if the first is visible, the target/angle differs, and `>=6h` elapsed. |
-| H8-H10 | Continue toward the `60/day` target only while candidates pass and visibility stays clean. |
-| H11 | Closeout visibility and tier checkpoint; do not force missed comments or create a catch-up burst. |
+| H0-H1 | Account/time check, bootstrap-only profile setup when incomplete, then immediate comment, post-preflight, follow-up, and natural-browse micro-slots at the selected intensity. The coordinator checks the first permalink in parallel. |
+| H1-H3 | Continue all four operation lanes at the selected intensity after first-hour reconciliation. |
+| H3-H6 | Keep diverse comment/browse slots, follow-up sweeps, and native post candidate checks; publish only passing candidates. |
+| H6-H10 | Continue the selected intensity without catch-up bursts; explicit high-volume mode may progress toward its authorized daily ceiling. |
+| H11 | Closeout visibility, replies, remaining target, and tier checkpoint. |
 
 ## Activated K0 / K1 / K2 Track
 
 | Window | Default work |
 |-|-|
-| H0 | Account/time check plus one immediate follow-up, presence action, `8-12` qualified-read browse slot, or `1-2` comments. |
-| H1-H3 | Comment slots toward the `60/day` target; one post preflight window only if posts are enabled. |
-| H4-H6 | Follow-up/visibility, presence review, and diverse comment slots. |
-| H7-H9 | Continue comments toward the daily target; optional second post only for a strong distinct candidate. |
-| H10-H11 | Final follow-up/comment slot and closeout; no forced catch-up. |
+| H0 | Execute one immediate micro-slot for comments, posts, follow-up, and natural browsing. |
+| H1-H3 | Continue all four lanes at the selected intensity. |
+| H4-H6 | Follow-up/visibility, diverse comment/browse slots, and native post candidate checks. |
+| H7-H9 | Continue within the chosen envelope; no forced daily target unless explicitly requested. |
+| H10-H11 | Final follow-up, visibility, comment/browse/post reconciliation, and closeout. |
 
 ## Dispatch
 
-Broad operation enables follow-up, presence, comments, and browsing. Add posts only when requested or a strong candidate warrants preflight. Each worker receives the shared stop time, account tier, pool, first due slot, and its independent Chrome tab rule.
+Broad operation enables comments, posts, follow-up, and natural browsing. Profile/community setup is bootstrap-only. Each worker receives the shared stop time, intensity, account tier, pool, first due slot, and its independent Chrome tab rule.
 
 Actual trigger intervals come from `scheduler-and-heartbeats.md`, not fixed hourly recurrence. Use the four-field report from `orchestration-core.md`; keep selected track, lane owners, slot math, stop time, and scheduler readback internal unless they create a risk or scheduling failure.

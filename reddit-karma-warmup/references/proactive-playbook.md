@@ -6,26 +6,26 @@ Use only for new comments on existing Reddit threads and optional main posts. De
 
 Reddit does not publish a global safe comments-per-hour or posts-per-day limit. Account age and karma are only proxies: CQS/reputation signals, email verification, network/account-security signals, recent behavior, subreddit karma, and each community's eligibility rules also matter. Use the lowest supported tier across the observable signals; age alone never upgrades an inactive or low-quality account.
 
-| Tier | Observable operating state | Comment slot range | Daily comment range | Main-post window |
+| Tier | Observable operating state | Maximum comment envelope | Maximum daily envelope | Main-post window |
 |-|-|-:|-:|-:|
-| `K0 New` | `<50` karma; use `fresh_bootstrap` when `<48h`, blank/no-history, unverified/unknown, or visibility is uncertain | target `10/hour` | target `60/day` | `0-2/day` |
-| `K1 Growing` | `50-199` karma plus `>=7d` clean recent state | target `10-16/hour` | target `60/day` | `0-3/day` |
-| `K2 Established` | `>=200` karma plus `>=14d` clean recent state | target `10-20/hour` | target `60/day` baseline | `0-3/day` |
+| `K0 New` | `<50` karma; use `fresh_bootstrap` when `<48h`, blank/no-history, unverified/unknown, or visibility is uncertain | up to `10/hour` | up to `60/day` only in explicit high-volume mode | `0-2/day` |
+| `K1 Growing` | `50-199` karma plus `>=7d` clean recent state | up to `16/hour` after explicit override | up to `60/day` | `0-3/day` |
+| `K2 Established` | `>=200` karma plus `>=14d` clean recent state | up to `20/hour` after explicit override | up to `60/day` | `0-3/day` |
 
-These are internal planning ranges, not Reddit platform limits, safety guarantees, or quotas to fill mechanically. The hourly figure is a short-slot upper range; the daily range and candidate gate still dominate. The user may request another count; distribute it across the requested window, warn once when it materially exceeds the current tier, and publish only passing candidates.
+These are internal ceilings, not Reddit platform limits, safety guarantees, or quotas. Normal operations use the low/standard/high envelopes from `default-operations-sop.md`; account tier and recovery state clamp those envelopes. The user may request another count; distribute it across the requested window, warn once when it materially exceeds the current tier, and publish only passing candidates.
 
 Use `new-account-bootstrap.md` when `K0` is in `fresh_bootstrap`. Passing its checkpoints changes the substate to `active_new` but does not create another tier. Promote to `K1/K2` only when both the karma band and clean-history window pass. Apply the explicit recovery levels below after removals or account signals; do not use an undefined generic slowdown.
 
 After every verified proactive comment, use a local `60-120 sec` pause before the next publish; discovery, reading, drafting, and verification time are additional. Main posts are heavier: default to at most one main post per subreddit per `24h`. Two same-day posts require different communities and audience/angle clusters, at least `6h` separation, and a clean visibility check on the earlier post.
 
-## Daily 60 Comment Mode
+## Explicit Daily 60 Comment Mode
 
-This is the default clean-account planning target for every tier, including pure-new `K0`. It is a planning target, never a quota that lowers the candidate threshold.
+This is not the default. Enable it only when the user explicitly requests about `60 comments/day`, or explicitly selects high intensity for at least `6h`. It is a planning ceiling, never a quota that lowers the candidate threshold.
 
-- All tiers may use a `60/day` target while clean. Plan around `10/hour`; use at least a `6h` operating window for the full target.
+- All tiers may plan toward `60/day` only while clean and explicitly authorized. Use at least a `6h` operating window for the full target.
 - For a shorter window, target at most `10 x available hours`; do not compress missed comments into a burst.
-- Every clean tier, including pure-new `K0`, starts by targeting `10` passing comments in the first hour. The coordinator checks the first permalink in parallel without pausing the comment worker.
-- After the first hour, continue toward the same `10/hour`, `60/day` target. A concrete visibility or account failure disables this target and activates the matching recovery level.
+- High intensity starts with a `6-10` passing-comment first-hour envelope. The coordinator checks the first permalink in parallel without pausing the comment worker.
+- After the first hour, continue within the selected high envelope. A concrete visibility or account failure disables this mode and activates the matching recovery level.
 - Prefer at least `6` communities and `3` clusters across a 60-comment day when the eligible pool supports it; avoid more than `5` proactive comments in one subreddit per `24h`.
 - Keep the normal `Act >=80`, truthfulness, copy-length, history, and `60-120 sec` post-submit pause. If not enough candidates pass, publish fewer.
 - Any `R1`, `R2`, or `R3` event immediately disables Daily 60 mode and applies the corresponding recovery range. Never resume Daily 60 during the same recovery window.
@@ -80,7 +80,7 @@ Trigger: captcha, sitewide rate limit, lock/suspension, account-wide warning, lo
 - `post lane`: the user explicitly asks for main posts or a post window is enabled by the broad SOP.
 - `mixed`: keep separate comment and post targets; never count comments as posts.
 
-For early accounts, default to comment-first. Posts are optional unless explicitly requested.
+For early accounts, execute comments first. Broad `运营` still enables the post candidate/preflight lane; a comment-only command does not add posts.
 
 ## Active Pool Gate
 
@@ -123,7 +123,7 @@ For a fast-rising topic, also require a clear current hook: the thread is still 
 5. Enter the draft and run Double-Check B.
 6. Reselect this lane's dedicated Reddit tab, verify account/target, wait `18-70 sec`, submit, and verify permalink/profile visibility.
 7. Measure the exact published text and append `char_count`, `word_count`, `sentence_form`, `length_tier`, and `why_this_length` to history and follow-up state. After a verified proactive comment, use a local `60-120 sec` pause before the next publish; first follow-up is normally `20-40 min` later.
-8. During a new start, continue toward `10` passing comments in the first hour. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill the target.
+8. During a new start, use the selected intensity envelope. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill the target.
 
 Comments should be mostly short, while longer replies remain available when the target genuinely needs explanation. Do not default to two polished sentences, mechanically rotate lengths, add filler, summarize the post, repeat top comments, or mention Loci/product links unless the user explicitly requests it and rules permit it.
 

@@ -2,6 +2,27 @@
 
 Use for `BOOTSTRAP` and `MISSION`. The main task is always `Loci Reddit运营`; it delegates Reddit mutations to lane owners.
 
+## User Operation Router
+
+The user always talks to `Loci Reddit运营`:
+
+- `运营 [duration] [intensity]`: enable comments, posts, follow-up, and natural browsing.
+- `评论 ...`, `发帖 ...`, `跟进 ...`, or `自然浏览 ...`: enable only the named lane unless the user combines them.
+- Duration may be supplied without intensity; intensity may be supplied without duration.
+- Defaults: `duration=3h`, `intensity=standard`.
+- Intensity aliases: `low/轻度/低`, `standard/标准/中等`, `high/高强度/高`.
+- An explicit per-lane count replaces that lane's intensity target. User-supplied duration/intensity/count still remains quality-, rule-, and account-gated.
+
+Use this planning envelope, not a quota:
+
+| Intensity | Comments | Posts | Follow-up | Natural browsing |
+|-|-|-|-|-|
+| `low` | target `2-4/hour` | one candidate/preflight sweep per session; publish only a passing candidate | every `45-60 min` | one `8-12` read slot every `45-60 min` |
+| `standard` | target `4-6/hour` | candidate/preflight sweep every `2-3h`; normally at most one passing post in a short session | every `30-45 min` | one `8-12` read slot every `30-45 min` |
+| `high` | target `6-10/hour` | candidate/preflight sweep every `60-90 min`; live post limits still dominate | every `20-30 min` | one `8-12` read slot every `20-30 min` |
+
+Natural browsing includes qualified reading plus optional gated Upvote/Downvote. Voting is never a quota. Profile setup, joins, and flair are bootstrap housekeeping, not a fifth recurring operation lane.
+
 ## Flow A: BOOTSTRAP From Zero
 
 Trigger when the user confirms the first start after installation, or `bootstrap_state` is not initialized and the visible account is blank, under `48h`, has very low/unknown Karma, or has no clean visible history.
@@ -16,8 +37,8 @@ Trigger when the user confirms the first start after installation, or `bootstrap
 run_kind = BOOTSTRAP
 operation_stop_at = start + requested duration (default 3h)
 watch_deadline = min(operation_stop_at, start + 60m)
-comment_target_first_hour = 10
-comment_target_run = min(60, 10 x run_hours)
+intensity = requested intensity (default standard)
+comment_target_run = intensity envelope x run_hours, clamped by account/recovery state
 browse_slot = 8-12 qualified reads
 vote_cap_per_browse_slot = 1 combined upvote/downvote
 ```
@@ -31,13 +52,12 @@ Reuse valid owners; otherwise create these tasks:
 
 | Task | First-hour responsibility |
 |-|-|
-| `主动评论` | Publish up to `10` passing short comments across at least `3` lower-restriction communities; pause `60-120 sec` after each verified submission. |
-| `主页维护` | Apply minimum truthful profile setup and join `1-3` high-fit communities when due. |
+| `主动评论` | Execute the current intensity envelope across diverse lower-restriction communities; pause `60-120 sec` after each verified submission. |
+| `主动发帖` | Run one live candidate/preflight micro-slot; publish only when a native candidate passes, otherwise record verified no-post proof. |
 | `消息跟进` | Sweep Notifications and recent own activity; reply only to actionable items. |
-| `内容浏览` | Read `8-12` qualified items across `2-4` eligible communities; cast at most one combined vote only when its quality gate passes. |
-| `主动发帖` | Disabled by default; create only when the user enables posts or a strong eligible post mission exists. |
+| `自然浏览` | Read `8-12` qualified items across `2-4` eligible communities; cast at most one combined vote only when its quality gate passes. |
 
-Each worker starts now in its own Reddit tab. Do not wait for another lane. Posts remain optional and never replace the comment target.
+Before dispatch, perform bootstrap-only profile/membership setup in the main task when the account is visibly incomplete. Then every operation worker starts now in its own Reddit tab. Do not wait for another lane.
 
 Before the coordinator sends any final response, every enabled requested lane must return verified `start_proof`. If any worker is still preparing, only planned, or cannot be read immediately, the coordinator runs that lane's first requested micro-slot sequentially. It may then return ownership of later slots to the workers.
 
@@ -57,7 +77,7 @@ Startup acceptance passes only when all enabled lanes are accepted at the final 
 
 ### A4. Handoff
 
-Workers continue independently until `operation_stop_at`. For the default `3h` run, the comment planning target is `30`; do not catch up with bursts when fewer candidates pass. The main task stays idle until the user returns.
+Workers continue independently until `operation_stop_at` using the selected intensity envelope. Do not catch up with bursts when fewer candidates pass. The main task stays idle until the user returns.
 
 ## Flow B: MISSION Through The Main Task
 
@@ -70,9 +90,8 @@ Trigger when the user later gives an active operation command in `Loci Reddit运
 | `评论 N 条`, `主动评论`, named comment communities | `主动评论` |
 | `发 N 篇帖子`, `主动发帖`, post angle/community | `主动发帖` |
 | `看回复`, `看 Notifications`, supplied permalink | `消息跟进` |
-| `装修主页`, `join`, `flair/tag` | `主页维护` |
-| `浏览`, `刷帖`, `偶尔投票`, `upvote/downvote` | `内容浏览` |
-| `运营 N 小时`, multiple actions | only affected existing owners; default comments + follow-up + presence + browsing, posts optional |
+| `浏览`, `自然浏览`, `刷帖`, `偶尔投票`, `upvote/downvote` | `自然浏览` |
+| `运营 [N 小时] [强度]` | comments + posts + follow-up + natural browsing |
 | `暂停/继续/停止 X` | affected owner(s) only |
 
 ### B2. Build A Mission Delta
@@ -83,6 +102,7 @@ Read only the relevant workers plus current account state. Create:
 mission_id
 lane(s)
 requested_count_or_action
+intensity
 target_pool_or_urls
 language
 operation_stop_at
@@ -119,12 +139,13 @@ Every worker receives:
 
 ```text
 role = WORKER
-lane = [comments|posts|follow-up|presence|browsing]
+lane = [comments|posts|follow-up|browsing]
 model = gpt-5.6-luna
 thinking_effort = high
 account = u/name
 mission_id
 target/count/pool/urls
+intensity = low | standard | high
 operation_stop_at = local + UTC
 scheduler_clock_mode
 first_due = now or exact time

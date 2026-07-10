@@ -11,7 +11,7 @@ account: username, tier/substate, bootstrap_state, warning/removal state
 runtime: Chrome, local timezone/UTC, scheduler clock mode
 workers: lane -> task ID, title, last state, owned automation
 history: recent subreddit, action, angle, length, permalink
-active_missions: mission ID, lane, target, remaining, stop time
+active_missions: mission ID, lane, intensity, target, remaining, stop time
 main_state: INTAKE | DISPATCH | WATCH | HANDOFF | IDLE
 ```
 
@@ -30,7 +30,8 @@ Do not expose this record unless the user asks for technical detail.
 
 It does not:
 
-- publish comments/posts/replies or edit the profile when the owning worker can execute and return current-turn proof; sequential first-slot fallback is allowed when it cannot
+- publish comments/posts/replies when the owning worker can execute and return current-turn proof; sequential first-slot fallback is allowed when it cannot
+- edit profile/community state outside first bootstrap or an explicit one-off setup repair
 - create a second main task
 - recreate an existing lane task merely because a new mission arrived
 - poll after its watch deadline
@@ -47,8 +48,7 @@ Stable titles:
 | comments | `主动评论` | `gpt-5.6-luna/high` |
 | posts | `主动发帖` | `gpt-5.6-luna/high` |
 | follow-up | `消息跟进` | `gpt-5.6-luna/high` |
-| presence | `主页维护` | `gpt-5.6-luna/high` |
-| browsing | `内容浏览` | `gpt-5.6-luna/high` |
+| browsing | `自然浏览` | `gpt-5.6-luna/high` |
 
 Before dispatch:
 
@@ -122,12 +122,11 @@ Escalate only when the user must act: logged-out/wrong account, credential reque
 
 The user stays in `Loci Reddit运营` for all of these:
 
-- `开始` / `运营 3 小时`
+- `开始` / `运营 3 小时` / `高强度运营 6 小时`
 - `评论 20 条` / `去 r/... 评论`
 - `发 2 篇帖子`
 - `看回复` / `跟进这个链接`
-- `装修主页` / `加入这些社区`
-- `浏览这些社区` / `刷帖并偶尔投票`
+- `自然浏览这些社区` / `刷帖并偶尔投票`
 - `现在进展如何` / `下一轮什么时候`
 - `暂停发帖` / `继续评论` / `全部停止`
 

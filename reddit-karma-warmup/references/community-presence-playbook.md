@@ -1,6 +1,6 @@
-# Community Presence Playbook
+# Bootstrap Profile And Community Setup
 
-Use only for profile/homepage upkeep, target-based join/subscribe, truthful flair/tag, and membership review. Shared lifecycle and Chrome lease come from `orchestration-core.md`.
+Use only during first-account bootstrap or an explicit one-off setup repair. It is not a recurring operation lane, has no worker, and owns no heartbeat. It covers profile/homepage upkeep, target-based join/subscribe, truthful flair/tag, and membership review.
 
 ## Presence State
 
@@ -20,7 +20,7 @@ If no prior log exists, reconstruct what is visible and begin conservatively.
 | Flair/tag changes | `3/hour`, `8/24h` |
 | Profile/about/avatar/banner edits | `2/day` total |
 
-These are ceilings, not targets. A normal presence slot joins `1-3` strong communities or makes one coherent profile update.
+These are ceilings, not targets. A bootstrap setup slot joins `1-3` strong communities or makes one coherent profile update.
 
 ## Membership Gate
 
@@ -50,9 +50,7 @@ Use ordinary truthful flair such as `Beginner`, `Hobbyist`, `Indie Dev`, `VR Use
 2. Compute remaining cadence capacity.
 3. Inspect profile and high-fit membership candidates.
 4. Run membership gate.
-5. Reselect this lane's dedicated Reddit tab before each edit/join/flair action, verify account/target, and verify final state.
+5. Reselect the main task's dedicated bootstrap tab before each edit/join/flair action, verify account/target, and verify final state.
 6. Update timestamps and set the next review only when another action is genuinely due.
 
-On a direct user command or execution-heartbeat resume, complete and verify this presence slot before setting the next review. A changed profile/join/flair state or a concrete inspected no-action result is `slot_proof`; planning a future presence action is not.
-
-Use the four-field compact report from `orchestration-core.md`: summarize completed profile/join/flair work; list only changed communities or profile surfaces; give the next local review time and action; report concrete risk or `无`. Keep watched/skipped candidates, scores, reasons, and remaining cadence internal unless they explain why no action occurred.
+Complete and verify the bootstrap setup before operation workers start. Summarize changed communities/profile surfaces inside the main task's first report. Keep watched/skipped candidates, scores, reasons, and remaining cadence internal unless they explain why no action occurred.

@@ -42,11 +42,11 @@ Stable titles:
 
 | Lane | Title | Default model |
 |-|-|-|
-| comments | `主动评论` | `gpt-5.6-luna/xhigh` |
-| posts | `主动发帖` | `gpt-5.6-luna/xhigh` |
-| follow-up | `消息跟进` | `gpt-5.6-luna/xhigh` |
-| presence | `主页维护` | `gpt-5.6-luna/xhigh` |
-| browsing | `内容浏览` | `gpt-5.6-luna/xhigh` |
+| comments | `主动评论` | `gpt-5.6-luna/high` |
+| posts | `主动发帖` | `gpt-5.6-luna/high` |
+| follow-up | `消息跟进` | `gpt-5.6-luna/high` |
+| presence | `主页维护` | `gpt-5.6-luna/high` |
+| browsing | `内容浏览` | `gpt-5.6-luna/high` |
 
 Before dispatch:
 

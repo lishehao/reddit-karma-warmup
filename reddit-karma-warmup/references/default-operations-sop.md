@@ -17,11 +17,11 @@ Use this planning envelope, not a quota:
 
 | Intensity | Comments | Posts | Follow-up | Natural browsing |
 |-|-|-|-|-|
-| `low` | target `2-4/hour` | one candidate/preflight sweep per session; publish only a passing candidate | every `45-60 min` | one `8-12` read slot every `45-60 min` |
-| `standard` | target `4-6/hour` | candidate/preflight sweep every `2-3h`; normally at most one passing post in a short session | every `30-45 min` | one `8-12` read slot every `30-45 min` |
-| `high` | target `6-10/hour` | candidate/preflight sweep every `60-90 min`; live post limits still dominate | every `20-30 min` | one `8-12` read slot every `20-30 min` |
+| `low` | target `2-4/hour` | one candidate/preflight sweep per session; publish only a passing candidate | every `45-60 min` | `12-18` qualified reads every `45-60 min`; vote target `2`, cap `2` |
+| `standard` | target `4-6/hour` | candidate/preflight sweep every `2-3h`; normally at most one passing post in a short session | every `30-45 min` | `20-30` qualified reads every `30-45 min`; vote target `2`, cap `4` |
+| `high` | target `6-10/hour` | candidate/preflight sweep every `60-90 min`; live post limits still dominate | every `20-30 min` | `30-45` qualified reads every `20-30 min`; vote target `4`, cap `6` |
 
-Natural browsing includes qualified reading plus optional gated Upvote/Downvote. Voting is never a quota. Profile setup, joins, and flair are bootstrap housekeeping, not a fifth recurring operation lane.
+Natural browsing includes qualified reading plus gated Upvote/Downvote. The intensity table supplies a default target and cap, not permission to lower the vote gate. An explicit user instruction may replace the read budget, vote target, or cap, including `0` for browse-only. Profile setup, joins, and flair are bootstrap housekeeping, not a fifth recurring operation lane.
 
 ## Flow A: BOOTSTRAP From Zero
 
@@ -39,8 +39,9 @@ operation_stop_at = start + requested duration (default 3h)
 watch_deadline = min(operation_stop_at, start + 60m)
 intensity = requested intensity (default standard)
 comment_target_run = intensity envelope x run_hours, clamped by account/recovery state
-browse_slot = 8-12 qualified reads
-vote_cap_per_browse_slot = 1 combined upvote/downvote
+browse_slot = intensity read budget (standard: 20-30 qualified reads)
+vote_target_per_browse_slot = explicit user target or intensity default (standard: 2 combined votes)
+vote_cap_per_browse_slot = explicit user cap or intensity cap (standard: 4 combined votes)
 ```
 
 4. Keep the first-hour watch in ordinary task mode. Execute current work now and use one coordinator-owned one-shot heartbeat at a time for delayed checks; never enter Goal Mode.
@@ -55,7 +56,7 @@ Reuse valid owners; otherwise create these tasks:
 | `主动评论` | Execute the current intensity envelope across diverse lower-restriction communities; pause `60-120 sec` after each verified submission. |
 | `主动发帖` | Run one live candidate/preflight micro-slot; publish only when a native candidate passes, otherwise record verified no-post proof. |
 | `消息跟进` | Sweep Notifications and recent own activity; reply only to actionable items. |
-| `自然浏览` | Read `8-12` qualified items across `2-4` eligible communities; cast at most one combined vote only when its quality gate passes. |
+| `自然浏览` | Use the selected read budget across eligible communities; standard starts with `20-30` qualified reads and targets `2` verified combined votes, without lowering either vote gate. |
 
 Before dispatch, perform bootstrap-only profile/membership setup in the main task when the account is visibly incomplete. Then every operation worker starts now in its own Reddit tab. Do not wait for another lane.
 
@@ -117,6 +118,7 @@ remaining_target
 - `改成/总共 N` replaces that lane's remaining target.
 - `暂停/停止/继续` changes only the named lane; unaffected missions and heartbeats continue.
 - The latest explicit community, language, or deadline replaces that field only; preserve unspecified mission fields.
+- For natural browsing, parse an explicit read count, vote target, vote cap, or `只浏览不投票`. Explicit values replace only the corresponding browsing field; otherwise use the intensity defaults.
 
 ### B3. Reuse, Amend, Execute
 

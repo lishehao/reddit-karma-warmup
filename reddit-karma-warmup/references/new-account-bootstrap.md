@@ -9,7 +9,7 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 1. **Inspect first.** Confirm the account, visible age/karma/history, email-verification or eligibility signals where Reddit exposes them, notifications, and any warning/removal state.
 2. **Establish a truthful profile.** Load `community-presence-playbook.md`; add a low-risk display/about/avatar/banner only where needed.
 3. **Join a few high-fit communities.** Run the membership gate; prefer `1-3` in the first slot.
-4. **Browse before and alongside publishing.** Run one `8-12` qualified-read slot across eligible communities; allow at most one combined vote only when `browse-vote-playbook.md` passes.
+4. **Browse before and alongside publishing.** Run one intensity-sized qualified-read slot across eligible communities. Standard starts with `20-30` reads and targets `2` combined verified votes without lowering `browse-vote-playbook.md` gates.
 5. **Run the first-hour launch.** Immediately execute comments, post preflight, follow-up, and natural browsing using the selected intensity. Comments remain micro/fragment/one-liner first and span lower-restriction communities.
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
 7. **Verify in parallel.** Record the first permalink immediately so the coordinator can run `startup-health-check.md` while the comment worker continues. Stop further comments only when that check produces a concrete failure, warning, captcha, rate limit, or removal state; a pending delayed check alone is not a reason to wait.
@@ -31,7 +31,7 @@ For internal Loci accounts without another supplied persona:
 
 - profile/avatar/banner/about edits: max `2`
 - joins: prefer `1-3`, max `5`
-- browsing: one `8-12` qualified-read slot at launch; at most one combined gated vote, and zero is valid
+- browsing: one intensity-sized slot at launch; standard uses `20-30` qualified reads, vote target `2`, cap `4`; explicit user values override, and a shortfall is valid only after the configured budget is exhausted
 - proactive comments: use the selected intensity; `60/day` requires explicit high-volume mode, at least `6h`, and enough passing candidates
 - startup checkpoint: coordinator verifies the first permalink immediately and again after `15-30 min`, while the comment worker continues within the selected intensity unless a concrete failure appears
 - main posts: `0-2/day`; never more than one per subreddit per `24h`

@@ -4,7 +4,17 @@ Load only for the `browsing` lane named `自然浏览`. This lane reads Reddit s
 
 ## Browse Slot
 
-Plan one slot around `8-12` qualified reads across `2-4` eligible communities. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, and can state one specific reason for its assessment. Feed-card impressions, title-only scans, duplicates, ads, deleted/locked items, and accidental opens do not count.
+Select the slot budget from the operation contract:
+
+| Intensity | Qualified-read budget | Default combined-vote target | Default cap |
+|-|-:|-:|-:|
+| `low` | `12-18` | `2` | `2` |
+| `standard` | `20-30` | `2` | `4` |
+| `high` | `30-45` | `4` | `6` |
+
+An explicit user read count, vote target, vote cap, or browse-only instruction overrides the corresponding default. If only a vote target is supplied, set a reasonable read budget that can evaluate enough independent items; do not promise that every target will pass.
+
+Spread a standard slot across roughly `3-6` eligible communities. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, and can state one specific reason for its assessment. Feed-card impressions, title-only scans, duplicates, ads, deleted/locked items, and accidental opens do not count.
 
 Keep a rolling record:
 
@@ -14,12 +24,13 @@ topic | specific_observation | persona_fit | vote_decision | vote_score | vote_r
 eligible_views_since_vote
 ```
 
-The long-run cadence target is one combined vote per roughly `8-12` qualified reads:
+Use the slot's combined-vote target as an active search objective:
 
-- A slot may cast at most `1` total vote, either up or down.
-- Do not vote before reading. Do not cast both directions in one slot.
-- The cadence opens a vote opportunity; it is not a quota. If no item passes, finish with `0` votes and continue reading in a later slot.
-- Do not bank missed opportunities into a later burst or lower the score to preserve the ratio.
+- Standard operation seeks at least `2` verified votes in the slot and may continue up to the cap when more independently qualified items pass.
+- Any mix of Upvote and Downvote is allowed; never force one of each or balance directions artificially.
+- Do not vote before reading. One item may receive only one direction, and each decision needs its own score and reason.
+- Continue until the target is reached or the read/time budget is exhausted. If too few items pass, finish below target, report the shortfall, and do not lower thresholds.
+- Do not bank missed votes into a later burst or exceed the cap unless the user explicitly changes it.
 
 ## Upvote Gate
 
@@ -54,7 +65,7 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 - Never vote on own content, affiliated/team content, a supplied campaign target, or the same target from another account. Never coordinate votes.
 - Reselect this lane's dedicated Chrome tab and confirm the intended account/URL before voting.
 - After voting, refresh/reopen once and confirm the selected arrow remains active. If state is uncertain, log `unverified_vote`; do not click again blindly.
-- Record every qualified read and every vote/no-vote decision. A no-vote slot is a valid completed result.
+- Record every qualified read and every vote/no-vote decision. A below-target or no-vote slot is valid only after the configured read/time budget was actually exhausted or a concrete blocker appeared.
 
 ## Scheduling And Report
 
@@ -63,8 +74,8 @@ Execute the first browse slot immediately. Every execution-heartbeat resume must
 Use the shared compact report:
 
 ```text
-本轮完成：浏览 <N> 条；Upvote <N>，Downvote <N>。
-发布/处理：<r/subreddit | 投票方向 | URL>；无投票则写“未投票：没有达到门槛的内容”。
+本轮完成：浏览 <N>/<阅读预算> 条；投票目标 <N>，Upvote <N>，Downvote <N>。
+发布/处理：<r/subreddit | 投票方向 | URL>；未达到目标则写“差 <N> 次：已耗尽阅读/时间预算，未降低门槛”。
 下一轮：<本地日期时间与浏览动作>。
 风险：<无 | 具体异常>。
 ```

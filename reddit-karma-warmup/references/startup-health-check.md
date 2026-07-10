@@ -45,7 +45,7 @@ A lane with a first outward action reaches `first_round_ok` only after `submit_v
 
 Non-publishing lanes use action-specific acceptance instead of permalink checks:
 
-- `自然浏览`: `8-12` qualified reads are logged and the vote gate was applied; `0` votes is valid. If a vote was cast, a refresh confirms the selected arrow remains active.
+- `自然浏览`: the configured qualified-read budget is logged and each vote gate was applied. Standard expects `20-30` reads and targets `2` combined votes. A shortfall is valid only with exhausted budget or a concrete blocker; every cast vote is refreshed once to confirm the selected arrow remains active.
 - `消息跟进`: Notifications and recent own activity were swept, with any reply processed through the normal outward checks.
 
 These lanes still require a successfully created next heartbeat when continuation is due. Hidden persisted timing is recorded as `created_unreadable` and does not pause the lane.

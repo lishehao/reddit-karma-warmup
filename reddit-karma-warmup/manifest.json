@@ -1,0 +1,8 @@
+{
+  "name": "reddit-karma-warmup",
+  "version": "2026.07.10.24",
+  "schema_version": 1,
+  "upgrade_strategy": "atomic-replace",
+  "repository": "https://github.com/lishehao/reddit-karma-warmup",
+  "repository_path": "reddit-karma-warmup"
+}

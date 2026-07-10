@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reddit Community Operations"
+  short_description: "Run structured Reddit operations through logged-in Chrome"
+  default_prompt: "Use $reddit-karma-warmup to operate Reddit for 3 hours, automatically discovering and reconnecting the logged-in Chrome session."

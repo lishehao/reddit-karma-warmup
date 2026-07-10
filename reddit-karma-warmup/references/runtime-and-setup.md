@@ -28,10 +28,10 @@ Required capabilities for real Reddit operations:
 - Chrome Browser control for publishing, replying, voting, joining/subscribing, profile edits, and account-state checks. Discover it automatically; the user does not need to mention or attach `@chrome`. Chrome is required because it holds the stable Reddit login state.
 - Chrome Browser control uses the ChatGPT Chrome Extension plus its Native Messaging connection. macOS Screen Recording, System Audio Recording, and Accessibility permissions are not required and must not be included in dependency failures. Those permissions may apply to Computer Use or desktop/audio capture, which are outside this Skill's Chrome path.
 - The target Reddit account must already be logged in by the user. Never enter passwords or handle credentials.
-- Scheduler/automation capability is required for multi-round heartbeat operation. If unavailable or unreliable, complete only the current round and report the intended next local/UTC time for manual continuation.
+- Scheduler/automation capability is required for multi-round heartbeat operation. A successful create/delete probe proves capability even when the runtime does not expose persisted `next_run_at` or displayed run time. Missing timing readback lowers confidence but is not a dependency failure and must not block the first Reddit round. If creation itself is unavailable or fails, complete only the current round and report the intended next local/UTC time for manual continuation.
 - Worker/task capability is optional. Use it only when current host policy and user scope authorize delegation. Creating user-visible Codex tasks requires an explicit user request; otherwise run lanes sequentially in the current task.
 - Distributed coordinator mode requires task create, read, and send/update capability as one bundle. Do not create workers that the coordinator cannot later read or steer. Task-title control is optional.
-- Model/effort override capability is optional. When available, load `model-runtime.md`, request `gpt-5.6-sol/xhigh` for the coordinator and `gpt-5.6-luna/xhigh` for workers; when unavailable, use the strongest actually exposed fallback and do not block the run.
+- Model/effort override capability is optional. When available, load `model-runtime.md`, request `gpt-5.6-sol/xhigh` for the coordinator and `gpt-5.6-luna/high` for workers; when unavailable, use the strongest actually exposed fallback and do not block the run.
 - Shell/Python/date utilities are optional helpers for time calculation or file inspection, not dependencies. If unavailable, compute timezone pairs and schedule checks with whatever tools the environment exposes.
 
 Python absence must never block an already installed Skill or real Reddit operations. During install/upgrade, use a bundled/system validator when available; otherwise perform equivalent structural checks on ZIP integrity, the single Skill root, SKILL.md frontmatter, manifest name/version/schema, agents metadata, reference readability, and referenced-file existence. Operational quality is unchanged; only the installation check is less automated.
@@ -66,6 +66,8 @@ Keep dependency details internal when all required checks pass. Return only a sh
 ```
 
 If required checks fail, return `状态异常` with only the failed capability, its impact, and a direct repair action. Do not list successful checks. Python absence is never a failed required capability. `状态健康` describes environment readiness only; live account/community risk is assessed during the first operating slot.
+
+Do not report `状态异常`, pause installation, or ask the user to reply `继续` merely because the automation view omits `next_run_at`, DTSTART, or a displayed next-run label. Record `heartbeat_timing=created_unreadable` internally and continue. Only failed create/update/delete capability is a scheduler dependency failure.
 
 Do not treat the first dropped/stale connection as failure. Run the Chrome recovery flow in `orchestration-core.md`. If Chrome remains unavailable after recovery, is logged out, shows the wrong account, or hits captcha/rate limit/account lock, do not perform real Reddit actions and tell the user the concrete state. Setup-only checks and non-account read-only explanations may continue.
 

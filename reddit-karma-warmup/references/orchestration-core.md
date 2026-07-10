@@ -11,7 +11,7 @@ Maintain one small state record:
 | `scope` | run kind, mission ID, user request, authorization, duration/count, language, pool, stop time |
 | `environment` | Chrome capability, account, connection/recovery status, local time/timezone/UTC, scheduler support, detected `scheduler_clock_mode`, and authorized worker support |
 | `account_tier` | `K0 New`, `K1 Growing`, or `K2 Established`; separate `bootstrap_state` records workflow initialization without changing tier |
-| `model_runtime` | coordinator request/actual `gpt-5.6-sol/xhigh`, worker request/actual `gpt-5.6-luna/xhigh`, fallback reason |
+| `model_runtime` | coordinator request/actual `gpt-5.6-sol/xhigh`, worker request/actual `gpt-5.6-luna/high`, fallback reason |
 | `history_ledger` | recent outward subreddit, cluster, angle, measured `char_count`/`word_count`/`sentence_form`/length tier, opening, claims, and permalinks |
 | `browse_ledger` | qualified reads, subreddit/URL/topic, specific observation, persona fit, vote/no-vote decision, score/reason, and views since last vote |
 | `eligible_pool` | user/default pool after layer, row restriction, account fit, and history filtering |
@@ -34,7 +34,7 @@ Every first run and resume follows the same state machine:
 | `SCOPE` | Parse latest user request and overrides. | scope is unambiguous |
 | `PROBE` | Auto-discover/reconnect Chrome, confirm account/time, then check scheduler/task capabilities. | environment recorded |
 | `HISTORY` | Restore recent profile/session actions and stable identity claims. | history ledger ready |
-| `ROUTE` | Select tier, lower-restriction eligible pool, lane(s), coordinator Sol/xhigh, and worker Luna/xhigh. | lane owner(s), pool, and model ready |
+| `ROUTE` | Select tier, lower-restriction eligible pool, lane(s), coordinator Sol/xhigh, and worker Luna/high. | lane owner(s), pool, and model ready |
 | `NAME` | Rename the current task and dispatched lane tasks after state is fixed. | concise Chinese titles applied or unavailability recorded |
 | `PLAN_SLOT` | Create only the next executable slot from remaining time/count. | slot has target and time budget |
 | `DISCOVER` | Inspect lane surfaces and candidate context. | candidate passes or pool exhausted |
@@ -43,7 +43,7 @@ Every first run and resume follows the same state machine:
 | `CHECK_B` | Text lanes recheck account/page/copy/history/duplicate; browsing rechecks account/URL/direction and eligibility. | submit / vote / rewrite / retarget / stop |
 | `ACT` | Reselect this lane's dedicated tab, confirm account/target, perform action, and verify. | result recorded |
 | `RECONCILE` | Update remaining target from actual time and quality. | next decision known |
-| `SCHEDULE` | Create/read back one next one-shot trigger if needed. | verified or manual fallback |
+| `SCHEDULE` | Create one next one-shot trigger if needed and read timing back when exposed. | verified, created_unreadable, or manual fallback |
 | `REPORT` | Return compact operational record. | turn ends |
 
 First activation must reach `ACT` or a verified no-action/blocker result before `SCHEDULE`. A heartbeat resume starts at `PROBE`, refreshes `HISTORY`, and continues the next incomplete slot.
@@ -52,7 +52,7 @@ First activation must reach `ACT` or a verified no-action/blocker result before 
 
 - The user's latest explicit request overrides defaults for lane, target, language, duration, count, pool, and output.
 - Broad operation with no duration/count defaults to `3 hours` and four lanes: follow-up, presence, comments, and browsing. Posts remain optional.
-- User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator requests `gpt-5.6-sol/xhigh`, workers request `gpt-5.6-luna/xhigh`, and unavailable overrides do not block execution.
+- User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator requests `gpt-5.6-sol/xhigh`, workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
 - Session-level authorization covers ordinary actions in the active session and its one-shot continuations. Do not ask before every item.
 - Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action.
 - Do not silently turn requested posts into comments or requested follow-up into discovery.
@@ -182,8 +182,9 @@ After each slot:
 - mark actual actions and remaining target
 - recompute from actual local time, not the original ideal timeline
 - stop at user stop time or when no quality candidate remains in the budget
-- if continuing, create one one-shot trigger for this lane and verify local time, UTC time, repeat-off state, and scheduler readback
-- if scheduling cannot be verified, finish the current slot and report a manual next local/UTC time
+- if continuing, create one one-shot trigger for this lane; verify local time, UTC time, repeat-off state, and scheduler readback when those fields are exposed
+- if creation succeeds but persisted timing is hidden, record `created_unreadable`, keep the trigger, finish the current slot, and validate timing at the next real wakeup; do not pause Reddit work or ask the user to repair it
+- if creation itself fails, finish the current slot and report a manual next local/UTC time
 
 ## Compact Report Schema
 

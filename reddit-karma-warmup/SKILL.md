@@ -43,17 +43,30 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 
 The main task remains the user's only operational entrypoint. A user command such as `评论 20 条` routes to `主动评论`; it does not rename the main task or make the main task publish.
 
+## Start-Now Gate
+
+An operation command means execute now, not plan now and act on the next heartbeat. In the same user turn that receives `开始`, a duration, a count, or a concrete operation:
+
+1. Open/reclaim the relevant Chrome lane tab and perform the first requested micro-slot.
+2. Produce `start_proof`: at least one verified requested action, or a verified browser sweep with concrete no-action/blocker evidence.
+3. Only after `start_proof`, create the next heartbeat when more work remains.
+4. Only after action verification and heartbeat handoff may the turn send its final report.
+
+Reading references, inspecting tasks, planning, dispatching a worker, creating a heartbeat, or saying `已启动` is not `start_proof`. A no-action result must name the surfaces/candidates actually checked and the concrete gate that rejected them; “still preparing” is not valid. Commentary may say work is starting, but never send a final `已启动` acknowledgement before proof.
+
+When an authorized lane worker can execute and be read back in the current turn, delegate and wait for its first proof. If worker dispatch is unavailable, not authorized, delayed, or returns only a plan, the current task executes the first micro-slot sequentially. Background ownership may take over subsequent slots; it must never delay the user's first visible action.
+
 ## Canonical Main Flow
 
 1. Classify the request as `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Restore the known Chrome account, worker registry, account tier, history, scheduler clock mode, and active operations. Reconnect recoverable Chrome state automatically.
 3. Convert the request into a contract: lane(s), target/count, duration, pool, language, `operation_stop_at`, and watch deadline.
-4. Execute the first due slot immediately in the ordinary task. Never enter Goal Mode or call `create_goal` for installation, `BOOTSTRAP`, `MISSION`, first-hour observation, or multi-hour waiting; delayed continuation belongs to one-shot heartbeats.
-5. Reuse each matching lane task. Create and name a lane task only when no valid owner exists.
-6. Send each owner its delta: objective, remaining count, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
-7. Require immediate execution. The main task performs no Reddit mutation while lane tasks are available.
-8. For `BOOTSTRAP`, keep the main task's read-only watch for the full first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
-9. Verify results and worker heartbeat creation/handoff, delete the main task's temporary trigger, return the compact Chinese report, and enter `IDLE`. A runtime that omits persisted next-run fields lowers timing confidence but does not invalidate a successfully created heartbeat.
+4. Reuse each matching lane task when authorized and immediately controllable; create/name one only when allowed and no valid owner exists.
+5. Send each owner its delta: objective, remaining count, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
+6. Pass the `Start-Now Gate` in this same turn. Read the worker's verified first result; if it cannot produce proof now, execute the first micro-slot sequentially in the current task. Never enter Goal Mode or call `create_goal`.
+7. Verify the first result. Only now may a worker/current task create a one-shot heartbeat for delayed continuation.
+8. For `BOOTSTRAP`, keep the main task's read-only watch through one-shot heartbeats for the first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
+9. Return the compact Chinese report with actual first-round evidence and heartbeat handoff, then end the current turn. A runtime that omits persisted next-run fields lowers timing confidence but does not invalidate a successfully created heartbeat.
 10. In `IDLE`, do not poll. A later user command begins a new `MISSION` from current state.
 
 ## Zero-Account Defaults
@@ -74,6 +87,7 @@ The main task remains the user's only operational entrypoint. A user command suc
 - Each worker owns at most one next one-shot heartbeat for its lane and may mutate only an automation targeting that same task/lane.
 - Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
 - Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use one verified one-shot heartbeat, and the current turn ends after reporting that handoff.
+- A heartbeat is continuation-only. Never create it as the first operational outcome after a user command, and never use its future wakeup to defer the first requested Chrome micro-slot.
 - Heartbeat capability and heartbeat timing observability are separate. Successful create/update with an automation ID/card proves capability; missing `next_run_at` or hidden display time means `created_unreadable`, not failure. Continue current Reddit work, never ask the user to repair an unexposed field, and validate timing when the heartbeat actually fires.
 - The user's latest explicit duration, count, language, target community, and lane override defaults. Counts remain candidate- and rule-gated.
 - Main posts require same-day rules, eligibility, flair, frequency, and moderation-state checks. Ordinary comments require target-context and obvious-risk checks.

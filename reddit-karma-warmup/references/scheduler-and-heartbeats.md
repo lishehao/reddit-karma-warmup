@@ -38,18 +38,18 @@ After each slot, replace future rows when actual time, candidate quality, Reddit
 
 Second-level pre-submit pauses remain local waits.
 
-After creating and verifying the one-shot heartbeat, end the current turn. Do not emit repeated “not due yet” turns, poll the clock, use Goal Mode, or use automatic continuation while waiting for the heartbeat.
+After creating the one-shot heartbeat and reading back every field the runtime actually exposes, end the current turn. Do not emit repeated “not due yet” turns, poll the clock, use Goal Mode, or use automatic continuation while waiting for the heartbeat.
 
 ## One-Shot Contract
 
 Create only the next continuation for the current lane. Do not install a fixed recurring schedule unless the user explicitly asks for one.
 
-Use the `scheduler_clock_mode` detected by the installer Markdown's no-Reddit create/readback probe. The current known desktop runtime uses `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC. In that mode, `11:29:43 Asia/Shanghai` is written as `03:29:43 UTC`. Another machine must not assume this result: use `LOCAL_FIELDS` only when its persisted `next_run_at` probe proves local-field interpretation. If the mode is unknown, do not create an unattended continuation.
+Use the `scheduler_clock_mode` detected by the installer Markdown's no-Reddit create/readback probe when it is available. The current known desktop runtime may use `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC; in that mode, `11:29:43 Asia/Shanghai` is written as `03:29:43 UTC`. Another machine must not assume this result. Prefer an explicit one-shot target accepted by the automation tool. If the runtime hides persisted timing, keep the intended local and UTC pair in the heartbeat prompt and classify the result as `created_unreadable` rather than blocking current work.
 
 Before creation, record:
 
 - actual local time and timezone/UTC offset
-- detected `scheduler_clock_mode` and its probe evidence
+- detected `scheduler_clock_mode` and its probe evidence when available; otherwise `unknown`
 - target local time
 - target UTC instant
 - expected delay
@@ -63,13 +63,15 @@ After creation, immediately read back:
 - automation ID/name
 - the scheduler's persisted `next_run_at` when the runtime exposes it; convert that epoch to both UTC and the intended local timezone
 
-Classify:
+Creation and timing observability are separate. Classify:
 
 - `verified`: persisted/displayed next run converted to both UTC and local time matches the intended instant within `5 min`, repeat is off
+- `created_unreadable`: create/update returned success plus an automation ID/card, but persisted/displayed timing is not exposed; keep the trigger, do not claim exact timing verification, and compare actual wake time with the stored local/UTC target when it fires
 - `display_suspect`: raw UTC is correct but UI display appears shifted
 - `rescheduled`: first item was wrong, replacement was read back correctly
-- `unverified`: item cannot be read back; do not claim unattended continuation
-- `blocked`: wrong date, `>=60 min` drift, repeat unexpectedly on, or uncorrectable tool failure
+- `blocked`: create/update failed, wrong date or `>=60 min` drift is visible, repeat is visibly on, or an actual wakeup proves an uncorrectable timing error
+
+`created_unreadable` is not `blocked`. Never delete a successful trigger, pause the first Reddit round, or ask the user to repair the scheduler merely because `next_run_at`, DTSTART, or a displayed next-run label is absent. The user cannot repair a field the runtime does not expose.
 
 Never leave duplicate active triggers for the same account + lane + slot.
 
@@ -97,7 +99,7 @@ Use a no-Reddit smoke test only on a new/unverified machine, after proxy/timezon
 3. Store both local and UTC target in the diagnostic prompt.
 4. Create and immediately read back the item.
 5. If it fires, compare actual UTC with target UTC and delete/close it.
-6. If it does not fire within about `5 min` after target, or readback is wrong/unavailable, do not rely on unattended continuation.
+6. If timing is readable and wrong, repair it before relying on continuation. If timing is unreadable but creation succeeded, leave the diagnostic active and validate at its real wakeup; do not block current Reddit actions. If it does not fire within about `5 min` after target, stop relying on unattended continuation and switch future waits to manual next times until the scheduler is repaired.
 
 The smoke test never opens Reddit or changes account state.
 

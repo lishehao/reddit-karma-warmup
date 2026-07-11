@@ -127,11 +127,11 @@ If Chrome remains unavailable after recovery attempts, report `chrome_unavailabl
 | `posts` | new main posts and full live preflight | ordinary comment volume or notifications |
 | `browsing` | qualified reading and optional gated upvote/downvote decisions | comments, posts, replies, profile edits, joins, or Notifications |
 
-If authorized worker tools do not exist, run the lanes sequentially in that order. If internal worker fan-out is allowed, each worker owns one lane and one future trigger. User-visible task creation still requires an explicit user request.
+Real operations require persistent task create/read/send capability. The user's `开始` or concrete operation command is explicit authorization to create the requested user-visible lane tasks. Default broad operation requires all four workers; a named single-lane mission requires that one worker. Never replace them with sequential coordinator execution or invisible subagents.
 
-For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. If any immediate worker proof is unavailable, run that lane's first requested micro-slot sequentially in the current task and hand later slots to the registered worker.
+For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. If proof remains unavailable, mark that lane `startup_blocked`; coordinator execution is forbidden.
 
-The `Loci Reddit运营` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. Load `coordinator-playbook.md`. Workers do not send routine callbacks to it.
+The `Loci Reddit运营` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks to it.
 
 The coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, but only through its verified one-shot heartbeat. Dispatch and early acceptance are insufficient: it runs the mandatory boundary sweep at `startup_watch_deadline`. It must not use Goal Mode or generate progress-only turns while waiting. After that handoff, workers continue independently and the coordinator becomes user-driven again.
 
@@ -145,7 +145,7 @@ Automation ownership follows the lane and target thread:
 - The coordinator sends amendments to lane owners instead of taking over their automations. Each owner changes only its own trigger.
 - Different lanes sharing an account, target, or policy window remain independent. Do not compare them for collisions.
 - During BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During MISSION, it reads only affected lanes until verified one-shot completion or the bounded watch deadline. STATUS reads relevant lanes once. Workers record state locally and do not callback.
-- The coordinator may own one temporary coordinator-targeted watch automation. BOOTSTRAP keeps it through the fixed first-hour boundary; ongoing MISSION keeps it for at most one hour; one-shot MISSION may delete it after verified completion. Lane automations remain owned by their lane tasks.
+- The coordinator may own one temporary read-only watch automation named `Loci Reddit运营-首轮监督`. Its prompt may only read worker state and report; it cannot open Reddit, publish, vote, reply, or continue lane work. BOOTSTRAP keeps it through the fixed first-hour boundary; ongoing MISSION keeps it for at most one hour; one-shot MISSION may delete it after verified completion. Lane automations remain owned by their lane tasks.
 
 ## Decision Classes
 

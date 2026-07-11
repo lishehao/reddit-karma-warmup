@@ -22,7 +22,7 @@ Do not expose this record unless the user asks for technical detail.
 1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Reuse current account/runtime state instead of repeating healthy checks.
 3. Reuse existing lane owners and send only changed mission fields.
-4. Enforce same-turn `start_proof_by_lane`: read every enabled worker's first verified result or execute the missing lane's first micro-slot sequentially when worker proof is unavailable.
+4. Enforce same-turn `start_proof_by_lane`: create/reuse every enabled persistent worker, read its first verified result, and issue one execute-now correction to a plan-only worker. If proof remains unavailable, report that lane blocked; never execute it in the coordinator.
 5. Observe the first hour of BOOTSTRAP and the bounded start of ongoing missions.
 6. Verify results, visibility, deadlines, and worker heartbeat handoff.
 7. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
@@ -30,7 +30,8 @@ Do not expose this record unless the user asks for technical detail.
 
 It does not:
 
-- publish comments/posts/replies when the owning worker can execute and return current-turn proof; sequential first-slot fallback is allowed when it cannot
+- publish comments/posts/replies, vote, browse, or handle Notifications; all lane execution belongs to persistent workers
+- create one combined worker or a combined `首轮后续` automation for several lanes
 - edit profile/community state outside first bootstrap or an explicit one-off setup repair
 - create a second main task
 - recreate an existing lane task merely because a new mission arrived
@@ -54,7 +55,7 @@ Before dispatch:
 
 1. Read the registry and the matching task once.
 2. Reuse it when its lane ownership still matches, even when it is idle or its previous mission ended.
-3. Create a worker only when no valid owner exists or the prior task is genuinely unavailable.
+3. Create a user-visible persistent worker when no valid owner exists or the prior task is genuinely unavailable. The user's operation command authorizes creation for its requested lane(s).
 4. Never create duplicate owners for one lane to increase throughput.
 5. Send the worker its new mission delta and exact local/UTC stop time.
 
@@ -74,6 +75,8 @@ The main task keeps one read-only one-shot trigger at a time:
 - first permalink visibility: immediate and `15-30 min` delayed check
 - progress reads: about every `10-15 min` when useful
 - final read: exactly at `watch_deadline`
+
+Name this trigger `Loci Reddit运营-首轮监督`. Its prompt is read-only and may not contain any comment, post, follow-up, browsing, vote, or lane-continuation instruction.
 
 Early clean results do not end BOOTSTRAP observation. At the boundary, delete the main trigger and enter `IDLE`. Mark startup acceptance passed only when all enabled lanes are `first_round_ok`; otherwise report the exact gap without claiming success.
 

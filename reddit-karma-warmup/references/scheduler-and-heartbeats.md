@@ -75,7 +75,7 @@ Creation and timing observability are separate. Classify:
 
 `created_unreadable` is not `blocked`. Never delete a successful trigger, pause the first Reddit round, or ask the user to repair the scheduler merely because `next_run_at`, DTSTART, or a displayed next-run label is absent. The user cannot repair a field the runtime does not expose.
 
-Never leave duplicate active triggers for the same account + lane + slot.
+Never leave duplicate active triggers for the same account + lane + slot. Never create a coordinator-targeted heartbeat that combines execution from several lanes. The coordinator's optional first-hour heartbeat is read-only supervision; each lane continuation targets its own persistent task.
 
 If the stored next run is exactly one local UTC offset away from the intended instant, classify it as `timezone_encoding_error`, update the existing automation in place using the detected `scheduler_clock_mode`, and read it back again. Do not wait for the incorrectly shifted trigger and do not create a duplicate.
 

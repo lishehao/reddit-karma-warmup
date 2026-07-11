@@ -48,12 +48,12 @@ vote_cap_per_browse_slot = explicit user cap or intensity cap (standard: 4 combi
 browse_next_delay = explicit user interval or a fresh integer from 20-40 min after slot completion
 ```
 
-4. Keep the first-hour watch in ordinary task mode. Execute current work now and use one coordinator-owned one-shot heartbeat at a time for delayed checks; never enter Goal Mode.
+4. Keep the first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator may use one read-only one-shot heartbeat named `Loci Reddit运营-首轮监督` for delayed checks; it must never carry lane actions or be named `首轮后续`.
 5. Use `gpt-5.6-sol/xhigh` for the main task and `gpt-5.6-luna/high` for every worker.
 
 ### A2. Dispatch Once
 
-Reuse valid owners; otherwise create these tasks:
+The user's `开始`/operation command explicitly authorizes persistent task creation for its enabled lanes. Reuse valid owners; otherwise create these user-visible tasks before any lane work:
 
 | Task | First-hour responsibility |
 |-|-|
@@ -62,9 +62,9 @@ Reuse valid owners; otherwise create these tasks:
 | `消息跟进` | Sweep Notifications and recent own activity; reply only to actionable items. |
 | `自然浏览` | Use the selected read budget across eligible communities; standard starts with `20-30` qualified reads and targets `2` verified combined votes, without lowering either vote gate. |
 
-Before dispatch, perform bootstrap-only profile/membership setup in the main task when the account is visibly incomplete. Then every operation worker starts now in its own Reddit tab. Do not wait for another lane.
+Before dispatch, perform bootstrap-only profile/membership setup in the main task when the account is visibly incomplete. Then create/reclaim all enabled workers, send each mission, and have every worker start now in its own Reddit tab. For default broad operation, all four rows above are mandatory. Do not collapse them into one task or let the main task perform their work.
 
-Before the coordinator sends any final response, every enabled requested lane must return verified `start_proof`. If any worker is still preparing, only planned, or cannot be read immediately, the coordinator runs that lane's first requested micro-slot sequentially. It may then return ownership of later slots to the workers.
+Before the coordinator sends any final response, every enabled requested lane must return verified `start_proof`. If a worker is still preparing or returns only a plan, send one execute-now correction and read it again. If proof still cannot be read, mark that lane `startup_blocked` and report it; never run its micro-slot in the coordinator.
 
 ### A3. Main First-Hour Watch
 
@@ -130,10 +130,10 @@ remaining_target
 
 ### B3. Reuse, Amend, Execute
 
-1. Reuse the matching lane task from the registry. Create one only when no valid owner exists.
+1. Reuse the matching persistent lane task from the registry. Create it when no valid owner exists; the current operation command is explicit authorization for that requested lane.
 2. Send only the mission delta; do not resend installation instructions or reset history.
 3. The owner immediately executes the first due slot using `gpt-5.6-luna/high`.
-4. Main reads the owner in the current turn until it returns a verified requested action or concrete browser-backed no-action/blocker. If it returns only planning/acknowledgement or cannot execute now, main runs the first micro-slot sequentially.
+4. Main reads the owner in the current turn until it returns a verified requested action or concrete browser-backed no-action/blocker. If it returns only planning/acknowledgement, send one execute-now correction and read again. If it still cannot execute, report the lane blocker; main never performs the lane action.
 5. Only after that proof, update/create the owner's next trigger for the new remaining target/deadline; do not stack another.
 6. Main reports the actual result, not merely `已启动`, and then continues bounded observation through one-shot heartbeats or returns to `IDLE` as appropriate.
 

@@ -29,8 +29,8 @@ Required capabilities for real Reddit operations:
 - Chrome Browser control uses the ChatGPT Chrome Extension plus its Native Messaging connection. macOS Screen Recording, System Audio Recording, and Accessibility permissions are not required and must not be included in dependency failures. Those permissions may apply to Computer Use or desktop/audio capture, which are outside this Skill's Chrome path.
 - The target Reddit account must already be logged in by the user. Never enter passwords or handle credentials.
 - Scheduler/automation capability is required for multi-round heartbeat operation. A successful create/delete probe proves capability even when the runtime does not expose persisted `next_run_at` or displayed run time. Missing timing readback lowers confidence but is not a dependency failure and must not block the first Reddit round. If creation itself is unavailable or fails, complete only the current round and report the intended next local/UTC time for manual continuation.
-- Worker/task capability is optional. Use it only when current host policy and user scope authorize delegation. Creating user-visible Codex tasks requires an explicit user request; otherwise run lanes sequentially in the current task.
-- Distributed coordinator mode requires task create, read, and send/update capability as one bundle. Do not create workers that the coordinator cannot later read or steer. Task-title control is optional.
+- Persistent task create, read, and send/update capability is required for real Reddit operations. The guided handoff below states that replying `开始` explicitly authorizes creation or reuse of the requested lane tasks. Do not silently downgrade to sequential execution in the main task.
+- Default broad operation requires four user-visible workers: `主动评论`, `主动发帖`, `消息跟进`, and `自然浏览`. A named single-lane operation requires only its matching worker. Do not create workers that the coordinator cannot later read or steer. Task-title control is optional.
 - Model/effort override capability is optional. When available, load `model-runtime.md`, request `gpt-5.6-sol/xhigh` for the coordinator and `gpt-5.6-luna/high` for workers; when unavailable, use the strongest actually exposed fallback and do not block the run.
 - Shell/Python/date utilities are optional helpers for time calculation or file inspection, not dependencies. If unavailable, compute timezone pairs and schedule checks with whatever tools the environment exposes.
 
@@ -61,8 +61,8 @@ On `继续`, resume only the missing preflight checks. Do not reinstall a health
 Keep dependency details internal when all required checks pass. Return only a short Chinese result:
 
 ```text
-状态健康。Skill、Chrome、Reddit 登录、Heartbeat 和当地时间均可用。当前账号：u/name。
-可以执行评论、发帖、跟进和自然浏览（含符合门槛的 Upvote/Downvote）。是否按标准强度、混合探索风格开始 3 小时运营？
+状态健康。Skill、Chrome、Reddit 登录、独立任务、Heartbeat 和当地时间均可用。当前账号：u/name。
+可以执行评论、发帖、跟进和自然浏览（含符合门槛的 Upvote/Downvote）。回复“开始”即授权创建或复用四个独立工作任务，并按标准强度、混合探索风格开始 3 小时运营。
 ```
 
 If required checks fail, return `状态异常` with only the failed capability, its impact, and a direct repair action. Do not list successful checks. Python absence is never a failed required capability. `状态健康` describes environment readiness only; live account/community risk is assessed during the first operating slot.
@@ -77,7 +77,7 @@ The repository `README.md` owns installation and dependency preflight. Once it r
 
 1. Restore the reported Chrome account, heartbeat support, task/model fallback, local timezone, and detected `scheduler_clock_mode`.
 2. Confirm the already-validated Chrome control remains connected and still shows that Reddit account; read current local time and UTC again.
-3. Choose the requested mode and execute the first slot immediately.
+3. Choose the requested mode, create or reuse every enabled persistent lane task, and send each task its execute-now mission. Default broad operation creates/reuses all four workers before lane execution.
 4. Do not send a final `已启动` acknowledgement until that slot yields a verified requested action or browser-backed no-action/blocker. Planning, worker dispatch, and heartbeat creation do not satisfy this gate.
 5. Run the scheduler smoke test when the installed environment is new or previously drifted, after start proof and without replacing the first operating slot.
 6. Report any runtime regression precisely. Do not silently replace Chrome control with Computer Use, the in-app Browser, Playwright, or another browser surface.
@@ -87,7 +87,7 @@ When installation/preflight is healthy but the user has not supplied an operatin
 ```text
 状态健康。当前账号：u/name。
 
-你希望接下来怎么运营？可以指定时长、低/标准/高强度，以及混合探索、建设者、游戏/3D、空间地点、轻社交/创意或自定义风格；也可以直接指定评论、发帖、跟进、自然浏览。如果暂时没想法，直接回复“开始”，我会按标准强度、混合探索风格先运行 3 小时。
+你希望接下来怎么运营？可以指定时长、低/标准/高强度，以及混合探索、建设者、游戏/3D、空间地点、轻社交/创意或自定义风格；也可以直接指定评论、发帖、跟进、自然浏览。如果暂时没想法，回复“开始”即授权我创建或复用主动评论、主动发帖、消息跟进和自然浏览四个独立工作任务，并按标准强度、混合探索风格运行 3 小时。
 ```
 
 Do not append dependency fields, model details, thread capability, or another confirmation question.

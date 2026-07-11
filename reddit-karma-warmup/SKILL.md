@@ -37,12 +37,21 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 
 - Healthy install without an operation request: return the multiline guided prompt from `runtime-and-setup.md` and wait once.
 - If Chrome control or Reddit login is missing on a first-time setup, keep installation complete, return one novice repair action from `runtime-and-setup.md`, and resume preflight when the user replies `继续`. Never create an account, enter credentials, or start workers before the logged-in account is confirmed.
-- User replies `开始` with no other scope: enter `BOOTSTRAP`, default to `3 hours`, and start the first actions immediately.
+- User replies `开始` with no other scope: this is explicit authorization to create or reuse the persistent user-visible lane tasks described below. Enter `BOOTSTRAP`, default to `3 hours`, and start all enabled workers immediately.
 - A later user command in `Loci Reddit运营`: enter `MISSION`; reuse existing lane tasks and never rerun installation or bootstrap after `bootstrap_state=initialized`, even while the account remains `K0 fresh_bootstrap`.
 - A user asks what is possible: list comments, posts, follow-up, natural browsing (including gated Upvote/Downvote), and the selectable operation styles; do not mutate until they issue an operation command.
 - A lane worker receives a resume heartbeat: restore its own history and unfinished target; do not create a main task or restart the session.
 
-The main task remains the user's only operational entrypoint. A user command such as `评论 20 条` routes to `主动评论`; it does not rename the main task or make the main task publish.
+The main task remains the user's only operational entrypoint. A user command such as `评论 20 条` routes to the persistent `主动评论` task; it does not rename the main task or make the main task publish.
+
+## Persistent Worker Gate
+
+- Default `开始` or broad `运营` must create or reuse four separate user-visible Codex tasks before lane execution: `主动评论`, `主动发帖`, `消息跟进`, and `自然浏览`.
+- A named single-lane command creates or reuses only that lane task. The user's operation command is the explicit task-creation authorization for the requested lanes.
+- Use persistent task/thread creation, read, and send/update tools. Do not replace these tasks with invisible subagents, one combined worker, or a coordinator-owned execution heartbeat.
+- Each lane task owns its Chrome tab, history, first action, and continuation heartbeat. It must never absorb another lane.
+- `Loci Reddit运营` only routes, reads, verifies, and reports. It never publishes, votes, follows up, or schedules a combined lane continuation.
+- If required task create/read/send capability is unavailable, or a required lane task cannot be created or reclaimed, report that exact lane as `startup_blocked`. Do not execute it sequentially in the main task.
 
 ## Start-Now Gate
 
@@ -55,7 +64,7 @@ An operation command means execute now, not plan now and act on the next heartbe
 
 Reading references, inspecting tasks, planning, dispatching a worker, creating a heartbeat, or saying `已启动` is not proof. A no-action result must name the surfaces/candidates actually checked and the concrete gate that rejected them; “still preparing” is not valid. Commentary may say work is starting, but never send a final `已启动` acknowledgement before proof. For a multi-lane command, do not claim the whole mission started until every enabled lane has proof; a lane without proof is still not started.
 
-When an authorized lane worker can execute and be read back in the current turn, delegate and wait for its first proof. If worker dispatch is unavailable, not authorized, delayed, or returns only a plan, the current task executes the first micro-slot sequentially. Background ownership may take over subsequent slots; it must never delay the user's first visible action.
+After creating or reclaiming each required lane task, send its mission and read it back in the current turn until it returns first proof. If a worker returns only a plan, send one corrective instruction requiring immediate lane execution and read it again. If proof still cannot be obtained, report that lane as `startup_blocked`; the main task must not execute the lane itself.
 
 The same gate applies to every execution-lane heartbeat resume: complete and verify the current slot (`slot_proof`) before scheduling a successor or ending the turn. A chain of heartbeats with no intervening lane action/no-action sweep is invalid. Read-only coordinator-watch heartbeats may observe already-started lanes, but they cannot be used to manufacture missing lane proof.
 
@@ -64,9 +73,9 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 1. Classify the request as `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Restore the known Chrome account, worker registry, account tier, history, scheduler clock mode, and active operations. Reconnect recoverable Chrome state automatically.
 3. Convert the request into a contract: lane(s), target/count, duration, intensity, operation style/voice modifier, pool, language, `operation_stop_at`, and watch deadline. `运营` enables all four lanes; a named action enables only that lane.
-4. Reuse each matching lane task when authorized and immediately controllable; create/name one only when allowed and no valid owner exists.
+4. Reuse each matching persistent lane task; otherwise create and name it. For broad operation, all four lane tasks must exist before any lane execution begins.
 5. Send each owner its delta: objective, remaining count, intensity, resolved operation style/voice modifier, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
-6. Pass the `Start-Now Gate` in this same turn for every enabled lane. Read each worker's verified first result; if one cannot produce proof now, execute that lane's first micro-slot sequentially in the current task. Never enter Goal Mode or call `create_goal`.
+6. Pass the `Start-Now Gate` in this same turn for every enabled lane by reading each worker's verified first result. Retry a plan-only worker once with an execute-now correction; if proof remains unavailable, mark only that lane blocked. Never execute a lane in the main task, enter Goal Mode, or call `create_goal`.
 7. Verify the first result. Only now may a worker/current task create a one-shot heartbeat for delayed continuation.
 8. For `BOOTSTRAP`, keep the main task's read-only watch through one-shot heartbeats for the first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
 9. Return the compact Chinese report with actual first-round evidence and heartbeat handoff, then end the current turn. A runtime that omits persisted next-run fields lowers timing confidence but does not invalidate a successfully created heartbeat.
@@ -87,6 +96,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 
 - Real account actions require the already logged-in Chrome Browser control. Never enter credentials and never substitute Computer Use, the in-app Browser, Playwright, or ordinary Web Search.
 - Each worker owns a dedicated Reddit tab and optional Tab Group. Workers do not inspect, wait for, compare, or modify other workers' tabs, targets, actions, or automations.
+- The main task never owns an execution heartbeat. Its optional first-hour watch heartbeat is read-only, is named as supervision rather than continuation, and cannot contain Reddit lane actions.
 - Each worker owns at most one next one-shot heartbeat for its lane and may mutate only an automation targeting that same task/lane.
 - Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
 - Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use one verified one-shot heartbeat, and the current turn ends after reporting that handoff.

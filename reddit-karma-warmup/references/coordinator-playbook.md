@@ -93,7 +93,7 @@ At mission handoff:
 1. Read affected owners once.
 2. Confirm requested action/remaining count and next trigger when continuing.
 3. Confirm no coordinator-watch trigger was created for this later mission.
-4. Return the four-field report.
+4. Return the three-line report.
 5. Enter `IDLE` and stop proactive reads.
 
 ## Routine Pull, Risk Callback
@@ -148,10 +148,9 @@ Optional commentary during the first active tool sequence; never final:
 The first final response is allowed only after `start_proof_by_lane`; then use exactly:
 
 ```text
-本轮完成：<完成事项和数量>。
-发布/处理：<subreddit、动作和 permalink；无则说明原因>。
-下一轮：<已验证的本地时间和动作；结束则说明>。
-风险：<无；或当前具体风险>。
+本轮完成：<完成事项、数量、subreddit 和 permalink；无动作则说明原因>。
+下一轮心跳：<已验证的本地日期、时间、时区与 UTC；结束则写“无，任务已结束”>。
+下轮计划：<下一轮准备完成的具体事项和数量；结束则写“无”>。
 ```
 
 Do not expose intermediate pulls or technical fields unless requested.

@@ -183,11 +183,10 @@ Weak: `Any tips for beginners?`
 
 On a direct user command or execution-heartbeat resume, finish and verify the current comment/post micro-slot before scheduling or reporting. Record the permalink/action as `slot_proof`, or record the exact candidates/surfaces checked and rejection gate as verified no-action proof. Planning the next post/comment window is not a completed slot.
 
-Use the four-field compact report from `orchestration-core.md`:
+Use the three-line compact report from `orchestration-core.md`:
 
-- `本轮完成`：已完成的评论、主帖及数量
-- `发布/处理`：每项操作对应的 subreddit、动作类型和 permalink
-- `下一轮`：核验后的本地时间，以及计划进行的评论或发帖工作
-- `风险`：写“无”，或说明具体的删除、资格、可见性、频率风险
+- `本轮完成`：已完成的评论、主帖、数量、subreddit 和 permalink
+- `下一轮心跳`：核验后的本地日期时间、时区及 UTC
+- `下轮计划`：计划进行的评论或发帖工作及目标数量
 
 Keep candidate scores, `insight_basis`, final text/translation, preflight, Check A/B, and history/length comparisons in the internal action log. Show them only when the user asks or they explain a risk or missing action.

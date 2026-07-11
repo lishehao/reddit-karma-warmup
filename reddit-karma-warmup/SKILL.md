@@ -153,13 +153,12 @@ Ask the user only in `Reddit 主控台` when they must act: Reddit is logged out
 
 ## Compact Report
 
-User-facing reports are Chinese and use exactly four fields:
+Every ordinary worker result, including every heartbeat wake, uses exactly three Chinese lines. Keep links and no-action reasons inside the first line. Decision-requiring risks use the separate risk callback schema.
 
 ```text
-本轮完成：做了什么；实际发布/处理了多少项。
-发布/处理：r/subreddit + 动作类型 + permalink；没有发布时写“未发布：原因”。
-下一轮：本地日期、时间、时区，以及准备做什么；结束时写“已结束，不再调度”。
-风险：无；或只写当前具体风险及影响。
+本轮完成：<动作、数量、r/subreddit 和 permalink；无动作则写明已检查什么及原因>
+下一轮心跳：<YYYY-MM-DD HH:mm:ss 时区（UTC 时间）；结束则写“无，任务已结束”>
+下轮计划：<下一轮准备完成的具体动作和目标数量；结束则写“无”>
 ```
 
-Do not expose intermediate worker reports or technical implementation details unless the user asks.
+The heartbeat time must come from the timer's intended/read-back schedule, not a vague interval or an invented value. Do not expose intermediate worker reports or technical implementation details unless the user asks.

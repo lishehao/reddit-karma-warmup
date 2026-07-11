@@ -139,7 +139,7 @@ remaining_target
 
 ## Flow C: STATUS And Control
 
-- Status/progress/next run/risk: read relevant workers once, merge the four-field report, return to `IDLE`.
+- Status/progress/next run: read relevant workers once, merge the three-line report, return to `IDLE`. Decision-requiring risks use the separate risk callback.
 - Pause/resume/stop: send the change to affected owners; each owner updates only its own trigger. Confirm the result, then return to `IDLE`.
 - A status request never creates a worker, Goal Mode, heartbeat, or Reddit action.
 
@@ -204,4 +204,4 @@ User-required repair only:
 完成后回复“继续”。
 ```
 
-The first final response and all normal handoffs use the four-field report from `SKILL.md`, with an actual action/permalink or concrete verified no-action evidence.
+The first final response, every heartbeat result, and all normal handoffs use the exact three-line report from `SKILL.md`, with an actual action/permalink or concrete verified no-action evidence in `本轮完成`.

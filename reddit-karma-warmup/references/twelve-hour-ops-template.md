@@ -34,4 +34,4 @@ Use for about `8-12h`, overnight, or other long low-frequency runs. This is a pl
 
 Broad operation enables comments, posts, follow-up, and natural browsing. Profile/community setup is bootstrap-only. Each worker receives the shared stop time, intensity, account tier, pool, first due slot, and its independent Chrome tab rule.
 
-Actual trigger intervals come from `scheduler-and-heartbeats.md`, not fixed hourly recurrence. Use the four-field report from `orchestration-core.md`; keep selected track, lane owners, slot math, stop time, and scheduler readback internal unless they create a risk or scheduling failure.
+Actual trigger intervals come from `scheduler-and-heartbeats.md`, not fixed hourly recurrence. Use the three-line report from `orchestration-core.md`; keep selected track, lane owners, slot math, stop time, and scheduler readback internal unless they create a risk or scheduling failure.

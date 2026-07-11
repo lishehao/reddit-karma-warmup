@@ -62,11 +62,10 @@ The follow-up lane owns only its follow-up automation. It may read proactive com
 
 ## Follow-Up Report
 
-Use the four-field compact report from `orchestration-core.md`:
+Use the three-line compact report from `orchestration-core.md`:
 
-- `本轮完成`：已检查的 Notifications、本人帖子/评论，以及完成的回复或清理动作
-- `发布/处理`：已回复、关闭或撤回的项目，附 subreddit 和 permalink；不展开未处理队列
-- `下一轮`：核验后的本地时间和下一次跟进动作
-- `风险`：删除、等待审核、警告、持续争议，或写“无”
+- `本轮完成`：已检查的 Notifications、本人帖子/评论，以及完成的回复或清理动作和 permalink
+- `下一轮心跳`：核验后的本地日期时间、时区及 UTC
+- `下轮计划`：下一次跟进范围和目标动作
 
 Keep queue size, Act/Watch/Skip/Closed triage, final reply text/translation, visibility, UTC, and scheduler readback internal unless they explain a risk or the user asks.

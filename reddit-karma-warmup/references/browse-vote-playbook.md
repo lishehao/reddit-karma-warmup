@@ -86,8 +86,7 @@ For a continuing run:
 Use the shared compact report:
 
 ```text
-本轮完成：浏览 <N>/<阅读预算> 条；投票目标 <N>，Upvote <N>，Downvote <N>。
-发布/处理：<r/subreddit | 投票方向 | URL>；未达到目标则写“差 <N> 次：已耗尽阅读/时间预算，未降低门槛”。
-下一轮：<本地日期时间与浏览动作>。
-风险：<无 | 具体异常>。
+本轮完成：浏览 <N>/<阅读预算> 条；Upvote <N>，Downvote <N>；附关键 r/subreddit/URL；未达到目标则写明差额和原因。
+下一轮心跳：<本地日期时间、时区及 UTC；结束则写“无，任务已结束”>。
+下轮计划：<下轮阅读预算、投票目标与候选范围；结束则写“无”>。
 ```

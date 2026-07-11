@@ -84,7 +84,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 
 ## Zero-Account Defaults
 
-- Main model: `gpt-5.6-sol/xhigh`. Every lane worker: `gpt-5.6-luna/high`.
+- Main model and every lane worker: `gpt-5.6-luna/high`.
 - Default operation: `3 hours` at `standard` intensity and `mixed` style, automatically decomposed across comments, posts, follow-up, and natural browsing.
 - Profile/community setup is a one-time bootstrap step only when the visible account is incomplete; it is not a recurring operation lane.
 - Comment/post volumes come from the intensity envelope and account tier. After each verified comment, use a local `60-120 sec` pause; discovery, reading, drafting, and checks are additional.

@@ -49,7 +49,7 @@ browse_next_delay = explicit user interval or a fresh integer from 20-40 min aft
 ```
 
 4. Keep the first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator may use one read-only one-shot heartbeat named `Loci Reddit运营-首轮监督` for delayed checks; it must never carry lane actions or be named `首轮后续`.
-5. Use `gpt-5.6-sol/xhigh` for the main task and `gpt-5.6-luna/high` for every worker.
+5. Use `gpt-5.6-luna/high` for the main task and every worker.
 
 ### A2. Dispatch Once
 

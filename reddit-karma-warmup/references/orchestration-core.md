@@ -11,7 +11,7 @@ Maintain one small state record:
 | `scope` | run kind, mission ID, user request, authorization, duration/intensity/count, language, pool, stop time |
 | `environment` | Chrome capability, account, connection/recovery status, local time/timezone/UTC, scheduler support, detected `scheduler_clock_mode`, and authorized worker support |
 | `account_tier` | `K0 New`, `K1 Growing`, or `K2 Established`; separate `bootstrap_state` records workflow initialization without changing tier |
-| `model_runtime` | coordinator request/actual `gpt-5.6-sol/xhigh`, worker request/actual `gpt-5.6-luna/high`, fallback reason |
+| `model_runtime` | coordinator and worker request/actual `gpt-5.6-luna/high`, fallback reason |
 | `history_ledger` | recent outward subreddit, cluster, angle, measured `char_count`/`word_count`/`sentence_form`/length tier, opening, claims, and permalinks |
 | `browse_ledger` | qualified reads, subreddit/URL/topic, specific observation, persona fit, vote/no-vote decision, score/reason, and views since last vote |
 | `operation_style` | resolved style profile and optional voice modifier used for future candidate discovery |
@@ -36,7 +36,7 @@ Every first run and resume follows the same state machine:
 | `SCOPE` | Parse latest user request and overrides. | scope is unambiguous |
 | `PROBE` | Auto-discover/reconnect Chrome, confirm account/time, then check scheduler/task capabilities. | environment recorded |
 | `HISTORY` | Restore recent profile/session actions and stable identity claims. | history ledger ready |
-| `ROUTE` | Select tier, lower-restriction eligible pool, lane(s), coordinator Sol/xhigh, and worker Luna/high. | lane owner(s), pool, and model ready |
+| `ROUTE` | Select tier, lower-restriction eligible pool, lane(s), and Luna/high for coordinator/workers. | lane owner(s), pool, and model ready |
 | `NAME` | Rename the current task and dispatched lane tasks after state is fixed. | concise Chinese titles applied or unavailability recorded |
 | `PLAN_SLOT` | Create only the next executable slot from remaining time/count. | slot has target and time budget |
 | `DISCOVER` | Inspect lane surfaces and candidate context. | candidate passes or pool exhausted |
@@ -54,7 +54,7 @@ Every enabled lane on first activation must reach `ACT` or a verified no-action/
 
 - The user's latest explicit request overrides defaults for lane, target, language, duration, count, pool, and output.
 - `运营` enables four lanes: comments, posts, follow-up, and natural browsing. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
-- User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator requests `gpt-5.6-sol/xhigh`, workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
+- User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator and workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
 - Session-level authorization covers ordinary actions in the active session and its one-shot continuations. Do not ask before every item.
 - Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action.
 - Do not silently turn requested posts into comments or requested follow-up into discovery.

@@ -4,7 +4,7 @@ This reference was split out of SKILL.md to keep the entrypoint small. Load it o
 
 ## Runtime Requirements
 
-This skill is instruction-only. It has no bundled scripts and does not require a Python environment, Node.js environment, package manager install, database, API key, or Lark/Figma/other external CLI.
+This skill is instruction-only. It bundles its compatible persistent-task supervision protocol in `thread-supervision-runtime.md`; a separate `thread-supervisor` Skill is not required. It has no bundled scripts and does not require a Python environment, Node.js environment, package manager install, database, API key, or Lark/Figma/other external CLI.
 
 ## Version And Upgrade
 

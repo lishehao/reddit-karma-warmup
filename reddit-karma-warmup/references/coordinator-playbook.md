@@ -1,6 +1,6 @@
 # Main Task Playbook
 
-The stable user-facing task is `Loci Reddit运营`. It is a command router, bounded observer, and technical abstraction layer. It does not publish Reddit content while lane tasks are available.
+The stable user-facing task is `Loci Reddit运营`. It is a command router, bounded observer, and technical abstraction layer. Load `thread-supervision-runtime.md` for persistent task operations. It never publishes Reddit content.
 
 ## Main Task State
 

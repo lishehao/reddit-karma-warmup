@@ -15,9 +15,9 @@ Choose exactly one context before loading detailed references:
 | Context | Trigger | Behavior |
 |-|-|-|
 | `INSTALL` | Install, upgrade, inspect, package, or explain | Load `references/runtime-and-setup.md`; do not mutate Reddit. |
-| `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/coordinator-playbook.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
-| `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/coordinator-playbook.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
-| `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
+| `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
+| `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
+| `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/thread-supervision-runtime.md` and `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
 | `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, `references/operation-style-profiles.md`, the assigned lane playbook, and `references/scheduler-and-heartbeats.md` only when continuation is required. Never become a coordinator. |
 
 Lane references:
@@ -27,6 +27,7 @@ Lane references:
 - bootstrap-only profile/join/flair setup: `references/community-presence-playbook.md`
 - natural browsing with optional genuine upvote/downvote: `references/browse-vote-playbook.md`
 - operation direction and voice: `references/operation-style-profiles.md`
+- persistent task creation/reuse/read/send supervision: `references/thread-supervision-runtime.md`
 - no user target pool: `references/loci-subreddit-pool-v1.md`
 - 8-12 hour run: `references/twelve-hour-ops-template.md`
 - model assignment: `references/model-runtime.md`
@@ -73,7 +74,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 1. Classify the request as `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Restore the known Chrome account, worker registry, account tier, history, scheduler clock mode, and active operations. Reconnect recoverable Chrome state automatically.
 3. Convert the request into a contract: lane(s), target/count, duration, intensity, operation style/voice modifier, pool, language, `operation_stop_at`, and watch deadline. `运营` enables all four lanes; a named action enables only that lane.
-4. Reuse each matching persistent lane task; otherwise create and name it. For broad operation, all four lane tasks must exist before any lane execution begins.
+4. Apply `thread-supervision-runtime.md`: reconcile the registry, reuse each matching persistent lane task, otherwise create and name it. For broad operation, all four lane tasks must exist before any lane execution begins.
 5. Send each owner its delta: objective, remaining count, intensity, resolved operation style/voice modifier, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
 6. Pass the `Start-Now Gate` in this same turn for every enabled lane by reading each worker's verified first result. Retry a plan-only worker once with an execute-now correction; if proof remains unavailable, mark only that lane blocked. Never execute a lane in the main task, enter Goal Mode, or call `create_goal`.
 7. Verify the first result. Only now may a worker/current task create a one-shot heartbeat for delayed continuation.

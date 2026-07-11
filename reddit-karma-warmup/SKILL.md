@@ -83,7 +83,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 5. Send each owner its delta: objective, remaining count, intensity, resolved operation style/voice modifier, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
 6. Pass the `Start-Now Gate` in this same turn for every enabled lane by reading each worker's verified first result. Retry a plan-only worker once with an execute-now correction; if proof remains unavailable, mark only that lane blocked. Never execute a lane in the main task, enter Goal Mode, or call `create_goal`.
 7. Verify the first result. Only now may a worker/current task create a one-shot heartbeat for delayed continuation.
-8. For `BOOTSTRAP`, keep the main task's read-only watch through one-shot heartbeats for the first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
+8. Only for the first post-install `BOOTSTRAP`, keep the main task's read-only watch through sequential one-shot heartbeats at roughly `start+15m`, `start+35m`, and the `start+60m` boundary. Later `MISSION` commands receive same-turn acceptance only and never restart this hour-long supervision unless the user explicitly asks.
 9. Return the compact Chinese report with actual first-round evidence and heartbeat handoff, then end the current turn. A runtime that omits persisted next-run fields lowers timing confidence but does not invalidate a successfully created heartbeat.
 10. In `IDLE`, do not poll. A later user command begins a new `MISSION` from current state.
 
@@ -96,7 +96,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 - Follow-up: inspect Notifications and recent own activity; reply only to actionable items.
 - Natural browsing: use the selected intensity's read budget and vote target. Standard defaults to `20-30` qualified reads and a target of `2` combined genuine votes per slot, with up to `4` when additional items independently pass. After a slot completes, the next browsing slot defaults to a freshly selected `20-40 min` delay. An explicit user read, vote, or interval setting, including `0` votes, overrides only that field; a below-target slot is valid when the read/time budget is exhausted without enough passing items.
 - The post lane is enabled during broad operation, but publishing still requires a fully eligible native candidate and live preflight; a verified no-post result is valid.
-- The main task checks the first outward permalink immediately, again after `15-30 min`, and at the first-hour boundary while workers continue independently.
+- During the one-time post-install BOOTSTRAP only, the main task checks the first outward permalink immediately, near `+15 min`, and at the first-hour boundary while workers continue independently.
 
 ## Shared Invariants
 

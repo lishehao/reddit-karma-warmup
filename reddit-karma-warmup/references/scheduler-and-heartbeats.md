@@ -14,7 +14,7 @@ Accept `duration only`, `count only`, or both:
 - Count only: estimate a minimum window from work time, spacing, preflight, and verification.
 - Both: spread the requested work across the window; do not front-load it.
 
-For a broad start, keep two boundaries: worker operations stop at `operation_stop_at`, while the coordinator's bounded watch stops at `startup_watch_deadline = min(operation_stop_at, start + 60 min)`. Keep one coordinator one-shot trigger at a time through that first hour, including a mandatory final boundary sweep. Never create or retain a Goal Mode merely to wait. Never create a lane trigger at or after `operation_stop_at`; never extend coordinator follow-up beyond the first hour.
+Only for the first post-install BOOTSTRAP broad start, keep two boundaries: worker operations stop at `operation_stop_at`, while the coordinator's one-time watch stops at `startup_watch_deadline = min(operation_stop_at, start + 60 min)`. Keep one coordinator one-shot trigger at a time for checkpoints near `+15m`, `+35m`, and the final boundary near `+60m`. Later missions do not create coordinator-watch heartbeats. Never create or retain a Goal Mode merely to wait. Never create a lane trigger at or after `operation_stop_at`.
 
 Default estimates are `2 min` of action work per comment/reply plus the proactive comment lane's `60-120 sec` post-submit pause, and `5 min` per main post. Discovery, rule checks, browser reconnects, and longer waits are additional.
 

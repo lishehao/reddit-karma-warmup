@@ -45,11 +45,11 @@ Reuse an owner when its title/role still matches and it remains readable. Create
 
 ## Supervision
 
-- Pull routine worker state from the coordinator during its bounded first-hour watch. Do not require routine callbacks; require structured risk/blocker callbacks under `risk-escalation.md`.
+- Pull routine worker state from the coordinator only during the first post-install BOOTSTRAP checkpoints near `+15m`, `+35m`, and `+60m`. Later missions receive same-turn acceptance but no delayed pull unless the user requests `STATUS/AUDIT`. Do not require routine callbacks; require structured risk/blocker callbacks under `risk-escalation.md`.
 - Read only the latest result needed to classify `running`, `first_round_ok`, `blocked`, or `completed`.
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
 - Every worker owns its dedicated Chrome tab, history, and one continuation heartbeat explicitly targeting `worker_thread_id`. The worker creates/updates that heartbeat inside its own task and verifies the stored target after every change.
-- The coordinator may own only the read-only `Loci Reddit运营-首轮监督` heartbeat. It cannot execute Reddit actions or continue lane work.
+- Only during the first post-install BOOTSTRAP, the coordinator may own the read-only `Loci Reddit运营-首轮监督` heartbeat. It cannot execute Reddit actions or continue lane work, and later missions must not recreate it.
 - If creation of the coordinator watch reports that its task already owns a heartbeat, inspect only that coordinator-targeted item. A prompt containing comment/post/follow-up/browsing execution proves a misbound lane heartbeat: do not treat the lane as handed off, deactivate/remove the wrong item, and instruct the actual lane worker to create its own explicitly bound replacement. Do not inspect unrelated correctly bound worker heartbeats.
 - The coordinator never batch-creates lane heartbeats. It checks worker reports for `thread_binding_verified` or provisional `creator_thread_bound` and repairs only a reported mismatch.
 - Different lane tasks sharing one Chrome profile/account remain independent; do not pause one merely because another is active.

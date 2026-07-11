@@ -23,7 +23,7 @@ Do not expose this record unless the user asks for technical detail.
 2. Reuse current account/runtime state instead of repeating healthy checks.
 3. Reuse existing lane owners and send only changed mission fields.
 4. Enforce same-turn `start_proof_by_lane`: create/reuse every enabled persistent worker, read its first verified result, and issue one execute-now correction to a plan-only worker. If proof remains unavailable, report that lane blocked; never execute it in the coordinator.
-5. Observe the first hour of BOOTSTRAP and the bounded start of ongoing missions.
+5. Observe the first hour only for the first post-install BOOTSTRAP; later missions receive same-turn acceptance without delayed coordinator supervision.
 6. Verify results, visibility, deadlines, and worker heartbeat handoff.
 7. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
 8. Return one concise Chinese result and enter `IDLE`.
@@ -63,7 +63,7 @@ Before dispatch:
 
 ## BOOTSTRAP Watch
 
-BOOTSTRAP uses a mandatory first-hour watch in ordinary task mode, driven by one-shot heartbeats rather than Goal Mode:
+The first post-install BOOTSTRAP uses one mandatory first-hour watch in ordinary task mode, driven by sequential one-shot heartbeats rather than Goal Mode. Once `bootstrap_state=initialized`, never run it again because of a later mission or Skill upgrade unless the user explicitly requests renewed supervision.
 
 ```text
 operation_stop_at = start + requested duration (default 3h)
@@ -73,30 +73,23 @@ watch_deadline = min(operation_stop_at, start + 60m)
 The main task keeps one read-only one-shot trigger at a time:
 
 - initial progress read: same user turn, before final response, until every enabled lane has `start_proof`
-- first delayed progress read: within `5-10 min` after `start_proof_by_lane`
-- first permalink visibility: immediate and `15-30 min` delayed check
-- progress reads: about every `10-15 min` when useful
-- final read: exactly at `watch_deadline`
+- checkpoint 1: near `start+15m`; read all enabled workers, heartbeat ownership/time, first action/no-action proof, and permalink visibility
+- checkpoint 2: near `start+35m`, about `20m` after checkpoint 1; read progress, wake timing, cadence, blockers, and a small content length/quality sample
+- final checkpoint: exactly at `watch_deadline`, normally near `start+60m`; reconcile totals, visibility, risks, and worker handoff
 
 Name this trigger `Loci Reddit运营-首轮监督`. Its prompt is read-only and may not contain any comment, post, follow-up, browsing, vote, or lane-continuation instruction.
 
-Early clean results do not end BOOTSTRAP observation. At the boundary, delete the main trigger and enter `IDLE`. Mark startup acceptance passed only when all enabled lanes are `first_round_ok`; otherwise report the exact gap without claiming success.
+Create only one next checkpoint at a time and verify its target task plus local/UTC trigger time. Do not poll between checkpoints. Early clean results do not end BOOTSTRAP observation. At the boundary, delete the main trigger, set `bootstrap_state=initialized`, and enter `IDLE`. Mark startup acceptance passed only when all enabled lanes are `first_round_ok`; otherwise report the exact gap without claiming success.
 
-## MISSION Watch
+## Later MISSION Acceptance
 
-For every later active command:
-
-- verified one-shot action with no continuation: watch until the action/result is verified, then hand off early
-- ongoing or multi-hour mission: `watch_deadline = min(operation_stop_at, start + 60m)`
-- status-only request: no Goal Mode and no watch heartbeat
-
-The main task watches only affected lanes. It must not restart BOOTSTRAP, reset worker history, or repeat profile setup for a healthy account.
+For every later active command, read affected workers in the current user turn until the first requested action/no-action result and any required worker-owned heartbeat handoff are verified. Then return to `IDLE`. Do not create a delayed coordinator-watch heartbeat, restart BOOTSTRAP, reset worker history, or repeat profile setup. Later visibility/quality checks happen only through worker evidence, risk callbacks, or an explicit user `STATUS/AUDIT` request.
 
 At mission handoff:
 
 1. Read affected owners once.
 2. Confirm requested action/remaining count and next trigger when continuing.
-3. Delete the main task's temporary trigger.
+3. Confirm no coordinator-watch trigger was created for this later mission.
 4. Return the four-field report.
 5. Enter `IDLE` and stop proactive reads.
 

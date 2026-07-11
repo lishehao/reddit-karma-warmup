@@ -48,7 +48,7 @@ vote_cap_per_browse_slot = explicit user cap or intensity cap (standard: 4 combi
 browse_next_delay = explicit user interval or a fresh integer from 20-40 min after slot completion
 ```
 
-4. Keep the first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator may use one read-only one-shot heartbeat named `Loci Reddit运营-首轮监督` for delayed checks; it must never carry lane actions or be named `首轮后续`.
+4. Keep the one-time post-install first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator uses one sequential read-only one-shot heartbeat named `Loci Reddit运营-首轮监督` for delayed checks; it must never carry lane actions or be named `首轮后续`.
 5. Use `gpt-5.6-luna/high` for the main task and every worker.
 
 ### A2. Dispatch Once
@@ -70,13 +70,15 @@ Before the coordinator sends any final response, every enabled requested lane mu
 
 The main task is read-only across workers:
 
-1. Read initial progress in the same user turn, before final response. `5-10 min` is the first delayed recheck window after start proof, not permission to defer initial execution.
+1. Read initial progress in the same user turn, before final response. The first delayed checkpoint is not permission to defer initial execution.
 2. As soon as the first outward permalink appears, apply `startup-health-check.md` without pausing the comment worker.
-3. Recheck that permalink in the `15-30 min` visibility window.
-4. Read worker progress about every `10-15 min` as useful and automatically repair recoverable setup/scheduler issues.
-5. At `watch_deadline`, run the mandatory final sweep: first-hour totals, visibility, warnings, worker next-trigger readback, and deadlines.
-6. Delete the main task's temporary trigger and enter `IDLE`. Never continue proactive main-task polling after the boundary.
-7. Record `bootstrap_state=initialized` when the account/profile baseline, worker registry, and final first-hour result are stored. This state means future user commands route to MISSION; it does not promote the Karma tier or erase new-account safeguards.
+3. Schedule only the next checkpoint at a time: first near `start+15m`, second near `start+35m` (about `20m` later), and final at `watch_deadline` near `start+60m`. Read back target task and local/UTC time after each creation.
+4. At `+15m`, read all enabled worker states, verify their owned heartbeat binding/time, and recheck the first permalink/first no-action proof.
+5. At `+35m`, read progress again and check actual actions, cadence, automation wake evidence, blockers, and a small sample of published length/quality.
+6. At `watch_deadline`, run the mandatory final sweep: first-hour totals, visibility, warnings, worker next-trigger readback, deadlines, and any unresolved risk.
+7. After every checkpoint, report only a concise meaningful delta; risk uses `risk-escalation.md`. Do not poll between checkpoints.
+8. Delete the main task's temporary trigger and enter `IDLE` after the final sweep. Never continue proactive main-task polling after the boundary.
+9. Record `bootstrap_state=initialized` when the account/profile baseline, worker registry, and final first-hour result are stored. This state means future user commands route to MISSION; it does not promote the Karma tier or erase new-account safeguards. Skill upgrades/version changes do not reset it.
 
 Startup acceptance passes only when all enabled lanes are accepted at the final sweep. A gap is reported accurately and is not marked as success.
 
@@ -114,12 +116,10 @@ voice_modifier
 target_pool_or_urls
 language
 operation_stop_at
-watch_deadline
 remaining_target
 ```
 
-- One-shot mission with no future trigger: `watch_deadline = verified completion`, capped by the user deadline.
-- Ongoing/multi-hour mission: `watch_deadline = min(operation_stop_at, start + 60m)`.
+- Later missions receive same-turn coordinator acceptance through the first verified result and worker heartbeat handoff. They do not create delayed coordinator-watch heartbeats.
 - User count without duration: estimate the minimum window from the lane playbook; do not ask when the derivation is straightforward.
 - `再/额外/追加 N` adds to the affected lane's remaining target.
 - `改成/总共 N` replaces that lane's remaining target.
@@ -135,7 +135,7 @@ remaining_target
 3. The owner immediately executes the first due slot using `gpt-5.6-luna/high`.
 4. Main reads the owner in the current turn until it returns a verified requested action or concrete browser-backed no-action/blocker. If it returns only planning/acknowledgement, send one execute-now correction and read again. If it still cannot execute, report the lane blocker; main never performs the lane action.
 5. Only after that proof, update/create the owner's next trigger for the new remaining target/deadline; do not stack another.
-6. Main reports the actual result, not merely `已启动`, and then continues bounded observation through one-shot heartbeats or returns to `IDLE` as appropriate.
+6. Main reports the actual result, not merely `已启动`, then returns to `IDLE`. Worker-owned heartbeats continue the mission; the coordinator does not restart post-install supervision.
 
 ## Flow C: STATUS And Control
 

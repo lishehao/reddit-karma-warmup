@@ -19,7 +19,7 @@ Do not expose this record unless the user asks for technical detail.
 
 ## Main Task Responsibilities
 
-1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, or `STATUS`.
+1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`.
 2. Reuse current account/runtime state instead of repeating healthy checks.
 3. Reuse existing lane owners and send only changed mission fields.
 4. Enforce same-turn `start_proof_by_lane`: create/reuse every enabled persistent worker, read its first verified result, and issue one execute-now correction to a plan-only worker. If proof remains unavailable, report that lane blocked; never execute it in the coordinator.

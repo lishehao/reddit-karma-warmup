@@ -10,7 +10,7 @@ The host must expose equivalent operations for:
 - create a persistent user-visible task
 - read a task's recent result
 - send or amend a task instruction
-- send a decision-requiring risk/blocker from a worker back to the exact coordinator task
+- send a decision-requiring risk/blocker or terminal mission-completion return from a worker back to the exact coordinator task
 - rename a task when title control exists
 - pin/unpin a task when presentation control exists
 - archive a completed temporary or retired task after ownership is released
@@ -58,7 +58,7 @@ The card defines one outcome, not one action. A worker may search, score, draft,
 
 ## Supervision
 
-- Pull routine worker state from the coordinator only during the first post-install BOOTSTRAP checkpoints near `+15m`, `+35m`, and `+60m`. Later missions receive same-turn acceptance but no delayed pull unless the user requests `STATUS/AUDIT`. Do not require routine callbacks; require structured risk/blocker callbacks under `risk-escalation.md`.
+- Pull routine worker state from the coordinator only during the first post-install BOOTSTRAP checkpoints near `+15m`, `+35m`, and `+60m`. Later missions receive same-turn acceptance but no delayed pull unless the user requests `STATUS/AUDIT`. Do not require routine callbacks; require structured risk/blocker callbacks under `risk-escalation.md` and one terminal `MISSION_COMPLETE` return per assigned lane mission.
 - Read only the latest result needed to classify `running`, `first_round_ok`, `blocked`, or `completed`.
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
 - Every worker owns its dedicated Chrome tab, history, and one logical operation timer heartbeat explicitly targeting `worker_thread_id`. The worker creates it only after first proof, then updates/reuses the same automation ID until mission completion and verifies the stored target/time after every change.
@@ -68,6 +68,7 @@ The card defines one outcome, not one action. A worker may search, score, draft,
 - Different lane tasks sharing one Chrome profile/account remain independent; do not pause one merely because another is active.
 - When the user explicitly requests an execution/quality audit, load `operations-audit.md`, read the relevant workers' latest evidence and owned automations, and compare them with the coordinator's mission contract. This is an on-demand pull, not continuous monitoring or a callback requirement.
 - When a worker escalates a substantive blocker, the coordinator becomes the only user-facing decision surface. It may instruct affected owners to pause, but workers never contact the user or ask for confirmation in their own tasks.
+- When a worker returns `MISSION_COMPLETE`, the coordinator marks only that lane terminal. It reports overall completion only after every lane enabled for the same `mission_id` has returned terminal state; a single lane's ordinary heartbeat completion is not overall completion.
 
 ## User Surface
 
@@ -85,7 +86,7 @@ The user continues speaking only in `Reddit 主控台`. Report lane titles and c
 ## Exclusions
 
 - no invisible subagents in place of persistent tasks
-- no routine callback requirement; decision-requiring risk/blocker return to the coordinator is mandatory
+- no routine or per-heartbeat callback requirement; decision-requiring risk/blocker and one terminal mission-completion return are mandatory
 - no Goal Mode
 - no combined worker or combined execution heartbeat
 - no coordinator fallback that publishes, replies, performs exploratory/natural browsing, or votes; exact read-only permalink/profile verification during acceptance or audit is allowed

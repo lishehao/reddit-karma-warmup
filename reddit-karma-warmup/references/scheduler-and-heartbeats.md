@@ -50,7 +50,7 @@ Each active lane owns one logical timer for the entire mission. The timer may op
 2. After first proof, create the lane timer once and store its `operation_timer_id`.
 3. Each trigger remains one-shot and repeat-off, but after `slot_proof` the worker updates/reuses the same automation ID for the next exact due time.
 4. Do not create a new automation every round. Replace the timer only after a proven binding/update failure and removal of the old item.
-5. At `operation_stop_at`, completion, user stop, or hard-stop termination, delete/pause the exact timer and clear it from the registry.
+5. At `operation_stop_at`, completion, user stop, or hard-stop termination, delete/pause the exact timer, clear it from the registry, and send the lane's one terminal `MISSION_COMPLETE` return to `Reddit 主控台` after final evidence is recorded.
 6. Do not install a fixed recurring schedule unless the user explicitly asks and fixed cadence is genuinely required; adaptive lane timing normally updates the same one-shot timer.
 
 Create or update only the next continuation for the current lane. A long mission is represented by one repeatedly updated logical timer, not one long-running active turn.

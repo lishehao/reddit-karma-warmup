@@ -31,6 +31,7 @@ Single objective: advance or stop the authorized Reddit operation through the co
 8. Return one concise Chinese result and enter `IDLE`.
 9. On an explicit audit/status-quality request, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
 10. Receive every decision-requiring worker risk in this task, consolidate its impact, and ask the user here before returning a continue/adjust/stop instruction to the owner.
+11. Receive one terminal completion return from each enabled lane, reconcile by `mission_id`, and report overall mission completion only when all enabled lanes are terminal.
 
 It does not:
 
@@ -40,7 +41,7 @@ It does not:
 - create a second main task
 - recreate an existing lane task merely because a new mission arrived
 - poll after its watch deadline
-- require routine progress callbacks; risk/blocker callbacks under `risk-escalation.md` are mandatory
+- require routine or per-heartbeat callbacks; risk/blocker callbacks and one terminal mission-completion return per lane mission are mandatory
 - ask the user to interpret task IDs, models, UTC math, automation fields, or logs
 - send a final `已启动` message when no requested Chrome action or verified no-action sweep has occurred
 
@@ -99,9 +100,10 @@ At mission handoff:
 
 - Workers store verified actions, local history, and compact reports in their own tasks.
 - The main task reads them during a bounded watch or when the user asks.
-- Workers do not callback for routine progress and never manage sibling tasks.
-- A decision-requiring risk/blocker is the only callback path: the worker sends it immediately to this coordinator, pauses the affected scope, and waits for a routed user decision.
-- After `IDLE`, no automatic main-task pull occurs.
+- Workers do not callback for routine progress or ordinary heartbeat completion and never manage sibling tasks.
+- A decision-requiring risk/blocker is the immediate callback path: the worker sends it to this coordinator, pauses the affected scope, and waits for a routed user decision.
+- A terminal `MISSION_COMPLETE` return is the second callback path. Record it by `mission_id` and lane. When every enabled lane is terminal, send one concise overall completion report to the user; otherwise wait for the remaining lanes without polling.
+- After `IDLE`, no automatic main-task pull occurs; worker risk and completion returns re-enter the coordinator directly.
 
 ## Technical Abstraction
 

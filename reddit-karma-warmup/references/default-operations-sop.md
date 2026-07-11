@@ -169,9 +169,24 @@ first_due = now or exact time
 browse_next_delay_range = custom or 20-40 min
 ```
 
-Every worker must preserve its one `single_objective`; discovery, scoring, copy, rule checks, pacing, verification, reporting, and timer work are supporting steps. It loads only its lane references plus `risk-escalation.md`, starts the first due action immediately, verifies visible results, updates local history, and maintains one logical heartbeat timer explicitly bound to `worker_thread_id`. An off-lane request returns to the coordinator instead of becoming a second objective. Ordinary status stays in its own task. Workers never coordinate sibling lanes, but they must send one structured callback to `coordinator_thread_id` for every decision-requiring risk/blocker and then pause the affected scope.
+Every worker must preserve its one `single_objective`; discovery, scoring, copy, rule checks, pacing, verification, reporting, and timer work are supporting steps. It loads only its lane references plus `risk-escalation.md`, starts the first due action immediately, verifies visible results, updates local history, and maintains one logical heartbeat timer explicitly bound to `worker_thread_id`. An off-lane request returns to the coordinator instead of becoming a second objective. Ordinary slot status stays in its own task. Workers never coordinate sibling lanes. They send a structured callback to `coordinator_thread_id` only for a decision-requiring risk/blocker or the one terminal completion of the whole assigned mission.
 
 A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. Every later execution-heartbeat response must include `slot_proof`. It creates its logical operation timer only after the first micro-slot is verified, then updates and reuses that same timer for later slots.
+
+At terminal mission completion, clear/stop the lane timer and return exactly once:
+
+```text
+type = MISSION_COMPLETE
+mission_id = exact mission ID
+lane = comments | posts | follow-up | browsing
+completion_reason = target_reached | deadline_reached | user_stopped | terminal_no_more_work
+actual_result = counts plus concise verified outcomes
+evidence = key permalinks or no-action proof
+timer_state = cleared | stopped
+remaining = 0 or exact unfulfilled count with reason
+```
+
+Do not emit this after an ordinary heartbeat slot. If several lanes belong to one mission, each lane returns once; `Reddit 主控台` alone decides when the overall mission is complete.
 
 ## User-Facing Messages
 

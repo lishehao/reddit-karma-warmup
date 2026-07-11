@@ -96,7 +96,7 @@ Chrome is required for account mutations, but the shared Chrome profile and Redd
 
 ## Chrome Recovery
 
-Treat stale tabs, missing controls, dropped browser sessions, and ordinary connection errors as recoverable first.
+Treat stale tabs, missing controls, dropped browser sessions, `ERR_BLOCKED_BY_CLIENT`, and ordinary connection errors as recoverable first. `ERR_BLOCKED_BY_CLIENT` on one Reddit route is not evidence of an account restriction and is not permission to end the whole lane.
 
 1. Stop the current click/type sequence in this lane's tab.
 2. Record the last verified state: target URL, whether text was entered, whether submit was clicked, and whether visibility was confirmed.
@@ -104,6 +104,8 @@ Treat stale tabs, missing controls, dropped browser sessions, and ordinary conne
 4. If the disconnect happened after or near submit, inspect the target thread/profile first. If the action exists, log it and continue; do not resubmit.
 5. If no send occurred, reopen the target in this lane's tab, re-read current context, and continue from the last safe step.
 6. Allow up to two recovery attempts for one incident. Do not loop indefinitely.
+
+For `ERR_BLOCKED_BY_CLIENT`, reconnect/reacquire Chrome, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and stop the lane only when Chrome control itself remains unavailable after both recovery attempts.
 
 If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` and pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately and ask the user to repair the session. Never enter credentials.
 

@@ -14,7 +14,7 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
 7. **Verify in parallel.** Record the first permalink immediately so the coordinator can run `startup-health-check.md` while the comment worker continues. Stop further comments only when that check produces a concrete failure, warning, captcha, rate limit, or removal state; a pending delayed check alone is not a reason to wait.
 8. **Continue after the first hour.** A clean first-hour result continues the selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A failed check activates the matching recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
-9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. The second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
+9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. `K0` does not create a six-hour wait before the first eligible post. Only the second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
 
 The user's explicit sequence may override these defaults unless a hard stop is visible.
 
@@ -35,6 +35,7 @@ For internal Loci accounts without another supplied persona:
 - proactive comments: use the selected intensity; `60/day` requires explicit high-volume mode, at least `6h`, and enough passing candidates
 - startup checkpoint: coordinator verifies the first permalink immediately and again after `15-30 min`, while the comment worker continues within the selected intensity unless a concrete failure appears
 - main posts: `0-2/day`; never more than one per subreddit per `24h`
+- first main post: no skill-level `6h` wait; publish only after full live eligibility/preflight passes
 - first-hour comments: low `2-4`, standard `4-6`, high `6-10`, with `60-120 sec` local pause after every verified submission
 - second post checkpoint: first post remains visible after `30-60 min`, no account/community warning, different community and angle, `>=6h` later
 

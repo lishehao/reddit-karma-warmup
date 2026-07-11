@@ -68,6 +68,7 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 - Reload/reopen is not required after every vote. At most once per slot, optionally sample persistence when the UI is stable. If the post-reload DOM does not expose vote state but there is no opposite state or Reddit error, log `state_unobservable_after_reload`; keep the vote counted, continue the slot, do not click again, and do not ask the user.
 - When the user has explicitly confirmed that this Chrome/account voting path is stable, store `vote_runtime_stability=user_confirmed` for the mission. Do not ask for repeated confirmation unless a concrete failure below occurs.
 - Stop the affected voting action only for a click exception, an explicit opposite-state result, Reddit error/banner, account mismatch/logout, captcha, rate limit, warning, lock, or an unavailable/ambiguous control before click. A merely hidden post-reload state is not a failure.
+- `ERR_BLOCKED_BY_CLIENT` on one page/control is a recoverable route failure: apply `orchestration-core.md` Chrome recovery, then continue the slot through another eligible native Reddit route when needed. Do not convert one blocked route into a lane-wide stop or count unqualified impressions toward the read budget.
 - Record every qualified read and every vote/no-vote decision. A below-target or no-vote slot is valid only after the configured read/time budget was actually exhausted or a concrete blocker appeared.
 
 ## Scheduling And Report

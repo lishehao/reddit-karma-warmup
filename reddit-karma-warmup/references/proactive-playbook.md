@@ -16,7 +16,7 @@ These are internal ceilings, not Reddit platform limits, safety guarantees, or q
 
 Use `new-account-bootstrap.md` when `K0` is in `fresh_bootstrap`. Passing its checkpoints changes the substate to `active_new` but does not create another tier. Promote to `K1/K2` only when both the karma band and clean-history window pass. Apply the explicit recovery levels below after removals or account signals; do not use an undefined generic slowdown.
 
-After every verified proactive comment, use a local `60-120 sec` pause before the next publish; discovery, reading, drafting, and verification time are additional. Main posts are heavier: default to at most one main post per subreddit per `24h`. Two same-day posts require different communities and audience/angle clusters, at least `6h` separation, and a clean visibility check on the earlier post.
+After every verified proactive comment, use a local `60-120 sec` pause before the next publish; discovery, reading, drafting, and verification time are additional. Main posts are heavier: default to at most one main post per subreddit per `24h`. The first eligible main post of the day has no skill-level `6h` waiting gate. Only a second same-day post requires a different community and audience/angle cluster, at least `6h` separation from the first, and a clean visibility check on the earlier post.
 
 ## Explicit Daily 60 Comment Mode
 
@@ -130,6 +130,8 @@ Comments should be mostly short, while longer replies remain available when the 
 ## Main Post Gate
 
 Choose subreddit + audience + angle after history comparison and before drafting. Treat this live same-day preflight as the post-specific part of Double-Check A:
+
+Do not reject a first daily post merely because the account is `K0` or because six hours have not elapsed. `6h` is only the spacing gate between the first and second same-day posts. The first post still requires all live subreddit eligibility, account-age/Karma, format, history, and moderation checks below.
 
 1. home/about/sidebar/rules
 2. pinned moderator posts

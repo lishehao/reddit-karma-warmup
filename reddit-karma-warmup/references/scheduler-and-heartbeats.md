@@ -60,7 +60,7 @@ Every lane heartbeat must bind explicitly to its persistent worker task:
 
 Automation names are labels, not ownership proof. Each worker stores a unique automation ID; no two lanes may share one.
 
-Use the `scheduler_clock_mode` detected by the repository README's no-Reddit create/readback probe when it is available. The current known desktop runtime may use `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC; in that mode, `11:29:43 Asia/Shanghai` is written as `03:29:43 UTC`. Another machine must not assume this result. Prefer an explicit one-shot target accepted by the automation tool. If the runtime hides persisted timing, keep the intended local and UTC pair in the heartbeat prompt and classify the result as `created_unreadable` rather than blocking current work.
+Use the `scheduler_clock_mode` detected by the repository README's no-Reddit create/readback probe when it is available. Compute the intended UTC instant before constructing any schedule. The current known desktop runtime may use `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC; in that mode, `11:29:43 Asia/Shanghai` must be written as `03:29:43 UTC`, never with local `BYHOUR=11`. Another machine must not assume this result. Prefer an explicit one-shot target accepted by the automation tool. If the runtime hides persisted timing, keep the intended local and UTC pair in the heartbeat prompt and classify the result as `created_unreadable` rather than blocking current work.
 
 Before creation, record:
 
@@ -80,6 +80,8 @@ After creation, immediately read back:
 - automation ID/name
 - actual `target_thread_id` or the strongest available creator-thread binding evidence
 - the scheduler's persisted `next_run_at` when the runtime exposes it; convert that epoch to both UTC and the intended local timezone
+
+Before leaving the trigger active, compare the persisted schedule fields themselves with `scheduler_clock_mode`. Under `UTC_FIELDS`, `BYHOUR/BYMINUTE/BYSECOND` must equal the computed UTC clock fields, not the local clock fields. An exact local UTC-offset difference is a repair condition even when the automation card otherwise looks healthy.
 
 Creation and timing observability are separate. Classify:
 

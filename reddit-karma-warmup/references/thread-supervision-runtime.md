@@ -11,6 +11,7 @@ The host must expose equivalent operations for:
 - read a task's recent result
 - send or amend a task instruction
 - rename a task when title control exists
+- view each relevant task-owned automation and its persisted binding/schedule/run evidence when the host exposes it
 
 The user's `开始` or concrete operation command explicitly authorizes creation of the requested lane tasks. Do not create them during install/preflight and do not create unrelated tasks.
 
@@ -49,6 +50,7 @@ Reuse an owner when its title/role still matches and it remains readable. Create
 - If creation of the coordinator watch reports that its task already owns a heartbeat, inspect only that coordinator-targeted item. A prompt containing comment/post/follow-up/browsing execution proves a misbound lane heartbeat: do not treat the lane as handed off, deactivate/remove the wrong item, and instruct the actual lane worker to create its own explicitly bound replacement. Do not inspect unrelated correctly bound worker heartbeats.
 - The coordinator never batch-creates lane heartbeats. It checks worker reports for `thread_binding_verified` or provisional `creator_thread_bound` and repairs only a reported mismatch.
 - Different lane tasks sharing one Chrome profile/account remain independent; do not pause one merely because another is active.
+- When the user explicitly requests an execution/quality audit, load `operations-audit.md`, read the relevant workers' latest evidence and owned automations, and compare them with the coordinator's mission contract. This is an on-demand pull, not continuous monitoring or a callback requirement.
 
 ## User Surface
 
@@ -60,5 +62,5 @@ The user continues speaking only in `Loci Reddit运营`. Report lane titles and 
 - no callback requirement or callback capability probe
 - no Goal Mode
 - no combined worker or combined execution heartbeat
-- no coordinator fallback that publishes, replies, browses, or votes
+- no coordinator fallback that publishes, replies, performs exploratory/natural browsing, or votes; exact read-only permalink/profile verification during acceptance or audit is allowed
 - no model rules from an external supervisor Skill; use `model-runtime.md`

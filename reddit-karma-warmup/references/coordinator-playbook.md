@@ -27,10 +27,11 @@ Do not expose this record unless the user asks for technical detail.
 6. Verify results, visibility, deadlines, and worker heartbeat handoff.
 7. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
 8. Return one concise Chinese result and enter `IDLE`.
+9. On an explicit audit/status-quality request, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
 
 It does not:
 
-- publish comments/posts/replies, vote, browse, or handle Notifications; all lane execution belongs to persistent workers
+- publish comments/posts/replies, vote, perform exploratory/natural browsing, or handle Notifications; all lane execution belongs to persistent workers. Exact permalink/profile opens for read-only acceptance or an explicit audit are allowed.
 - create one combined worker or a combined `首轮后续` automation for several lanes
 - edit profile/community state outside first bootstrap or an explicit one-off setup repair
 - create a second main task
@@ -132,6 +133,7 @@ The user stays in `Loci Reddit运营` for all of these:
 - `看回复` / `跟进这个链接`
 - `自然浏览这些社区` / `刷帖并偶尔投票`
 - `现在进展如何` / `下一轮什么时候`
+- `检查这些任务有没有按计划执行` / `审计自动化时间、发出内容、节奏和质量`
 - `暂停发帖` / `继续评论` / `全部停止`
 
 Never redirect the user to a lane task. Parse, route, verify, and answer in the main task.

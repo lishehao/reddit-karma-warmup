@@ -18,6 +18,7 @@ Choose exactly one context before loading detailed references:
 | `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
 | `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
 | `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/thread-supervision-runtime.md` and `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
+| `AUDIT` | The user asks whether workers, automations, execution, cadence, published content, length, or quality are following the plan | Load `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, and `references/operations-audit.md`; inspect the relevant workers and their automations read-only by default. |
 | `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, `references/operation-style-profiles.md`, the assigned lane playbook, and `references/scheduler-and-heartbeats.md` only when continuation is required. Never become a coordinator. |
 
 Lane references:
@@ -28,6 +29,7 @@ Lane references:
 - natural browsing with optional genuine upvote/downvote: `references/browse-vote-playbook.md`
 - operation direction and voice: `references/operation-style-profiles.md`
 - persistent task creation/reuse/read/send supervision: `references/thread-supervision-runtime.md`
+- on-demand worker, automation, cadence, and content audit: `references/operations-audit.md`
 - no user target pool: `references/loci-subreddit-pool-v1.md`
 - 8-12 hour run: `references/twelve-hour-ops-template.md`
 - model assignment: `references/model-runtime.md`
@@ -41,6 +43,7 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - User replies `开始` with no other scope: this is explicit authorization to create or reuse the persistent user-visible lane tasks described below. Enter `BOOTSTRAP`, default to `3 hours`, and start all enabled workers immediately.
 - A later user command in `Loci Reddit运营`: enter `MISSION`; reuse existing lane tasks and never rerun installation or bootstrap after `bootstrap_state=initialized`, even while the account remains `K0 fresh_bootstrap`.
 - A user asks what is possible: list comments, posts, follow-up, natural browsing (including gated Upvote/Downvote), and the selectable operation styles; do not mutate until they issue an operation command.
+- A user asks whether the operation is on plan, whether automations fired correctly, or whether published content is good: enter `AUDIT`; inspect actual worker/automation evidence and report accuracy without starting a new operation.
 - A lane worker receives a resume heartbeat: restore its own history and unfinished target; do not create a main task or restart the session.
 
 The main task remains the user's only operational entrypoint. A user command such as `评论 20 条` routes to the persistent `主动评论` task; it does not rename the main task or make the main task publish.
@@ -71,7 +74,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 
 ## Canonical Main Flow
 
-1. Classify the request as `BOOTSTRAP`, `MISSION`, or `STATUS`.
+1. Classify the request as `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`.
 2. Restore the known Chrome account, worker registry, account tier, history, scheduler clock mode, and active operations. Reconnect recoverable Chrome state automatically.
 3. Convert the request into a contract: lane(s), target/count, duration, intensity, operation style/voice modifier, pool, language, `operation_stop_at`, and watch deadline. `运营` enables all four lanes; a named action enables only that lane.
 4. Apply `thread-supervision-runtime.md`: reconcile the registry, reuse each matching persistent lane task, otherwise create and name it. For broad operation, all four lane tasks must exist before any lane execution begins.

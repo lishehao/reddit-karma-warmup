@@ -22,7 +22,7 @@ Maintain one small state record:
 | `startup_handoff` | batch objective, per-lane first-round state, immediate/delayed visibility result, retry count, heartbeat readback, and handoff result |
 | `browser_context` | this lane's dedicated `tab_id`, optional `group_id`, current URL, and confirmed account |
 | `action_log` | verified actions and candidate skips |
-| `next_trigger` | at most one one-shot continuation per lane, with automation ID plus expected/actual worker thread binding |
+| `operation_timer` | one logical timer per lane/mission, with reusable automation ID, current next due time, and expected/actual worker task binding |
 | `turn_gate` | `start_proof_by_lane` for a user command and `slot_proof` for each execution-lane heartbeat resume |
 
 Do not create large parallel state tables unless the user asks for an export.
@@ -45,7 +45,7 @@ Every first run and resume follows the same state machine:
 | `CHECK_B` | Text lanes recheck account/page/copy/history/duplicate; browsing rechecks account/URL/direction and eligibility. | submit / vote / rewrite / retarget / stop |
 | `ACT` | Reselect this lane's dedicated tab, confirm account/target, perform action, and verify. | result recorded |
 | `RECONCILE` | Update remaining target from actual time and quality. | next decision known |
-| `SCHEDULE` | Create one next one-shot trigger if needed and read timing back when exposed. | verified, created_unreadable, or manual fallback |
+| `SCHEDULE` | Create the lane timer after first proof, or update/reuse its automation ID for the next one-shot due time; read timing back when exposed. | verified, created_unreadable, or manual fallback |
 | `REPORT` | Return compact operational record. | turn ends |
 
 Every enabled lane on first activation must reach `ACT` or a verified no-action/blocker result before both `SCHEDULE` and `REPORT`. `START_NOW_PROOF_BY_LANE` is a hard transition guard: no path from `SCOPE`, `ROUTE`, `NAME`, `PLAN_SLOT`, or worker dispatch may jump directly to `SCHEDULE`/`REPORT`. An execution-lane heartbeat resume starts at `PROBE`, refreshes `HISTORY`, completes the current slot, records `SLOT_PROOF`, and only then schedules its successor. A coordinator-watch heartbeat is read-only and may only observe lanes that already passed their start gate.
@@ -55,7 +55,7 @@ Every enabled lane on first activation must reach `ACT` or a verified no-action/
 - The user's latest explicit request overrides defaults for lane, target, language, duration, count, pool, and output.
 - `运营` enables four lanes: comments, posts, follow-up, and natural browsing. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
 - User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator and workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
-- Session-level authorization covers ordinary actions in the active session and its one-shot continuations. Do not ask before every item.
+- Session-level authorization covers ordinary actions in the active session and subsequent wakes of its lane-owned logical timer. Do not ask before every item.
 - Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action. A worker sends that question to the coordinator under `risk-escalation.md`; it never asks inside the lane task.
 - Do not silently turn requested posts into comments or requested follow-up into discovery.
 
@@ -137,7 +137,7 @@ For the first turn of a new operation, delegation is valid only when the coordin
 
 The `Reddit 主控台` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they must return decision-requiring risks/blockers to it.
 
-For the first post-install BOOTSTRAP only, the coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, using sequential verified one-shot heartbeats. Dispatch and early acceptance are insufficient: it runs checkpoints near `+15m`, `+35m`, and the mandatory boundary sweep near `+60m`. It must not use Goal Mode or poll while waiting. After that one-time handoff, workers continue independently and the coordinator becomes user-driven again.
+For the first post-install BOOTSTRAP only, the coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, reusing one verified read-only logical heartbeat timer across checkpoints. Dispatch and early acceptance are insufficient: it runs checkpoints near `+15m`, `+35m`, and the mandatory boundary sweep near `+60m`. It must not use Goal Mode or poll while waiting. After that one-time handoff, workers continue independently and the coordinator becomes user-driven again.
 
 The coordinator is the technical abstraction boundary. Recover implementation faults internally when possible and keep task, model, scheduler, tab, retry, and scoring details out of normal user reports. Escalate only a concrete user-required repair using the short schema in `coordinator-playbook.md`.
 
@@ -191,7 +191,7 @@ After each slot:
 - mark actual actions and remaining target
 - recompute from actual local time, not the original ideal timeline
 - stop at user stop time or when no quality candidate remains in the budget
-- if continuing, create one one-shot trigger for this lane; verify local time, UTC time, repeat-off state, and scheduler readback when those fields are exposed
+- if continuing, update/reuse this lane's logical timer to the next one-shot due time; verify local time, UTC time, repeat-off state, automation ID, and scheduler readback when those fields are exposed
 - if creation succeeds but persisted timing is hidden, record `created_unreadable`, keep the trigger, finish the current slot, and validate timing at the next real wakeup; do not pause Reddit work or ask the user to repair it
 - if creation itself fails, finish the current slot and report a manual next local/UTC time
 

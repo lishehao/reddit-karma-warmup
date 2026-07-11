@@ -48,7 +48,7 @@ vote_cap_per_browse_slot = explicit user cap or intensity cap (standard: 4 combi
 browse_next_delay = explicit user interval or a fresh integer from 20-40 min after slot completion
 ```
 
-4. Keep the one-time post-install first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator uses one sequential read-only one-shot heartbeat named `Reddit 主控台-首轮监督` for delayed checks; it must never carry lane actions or be named `首轮后续`.
+4. Keep the one-time post-install first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator uses one read-only logical heartbeat timer named `Reddit 主控台-首轮监督`, reusing its automation ID across delayed checkpoints; it must never carry lane actions or be named `首轮后续`.
 5. Use `gpt-5.6-luna/high` for the main task and every worker.
 
 ### A2. Dispatch Once
@@ -134,7 +134,7 @@ remaining_target
 2. Send only the mission delta; do not resend installation instructions or reset history.
 3. The owner immediately executes the first due slot using `gpt-5.6-luna/high`.
 4. Main reads the owner in the current turn until it returns a verified requested action or concrete browser-backed no-action/blocker. If it returns only planning/acknowledgement, send one execute-now correction and read again. If it still cannot execute, report the lane blocker; main never performs the lane action.
-5. Only after that proof, update/create the owner's next trigger for the new remaining target/deadline; do not stack another.
+5. Only after that proof, update/reuse the owner's logical operation timer for the new remaining target/deadline; do not stack another.
 6. Main reports the actual result, not merely `已启动`, then returns to `IDLE`. Worker-owned heartbeats continue the mission; the coordinator does not restart post-install supervision.
 
 ## Flow C: STATUS And Control
@@ -150,8 +150,11 @@ Every worker receives:
 ```text
 role = WORKER
 lane = [comments|posts|follow-up|browsing]
+single_objective = exact one-line outcome from SKILL.md
+out_of_scope = other three lane outcomes and sibling coordination
 worker_thread_id = exact persistent task ID returned at create/reuse time
 coordinator_thread_id = Reddit 主控台 task ID
+operation_timer_id = NONE or exact lane-owned automation ID
 model = gpt-5.6-luna
 thinking_effort = high
 account = u/name
@@ -166,9 +169,9 @@ first_due = now or exact time
 browse_next_delay_range = custom or 20-40 min
 ```
 
-Every worker must load only its lane references plus `risk-escalation.md`, start the first due action immediately, verify visible results, update its local history, and maintain at most one next trigger explicitly bound to `worker_thread_id`. Ordinary status stays in its own task. Workers never coordinate sibling lanes, but they must send one structured callback to `coordinator_thread_id` for every decision-requiring risk/blocker and then pause the affected scope.
+Every worker must preserve its one `single_objective`; discovery, scoring, copy, rule checks, pacing, verification, reporting, and timer work are supporting steps. It loads only its lane references plus `risk-escalation.md`, starts the first due action immediately, verifies visible results, updates local history, and maintains one logical heartbeat timer explicitly bound to `worker_thread_id`. An off-lane request returns to the coordinator instead of becoming a second objective. Ordinary status stays in its own task. Workers never coordinate sibling lanes, but they must send one structured callback to `coordinator_thread_id` for every decision-requiring risk/blocker and then pause the affected scope.
 
-A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. Every later execution-heartbeat response must include `slot_proof`. It creates its continuation heartbeat only after the current micro-slot is verified.
+A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. Every later execution-heartbeat response must include `slot_proof`. It creates its logical operation timer only after the first micro-slot is verified, then updates and reuses that same timer for later slots.
 
 ## User-Facing Messages
 

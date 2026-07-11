@@ -18,21 +18,32 @@ The host must expose equivalent operations for:
 
 The user's `开始` or concrete operation command explicitly authorizes creation of the requested lane tasks. Do not create them during install/preflight and do not create unrelated tasks.
 
-Persistent tasks are intentional: each lane needs durable history, an exact task ID, an owned heartbeat, independent recovery, and a reliable risk-return path. A temporary subagent may assist a worker with bounded read-only analysis when available, but it cannot own Chrome mutations, a lane, a continuation heartbeat, or a user-risk decision.
+Persistent tasks are intentional: each lane needs durable history, an exact task ID, an owned logical operation timer, independent recovery, and a reliable risk-return path. A temporary subagent may assist a worker with bounded read-only analysis when available, but it cannot own Chrome mutations, a lane, an operation timer, or a user-risk decision.
 
 ## Registry
 
 Maintain one owner per lane:
 
 ```text
-lane | title | worker_thread_id | status | mission_id | last_proof | owned_heartbeat
-comments | Reddit 评论台
-posts | Reddit 发帖台
-follow-up | Reddit 跟进台
-browsing | Reddit 浏览台
+lane | title | single_objective | worker_thread_id | status | mission_id | last_proof | operation_timer_id
+comments | Reddit 评论台 | qualified new comments only
+posts | Reddit 发帖台 | eligible native main posts only
+follow-up | Reddit 跟进台 | actionable account follow-up only
+browsing | Reddit 浏览台 | qualified reading and gated vote decisions only
 ```
 
 Reuse an owner when its title/role still matches and it remains readable. Create a replacement only when no owner exists or the prior task is genuinely unavailable. Never create duplicate owners to increase throughput.
+
+Every task handoff begins with this compact objective card; do not bury it below setup details:
+
+```text
+唯一目标：<one lane outcome>
+本轮交付：<count/time/deadline>
+明确不做：<other lane outcomes>
+长期计时：复用 operation_timer_id；首轮立即执行
+```
+
+The card defines one outcome, not one action. A worker may search, score, draft, check rules, pace, verify, and report only as supporting steps toward that outcome.
 
 ## Dispatch
 
@@ -40,7 +51,7 @@ Reuse an owner when its title/role still matches and it remains readable. Create
 2. List/reconcile the registry once.
 3. Create every missing persistent task, capture the returned thread/task ID as `worker_thread_id`, and rename it immediately when title control exists.
 4. Pin the verified `Reddit 主控台`; explicitly unpin every worker. Read/list the created tasks and verify four distinct IDs for broad operation, with each ID mapped to exactly one lane title. A title, plan, or heartbeat card without a persistent task ID is not a worker. If an enabled lane lacks its own readable ID, mark that lane `startup_blocked`; never let the coordinator absorb it.
-5. Send each worker the `default-operations-sop.md` handoff contract: `role=WORKER`, lane, `worker_thread_id`, coordinator thread ID, account, mission, intensity, style, targets, stop time, first due=`now`, and its required references.
+5. Send each worker the `default-operations-sop.md` handoff contract: `role=WORKER`, lane, `single_objective`, `out_of_scope`, `worker_thread_id`, coordinator thread ID, account, mission, intensity, style, targets, stop time, first due=`now`, and its required references.
 6. Require the worker to execute its first Chrome slot immediately and return `start_proof`; task creation or acknowledgement is not proof.
 7. Read each enabled worker in the same coordinator turn. A plan-only worker receives one explicit amendment: execute the assigned lane now, verify it, then report proof.
 8. If the amended worker still has no proof, mark only that lane `startup_blocked`. Never execute the lane in the coordinator and never merge it into another worker.
@@ -50,7 +61,7 @@ Reuse an owner when its title/role still matches and it remains readable. Create
 - Pull routine worker state from the coordinator only during the first post-install BOOTSTRAP checkpoints near `+15m`, `+35m`, and `+60m`. Later missions receive same-turn acceptance but no delayed pull unless the user requests `STATUS/AUDIT`. Do not require routine callbacks; require structured risk/blocker callbacks under `risk-escalation.md`.
 - Read only the latest result needed to classify `running`, `first_round_ok`, `blocked`, or `completed`.
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
-- Every worker owns its dedicated Chrome tab, history, and one continuation heartbeat explicitly targeting `worker_thread_id`. The worker creates/updates that heartbeat inside its own task and verifies the stored target after every change.
+- Every worker owns its dedicated Chrome tab, history, and one logical operation timer heartbeat explicitly targeting `worker_thread_id`. The worker creates it only after first proof, then updates/reuses the same automation ID until mission completion and verifies the stored target/time after every change.
 - Only during the first post-install BOOTSTRAP, the coordinator may own the read-only `Reddit 主控台-首轮监督` heartbeat. It cannot execute Reddit actions or continue lane work, and later missions must not recreate it.
 - If creation of the coordinator watch reports that its task already owns a heartbeat, inspect only that coordinator-targeted item. A prompt containing comment/post/follow-up/browsing execution proves a misbound lane heartbeat: do not treat the lane as handed off, deactivate/remove the wrong item, and instruct the actual lane worker to create its own explicitly bound replacement. Do not inspect unrelated correctly bound worker heartbeats.
 - The coordinator never batch-creates lane heartbeats. It checks worker reports for `thread_binding_verified` or provisional `creator_thread_bound` and repairs only a reported mismatch.

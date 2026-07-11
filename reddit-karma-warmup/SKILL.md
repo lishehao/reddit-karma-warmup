@@ -58,20 +58,20 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 1. Send each enabled owner its mission with `first_due=now`; every worker opens/reclaims its own Chrome tab and performs the first micro-slot immediately.
 2. Every worker returns `start_proof`: a verified action/permalink, or exact browser surfaces/candidates plus the valid gate producing no action/blocker.
 3. The coordinator reads every enabled worker in the same user turn. A plan-only worker receives one execute-now correction; if proof still fails, mark only that lane `startup_blocked`.
-4. Planning, task creation, heartbeat creation, or `已启动` is not proof. No worker creates its continuation heartbeat before current-slot proof.
+4. Planning, task creation, heartbeat creation, or `已启动` is not proof. No worker creates its logical operation timer before current-slot proof.
 5. Report the actual first result in Chinese, then end the turn; never keep an active turn waiting for the next delayed slot.
 
 ### Phase 3: Independent Worker Continuation
 
-1. Each worker owns one lane, dedicated tab/history, and at most one next one-shot heartbeat explicitly bound to its own task ID.
-2. On every heartbeat wake, the worker restores state, executes/verifies the current slot, records `slot_proof`, and only then creates a successor when work remains.
+1. Each worker owns one lane, dedicated tab/history, and one logical heartbeat timer explicitly bound to its own task ID for the mission lifetime.
+2. On every heartbeat wake, the worker restores state, executes/verifies the current slot, records `slot_proof`, and only then updates the same timer to the next due time when work remains.
 3. Workers keep routine progress locally. They never coordinate siblings or ask the user directly.
 4. Decision-requiring risks use `risk-escalation.md`: pause the affected scope, return evidence to `Reddit 主控台`, and await the routed user decision.
 
 ### Phase 4: One-Time First-Hour Supervision
 
 1. Run this phase only for the first post-install `BOOTSTRAP` while `bootstrap_state` is not initialized.
-2. The coordinator owns one sequential read-only heartbeat and checks workers near `start+15m`, `start+35m`, and the `start+60m` boundary.
+2. The coordinator owns one read-only logical heartbeat timer, reuses its automation ID, and checks workers near `start+15m`, `start+35m`, and the `start+60m` boundary.
 3. Check worker status, action/no-action evidence, permalink visibility, heartbeat binding/time, cadence, risks, and a small length/quality sample. The coordinator never performs lane actions.
 4. At the final boundary, reconcile the first hour, delete the coordinator heartbeat, set `bootstrap_state=initialized`, and enter `IDLE`.
 5. Later missions and Skill upgrades never restart this phase unless the user explicitly asks for renewed supervision.
@@ -90,6 +90,20 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - risk callback: explain evidence, impact, current pause, and recommendation in `Reddit 主控台`; ask the user to continue, adjust, or stop, then route the decision back to the owner.
 - In `IDLE`, never poll. Worker risk callbacks or a new user command are the only unsolicited re-entry paths after the one-time Bootstrap watch.
 
+## Single-Objective Task Contract
+
+Every persistent task has one outcome. Discovery, scoring, drafting, rules, pacing, verification, reporting, and heartbeat handling are supporting steps or constraints, not additional objectives.
+
+| Task | Single objective | Success evidence | Explicitly outside the objective |
+|-|-|-|-|
+| `Reddit 主控台` | Advance or stop the authorized Reddit operation through the correct workers and centralize every user decision. | Correct routing, same-turn acceptance, risk consolidation, and accurate status/audit. | Performing Reddit lane actions. |
+| `Reddit 评论台` | Publish only qualified new comments on existing Reddit discussions. | Verified comment permalink, or browser-backed no-action evidence after valid candidate gates. | Main posts, Notifications/replies, browsing quotas, sibling coordination. |
+| `Reddit 发帖台` | Publish only eligible native main posts after full live preflight. | Verified post permalink, or exact candidate/preflight rejection evidence. | Proactive comments, Notifications, general browsing/voting. |
+| `Reddit 跟进台` | Process actionable responses and account follow-up surfaces. | Verified reply/action, or a concrete Notifications plus own-activity sweep with no actionable item. | Unrelated discovery, proactive posts/comments, natural browsing. |
+| `Reddit 浏览台` | Complete qualified reading and independently gated vote decisions. | Qualified-read ledger plus verified vote/no-vote decisions for the slot. | Writing comments/posts/replies, profile/community changes. |
+
+One worker may process several items only when they all serve its single objective. A request spanning objectives is split across workers. An off-lane instruction is returned to `Reddit 主控台`; the worker never absorbs it.
+
 ## Hard Gates
 
 - `Reddit 主控台` is the only user-facing command/decision surface and never executes comments, posts, replies, browsing, or votes.
@@ -97,7 +111,7 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - An operation command executes in the current turn. The first heartbeat may continue the second slot, never defer the first.
 - A no-action result needs concrete browser-backed evidence and a valid Skill gate; otherwise the lane is not started.
 - Missing task create/read/send capability blocks only the affected lane; the coordinator never silently performs it sequentially.
-- Delays over `5-10 min` use one verified one-shot heartbeat. Do not use Goal Mode or a terminal sleep as the long-wait scheduler.
+- Delays over `5-10 min` use the lane's verified logical heartbeat timer. Reuse/update the same automation ID across hours; do not use Goal Mode, a terminal sleep, or a new timer per round.
 - Naming uses `<platform> <responsibility>台`. Pin only `Reddit 主控台`; keep active/idle workers unpinned and unarchived. Archive completed probes, diagnostics, and retired workers only after their heartbeat/tab state is released.
 
 ## Zero-Account Defaults
@@ -117,10 +131,10 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - Each worker owns a dedicated Reddit tab and optional Tab Group. Workers do not inspect, wait for, compare, or modify other workers' tabs, targets, actions, or automations.
 - Each worker heartbeat is created/updated by that worker with explicit `targetThreadId=worker_thread_id` when supported, then read back for an exact target match. Names never prove ownership; a mismatch is repaired before the trigger remains active.
 - The main task never owns an execution heartbeat. Its optional first-hour watch heartbeat is read-only, is named as supervision rather than continuation, and cannot contain Reddit lane actions.
-- Each worker owns at most one next one-shot heartbeat for its lane and may mutate only an automation targeting that same task/lane.
+- Each worker owns one logical heartbeat timer for its active mission and may mutate only that exact automation targeting its same task/lane. Reuse its automation ID until stop/completion.
 - Routine progress is pull-based. A substantive risk/blocker is the exception: the worker immediately sends one structured escalation to the coordinator, pauses the affected scope, and waits for the coordinator to return the user's decision.
 - Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
-- Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use one verified one-shot heartbeat, and the current turn ends after reporting that handoff.
+- Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use the lane's verified logical heartbeat timer, and the current turn ends after reporting that handoff.
 - A heartbeat is continuation-only. Never create it as the first operational outcome after a user command, and never use its future wakeup to defer the first requested Chrome micro-slot.
 - Heartbeat capability and heartbeat timing observability are separate. Successful create/update with an automation ID/card proves capability; missing `next_run_at` or hidden display time means `created_unreadable`, not failure. Continue current Reddit work, never ask the user to repair an unexposed field, and validate timing when the heartbeat actually fires.
 - The user's latest explicit duration, intensity, operation style/voice modifier, count, language, target community, and lane override defaults. Counts remain candidate- and rule-gated.

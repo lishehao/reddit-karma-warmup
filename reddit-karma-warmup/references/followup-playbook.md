@@ -56,7 +56,7 @@ On a direct user command or execution-heartbeat resume, complete the current Not
 - quiet queue: `40-90 min`
 - several replies or uncertainty: `57-96 min`
 
-Choose from state, not random imitation. Schedule one next one-shot trigger, verify local/UTC readback, and never stack another follow-up trigger for the same slot.
+Choose from state, not random imitation. Update/reuse the lane's logical timer for one next due time, verify local/UTC readback and automation ID, and never stack another follow-up trigger for the same slot.
 
 The follow-up lane owns only its follow-up automation. It may read proactive comment, post, or browsing automation status for context, but must not pause, resume, delete, or rewrite those triggers. If a global policy affects them, update the follow-up trigger only and report the other implications to their owner tasks or coordinator.
 

@@ -1,6 +1,6 @@
 # Scheduler And Heartbeats
 
-Use for duration/count planning, multi-round operation, waits longer than one active slot, timezone drift, and one-shot continuation verification.
+Use for duration/count planning, multi-round operation, waits longer than one active slot, timezone drift, and durable logical heartbeat timer verification.
 
 ## Planning Rule
 
@@ -14,7 +14,7 @@ Accept `duration only`, `count only`, or both:
 - Count only: estimate a minimum window from work time, spacing, preflight, and verification.
 - Both: spread the requested work across the window; do not front-load it.
 
-Only for the first post-install BOOTSTRAP broad start, keep two boundaries: worker operations stop at `operation_stop_at`, while the coordinator's one-time watch stops at `startup_watch_deadline = min(operation_stop_at, start + 60 min)`. Keep one coordinator one-shot trigger at a time for checkpoints near `+15m`, `+35m`, and the final boundary near `+60m`. Later missions do not create coordinator-watch heartbeats. Never create or retain a Goal Mode merely to wait. Never create a lane trigger at or after `operation_stop_at`.
+Only for the first post-install BOOTSTRAP broad start, keep two boundaries: worker operations stop at `operation_stop_at`, while the coordinator's one-time watch stops at `startup_watch_deadline = min(operation_stop_at, start + 60 min)`. Keep one coordinator logical timer and reuse its automation ID across one-shot checkpoints near `+15m`, `+35m`, and the final boundary near `+60m`. Later missions do not create coordinator-watch heartbeats. Never create or retain a Goal Mode merely to wait. Never create a lane trigger at or after `operation_stop_at`.
 
 Default estimates are `2 min` of action work per comment/reply plus the proactive comment lane's `60-120 sec` post-submit pause, and `5 min` per main post. Discovery, rule checks, browser reconnects, and longer waits are additional.
 
@@ -23,7 +23,7 @@ Use varied micro-slots, usually `12-35 min`, with a small executable target. Var
 Minimum schedule columns:
 
 ```text
-slot | start_local | end_local | lane | planned_actions | target_surface | status | next_trigger
+slot | start_local | end_local | lane | planned_actions | target_surface | status | operation_timer_id | next_trigger
 ```
 
 After each slot, replace future rows when actual time, candidate quality, Reddit state, or the user request changes.
@@ -38,13 +38,22 @@ After each slot, replace future rows when actual time, candidate quality, Reddit
 
 Second-level pre-submit pauses remain local waits.
 
-After creating the one-shot heartbeat and reading back every field the runtime actually exposes, end the current turn. Do not emit repeated “not due yet” turns, poll the clock, use Goal Mode, or use automatic continuation while waiting for the heartbeat.
+After creating or updating the logical heartbeat timer and reading back every field the runtime actually exposes, end the current turn. Do not emit repeated “not due yet” turns, poll the clock, use Goal Mode, or use automatic continuation while waiting for the heartbeat.
 
 This handoff is legal only after the initial command turn has verified `START_NOW_PROOF_BY_LANE`, or an execution-lane heartbeat turn has verified `SLOT_PROOF`. The heartbeat resumes the next incomplete slot. On resume, execute that slot before creating another heartbeat. If no requested action/no-action sweep happened in the current execution turn, return to lane execution instead of scheduling.
 
-## One-Shot Contract
+## Durable Logical Timer Contract
 
-Create only the next continuation for the current lane. Do not install a fixed recurring schedule unless the user explicitly asks for one.
+Each active lane owns one logical timer for the entire mission. The timer may operate for minutes or many hours:
+
+1. The first slot still executes immediately in the user-command turn.
+2. After first proof, create the lane timer once and store its `operation_timer_id`.
+3. Each trigger remains one-shot and repeat-off, but after `slot_proof` the worker updates/reuses the same automation ID for the next exact due time.
+4. Do not create a new automation every round. Replace the timer only after a proven binding/update failure and removal of the old item.
+5. At `operation_stop_at`, completion, user stop, or hard-stop termination, delete/pause the exact timer and clear it from the registry.
+6. Do not install a fixed recurring schedule unless the user explicitly asks and fixed cadence is genuinely required; adaptive lane timing normally updates the same one-shot timer.
+
+Create or update only the next continuation for the current lane. A long mission is represented by one repeatedly updated logical timer, not one long-running active turn.
 
 ### Thread Binding Gate
 
@@ -58,7 +67,7 @@ Every lane heartbeat must bind explicitly to its persistent worker task:
 6. On mismatch, do not leave the automation active. Update the same automation once with the explicit correct target and read it back. If it still mismatches, delete it and have the worker create one replacement from its own task. Never create a second active trigger before the first is removed.
 7. A heartbeat that wakes in another task is `thread_binding_failed`: stop its Reddit action, record the observed/expected task IDs, remove that wrong trigger, and recreate from the correct worker.
 
-Automation names are labels, not ownership proof. Each worker stores a unique automation ID; no two lanes may share one.
+Automation names are labels, not ownership proof. Each worker stores one unique `operation_timer_id`; no two lanes may share one.
 
 Use the `scheduler_clock_mode` detected by the repository README's no-Reddit create/readback probe when it is available. Compute the intended UTC instant before constructing any schedule. The current known desktop runtime may use `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC; in that mode, `11:29:43 Asia/Shanghai` must be written as `03:29:43 UTC`, never with local `BYHOUR=11`. Another machine must not assume this result. Prefer an explicit one-shot target accepted by the automation tool. If the runtime hides persisted timing, keep the intended local and UTC pair in the heartbeat prompt and classify the result as `created_unreadable` rather than blocking current work.
 
@@ -93,7 +102,7 @@ Creation and timing observability are separate. Classify:
 
 `created_unreadable` is not `blocked`. Never delete a successful trigger, pause the first Reddit round, or ask the user to repair the scheduler merely because `next_run_at`, DTSTART, or a displayed next-run label is absent. The user cannot repair a field the runtime does not expose.
 
-Never leave duplicate active triggers for the same account + lane + slot. Never create a coordinator-targeted heartbeat that combines execution from several lanes. The coordinator's optional first-hour heartbeat explicitly targets the coordinator task and is read-only supervision; each lane continuation explicitly targets its own persistent worker task.
+Never leave duplicate active timers/triggers for the same account + lane + mission. Never create a coordinator-targeted heartbeat that combines execution from several lanes. The coordinator's optional first-hour heartbeat explicitly targets the coordinator task and is a separate read-only supervision timer; each lane operation timer explicitly targets its own persistent worker task.
 
 If the stored next run is exactly one local UTC offset away from the intended instant, classify it as `timezone_encoding_error`, update the existing automation in place using the detected `scheduler_clock_mode`, and read it back again. Do not wait for the incorrectly shifted trigger and do not create a duplicate.
 
@@ -125,6 +134,6 @@ The smoke test never opens Reddit or changes account state.
 
 ## Trigger Ownership
 
-Triggers in different lanes coexist independently. A worker inspects only its own lane trigger and keeps at most one next one-shot trigger for that lane. It does not scan, compare, pause, delete, or reschedule another lane because of shared Chrome/account use, overlapping times, targets, or actions.
+Timers in different lanes coexist independently. A worker inspects only its own `operation_timer_id` and keeps at most one active next trigger for that lane/mission. It does not scan, compare, pause, delete, or reschedule another lane because of shared Chrome/account use, overlapping times, targets, or actions.
 
 Before mutating an automation, verify that `target_thread_id` exactly equals this worker's registered `worker_thread_id` and that the prompt belongs to the current lane. A follow-up task cannot mutate comment/post/browsing automations; a comment task cannot mutate post/follow-up/browsing automations, and so on. When one user policy affects several lanes, each owner updates only its own trigger after receiving that instruction.

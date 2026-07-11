@@ -19,6 +19,8 @@ Do not expose this record unless the user asks for technical detail.
 
 ## Main Task Responsibilities
 
+Single objective: advance or stop the authorized Reddit operation through the correct registered workers and centralize every user decision. All responsibilities below support that objective; none authorizes Reddit lane execution.
+
 1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`.
 2. Reuse current account/runtime state instead of repeating healthy checks.
 3. Reuse existing lane owners and send only changed mission fields.
@@ -63,14 +65,14 @@ Before dispatch:
 
 ## BOOTSTRAP Watch
 
-The first post-install BOOTSTRAP uses one mandatory first-hour watch in ordinary task mode, driven by sequential one-shot heartbeats rather than Goal Mode. Once `bootstrap_state=initialized`, never run it again because of a later mission or Skill upgrade unless the user explicitly requests renewed supervision.
+The first post-install BOOTSTRAP uses one mandatory first-hour watch in ordinary task mode, driven by one reusable read-only logical heartbeat timer rather than Goal Mode. Once `bootstrap_state=initialized`, never run it again because of a later mission or Skill upgrade unless the user explicitly requests renewed supervision.
 
 ```text
 operation_stop_at = start + requested duration (default 3h)
 watch_deadline = min(operation_stop_at, start + 60m)
 ```
 
-The main task keeps one read-only one-shot trigger at a time:
+The main task keeps one read-only logical heartbeat timer and reuses its automation ID across these one-shot checkpoints:
 
 - initial progress read: same user turn, before final response, until every enabled lane has `start_proof`
 - checkpoint 1: near `start+15m`; read all enabled workers, heartbeat ownership/time, first action/no-action proof, and permalink visibility

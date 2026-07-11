@@ -78,7 +78,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 - Profile/community setup is a one-time bootstrap step only when the visible account is incomplete; it is not a recurring operation lane.
 - Comment/post volumes come from the intensity envelope and account tier. After each verified comment, use a local `60-120 sec` pause; discovery, reading, drafting, and checks are additional.
 - Follow-up: inspect Notifications and recent own activity; reply only to actionable items.
-- Natural browsing: use the selected intensity's read budget and vote target. Standard defaults to `20-30` qualified reads and a target of `2` combined genuine votes per slot, with up to `4` when additional items independently pass. An explicit user vote target, including `0`, overrides the default; a below-target slot is valid when the read/time budget is exhausted without enough passing items.
+- Natural browsing: use the selected intensity's read budget and vote target. Standard defaults to `20-30` qualified reads and a target of `2` combined genuine votes per slot, with up to `4` when additional items independently pass. After a slot completes, the next browsing slot defaults to a freshly selected `20-40 min` delay. An explicit user read, vote, or interval setting, including `0` votes, overrides only that field; a below-target slot is valid when the read/time budget is exhausted without enough passing items.
 - The post lane is enabled during broad operation, but publishing still requires a fully eligible native candidate and live preflight; a verified no-post result is valid.
 - The main task checks the first outward permalink immediately, again after `15-30 min`, and at the first-hour boundary while workers continue independently.
 

@@ -17,11 +17,11 @@ Use this planning envelope, not a quota:
 
 | Intensity | Comments | Posts | Follow-up | Natural browsing |
 |-|-|-|-|-|
-| `low` | target `2-4/hour` | one candidate/preflight sweep per session; publish only a passing candidate | every `45-60 min` | `12-18` qualified reads every `45-60 min`; vote target `2`, cap `2` |
-| `standard` | target `4-6/hour` | candidate/preflight sweep every `2-3h`; normally at most one passing post in a short session | every `30-45 min` | `20-30` qualified reads every `30-45 min`; vote target `2`, cap `4` |
-| `high` | target `6-10/hour` | candidate/preflight sweep every `60-90 min`; live post limits still dominate | every `20-30 min` | `30-45` qualified reads every `20-30 min`; vote target `4`, cap `6` |
+| `low` | target `2-4/hour` | one candidate/preflight sweep per session; publish only a passing candidate | every `45-60 min` | `12-18` qualified reads; vote target `2`, cap `2` |
+| `standard` | target `4-6/hour` | candidate/preflight sweep every `2-3h`; normally at most one passing post in a short session | every `30-45 min` | `20-30` qualified reads; vote target `2`, cap `4` |
+| `high` | target `6-10/hour` | candidate/preflight sweep every `60-90 min`; live post limits still dominate | every `20-30 min` | `30-45` qualified reads; vote target `4`, cap `6` |
 
-Natural browsing includes qualified reading plus gated Upvote/Downvote. The intensity table supplies a default target and cap, not permission to lower the vote gate. An explicit user instruction may replace the read budget, vote target, or cap, including `0` for browse-only. Profile setup, joins, and flair are bootstrap housekeeping, not a fifth recurring operation lane.
+Natural browsing includes qualified reading plus gated Upvote/Downvote. The intensity table supplies a default target and cap, not permission to lower the vote gate. After each completed browsing slot, select the next delay independently from `20-40 min`; the delay starts after slot completion, not at slot start. An explicit user instruction may replace the read budget, vote target, cap, or delay range, including `0` votes for browse-only. Profile setup, joins, and flair are bootstrap housekeeping, not a fifth recurring operation lane.
 
 ## Flow A: BOOTSTRAP From Zero
 
@@ -42,6 +42,7 @@ comment_target_run = intensity envelope x run_hours, clamped by account/recovery
 browse_slot = intensity read budget (standard: 20-30 qualified reads)
 vote_target_per_browse_slot = explicit user target or intensity default (standard: 2 combined votes)
 vote_cap_per_browse_slot = explicit user cap or intensity cap (standard: 4 combined votes)
+browse_next_delay = explicit user interval or a fresh integer from 20-40 min after slot completion
 ```
 
 4. Keep the first-hour watch in ordinary task mode. Execute current work now and use one coordinator-owned one-shot heartbeat at a time for delayed checks; never enter Goal Mode.
@@ -118,7 +119,7 @@ remaining_target
 - `改成/总共 N` replaces that lane's remaining target.
 - `暂停/停止/继续` changes only the named lane; unaffected missions and heartbeats continue.
 - The latest explicit community, language, or deadline replaces that field only; preserve unspecified mission fields.
-- For natural browsing, parse an explicit read count, vote target, vote cap, or `只浏览不投票`. Explicit values replace only the corresponding browsing field; otherwise use the intensity defaults.
+- For natural browsing, parse an explicit read count, vote target, vote cap, interval/range, or `只浏览不投票`. Explicit values replace only the corresponding browsing field. Without an interval instruction, select each next delay independently from `20-40 min` after the current slot completes.
 
 ### B3. Reuse, Amend, Execute
 
@@ -151,6 +152,7 @@ intensity = low | standard | high
 operation_stop_at = local + UTC
 scheduler_clock_mode
 first_due = now or exact time
+browse_next_delay_range = custom or 20-40 min
 ```
 
 Every worker must load only its lane references, start the first due action immediately, verify visible results, update its local history, maintain at most one next trigger, and keep all status in its own task. Workers never callback or coordinate sibling lanes.

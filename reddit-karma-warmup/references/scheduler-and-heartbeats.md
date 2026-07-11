@@ -86,8 +86,9 @@ Choose the next interval from lane state:
 - follow-up: use low `45-60 min`, standard `30-45 min`, or high `20-30 min`; shorter only for an active direct exchange, longer for a quiet queue
 - comments: next incomplete workload slot after required spacing and candidate availability
 - posts: next eligible post window after live rules, same-subreddit history, and diversity checks
+- natural browsing: use the user's interval/range when supplied; otherwise select a fresh whole-minute delay from `20-40 min` after the current browsing slot completes
 
-Intervals may differ between rounds because state differs. Avoid exact repeated schedules when a nearby time is equally valid, but do not add randomness solely to mimic a person.
+Intervals may differ between rounds because state differs. Natural browsing deliberately uses the user-requested `20-40 min` default range; record the sampled delay and exact next local/UTC time. Other lanes should not add randomness solely to mimic a person.
 
 At resume, compare current UTC with the stored target UTC. If late, replan from now. Never catch up with a burst.
 

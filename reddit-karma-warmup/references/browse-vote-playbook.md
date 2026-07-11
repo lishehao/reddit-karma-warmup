@@ -12,7 +12,7 @@ Select the slot budget from the operation contract:
 | `standard` | `20-30` | `2` | `4` |
 | `high` | `30-45` | `4` | `6` |
 
-An explicit user read count, vote target, vote cap, or browse-only instruction overrides the corresponding default. If only a vote target is supplied, set a reasonable read budget that can evaluate enough independent items; do not promise that every target will pass.
+An explicit user read count, vote target, vote cap, interval/range, or browse-only instruction overrides the corresponding default. If only a vote target is supplied, set a reasonable read budget that can evaluate enough independent items; do not promise that every target will pass.
 
 Spread a standard slot across roughly `3-6` eligible communities. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, and can state one specific reason for its assessment. Feed-card impressions, title-only scans, duplicates, ads, deleted/locked items, and accidental opens do not count.
 
@@ -69,7 +69,14 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 
 ## Scheduling And Report
 
-Execute the first browse slot immediately. Every execution-heartbeat resume must also complete its current qualified-read slot and record the read/vote/no-vote result as `slot_proof` before scheduling another trigger. For a continuing run, reconcile against the stop time and schedule one next one-shot trigger for this lane; do not create a fixed recurrence or catch up missed slots.
+Execute the first browse slot immediately. Every execution-heartbeat resume must also complete its current qualified-read slot and record the read/vote/no-vote result as `slot_proof` before scheduling another trigger.
+
+For a continuing run:
+
+1. Use the user's interval or range when supplied.
+2. Otherwise select a fresh whole-minute delay from `20-40 min` after the current slot completes. Do not reuse a fixed repeating interval.
+3. Convert that delay into one exact local and UTC next-run time, reconcile it against the stop time, and create one one-shot trigger for this lane.
+4. Do not create a fixed recurrence, schedule from the prior slot's start time, or catch up missed slots.
 
 Use the shared compact report:
 

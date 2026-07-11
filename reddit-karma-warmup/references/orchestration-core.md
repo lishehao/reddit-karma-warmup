@@ -135,7 +135,7 @@ Real operations require persistent task create/read/send capability. The user's 
 
 For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. If proof remains unavailable, mark that lane `startup_blocked`; coordinator execution is forbidden.
 
-The `Reddit 主控台` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they must return decision-requiring risks/blockers and exactly one terminal lane-mission completion to it.
+The `Reddit 主控台` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they return only decision-requiring risks/blockers, non-blocking subreddit-retirement notices, and exactly one terminal lane-mission completion.
 
 For the first post-install BOOTSTRAP only, the coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, reusing one verified read-only logical heartbeat timer across checkpoints. Dispatch and early acceptance are insufficient: it runs checkpoints near `+15m`, `+35m`, and the mandatory boundary sweep near `+60m`. It must not use Goal Mode or poll while waiting. After that one-time handoff, workers continue independently and the coordinator becomes user-driven again.
 
@@ -149,7 +149,7 @@ Automation ownership follows the lane and target thread:
 - A global policy message delivered to several lane tasks applies to the current lane only. Do not inspect or coordinate the other lane tasks.
 - The coordinator sends amendments to lane owners instead of taking over their automations. Each owner changes only its own trigger.
 - Different lanes sharing an account, target, or policy window remain independent. Do not compare them for collisions.
-- During the first post-install BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During later MISSION commands, it reads affected lanes only for same-turn acceptance, then returns to `IDLE`. STATUS reads relevant lanes once. AUDIT performs one bounded evidence pull under `operations-audit.md`, including exact read-only permalink verification when needed. Workers record routine state locally and callback only for decision-requiring risks/blockers or terminal mission completion.
+- During the first post-install BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During later MISSION commands, it reads affected lanes only for same-turn acceptance, then returns to `IDLE`. STATUS reads relevant lanes once. AUDIT performs one bounded evidence pull under `operations-audit.md`, including exact read-only permalink verification when needed. Workers record routine state locally and return only risk/blocker, subreddit-retirement, or terminal-completion events.
 - The coordinator may own one temporary read-only watch automation named `Reddit 主控台-首轮监督` only during that first post-install BOOTSTRAP. Its prompt may only read worker state and report; it cannot open Reddit, publish, vote, reply, or continue lane work. Delete it at the first-hour boundary. Lane automations remain owned by their lane tasks.
 - Automation name, prompt, or lane title never proves thread ownership. Exact `target_thread_id` match or provisional creator-thread evidence from `scheduler-and-heartbeats.md` is required.
 
@@ -160,9 +160,9 @@ Use one of four decisions; never say only `account safety`.
 - `act`: rules, context, account state, quality, and lane gate pass.
 - `skip_candidate`: low score, stale/saturated thread, weak fit, unclear eligibility for one target, duplicate angle, or unavailable control. Search another candidate.
 - `soft_pause`: action appears allowed but has concrete elevated moderation or pacing risk. Pause only that lane/candidate and escalate once to the coordinator with a safer variant.
-- `hard_stop`: captcha, rate limit, lock/suspension, wrong/logged-out account, credential request, account-wide warning, clear rule prohibition, locked/removed target, or unsafe/deceptive action. A community-specific removal/visibility failure stops that target and activates `R1/R2` from `proactive-playbook.md`; it becomes account-wide only when the recovery definition says so.
+- `hard_stop`: captcha, sitewide rate limit, lock/suspension, wrong/logged-out account, credential request, explicit account-wide warning, clear rule prohibition for the current target, or unsafe/deceptive action. Community removals/filters/locks/bans activate `R1/R2` retirement and retarget automatically; any number of retirements remains non-blocking without separate account-wide evidence.
 
-If an own newly submitted main post is awaiting moderator approval, delete/withdraw it when possible and stop only the post lane unless Reddit also shows an account-wide blocker.
+If an own newly submitted main post is awaiting moderator approval, delete/withdraw it when possible, retire that subreddit, send `SUBREDDIT_RETIRED`, and continue the post lane with another eligible community unless Reddit separately shows an account-wide blocker.
 
 Never invent firsthand experience, identity, expertise, metrics, affiliations, product usage, or testing. Do not coordinate votes, use another account on the same target, harass, doxx, or engage sensitive/vulnerable-user threads.
 

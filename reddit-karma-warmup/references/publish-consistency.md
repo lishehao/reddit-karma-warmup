@@ -34,8 +34,8 @@ Classify the candidate before discovery:
 |-|-|-|
 | `low` | B/B+, ordinary native participation allowed, no special account gate | search first |
 | `medium` | specific flair/title/megathread/no-link format but the current action can satisfy it | use only when fit is strong |
-| `high` | strict on-topic proof, karma/age gate, narrow self-promo exception, sensitive/competitor context, high removal history, or manual review uncertainty | avoid when a lower-restriction alternative exists |
-| `closed` | A0/No-go, clear prohibition, moderator approval requirement, or explicit ban on AI-generated posts/comments for Codex-written text | no outward action |
+| `high` | strict on-topic proof, karma/age gate, narrow self-promo exception, sensitive/competitor context, or manual review uncertainty | avoid when a lower-restriction alternative exists |
+| `closed` | A0/No-go, clear prohibition, moderator approval requirement, explicit ban on AI-generated posts/comments for Codex-written text, or a prior Loci removal/ban in this exact subreddit | no outward action |
 
 Do not lower a row's restriction because its topic is attractive. If live rules are stricter than the bundled row, use the stricter live result.
 
@@ -97,6 +97,8 @@ Decision:
 - `rewrite`: copy or length/history consistency fails; revise and rerun Check B.
 - `retarget`: community, eligibility, history saturation, or live context fails; abandon draft and return to discovery.
 - `hard_stop`: account/browser/platform warning or clear rule prohibition.
+
+If removal/filter/lock/pending-approval evidence appears for an own action, apply `SUBREDDIT_RETIRED`, close that exact subreddit, and retarget. Do not classify it as an account-wide failure without separate Reddit account-level evidence.
 
 ## Log
 

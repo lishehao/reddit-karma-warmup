@@ -80,7 +80,8 @@ When two references appear to cover the same decision, the owner above wins. Sup
 2. On every heartbeat wake, the worker restores state, executes/verifies the current slot, records `slot_proof`, and only then updates the same timer to the next due time when work remains.
 3. Workers keep routine progress locally. They never coordinate siblings or ask the user directly.
 4. Decision-requiring risks use `risk-escalation.md`: pause the affected scope, return evidence to `Reddit 主控台`, and await the routed user decision.
-5. When the lane's whole mission reaches its target, deadline, user stop, or terminal no-more-work condition, send exactly one `MISSION_COMPLETE` return to `Reddit 主控台`. This is mission-level completion, never a per-heartbeat callback.
+5. A subreddit removal/filter/lock/ban sends one non-blocking `SUBREDDIT_RETIRED` notice, retires only that subreddit, and continues elsewhere without waiting for user approval.
+6. When the lane's whole mission reaches its target, deadline, user stop, or terminal no-more-work condition, send exactly one `MISSION_COMPLETE` return to `Reddit 主控台`. This is mission-level completion, never a per-heartbeat callback.
 
 ### Phase 4: One-Time First-Hour Supervision
 
@@ -102,7 +103,7 @@ When two references appear to cover the same decision, the owner above wins. Sup
 - `AUDIT`: use `operations-audit.md` to inspect ownership, automation timing, execution, visibility, cadence, length, and quality.
 - pause/resume/stop: route the control to affected owners and verify their own heartbeat change.
 - risk callback: explain evidence, impact, current pause, and recommendation in `Reddit 主控台`; ask the user to continue, adjust, or stop, then route the decision back to the owner.
-- In `IDLE`, never poll. Worker risk callbacks, mission-completion returns, or a new user command are the only re-entry paths after the one-time Bootstrap watch.
+- In `IDLE`, never poll. Worker risk callbacks, non-blocking subreddit-retirement notices, mission-completion returns, or a new user command are the only re-entry paths after the one-time Bootstrap watch.
 
 ## Single-Objective Task Contract
 
@@ -146,7 +147,8 @@ One worker may process several items only when they all serve its single objecti
 - Each worker heartbeat is created/updated by that worker with explicit `targetThreadId=worker_thread_id` when supported, then read back for an exact target match. Names never prove ownership; a mismatch is repaired before the trigger remains active.
 - The main task never owns an execution heartbeat. Its optional first-hour watch heartbeat is read-only, is named as supervision rather than continuation, and cannot contain Reddit lane actions.
 - Each worker owns one logical heartbeat timer for its active mission and may mutate only that exact automation targeting its same task/lane. Reuse its automation ID until stop/completion.
-- Routine progress is pull-based. Two callbacks are mandatory exceptions: a substantive risk/blocker returns immediately, and one terminal `MISSION_COMPLETE` returns when the lane's whole assigned mission ends. Neither is emitted after ordinary heartbeat slots.
+- Routine progress is pull-based. Three event returns are exceptions: a substantive risk/blocker, one non-blocking `SUBREDDIT_RETIRED` notice per newly retired subreddit, and one terminal `MISSION_COMPLETE` when the lane mission ends. A retirement notice never pauses unrelated work or asks for a decision.
+- Removal, filtering, lock, pending approval, parent deletion, or a subreddit ban is not account-wide evidence. Retire only the exact subreddit and continue at the same account tier/envelope. Only explicit account-level warning/rate-limit/captcha/lock/suspension/login evidence may stop the whole process.
 - Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
 - Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use the lane's verified logical heartbeat timer, and the current turn ends after reporting that handoff.
 - A heartbeat is continuation-only. Never create it as the first operational outcome after a user command, and never use its future wakeup to defer the first requested Chrome micro-slot.

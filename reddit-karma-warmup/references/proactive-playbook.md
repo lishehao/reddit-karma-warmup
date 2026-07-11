@@ -14,7 +14,7 @@ Reddit does not publish a global safe comments-per-hour or posts-per-day limit. 
 
 These are internal ceilings, not Reddit platform limits, safety guarantees, or quotas. Normal operations use the low/standard/high envelopes from `default-operations-sop.md`; account tier and recovery state clamp those envelopes. The user may request another count; distribute it across the requested window, warn once when it materially exceeds the current tier, and publish only passing candidates.
 
-Use `new-account-bootstrap.md` when `K0` is in `fresh_bootstrap`. Passing its checkpoints changes the substate to `active_new` but does not create another tier. Promote to `K1/K2` only when both the karma band and clean-history window pass. Apply the explicit recovery levels below after removals or account signals; do not use an undefined generic slowdown.
+Use `new-account-bootstrap.md` when `K0` is in `fresh_bootstrap`. Passing its checkpoints changes the substate to `active_new` but does not create another tier. Promote to `K1/K2` only when both the karma band and account-level health signals pass. Community removals retire only their exact subreddits; they do not demote the account tier or create a generic slowdown.
 
 After every verified proactive comment, use a local `60-120 sec` pause before the next publish; discovery, reading, drafting, and verification time are additional. Main posts are heavier: default to at most one main post per subreddit per `24h`. The first eligible main post of the day has no skill-level `6h` waiting gate. Only a second same-day post requires a different community and audience/angle cluster, at least `6h` separation from the first, and a clean visibility check on the earlier post.
 
@@ -25,45 +25,34 @@ This is not the default. Enable it only when the user explicitly requests about 
 - All tiers may plan toward `60/day` only while clean and explicitly authorized. Use at least a `6h` operating window for the full target.
 - For a shorter window, target at most `10 x available hours`; do not compress missed comments into a burst.
 - High intensity starts with a `6-10` passing-comment first-hour envelope. The coordinator checks the first permalink in parallel without pausing the comment worker.
-- After the first hour, continue within the selected high envelope. A concrete visibility or account failure disables this mode and activates the matching recovery level.
+- After the first hour, continue within the selected high envelope. A subreddit visibility/removal failure retires only that subreddit; only an `R3` account-level signal disables this mode.
 - Prefer at least `6` communities and `3` clusters across a 60-comment day when the eligible pool supports it; avoid more than `5` proactive comments in one subreddit per `24h`.
 - Keep the normal `Act >=80`, truthfulness, copy-length, history, and `60-120 sec` post-submit pause. If not enough candidates pass, publish fewer.
-- Any `R1`, `R2`, or `R3` event immediately disables Daily 60 mode and applies the corresponding recovery range. Never resume Daily 60 during the same recovery window.
+- Only `R3` disables Daily 60 mode. `R1/R2` retire the affected subreddit(s) but keep the account tier and authorized envelope in unrelated eligible communities. Do not compensate for retired candidates with bursts.
 
-## Removal And Recovery Levels
+## Removal Scope Levels
 
-Count a native Reddit mod/Automod removal, confirmed filter/invisibility, or explicit community warning. Do not count the user's intentional deletion. A pending post that is withdrawn before approval is a failed post candidate but not automatically an account-level removal.
+Count a native Reddit mod/Automod removal, moderation lock on a newly submitted item, confirmed filter/invisibility, subreddit ban, parent-post deletion that invalidates the interaction, or explicit community warning. Do not count the user's intentional deletion or an ordinary archival lock on an old thread. These are community-level signals unless Reddit separately shows an account-wide warning.
 
 ### `R1 Isolated`
 
-Trigger: one removal/filter in one community, with no account-wide warning and no second affected community in `24h`.
+Trigger: one removal/filter/lock/ban or invalidating parent deletion in one community, with no explicit account-wide warning.
 
-- Pause posts and comments in the affected subreddit for `72h` and recheck its rules before returning.
-- For the next `24h`, use the following account-wide recovery range; do not compensate in other communities.
-- Main posts are capped at `0-1/day` during this window.
-- Restore the original tier after `24h` with no new removal, warning, captcha, rate limit, or visibility failure.
+- Retire the affected subreddit from future Loci posts/comments and record the exact removal or ban evidence. Do not retry, repost, or route another account into the same subreddit.
+- Notify the user once, but do not ask for a decision unless that exact subreddit was mission-critical.
+- Continue in other eligible communities at the account's existing tier and selected operating envelope. Do not downgrade the account, cap unrelated main posts, or pause the wider cycle because of this isolated event.
+- Reopen the subreddit only after an explicit user decision backed by a clear moderator/rule explanation; time passing alone does not reopen it.
 
-| Original tier | Recovery comments/hour | Recovery comments/day |
-|-|-:|-:|
-| `K0 New` | `3-7` | `6-15` |
-| `K1 Growing` | `6-12` | `18-45` |
-| `K2 Established` | `7-15` | `30-60` |
+### `R2 Multiple Community Retirements`
 
-### `R2 Repeated`
+Trigger: removals/filters/locks/bans have retired at least two communities. This remains a set of subreddit-level outcomes, not an inferred account penalty.
 
-Trigger: at least two removal/filter/visibility failures across at least two communities in `24h`, or an explicit mod/Automod warning indicating a repeated pattern.
-
-- Downgrade one full account tier for `72h`: `K2 -> K1`, `K1 -> K0`.
-- `K0` cannot downgrade further: use `K0 recovery` at `2-5 comments/hour`, `4-10 comments/day`, and no main post for the first `24h`.
-- During the first `24h`, all other tiers are capped at one main post; after a clean `24h`, use the downgraded tier's ordinary post window.
-- Keep every affected subreddit paused for at least `7d` or until a clear rule/mod explanation resolves the cause.
-- Restore one tier only after `72h` with no further removal, warning, captcha, rate limit, or visibility failure. Never catch up missed volume.
-
-| Original tier | Temporary tier | Comments/hour | Comments/day | Posts after first clean `24h` |
-|-|-|-:|-:|-:|
-| `K0 New` | `K0 recovery` | `2-5` | `4-10` | `0-1/day` |
-| `K1 Growing` | `K0 New` | `6-12` | `15-35` | `0-2/day` |
-| `K2 Established` | `K1 Growing` | `8-16` | `25-60` | `0-3/day` |
+- Retire every affected subreddit from future posts/comments and preserve each exact notice/permalink.
+- Send one consolidated non-blocking notice to `Reddit 主控台`; do not ask the user for permission to continue.
+- Continue in unaffected eligible communities at the same account tier, comment envelope, and post window.
+- Do not impose a `24h/72h` account cooldown, Daily 60 shutdown, generic rate reduction, or account-wide post cap from removals alone.
+- Inspect whether the removed items shared an avoidable rule/format mismatch before drafting the next item, but do not treat that review as a pause or lower the candidate threshold.
+- Reopen a retired subreddit only after an explicit user decision backed by a clear moderator/rule explanation.
 
 ### `R3 Account Stop`
 
@@ -91,7 +80,7 @@ User-provided targets override the bundled pool. Otherwise load `loci-subreddit-
 - `A`: research-first; interact only for a clear ordinary non-product reason.
 - `A0` and `No-go`: read-only; no post, comment, vote, join, flair, or warm-up action.
 
-Within `B/B+`, start from communities with the clearest ordinary participation path, lowest row restriction, and strongest resolved-style fit. Avoid strict-on-topic, high-removal-risk, account-gated, sensitive, or moderator-approval communities when a comparable lower-restriction target exists.
+Within `B/B+`, start from communities with the clearest ordinary participation path, lowest row restriction, and strongest resolved-style fit. A retired subreddit is closed for future outward actions. Retirements in other communities carry no account-tier, pacing, or candidate-score penalty.
 
 Prefer `New` and `Rising` for early comment opportunities. Use `Hot` and `Top` to learn community language and survivor patterns.
 
@@ -147,9 +136,10 @@ Decision:
 
 - `pass`: eligibility and format are clear, similar native content survives, angle fits.
 - `skip_candidate`: eligibility is unclear, required format cannot be met, same-subreddit window is used, angle is repetitive, or submit surface says moderator approval is required.
-- `hard_stop`: captcha/rate limit/account warning, clear prohibition, immediate removal/filter, or a submitted post becomes `awaiting moderator approval`.
+- `retire_subreddit`: an own item is removed/filtered/locked, the account is banned from that subreddit, the parent post is deleted/locked in a way that invalidates the action, or a submitted post becomes `awaiting moderator approval`.
+- `hard_stop`: captcha, sitewide rate limit, account-wide warning, lock/suspension, login mismatch, credential request, or clear unsafe/deceptive action.
 
-If an own submitted post is awaiting moderator approval, delete/withdraw it when the control exists, verify cleanup, do not repost, and stop the post lane for this round.
+On `retire_subreddit`, delete/withdraw a pending post when possible, verify cleanup, never repost in that subreddit, send the non-blocking retirement notice, and continue the same lane in another eligible community.
 
 After drafting, run Double-Check B on the final title/body/flair, live submit state, history, length/structure, and duplicate-send risk before clicking Post.
 

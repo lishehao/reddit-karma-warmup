@@ -12,7 +12,7 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 4. **Browse before and alongside publishing.** Run one intensity-sized qualified-read slot across eligible communities. Standard starts with `20-30` reads and targets `2` combined verified votes without lowering `browse-vote-playbook.md` gates.
 5. **Run the first-hour launch.** Immediately execute comments, post preflight, follow-up, and natural browsing using the selected intensity. Comments remain micro/fragment/one-liner first and span lower-restriction communities.
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
-7. **Verify in parallel.** Record the first permalink immediately so the coordinator can run `startup-health-check.md` while the comment worker continues. Stop further comments only when that check produces a concrete failure, warning, captcha, rate limit, or removal state; a pending delayed check alone is not a reason to wait.
+7. **Verify in parallel.** Record the first permalink immediately so the coordinator can run `startup-health-check.md` while the comment worker continues. Any removal retires only its exact subreddit under `R1/R2`; continue in unaffected communities. Stop account-wide comments only for an explicit warning, captcha, sitewide rate limit, lock/suspension, or login mismatch. A pending delayed check alone is not a reason to wait.
 8. **Continue after the first hour.** A clean first-hour result continues the selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A failed check activates the matching recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
 9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. `K0` does not create a six-hour wait before the first eligible post. Only the second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
 
@@ -50,14 +50,14 @@ Change `K0 fresh_bootstrap -> K0 active_new` only when all are true:
 - account has at least `48h` of age or observed clean activity
 - email/eligibility is not visibly blocking the account
 - at least `10` comments remain visible across at least `3` communities
-- no captcha, rate limit, account warning, or repeated visibility failure occurred in the checkpoint window
+- no captcha, sitewide rate limit, account warning, lock/suspension, or login mismatch occurred in the checkpoint window
 
 A visible main post is useful evidence but is not required to exit bootstrap. Karma alone does not override failed visibility or verification signals.
 
 Demotion/recovery:
 
-- one community removal: apply `R1 Isolated` from `proactive-playbook.md`
-- two failures across different communities in `24h`: apply `R2 Repeated`; for `K0 recovery`, use `2-5/hour`, `4-10/day`, and no post for the first `24h`
+- one community removal: apply `R1 Isolated` from `proactive-playbook.md`; retire that subreddit and continue elsewhere
+- removals across multiple communities: apply `R2 Multiple Community Retirements`; retire those subreddits without changing the account tier or operating envelope
 - captcha, rate limit, account warning, lock, or wrong-account state: apply `R3 Account Stop`
 
 ## Help-Seeking Post

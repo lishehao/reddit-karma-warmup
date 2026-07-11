@@ -43,7 +43,7 @@ It does not:
 - create a second main task
 - recreate an existing lane task merely because a new mission arrived
 - poll after its watch deadline
-- require routine or per-heartbeat callbacks; risk/blocker callbacks and one terminal mission-completion return per lane mission are mandatory
+- require routine or per-heartbeat callbacks; risk/blocker, non-blocking subreddit-retirement, and terminal mission-completion returns are the only event paths
 - ask the user to interpret task IDs, models, UTC math, automation fields, or logs
 - send a final `已启动` message when no requested Chrome action or verified no-action sweep has occurred
 
@@ -104,7 +104,8 @@ At mission handoff:
 - The main task reads them during a bounded watch or when the user asks.
 - Workers do not callback for routine progress or ordinary heartbeat completion and never manage sibling tasks.
 - A decision-requiring risk/blocker is the immediate callback path: the worker sends it to this coordinator, pauses the affected scope, and waits for a routed user decision.
-- A terminal `MISSION_COMPLETE` return is the second callback path. Record it by `mission_id` and lane. When every enabled lane is terminal, send one concise overall completion report to the user; otherwise wait for the remaining lanes without polling.
+- A non-blocking `SUBREDDIT_RETIRED` notice records the exact subreddit, informs the user once, and continues all unaffected work without asking a question.
+- A terminal `MISSION_COMPLETE` return records completion by `mission_id` and lane. When every enabled lane is terminal, send one concise overall completion report; otherwise wait without polling.
 - After `IDLE`, no automatic main-task pull occurs; worker risk and completion returns re-enter the coordinator directly.
 
 ## Technical Abstraction

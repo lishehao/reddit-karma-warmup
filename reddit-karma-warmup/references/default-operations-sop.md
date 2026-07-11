@@ -133,7 +133,7 @@ browse_next_delay_range
 
 The worker preserves one objective. Discovery, scoring, copy, rules, pacing, verification, reporting, recovery, and timer handling are supporting steps. It executes now, returns `start_proof`, and creates its logical timer only after first-slot proof. Later wakes return `slot_proof` before updating the same timer.
 
-Workers send callbacks only for a decision-requiring risk/blocker or one terminal completion of the whole assigned mission. Ordinary slot progress remains local.
+Workers send event returns only for a decision-requiring risk/blocker, one non-blocking `SUBREDDIT_RETIRED` notice per newly retired subreddit, or one terminal completion of the whole assigned mission. Ordinary slot progress remains local.
 
 Terminal return:
 

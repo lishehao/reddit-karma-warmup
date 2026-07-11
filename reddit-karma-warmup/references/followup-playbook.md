@@ -42,8 +42,9 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 ## Mod And Approval Handling
 
 - Never argue with moderators.
-- If Automod removed or filtered content, record it and do not repost.
-- If an own recent post is awaiting moderator approval, withdraw/delete when possible, verify cleanup, and close that item.
+- If Automod/moderators removed or filtered content, retire that subreddit, send `SUBREDDIT_RETIRED`, do not repost there, and continue other follow-up work.
+- If an own recent post is awaiting moderator approval, withdraw/delete when possible, verify cleanup, retire that subreddit, send the non-blocking notice, and close that item without pausing unrelated work.
+- If the author deletes/locks the parent of an active own comment or reply, retire that subreddit and send the same non-blocking notice. A random old/removed item discovered during scanning is only `Skip` and does not retire a community.
 - If a mod requests an edit, summarize it and act only when the current authorization clearly covers that edit.
 - Account warnings, captcha, rate limit, or login mismatch are global hard stops.
 

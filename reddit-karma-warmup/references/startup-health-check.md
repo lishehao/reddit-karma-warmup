@@ -23,7 +23,7 @@ The worker records after its first outward action:
 - local submit time and timezone
 - immediate reload result and any Reddit/Automod message
 
-For the proactive comment lane, write this first-action marker as soon as the first permalink exists, then continue within the selected first-hour intensity envelope. The coordinator's delayed visibility check runs in parallel; do not pause the worker merely because that check is pending. A concrete failed visibility/account result stops further comments.
+For the proactive comment lane, write this first-action marker as soon as the first permalink exists, then continue within the selected first-hour intensity envelope. The coordinator's delayed visibility check runs in parallel; do not pause the worker merely because that check is pending. A concrete visibility failure retires only that subreddit and retargets the worker; only an explicit account-level result stops broader comments.
 
 The coordinator then uses its own read-only acceptance tab:
 
@@ -54,7 +54,8 @@ On `visibility_failed`:
 
 1. Read the exact Reddit, Automod, or moderator state; do not guess.
 2. Do not repost the same content immediately.
-3. Send the evidence to the owning worker for one focused diagnosis or safer retarget.
-4. Keep startup acceptance open for at most two recoverable retries; then record `startup_blocked` with the exact reason.
+3. Retire the exact subreddit and send `SUBREDDIT_RETIRED`; do not downgrade the account or pause other communities.
+4. Send the evidence to the owning worker and immediately retarget to another eligible community.
+5. Keep startup acceptance open until one replacement action passes or the lane exhausts eligible alternatives. A removal alone never creates `startup_blocked`; use that state only when no substitute remains, execution infrastructure fails, or Reddit shows an account-wide blocker.
 
 Early acceptance does not end coordinator observation. Keep the temporary read-only heartbeat through `startup_watch_deadline`, run the final first-hour sweep, then delete it and enter `IDLE`. Do not use Goal Mode or active polling between checks. Later worker rounds do not receive coordinator visibility supervision unless the user explicitly requests another audit.

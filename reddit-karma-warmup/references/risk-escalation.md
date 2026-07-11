@@ -8,7 +8,7 @@ Escalate immediately when at least one is true:
 
 - `decision_required`: a genuine soft-risk choice changes whether/how the action should continue
 - `lane_blocked`: Chrome remains unavailable after recovery, the worker task/heartbeat cannot continue correctly, or the lane cannot meet its mission for a non-candidate-specific reason
-- `account_blocked`: logout/wrong account, credential request, captcha, rate limit, lock/suspension, account-wide warning, or repeated cross-community removal state
+- `account_blocked`: logout/wrong account, credential request, captcha, sitewide rate limit, lock/suspension, or an explicit account-wide warning
 - `execution_integrity_failed`: automation targets the wrong task, fires at a materially wrong time, repeats unexpectedly, runs after the stop time, or published evidence cannot be reconciled safely
 - `material_reputation_risk`: an intended action appears technically possible but has clear moderation, deception, identity, or brand risk requiring a user choice
 
@@ -23,6 +23,25 @@ Do not escalate ordinary operations noise:
 - normal count shortfall because too few candidates passed
 
 These remain in the worker report unless bounded recovery fails, they become lane-wide/account-wide, or they require a user decision.
+
+## Non-Blocking Subreddit Retirement Notice
+
+A removal/filter/lock/subreddit ban, invalidating parent deletion, or pending-approval withdrawal retires only that exact subreddit. It is not `RISK_ESCALATION` without separate account-level evidence.
+
+The worker immediately retargets to another eligible community and sends one informational event to `coordinator_thread_id`:
+
+```text
+type = SUBREDDIT_RETIRED
+mission_id
+lane
+subreddit + permalink
+observed_state = removed | filtered | locked | subreddit_ban | parent_deleted | pending_withdrawn
+evidence = exact visible notice/state; no inferred account penalty
+action_taken = retired subreddit; no repost; replacement discovery continuing
+process_state = continuing
+```
+
+The coordinator informs the user once without asking for confirmation and without pausing any worker. Use the normal three-line format: put the retirement and continuing state in `本轮完成`, retain the verified next Heartbeat, and name the replacement-community work in `下轮计划`.
 
 ## Worker Protocol
 
@@ -76,7 +95,7 @@ On `RISK_ESCALATION`:
 ## Scope Rules
 
 - Candidate-specific issue: skip/retarget automatically; no escalation unless the user explicitly required that exact target.
-- Subreddit-specific removal/rule issue: pause that subreddit; escalate only when it changes the requested mission or signals repeated risk.
+- Subreddit-specific removal/rule/ban issue: retire that subreddit, send `SUBREDDIT_RETIRED`, and continue elsewhere. Multiple retired communities are still non-blocking. Escalate for a decision only when that exact subreddit was explicitly required and no substitute is acceptable, or Reddit separately shows account-wide evidence.
 - Lane-wide issue: pause one worker and ask through the coordinator.
 - Account-wide issue: coordinator pauses all mutation lanes and asks through the coordinator.
 - Automation-only issue: preserve completed Reddit actions, pause the incorrect continuation, repair through the owning worker, then re-audit binding/time before resuming.

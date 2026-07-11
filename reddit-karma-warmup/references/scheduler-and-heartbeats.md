@@ -46,6 +46,20 @@ This handoff is legal only after the initial command turn has verified `START_NO
 
 Create only the next continuation for the current lane. Do not install a fixed recurring schedule unless the user explicitly asks for one.
 
+### Thread Binding Gate
+
+Every lane heartbeat must bind explicitly to its persistent worker task:
+
+1. The coordinator passes `worker_thread_id` from the task-creation result into the worker handoff and registry.
+2. The worker itself creates or updates its continuation. The coordinator never creates a lane heartbeat on the worker's behalf.
+3. When the automation API exposes `targetThreadId`, always send `targetThreadId=worker_thread_id` on create and update; never rely only on the currently focused task or automation name.
+4. Immediately view/read back the automation and compare `actual_target_thread_id` with `worker_thread_id`. When tool readback hides it and local automation config is available, inspect that config's `target_thread_id`.
+5. Classify `thread_binding_verified` only on an exact match. If the field is hidden everywhere but the worker itself created the heartbeat, use provisional `creator_thread_bound` and verify on the first actual wakeup; do not ask the user.
+6. On mismatch, do not leave the automation active. Update the same automation once with the explicit correct target and read it back. If it still mismatches, delete it and have the worker create one replacement from its own task. Never create a second active trigger before the first is removed.
+7. A heartbeat that wakes in another task is `thread_binding_failed`: stop its Reddit action, record the observed/expected task IDs, remove that wrong trigger, and recreate from the correct worker.
+
+Automation names are labels, not ownership proof. Each worker stores a unique automation ID; no two lanes may share one.
+
 Use the `scheduler_clock_mode` detected by the repository README's no-Reddit create/readback probe when it is available. The current known desktop runtime may use `UTC_FIELDS`, where RRULE fields such as `BYHOUR`, `BYMINUTE`, and `BYSECOND` are UTC; in that mode, `11:29:43 Asia/Shanghai` is written as `03:29:43 UTC`. Another machine must not assume this result. Prefer an explicit one-shot target accepted by the automation tool. If the runtime hides persisted timing, keep the intended local and UTC pair in the heartbeat prompt and classify the result as `created_unreadable` rather than blocking current work.
 
 Before creation, record:
@@ -56,6 +70,7 @@ Before creation, record:
 - target UTC instant
 - expected delay
 - lane, next slot, and session stop time
+- `worker_thread_id` and intended `targetThreadId`
 
 After creation, immediately read back:
 
@@ -63,11 +78,12 @@ After creation, immediately read back:
 - timezone/UTC interpretation when visible
 - repeat setting; it must be off
 - automation ID/name
+- actual `target_thread_id` or the strongest available creator-thread binding evidence
 - the scheduler's persisted `next_run_at` when the runtime exposes it; convert that epoch to both UTC and the intended local timezone
 
 Creation and timing observability are separate. Classify:
 
-- `verified`: persisted/displayed next run converted to both UTC and local time matches the intended instant within `5 min`, repeat is off
+- `verified`: target thread matches, persisted/displayed next run converted to both UTC and local time matches the intended instant within `5 min`, repeat is off
 - `created_unreadable`: create/update returned success plus an automation ID/card, but persisted/displayed timing is not exposed; keep the trigger, do not claim exact timing verification, and compare actual wake time with the stored local/UTC target when it fires
 - `display_suspect`: raw UTC is correct but UI display appears shifted
 - `rescheduled`: first item was wrong, replacement was read back correctly
@@ -75,7 +91,7 @@ Creation and timing observability are separate. Classify:
 
 `created_unreadable` is not `blocked`. Never delete a successful trigger, pause the first Reddit round, or ask the user to repair the scheduler merely because `next_run_at`, DTSTART, or a displayed next-run label is absent. The user cannot repair a field the runtime does not expose.
 
-Never leave duplicate active triggers for the same account + lane + slot. Never create a coordinator-targeted heartbeat that combines execution from several lanes. The coordinator's optional first-hour heartbeat is read-only supervision; each lane continuation targets its own persistent task.
+Never leave duplicate active triggers for the same account + lane + slot. Never create a coordinator-targeted heartbeat that combines execution from several lanes. The coordinator's optional first-hour heartbeat explicitly targets the coordinator task and is read-only supervision; each lane continuation explicitly targets its own persistent worker task.
 
 If the stored next run is exactly one local UTC offset away from the intended instant, classify it as `timezone_encoding_error`, update the existing automation in place using the detected `scheduler_clock_mode`, and read it back again. Do not wait for the incorrectly shifted trigger and do not create a duplicate.
 
@@ -109,4 +125,4 @@ The smoke test never opens Reddit or changes account state.
 
 Triggers in different lanes coexist independently. A worker inspects only its own lane trigger and keeps at most one next one-shot trigger for that lane. It does not scan, compare, pause, delete, or reschedule another lane because of shared Chrome/account use, overlapping times, targets, or actions.
 
-Before mutating an automation, verify only that `target_thread_id` is the current task and the prompt belongs to the current lane. A follow-up task cannot mutate comment/post/browsing automations; a comment task cannot mutate post/follow-up/browsing automations, and so on. When one user policy affects several lanes, each owner updates only its own trigger after receiving that instruction.
+Before mutating an automation, verify that `target_thread_id` exactly equals this worker's registered `worker_thread_id` and that the prompt belongs to the current lane. A follow-up task cannot mutate comment/post/browsing automations; a comment task cannot mutate post/follow-up/browsing automations, and so on. When one user policy affects several lanes, each owner updates only its own trigger after receiving that instruction.

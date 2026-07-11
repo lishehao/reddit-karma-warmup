@@ -41,7 +41,7 @@ Bootstrap profile edits/joins, notification sweeps, browsing, and verified no-ac
 
 ## Acceptance And Recovery
 
-A lane with a first outward action reaches `first_round_ok` only after its persistent worker exists, `submit_verified`, `surface_visible`, and `survivor_visible`, plus a successfully created lane-owned heartbeat handoff when continuation is required. A combined coordinator continuation cannot satisfy this check. Exact persisted timing should be verified when exposed; `created_unreadable` is acceptable until the heartbeat's first real wakeup proves or disproves timing.
+A lane with a first outward action reaches `first_round_ok` only after its persistent worker exists, `submit_verified`, `surface_visible`, and `survivor_visible`, plus a successfully created lane-owned heartbeat handoff when continuation is required. The heartbeat must report `thread_binding_verified`, or provisional `creator_thread_bound` when the worker created it and every target field is hidden. A combined coordinator continuation or mismatched `target_thread_id` cannot satisfy this check. Exact persisted timing should be verified when exposed; `created_unreadable` is acceptable until the heartbeat's first real wakeup proves or disproves timing.
 
 Non-publishing lanes use action-specific acceptance instead of permalink checks:
 

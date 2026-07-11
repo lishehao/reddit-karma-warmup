@@ -97,6 +97,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 
 - Real account actions require the already logged-in Chrome Browser control. Never enter credentials and never substitute Computer Use, the in-app Browser, Playwright, or ordinary Web Search.
 - Each worker owns a dedicated Reddit tab and optional Tab Group. Workers do not inspect, wait for, compare, or modify other workers' tabs, targets, actions, or automations.
+- Each worker heartbeat is created/updated by that worker with explicit `targetThreadId=worker_thread_id` when supported, then read back for an exact target match. Names never prove ownership; a mismatch is repaired before the trigger remains active.
 - The main task never owns an execution heartbeat. Its optional first-hour watch heartbeat is read-only, is named as supervision rather than continuation, and cannot contain Reddit lane actions.
 - Each worker owns at most one next one-shot heartbeat for its lane and may mutate only an automation targeting that same task/lane.
 - Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.

@@ -22,7 +22,7 @@ Maintain one small state record:
 | `startup_handoff` | batch objective, per-lane first-round state, immediate/delayed visibility result, retry count, heartbeat readback, and handoff result |
 | `browser_context` | this lane's dedicated `tab_id`, optional `group_id`, current URL, and confirmed account |
 | `action_log` | verified actions and candidate skips |
-| `next_trigger` | at most one one-shot continuation per lane |
+| `next_trigger` | at most one one-shot continuation per lane, with automation ID plus expected/actual worker thread binding |
 | `turn_gate` | `start_proof_by_lane` for a user command and `slot_proof` for each execution-lane heartbeat resume |
 
 Do not create large parallel state tables unless the user asks for an export.
@@ -139,13 +139,15 @@ The coordinator is the technical abstraction boundary. Recover implementation fa
 
 Automation ownership follows the lane and target thread:
 
-- Before creating, updating, pausing, or deleting an automation, verify its `target_thread_id` equals the current lane task and that its prompt belongs to the same lane.
+- The registry supplies the exact `worker_thread_id`; the worker passes it as explicit `targetThreadId` whenever the automation API supports that field.
+- Before creating, updating, pausing, or deleting an automation, verify its `target_thread_id` equals the registered `worker_thread_id` for the current lane and that its prompt belongs to the same lane.
 - A lane task may mutate only its own automation. Other lanes are outside its state; it must not inspect, classify, pause, rewrite, or absorb their work.
 - A global policy message delivered to several lane tasks applies to the current lane only. Do not inspect or coordinate the other lane tasks.
 - The coordinator sends amendments to lane owners instead of taking over their automations. Each owner changes only its own trigger.
 - Different lanes sharing an account, target, or policy window remain independent. Do not compare them for collisions.
 - During BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During MISSION, it reads only affected lanes until verified one-shot completion or the bounded watch deadline. STATUS reads relevant lanes once. Workers record state locally and do not callback.
 - The coordinator may own one temporary read-only watch automation named `Loci Reddit运营-首轮监督`. Its prompt may only read worker state and report; it cannot open Reddit, publish, vote, reply, or continue lane work. BOOTSTRAP keeps it through the fixed first-hour boundary; ongoing MISSION keeps it for at most one hour; one-shot MISSION may delete it after verified completion. Lane automations remain owned by their lane tasks.
+- Automation name, prompt, or lane title never proves thread ownership. Exact `target_thread_id` match or provisional creator-thread evidence from `scheduler-and-heartbeats.md` is required.
 
 ## Decision Classes
 

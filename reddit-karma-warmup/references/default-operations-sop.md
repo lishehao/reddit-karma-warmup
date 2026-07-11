@@ -150,6 +150,8 @@ Every worker receives:
 ```text
 role = WORKER
 lane = [comments|posts|follow-up|browsing]
+worker_thread_id = exact persistent task ID returned at create/reuse time
+coordinator_thread_id = Loci Reddit运营 task ID
 model = gpt-5.6-luna
 thinking_effort = high
 account = u/name
@@ -164,7 +166,7 @@ first_due = now or exact time
 browse_next_delay_range = custom or 20-40 min
 ```
 
-Every worker must load only its lane references, start the first due action immediately, verify visible results, update its local history, maintain at most one next trigger, and keep all status in its own task. Workers never callback or coordinate sibling lanes.
+Every worker must load only its lane references, start the first due action immediately, verify visible results, update its local history, maintain at most one next trigger explicitly bound to `worker_thread_id`, and keep all status in its own task. Workers never callback or coordinate sibling lanes.
 
 A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. Every later execution-heartbeat response must include `slot_proof`. It creates its continuation heartbeat only after the current micro-slot is verified.
 

@@ -21,7 +21,7 @@ Keep a rolling record:
 ```text
 time | subreddit | url | content_type | qualified_read
 topic | specific_observation | persona_fit | vote_decision | vote_score | vote_reason
-eligible_views_since_vote
+eligible_views_since_vote | vote_runtime_stability | verification_level
 ```
 
 Use the slot's combined-vote target as an active search objective:
@@ -63,8 +63,11 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 
 - Use `B/B+` communities first. `A` remains research-first and may receive a vote only for an unmistakably ordinary native reason. `A0/No-go` is read-only with no votes.
 - Never vote on own content, affiliated/team content, a supplied campaign target, or the same target from another account. Never coordinate votes.
-- Reselect this lane's dedicated Chrome tab and confirm the intended account/URL before voting.
-- After voting, refresh/reopen once and confirm the selected arrow remains active. If state is uncertain, log `unverified_vote`; do not click again blindly.
+- Reselect this lane's dedicated Chrome tab and confirm the intended account/URL. Require exactly one intended vote control that is visible and enabled before clicking.
+- Click each target at most once. A click call that resolves without an exception after the preflight above is `interaction_confirmed` and counts toward the slot. If the immediate UI also exposes `aria-pressed`, selected styling, `upmod/downmod`, score change, or an equivalent intended active state, upgrade it to `state_confirmed`.
+- Reload/reopen is not required after every vote. At most once per slot, optionally sample persistence when the UI is stable. If the post-reload DOM does not expose vote state but there is no opposite state or Reddit error, log `state_unobservable_after_reload`; keep the vote counted, continue the slot, do not click again, and do not ask the user.
+- When the user has explicitly confirmed that this Chrome/account voting path is stable, store `vote_runtime_stability=user_confirmed` for the mission. Do not ask for repeated confirmation unless a concrete failure below occurs.
+- Stop the affected voting action only for a click exception, an explicit opposite-state result, Reddit error/banner, account mismatch/logout, captcha, rate limit, warning, lock, or an unavailable/ambiguous control before click. A merely hidden post-reload state is not a failure.
 - Record every qualified read and every vote/no-vote decision. A below-target or no-vote slot is valid only after the configured read/time budget was actually exhausted or a concrete blocker appeared.
 
 ## Scheduling And Report
@@ -77,6 +80,7 @@ For a continuing run:
 2. Otherwise select a fresh whole-minute delay from `20-40 min` after the current slot completes. Do not reuse a fixed repeating interval.
 3. Convert that delay into one exact local and UTC next-run time, reconcile it against the stop time, and create one one-shot trigger for this lane.
 4. Do not create a fixed recurrence, schedule from the prior slot's start time, or catch up missed slots.
+5. Carry `vote_runtime_stability` and this verification policy into the continuation heartbeat. Never regenerate the old rule that hidden reload state stops the mission or requires user confirmation.
 
 Use the shared compact report:
 

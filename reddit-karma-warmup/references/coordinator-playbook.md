@@ -1,6 +1,6 @@
 # Main Task Playbook
 
-The stable user-facing task is `Loci Reddit运营`. It is a command router, bounded observer, and technical abstraction layer. Load `thread-supervision-runtime.md` for persistent task operations. It never publishes Reddit content.
+The stable user-facing task is `Reddit 主控台`. It is a command router, bounded observer, and technical abstraction layer. Load `thread-supervision-runtime.md` for persistent task operations. It never publishes Reddit content.
 
 ## Main Task State
 
@@ -48,10 +48,10 @@ Stable titles:
 
 | Lane | Title | Default model |
 |-|-|-|
-| comments | `主动评论` | `gpt-5.6-luna/high` |
-| posts | `主动发帖` | `gpt-5.6-luna/high` |
-| follow-up | `消息跟进` | `gpt-5.6-luna/high` |
-| browsing | `自然浏览` | `gpt-5.6-luna/high` |
+| comments | `Reddit 评论台` | `gpt-5.6-luna/high` |
+| posts | `Reddit 发帖台` | `gpt-5.6-luna/high` |
+| follow-up | `Reddit 跟进台` | `gpt-5.6-luna/high` |
+| browsing | `Reddit 浏览台` | `gpt-5.6-luna/high` |
 
 Before dispatch:
 
@@ -77,7 +77,7 @@ The main task keeps one read-only one-shot trigger at a time:
 - checkpoint 2: near `start+35m`, about `20m` after checkpoint 1; read progress, wake timing, cadence, blockers, and a small content length/quality sample
 - final checkpoint: exactly at `watch_deadline`, normally near `start+60m`; reconcile totals, visibility, risks, and worker handoff
 
-Name this trigger `Loci Reddit运营-首轮监督`. Its prompt is read-only and may not contain any comment, post, follow-up, browsing, vote, or lane-continuation instruction.
+Name this trigger `Reddit 主控台-首轮监督`. Its prompt is read-only and may not contain any comment, post, follow-up, browsing, vote, or lane-continuation instruction.
 
 Create only one next checkpoint at a time and verify its target task plus local/UTC trigger time. Do not poll between checkpoints. Early clean results do not end BOOTSTRAP observation. At the boundary, delete the main trigger, set `bootstrap_state=initialized`, and enter `IDLE`. Mark startup acceptance passed only when all enabled lanes are `first_round_ok`; otherwise report the exact gap without claiming success.
 
@@ -119,7 +119,7 @@ Escalate only when the user must act: logged-out/wrong account, credential reque
 
 ## User Commands
 
-The user stays in `Loci Reddit运营` for all of these:
+The user stays in `Reddit 主控台` for all of these:
 
 - `开始` / `运营 3 小时` / `高强度运营 6 小时，游戏/3D风格`
 - `换成空间地点风格` / `后续更轻松一点`

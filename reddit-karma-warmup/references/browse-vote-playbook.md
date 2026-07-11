@@ -1,6 +1,6 @@
 # Browse And Vote Playbook
 
-Load only for the `browsing` lane named `自然浏览`. This lane reads Reddit surfaces and may cast an occasional genuine Upvote or Downvote. It never publishes comments/posts, handles Notifications, edits the profile, joins communities, or performs another lane's work.
+Load only for the `browsing` lane task named `Reddit 浏览台`. This lane reads Reddit surfaces and may cast an occasional genuine Upvote or Downvote. It never publishes comments/posts, handles Notifications, edits the profile, joins communities, or performs another lane's work.
 
 ## Browse Slot
 

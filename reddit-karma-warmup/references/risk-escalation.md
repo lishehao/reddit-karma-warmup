@@ -1,6 +1,6 @@
 # Risk Escalation To Main Console
 
-Load in the `Loci Reddit运营` coordinator and every worker. The user makes risk decisions only in the coordinator task. Lane workers never ask the user directly.
+Load in the `Reddit 主控台` coordinator and every worker. The user makes risk decisions only in the coordinator task. Lane workers never ask the user directly.
 
 ## What Returns To Main
 

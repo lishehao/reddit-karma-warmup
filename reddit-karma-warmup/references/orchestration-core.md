@@ -75,13 +75,15 @@ Default titles:
 
 | Responsibility | Title |
 |-|-|
-| global coordinator | `Loci Reddit运营` |
-| proactive comment lane | `主动评论` |
-| proactive post lane | `主动发帖` |
-| follow-up lane | `消息跟进` |
-| browsing lane | `自然浏览` |
+| global coordinator | `Reddit 主控台` |
+| proactive comment lane | `Reddit 评论台` |
+| proactive post lane | `Reddit 发帖台` |
+| follow-up lane | `Reddit 跟进台` |
+| browsing lane | `Reddit 浏览台` |
 
-The user-facing task always keeps `Loci Reddit运营`, including for a single-lane MISSION. Only an explicitly handed-off WORKER task uses a lane title. Account tier and mission type never change these titles.
+The user-facing task always keeps `Reddit 主控台`, including for a single-lane MISSION. Only an explicitly handed-off WORKER task uses a lane title. Account tier and mission type never change these titles.
+
+After resolving exact task IDs, pin `Reddit 主控台` and explicitly keep all four worker tasks unpinned. Pinning is presentation state, not ownership proof. Do not archive active or idle registered workers; archive only completed temporary probes/diagnostics and retired workers after their heartbeat is removed and tab state is released.
 
 ## Independent Lane Tabs
 
@@ -107,7 +109,7 @@ Treat stale tabs, missing controls, dropped browser sessions, `ERR_BLOCKED_BY_CL
 
 For `ERR_BLOCKED_BY_CLIENT`, reconnect/reacquire Chrome, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and stop the lane only when Chrome control itself remains unavailable after both recovery attempts.
 
-If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` and pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately. A worker sends the evidence to `Loci Reddit运营` under `risk-escalation.md`; only the coordinator asks the user to repair the session. Never enter credentials.
+If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` and pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately. A worker sends the evidence to `Reddit 主控台` under `risk-escalation.md`; only the coordinator asks the user to repair the session. Never enter credentials.
 
 ## Active Pool
 
@@ -133,7 +135,7 @@ Real operations require persistent task create/read/send capability. The user's 
 
 For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. If proof remains unavailable, mark that lane `startup_blocked`; coordinator execution is forbidden.
 
-The `Loci Reddit运营` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they must return decision-requiring risks/blockers to it.
+The `Reddit 主控台` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they must return decision-requiring risks/blockers to it.
 
 For the first post-install BOOTSTRAP only, the coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, using sequential verified one-shot heartbeats. Dispatch and early acceptance are insufficient: it runs checkpoints near `+15m`, `+35m`, and the mandatory boundary sweep near `+60m`. It must not use Goal Mode or poll while waiting. After that one-time handoff, workers continue independently and the coordinator becomes user-driven again.
 
@@ -148,7 +150,7 @@ Automation ownership follows the lane and target thread:
 - The coordinator sends amendments to lane owners instead of taking over their automations. Each owner changes only its own trigger.
 - Different lanes sharing an account, target, or policy window remain independent. Do not compare them for collisions.
 - During the first post-install BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During later MISSION commands, it reads affected lanes only for same-turn acceptance, then returns to `IDLE`. STATUS reads relevant lanes once. AUDIT performs one bounded evidence pull under `operations-audit.md`, including exact read-only permalink verification when needed. Workers record routine state locally and callback only for decision-requiring risks/blockers.
-- The coordinator may own one temporary read-only watch automation named `Loci Reddit运营-首轮监督` only during that first post-install BOOTSTRAP. Its prompt may only read worker state and report; it cannot open Reddit, publish, vote, reply, or continue lane work. Delete it at the first-hour boundary. Lane automations remain owned by their lane tasks.
+- The coordinator may own one temporary read-only watch automation named `Reddit 主控台-首轮监督` only during that first post-install BOOTSTRAP. Its prompt may only read worker state and report; it cannot open Reddit, publish, vote, reply, or continue lane work. Delete it at the first-hour boundary. Lane automations remain owned by their lane tasks.
 - Automation name, prompt, or lane title never proves thread ownership. Exact `target_thread_id` match or provisional creator-thread evidence from `scheduler-and-heartbeats.md` is required.
 
 ## Decision Classes

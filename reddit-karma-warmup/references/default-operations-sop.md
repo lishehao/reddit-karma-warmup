@@ -1,10 +1,10 @@
 # Operating Flow Router
 
-Use for `BOOTSTRAP` and `MISSION`. The main task is always `Loci Reddit运营`; it delegates Reddit mutations to lane owners.
+Use for `BOOTSTRAP` and `MISSION`. The main task is always `Reddit 主控台`; it delegates Reddit mutations to lane owners.
 
 ## User Operation Router
 
-The user always talks to `Loci Reddit运营`:
+The user always talks to `Reddit 主控台`:
 
 - `运营 [duration] [intensity] [style]`: enable comments, posts, follow-up, and natural browsing.
 - `评论 ...`, `发帖 ...`, `跟进 ...`, or `自然浏览 ...`: enable only the named lane unless the user combines them.
@@ -48,7 +48,7 @@ vote_cap_per_browse_slot = explicit user cap or intensity cap (standard: 4 combi
 browse_next_delay = explicit user interval or a fresh integer from 20-40 min after slot completion
 ```
 
-4. Keep the one-time post-install first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator uses one sequential read-only one-shot heartbeat named `Loci Reddit运营-首轮监督` for delayed checks; it must never carry lane actions or be named `首轮后续`.
+4. Keep the one-time post-install first-hour watch in ordinary task mode. Lane workers execute current work now. The coordinator uses one sequential read-only one-shot heartbeat named `Reddit 主控台-首轮监督` for delayed checks; it must never carry lane actions or be named `首轮后续`.
 5. Use `gpt-5.6-luna/high` for the main task and every worker.
 
 ### A2. Dispatch Once
@@ -57,10 +57,10 @@ The user's `开始`/operation command explicitly authorizes persistent task crea
 
 | Task | First-hour responsibility |
 |-|-|
-| `主动评论` | Execute the current intensity envelope across diverse lower-restriction communities; pause `60-120 sec` after each verified submission. |
-| `主动发帖` | Run one live candidate/preflight micro-slot; publish only when a native candidate passes, otherwise record verified no-post proof. |
-| `消息跟进` | Sweep Notifications and recent own activity; reply only to actionable items. |
-| `自然浏览` | Use the selected read budget across eligible communities; standard starts with `20-30` qualified reads and targets `2` verified combined votes, without lowering either vote gate. |
+| `Reddit 评论台` | Execute the current intensity envelope across diverse lower-restriction communities; pause `60-120 sec` after each verified submission. |
+| `Reddit 发帖台` | Run one live candidate/preflight micro-slot; publish only when a native candidate passes, otherwise record verified no-post proof. |
+| `Reddit 跟进台` | Sweep Notifications and recent own activity; reply only to actionable items. |
+| `Reddit 浏览台` | Use the selected read budget across eligible communities; standard starts with `20-30` qualified reads and targets `2` verified combined votes, without lowering either vote gate. |
 
 Before dispatch, perform bootstrap-only profile/membership setup in the main task when the account is visibly incomplete. Then create/reclaim all enabled workers, send each mission, and have every worker start now in its own Reddit tab. For default broad operation, all four rows above are mandatory. Do not collapse them into one task or let the main task perform their work.
 
@@ -88,16 +88,16 @@ Workers continue independently until `operation_stop_at` using the selected inte
 
 ## Flow B: MISSION Through The Main Task
 
-Trigger when the user later gives an active operation command in `Loci Reddit运营`, including while the account remains new after `bootstrap_state=initialized`. Do not reinstall, redecorate a healthy profile, or repeat BOOTSTRAP.
+Trigger when the user later gives an active operation command in `Reddit 主控台`, including while the account remains new after `bootstrap_state=initialized`. Do not reinstall, redecorate a healthy profile, or repeat BOOTSTRAP.
 
 ### B1. Route The Command
 
 | User intent | Owner |
 |-|-|
-| `评论 N 条`, `主动评论`, named comment communities | `主动评论` |
-| `发 N 篇帖子`, `主动发帖`, post angle/community | `主动发帖` |
-| `看回复`, `看 Notifications`, supplied permalink | `消息跟进` |
-| `浏览`, `自然浏览`, `刷帖`, `偶尔投票`, `upvote/downvote` | `自然浏览` |
+| `评论 N 条`, `主动评论`, named comment communities | `Reddit 评论台` |
+| `发 N 篇帖子`, `主动发帖`, post angle/community | `Reddit 发帖台` |
+| `看回复`, `看 Notifications`, supplied permalink | `Reddit 跟进台` |
+| `浏览`, `自然浏览`, `刷帖`, `偶尔投票`, `upvote/downvote` | `Reddit 浏览台` |
 | `运营 [N 小时] [强度] [风格]` | comments + posts + follow-up + natural browsing |
 | `换成游戏/3D风格`, `后续更专业一点` | update style/modifier for future slots of active lanes; if idle, store as the next mission default |
 | `暂停/继续/停止 X` | affected owner(s) only |
@@ -151,7 +151,7 @@ Every worker receives:
 role = WORKER
 lane = [comments|posts|follow-up|browsing]
 worker_thread_id = exact persistent task ID returned at create/reuse time
-coordinator_thread_id = Loci Reddit运营 task ID
+coordinator_thread_id = Reddit 主控台 task ID
 model = gpt-5.6-luna
 thinking_effort = high
 account = u/name

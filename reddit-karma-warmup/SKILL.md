@@ -6,7 +6,7 @@ description: >-
 
 # Reddit Karma Warmup
 
-Use one stable user-facing task named `Loci Reddit运营` and four internal operation lanes: `主动评论`, `主动发帖`, `消息跟进`, and `自然浏览`. The main task is the only user-facing command surface; lane tasks are internal execution details.
+Use one stable user-facing task named `Reddit 主控台` and four internal operation tasks: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, and `Reddit 浏览台`. The main task is the only user-facing command surface; lane tasks are internal execution details.
 
 ## Select Runtime Context
 
@@ -16,7 +16,7 @@ Choose exactly one context before loading detailed references:
 |-|-|-|
 | `INSTALL` | Install, upgrade, inspect, package, or explain | Load `references/runtime-and-setup.md`; do not mutate Reddit. |
 | `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
-| `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
+| `MISSION` | The user gives a later active operation command in `Reddit 主控台` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
 | `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/thread-supervision-runtime.md` and `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
 | `AUDIT` | The user asks whether workers, automations, execution, cadence, published content, length, or quality are following the plan | Load `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, and `references/operations-audit.md`; inspect the relevant workers and their automations read-only by default. |
 | `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, `references/operation-style-profiles.md`, `references/risk-escalation.md`, the assigned lane playbook, and `references/scheduler-and-heartbeats.md` only when continuation is required. Never become a coordinator. |
@@ -49,8 +49,8 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 ### Phase 1: First Operational Start
 
 1. `开始` means `3 hours`, `standard` intensity, and `mixed` style unless the user overrides them. It explicitly authorizes creation/reuse of the required persistent lane tasks.
-2. Keep the current task as `Loci Reddit运营`. Confirm account/tier/history and convert the request into lane, count/duration, style, pool, language, and `operation_stop_at`.
-3. Broad `开始/运营` requires four distinct persistent owners: `主动评论`, `主动发帖`, `消息跟进`, and `自然浏览`. A named lane command requires only that owner.
+2. Rename the current task `Reddit 主控台`, resolve its exact ID, and pin it. Confirm account/tier/history and convert the request into lane, count/duration, style, pool, language, and `operation_stop_at`.
+3. Broad `开始/运营` requires four distinct persistent owners: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, and `Reddit 浏览台`. A named lane command requires only that owner. Keep every worker unpinned.
 4. Capture and verify every `worker_thread_id`. Do not replace a lane with a subagent, combined worker, or coordinator execution.
 
 ### Phase 2: Execute Now And Accept
@@ -66,7 +66,7 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 1. Each worker owns one lane, dedicated tab/history, and at most one next one-shot heartbeat explicitly bound to its own task ID.
 2. On every heartbeat wake, the worker restores state, executes/verifies the current slot, records `slot_proof`, and only then creates a successor when work remains.
 3. Workers keep routine progress locally. They never coordinate siblings or ask the user directly.
-4. Decision-requiring risks use `risk-escalation.md`: pause the affected scope, return evidence to `Loci Reddit运营`, and await the routed user decision.
+4. Decision-requiring risks use `risk-escalation.md`: pause the affected scope, return evidence to `Reddit 主控台`, and await the routed user decision.
 
 ### Phase 4: One-Time First-Hour Supervision
 
@@ -78,7 +78,7 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 
 ### Phase 5: Later Missions
 
-1. The user continues speaking only in `Loci Reddit运营`; classify the command as `MISSION` and reuse the relevant owners/history.
+1. The user continues speaking only in `Reddit 主控台`; classify the command as `MISSION` and reuse the relevant owners/history.
 2. Send only the changed mission fields. The affected worker executes its first due slot now, and the coordinator performs same-turn acceptance exactly as Phase 2.
 3. Worker-owned heartbeats continue remaining work. The coordinator returns to `IDLE` and does not create another first-hour watch.
 
@@ -87,17 +87,18 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - `STATUS`: read relevant workers once; report progress, risk, and next run. Do not create work.
 - `AUDIT`: use `operations-audit.md` to inspect ownership, automation timing, execution, visibility, cadence, length, and quality.
 - pause/resume/stop: route the control to affected owners and verify their own heartbeat change.
-- risk callback: explain evidence, impact, current pause, and recommendation in `Loci Reddit运营`; ask the user to continue, adjust, or stop, then route the decision back to the owner.
+- risk callback: explain evidence, impact, current pause, and recommendation in `Reddit 主控台`; ask the user to continue, adjust, or stop, then route the decision back to the owner.
 - In `IDLE`, never poll. Worker risk callbacks or a new user command are the only unsolicited re-entry paths after the one-time Bootstrap watch.
 
 ## Hard Gates
 
-- `Loci Reddit运营` is the only user-facing command/decision surface and never executes comments, posts, replies, browsing, or votes.
+- `Reddit 主控台` is the only user-facing command/decision surface and never executes comments, posts, replies, browsing, or votes.
 - Real lane owners are persistent tasks with exact IDs. Subagents may assist bounded read-only analysis but never own Chrome mutations, a lane, heartbeat, or risk decision.
 - An operation command executes in the current turn. The first heartbeat may continue the second slot, never defer the first.
 - A no-action result needs concrete browser-backed evidence and a valid Skill gate; otherwise the lane is not started.
 - Missing task create/read/send capability blocks only the affected lane; the coordinator never silently performs it sequentially.
 - Delays over `5-10 min` use one verified one-shot heartbeat. Do not use Goal Mode or a terminal sleep as the long-wait scheduler.
+- Naming uses `<platform> <responsibility>台`. Pin only `Reddit 主控台`; keep active/idle workers unpinned and unarchived. Archive completed probes, diagnostics, and retired workers only after their heartbeat/tab state is released.
 
 ## Zero-Account Defaults
 
@@ -133,7 +134,7 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 
 Automatically repair stale Chrome control, lane-tab recovery, missing first-round evidence, scheduler encoding/readback, and worker prompt drift. Keep task IDs, model fallback, tab IDs, UTC math, automation IDs, retries, scores, and technical logs internal.
 
-Ask the user only in `Loci Reddit运营` when they must act: Reddit is logged out/wrong-account, credentials are required, captcha/rate limit/lock persists, Chrome Browser control remains unavailable, or a material product/risk choice cannot be inferred. Workers escalate these states and never ask the user directly.
+Ask the user only in `Reddit 主控台` when they must act: Reddit is logged out/wrong-account, credentials are required, captcha/rate limit/lock persists, Chrome Browser control remains unavailable, or a material product/risk choice cannot be inferred. Workers escalate these states and never ask the user directly.
 
 ## Compact Report
 

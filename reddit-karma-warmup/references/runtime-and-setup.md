@@ -30,7 +30,7 @@ Required capabilities for real Reddit operations:
 - The target Reddit account must already be logged in by the user. Never enter passwords or handle credentials.
 - Scheduler/automation capability is required for multi-round heartbeat operation. A successful create/delete probe proves capability even when the runtime does not expose persisted `next_run_at` or displayed run time. Missing timing readback lowers confidence but is not a dependency failure and must not block the first Reddit round. If creation itself is unavailable or fails, complete only the current round and report the intended next local/UTC time for manual continuation.
 - Persistent task create, read, and send/update capability is required for real Reddit operations. The guided handoff below states that replying `开始` explicitly authorizes creation or reuse of the requested lane tasks. Do not silently downgrade to sequential execution in the main task.
-- Default broad operation requires four user-visible workers: `主动评论`, `主动发帖`, `消息跟进`, and `自然浏览`. A named single-lane operation requires only its matching worker. Do not create workers that the coordinator cannot later read or steer. Task-title control is optional.
+- Default broad operation requires four user-visible workers: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, and `Reddit 浏览台`. A named single-lane operation requires only its matching worker. Do not create workers that the coordinator cannot later read or steer. Rename and pin `Reddit 主控台`; keep workers unpinned. Task-title/pin control is presentation-only and does not replace exact task-ID checks.
 - Model/effort override capability is optional. When available, load `model-runtime.md` and request `gpt-5.6-luna/high` for the coordinator and workers; when unavailable, use the strongest actually exposed fallback and do not block the run.
 - Shell/Python/date utilities are optional helpers for time calculation or file inspection, not dependencies. If unavailable, compute timezone pairs and schedule checks with whatever tools the environment exposes.
 
@@ -87,7 +87,7 @@ When installation/preflight is healthy but the user has not supplied an operatin
 ```text
 状态健康。当前账号：u/name。
 
-你希望接下来怎么运营？可以指定时长、低/标准/高强度，以及混合探索、建设者、游戏/3D、空间地点、轻社交/创意或自定义风格；也可以直接指定评论、发帖、跟进、自然浏览。如果暂时没想法，回复“开始”即授权我创建或复用主动评论、主动发帖、消息跟进和自然浏览四个独立工作任务，并按标准强度、混合探索风格运行 3 小时。
+你希望接下来怎么运营？可以指定时长、低/标准/高强度，以及混合探索、建设者、游戏/3D、空间地点、轻社交/创意或自定义风格；也可以直接指定评论、发帖、跟进、自然浏览。如果暂时没想法，回复“开始”即授权我创建或复用 Reddit 评论台、Reddit 发帖台、Reddit 跟进台和 Reddit 浏览台，并按标准强度、混合探索风格运行 3 小时。
 ```
 
 Do not append dependency fields, model details, thread capability, or another confirmation question.

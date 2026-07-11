@@ -1,6 +1,6 @@
 # On-Demand Operations Audit
 
-Load only in the user-facing `Loci Reddit运营` task when the user asks whether the other tasks are operating as expected. This is a read-only diagnosis by default, not a fifth execution lane and not continuous supervision.
+Load only in the user-facing `Reddit 主控台` task when the user asks whether the other tasks are operating as expected. This is a read-only diagnosis by default, not a fifth execution lane and not continuous supervision.
 
 ## Audit Scope
 
@@ -23,7 +23,7 @@ Never infer success from a task title, automation name/card, plan, or `已启动
 Check:
 
 - every enabled lane has its own persistent task ID
-- worker role matches `主动评论`, `主动发帖`, `消息跟进`, or `自然浏览`
+- worker role matches `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, or `Reddit 浏览台`
 - the coordinator did not execute a lane action
 - each continuation targets its owning worker, not the coordinator or another lane
 - no combined execution heartbeat absorbed several lanes

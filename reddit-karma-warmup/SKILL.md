@@ -38,6 +38,18 @@ Lane references:
 
 Do not load every reference. The subreddit pool is routing data, not a workflow.
 
+### Canonical Rule Ownership
+
+- `SKILL.md`: context selection, end-to-end phases, hard gates, shared invariants, and the exact three-line report.
+- `default-operations-sop.md`: user-request parsing, planning envelopes, mission delta, and worker handoff payload only.
+- `coordinator-playbook.md`: `Reddit 主控台` lifecycle, same-turn acceptance, first-hour supervision, status/risk/completion aggregation.
+- `thread-supervision-runtime.md`: persistent task registry, create/reuse/send/read, task identity, pin/archive lifecycle.
+- `orchestration-core.md`: one worker's slot state machine, lane boundary, tab ownership, decision classes, execution and reconciliation.
+- `scheduler-and-heartbeats.md`: timer math, binding, time verification, update/reuse, and stop behavior.
+- lane playbooks: candidate/action rules for their lane only.
+
+When two references appear to cover the same decision, the owner above wins. Supporting references link to the owner instead of restating its procedure.
+
 ## End-To-End Operating Flow
 
 ### Phase 0: Install And Preflight

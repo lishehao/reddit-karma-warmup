@@ -1,5 +1,7 @@
 # Persistent Task Supervision Runtime
 
+Canonical owner of persistent task identity, registry, create/reuse/send/read operations, and task presentation/lifecycle. It does not define lane execution, timer math, or coordinator policy.
+
 Load only in the user-facing `Reddit 主控台` coordinator for `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`. This is the bundled supervision subset for Reddit operations; no external `thread-supervisor` Skill is required.
 
 ## Required Capability Bundle

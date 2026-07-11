@@ -1,5 +1,7 @@
 # Scheduler And Heartbeats
 
+Canonical owner of operation-time planning and logical Heartbeat lifecycle. Other references may request a next due time but must not redefine binding, timezone, update/reuse, or stop rules.
+
 Use for duration/count planning, multi-round operation, waits longer than one active slot, timezone drift, and durable logical heartbeat timer verification.
 
 ## Planning Rule

@@ -73,4 +73,4 @@ Do not use `I built an app`, `Would you use this?`, tester recruitment, surveys,
 
 ## Bootstrap State
 
-Store `profile_done`, `presence_done`, `waiting`, `comments_started`, `help_post_done`, or `blocked` internally. The user-facing round report still uses only the four fields from `orchestration-core.md`; expose the bootstrap state only when it explains why no outward action occurred.
+Store `profile_done`, `presence_done`, `waiting`, `comments_started`, `help_post_done`, or `blocked` internally. The user-facing round report uses the exact three lines from `SKILL.md`; expose bootstrap state only inside `本轮完成` when it explains why no outward action occurred.

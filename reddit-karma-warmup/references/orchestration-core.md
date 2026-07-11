@@ -1,6 +1,6 @@
 # Orchestration Core
 
-Use this reference for every real Reddit operation. It owns shared state, lifecycle, browser coordination, risk classification, and compact reporting. Lane playbooks own candidate selection and lane-specific gates.
+Canonical owner of one worker's executable slot: state restoration, lane/tab boundary, candidate decision, action verification, reconciliation, and timer handoff. Coordinator/task-registry/timer procedures remain in their owning references. Lane playbooks own candidate selection and lane-specific gates.
 
 ## Session State
 
@@ -197,15 +197,9 @@ After each slot:
 
 Never run this scheduling section until the current user-command turn has `START_NOW_PROOF_BY_LANE`, or the current execution-heartbeat turn has `SLOT_PROOF`. The first heartbeat may resume the second slot, never the first; every later heartbeat must execute its own slot before creating another.
 
-## Compact Report Schema
+## Report Handoff
 
-```text
-本轮完成：<动作、数量、r/subreddit 和 permalink；无动作则写检查范围与原因>
-下一轮心跳：<YYYY-MM-DD HH:mm:ss 时区（UTC 时间）；结束则写“无，任务已结束”>
-下轮计划：<下一轮具体动作和目标数量；结束则写“无”>
-```
-
-Use this after every ordinary slot and heartbeat wake. Risk/blocker messages use `risk-escalation.md` instead of adding a fourth line.
+Use the exact three-line report owned by `SKILL.md` after every ordinary slot and Heartbeat wake. Risk/blocker messages use `risk-escalation.md`; do not restate or extend the ordinary schema here.
 
 The detailed action log still stores final text/translation, score/triage, Check A/B, history comparison, visibility, account/tier, model runtime, this lane's tab/group identity, and schedule readback. Keep those internal by default. Surface only the detail that explains a risk, blocker, failed schedule, or explicit user question.
 

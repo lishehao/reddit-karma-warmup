@@ -1,5 +1,7 @@
 # Main Task Playbook
 
+Canonical owner of coordinator lifecycle, same-turn acceptance, first-hour supervision, and mission/risk/completion aggregation. It consumes normalized requests from `default-operations-sop.md` and does not redefine worker slot or timer procedures.
+
 The stable user-facing task is `Reddit 主控台`. It is a command router, bounded observer, and technical abstraction layer. Load `thread-supervision-runtime.md` for persistent task operations. It never publishes Reddit content.
 
 ## Main Task State
@@ -145,12 +147,6 @@ Optional commentary during the first active tool sequence; never final:
 正在执行第一轮；完成首个可验证动作后汇报，并再安排下一轮。
 ```
 
-The first final response is allowed only after `start_proof_by_lane`; then use exactly:
-
-```text
-本轮完成：<完成事项、数量、subreddit 和 permalink；无动作则说明原因>。
-下一轮心跳：<已验证的本地日期、时间、时区与 UTC；结束则写“无，任务已结束”>。
-下轮计划：<下一轮准备完成的具体事项和数量；结束则写“无”>。
-```
+The first final response is allowed only after `start_proof_by_lane`; then use the exact three-line report owned by `SKILL.md`. Do not redefine it here.
 
 Do not expose intermediate pulls or technical fields unless requested.

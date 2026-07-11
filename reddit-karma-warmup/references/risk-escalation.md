@@ -8,7 +8,7 @@ Escalate immediately when at least one is true:
 
 - `decision_required`: a genuine soft-risk choice changes whether/how the action should continue
 - `lane_blocked`: Chrome remains unavailable after recovery, the worker task/heartbeat cannot continue correctly, or the lane cannot meet its mission for a non-candidate-specific reason
-- `account_blocked`: logout/wrong account, credential request, captcha, sitewide rate limit, lock/suspension, or an explicit account-wide warning
+- `account_blocked`: a currently visible logout/wrong account, credential request, captcha, sitewide rate limit, lock/suspension, or explicit account-wide warning prevents the action now
 - `execution_integrity_failed`: automation targets the wrong task, fires at a materially wrong time, repeats unexpectedly, runs after the stop time, or published evidence cannot be reconciled safely
 - `material_reputation_risk`: an intended action appears technically possible but has clear moderation, deception, identity, or brand risk requiring a user choice
 
@@ -21,6 +21,7 @@ Do not escalate ordinary operations noise:
 - a recoverable Chrome route error that succeeds after recovery
 - a transient DNS/network/proxy/site loading error while its bounded `chrome-network-recovery.md` checkpoint is still pending
 - normal count shortfall because too few candidates passed
+- any historical or already-cleared removal, warning, rate limit, lock, or login fault
 
 These remain in the worker report unless bounded recovery fails, they become lane-wide/account-wide, or they require a user decision.
 
@@ -66,7 +67,7 @@ safe_options: <continue unchanged only if defensible | safer adjustment | stop>
 user_action_needed: <exact decision or repair>
 ```
 
-5. End the worker turn in `awaiting_coordinator_decision`. Do not ask the user, continue automatically, create a substitute task, or broaden the pause to siblings.
+5. End the worker turn in `awaiting_coordinator_decision` only when user action or a genuine choice is required. A visible timed rate limit with a known expiry is automatic recovery: preserve the mission, reuse this lane's timer for the expiry when needed, re-probe, and continue without requesting a decision. Do not ask the user, create a substitute task, or broaden the pause to siblings.
 
 If the worker-to-coordinator message capability is unavailable, keep the affected scope paused and mark `risk_return_unavailable`. Unattended continuation for that lane is not allowed; the coordinator's next bounded pull must surface it.
 
@@ -77,7 +78,7 @@ On `RISK_ESCALATION`:
 1. Read the worker's latest evidence and classify the affected scope.
 2. For an account-wide blocker, send a pause instruction to every mutation lane. For a lane/candidate blocker, leave unrelated lanes running.
 3. Deduplicate simultaneous reports about the same root cause into one user decision.
-4. Explain the issue in the main task only:
+4. Explain the issue in the main task only when a user repair or genuine decision is required:
 
 ```text
 风险：<发生了什么，以及证据>。
@@ -89,8 +90,10 @@ On `RISK_ESCALATION`:
 ```
 
 5. Do not tell the user to open or reply in a worker task.
-6. Do not resume a hard-stop condition merely because the user says `继续`; first verify the required external repair, such as restored login or cleared captcha/rate-limit state.
-7. Route the resolved decision back to the owner. The owner re-probes its lane, acts only within the approved scope, and returns new proof.
+6. Verify that the current blocking state cleared. Do not use a historical event as proof that it remains active.
+7. Route the repair/decision back to the owner. The owner re-probes its lane and resumes the user's latest command without adding a recovery tier or asking for another confirmation.
+
+The latest explicit user command controls authorized operations after a current blocker clears. Recommendations may be reported once but never replace the requested duration, intensity, count, or lane unless the user accepts the change.
 
 ## Scope Rules
 

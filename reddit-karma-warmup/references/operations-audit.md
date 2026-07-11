@@ -59,6 +59,8 @@ Compare requested work with actual verified work:
 
 A no-action result is valid only when its reason matches the Skill. For example, `K0 has not waited 6h` cannot reject the first daily post; `ERR_BLOCKED_BY_CLIENT` on one route cannot end the whole browsing lane before Chrome recovery and alternate-route attempts.
 
+Refusing, downgrading, or requesting confirmation for a current explicit mission solely because of historical/cleared removals, warnings, rate limits, locks, an old recovery preset, or an older mission field is `不合格`. A currently visible timed limit may delay only until expiry and must retain automatic continuation of the original user command.
+
 For every removal/filter/lock/subreddit ban/pending withdrawal, verify that the exact subreddit entered the retired set, `SUBREDDIT_RETIRED` informed the coordinator once, and the worker continued in another eligible community. An account-tier downgrade, generic slowdown, or process-wide pause from removal evidence alone is `不合格` unless Reddit separately displayed an account-level warning/rate-limit/captcha/lock/suspension/login problem.
 
 Use visibility labels from `startup-health-check.md`. If the coordinator cannot independently open the permalink, report worker proof separately from current independent visibility.

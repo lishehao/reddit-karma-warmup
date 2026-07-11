@@ -84,7 +84,7 @@ Run `outbound-copy-gate.md` after Check A.
 Run after the final draft is entered and before clicking Reply/Post.
 
 1. Confirm the intended Reddit account, target subreddit/URL, and action type.
-2. Confirm the target is still visible/unlocked and no warning, removal, captcha, or rate limit appeared.
+2. Confirm the target is still visible/unlocked and no currently active warning, removal, captcha, or rate limit appeared.
 3. Re-read the final text against the exact parent/post and current subreddit context.
 4. Confirm truthfulness, on-topic fit, no prohibited promotion/link, and no contradiction with `history_ledger`.
 5. Compute the final draft's `char_count`, `word_count`, `sentence_form`, and `length_tier`; confirm its length, opening, rhythm, subreddit, cluster, and angle are not needlessly repeating recent actions.
@@ -96,7 +96,7 @@ Decision:
 - `submit`: every check passes.
 - `rewrite`: copy or length/history consistency fails; revise and rerun Check B.
 - `retarget`: community, eligibility, history saturation, or live context fails; abandon draft and return to discovery.
-- `hard_stop`: account/browser/platform warning or clear rule prohibition.
+- `hard_stop`: a currently visible account/browser/platform warning that prevents the action now, or a clear rule prohibition for this target. Historical/cleared evidence does not qualify.
 
 If removal/filter/lock/pending-approval evidence appears for an own action, apply `SUBREDDIT_RETIRED`, close that exact subreddit, and retarget. Do not classify it as an account-wide failure without separate Reddit account-level evidence.
 

@@ -6,14 +6,14 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 
 ## Default Sequence
 
-1. **Inspect first.** Confirm the account, visible age/karma/history, email-verification or eligibility signals where Reddit exposes them, notifications, and any warning/removal state.
+1. **Inspect first.** Confirm the account, visible age/karma/history, email-verification or eligibility signals where Reddit exposes them, notifications, and any currently active warning/removal state. Keep historical/cleared events in the ledger without turning them into startup blockers.
 2. **Establish a truthful profile.** Load `community-presence-playbook.md`; add a low-risk display/about/avatar/banner only where needed.
 3. **Join a few high-fit communities.** Run the membership gate; prefer `1-3` in the first slot.
 4. **Browse before and alongside publishing.** Run one intensity-sized qualified-read slot across eligible communities. Standard starts with `20-30` reads and targets `2` combined accepted one-click votes without lowering `browse-vote-playbook.md` gates.
 5. **Run the first-hour launch.** Immediately execute comments, post preflight, follow-up, and natural browsing using the selected intensity. Comments remain micro/fragment/one-liner first and span lower-restriction communities.
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
-7. **Verify in parallel.** Record the first permalink immediately so the coordinator can run `startup-health-check.md` while the comment worker continues. Any removal retires only its exact subreddit under `R1/R2`; continue in unaffected communities. Stop account-wide comments only for an explicit warning, captcha, sitewide rate limit, lock/suspension, or login mismatch. A pending delayed check alone is not a reason to wait.
-8. **Continue after the first hour.** A clean first-hour result continues the selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A failed check activates the matching recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
+7. **Verify in parallel.** Record the first permalink immediately so the coordinator can run `startup-health-check.md` while the comment worker continues. Any removal retires only its exact subreddit under `R1/R2`; continue in unaffected communities. Pause account-wide comments only while an explicit warning, captcha, sitewide rate limit, lock/suspension, or login mismatch is currently active. A pending delayed check or historical event is not a reason to wait.
+8. **Continue after the first hour.** Continue the user's selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A currently active blocker uses its minimum recovery condition, then resumes the same latest command. Historical or cleared failures never select a recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
 9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. `K0` does not create a six-hour wait before the first eligible post. Only the second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
 
 The user's explicit sequence may override these defaults unless a hard stop is visible.
@@ -39,7 +39,7 @@ For internal Loci accounts without another supplied persona:
 - first-hour comments: low `2-4`, standard `4-6`, high `6-10`, with `60-120 sec` local pause after every verified submission
 - second post checkpoint: first post remains visible after `30-60 min`, no account/community warning, different community and angle, `>=6h` later
 
-These are operating defaults, not Reddit platform rules or guarantees. The hourly range is not a quota and does not override the daily range. Stop account-wide outward actions on captcha, rate limit, account warning, or login mismatch. For one removal or invisibility event, stop that target/community, inspect the exact notice, and continue elsewhere only when no account-wide blocker exists.
+These are operating defaults, not Reddit platform rules, guarantees, or grounds to reject an explicit override. Pause account-wide outward actions only while a captcha, rate limit, account warning, or login mismatch is currently active; automatically resume the latest mission after it clears. For one removal or invisibility event, retire that target/community, inspect the exact notice, and continue elsewhere.
 
 `bootstrap_state=initialized` records workflow completion only. It does not change Karma tier, account age, subreddit eligibility, recovery rules, or post limits.
 
@@ -50,7 +50,7 @@ Change `K0 fresh_bootstrap -> K0 active_new` only when all are true:
 - account has at least `48h` of age or observed clean activity
 - email/eligibility is not visibly blocking the account
 - at least `10` comments remain visible across at least `3` communities
-- no captcha, sitewide rate limit, account warning, lock/suspension, or login mismatch occurred in the checkpoint window
+- no captcha, sitewide rate limit, account warning, lock/suspension, or login mismatch is currently active at the checkpoint
 
 A visible main post is useful evidence but is not required to exit bootstrap. Karma alone does not override failed visibility or verification signals.
 
@@ -58,7 +58,7 @@ Demotion/recovery:
 
 - one community removal: apply `R1 Isolated` from `proactive-playbook.md`; retire that subreddit and continue elsewhere
 - removals across multiple communities: apply `R2 Multiple Community Retirements`; retire those subreddits without changing the account tier or operating envelope
-- captcha, rate limit, account warning, lock, or wrong-account state: apply `R3 Account Stop`
+- currently active captcha, rate limit, account warning, lock, or wrong-account state: apply `R3 Account Stop`; after it clears, resume the latest user command without a recovery tier
 
 ## Help-Seeking Post
 

@@ -11,7 +11,18 @@ The user always speaks to `Reddit 主控台`:
 - Defaults: `duration=3h`, `intensity=standard`, `operation_style=mixed`.
 - Intensity aliases: `low/轻度/低`, `standard/标准/中等`, `high/高强度/高`.
 - Resolve style aliases through `operation-style-profiles.md`: `mixed`, `builder`, `gaming-3d`, `spatial-place`, `social-creative`, or `custom`.
-- An explicit per-lane count replaces that lane's intensity target. Duration, intensity, and counts remain quality-, rule-, and account-gated.
+- An explicit per-lane count replaces that lane's intensity target. Duration, intensity, and counts remain quality-, live-rule-, and current-platform-affordance-gated; account-tier defaults are advisory after an explicit override.
+
+### Instruction Precedence
+
+Apply this order without asking for a second confirmation:
+
+1. system/developer safety and the user's authorized scope
+2. a currently visible Reddit/Chrome state that makes the requested action impossible now
+3. the user's latest explicit command
+4. Skill defaults, tier suggestions, historical incidents, recovery advice, and older mission fields
+
+The latest explicit command replaces conflicting defaults and old mission values. Historical/cleared removals, rate limits, warnings, locks, or login faults remain ledger evidence only and cannot select a recovery preset, reduce the requested intensity, or reject startup. If a current timed rate limit appears, preserve the mission, wait to its displayed expiry, re-probe, and resume automatically. Live subreddit rules and unavailable controls still retarget or skip the affected candidate; they do not authorize a process-wide refusal.
 
 ### Planning Envelope
 
@@ -92,6 +103,7 @@ Amendment semantics:
 - `再/额外/追加 N` adds to the affected lane's remaining target.
 - `改成/总共 N` replaces it.
 - Preserve unspecified mission fields.
+- Replace every specified field with the newest user value even when an older mission, tier suggestion, or recovery recommendation differs.
 - A style/voice change affects future slots only.
 - Explicit browsing read/vote/cap/interval values replace only those fields.
 - Count without duration derives a minimum window from the lane playbook when straightforward.

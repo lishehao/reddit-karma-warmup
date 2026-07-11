@@ -33,7 +33,7 @@ Every first run and resume follows the same state machine:
 
 | State | Required action | Exit |
 |-|-|-|
-| `SCOPE` | Parse latest user request and overrides. | scope is unambiguous |
+| `SCOPE` | Parse the latest user request; replace conflicting defaults, historical-recovery advice, and older mission fields. | scope is unambiguous |
 | `PROBE` | Auto-discover/reconnect Chrome, confirm account/time, then check scheduler/task capabilities. | environment recorded |
 | `HISTORY` | Restore recent profile/session actions and stable identity claims. | history ledger ready |
 | `ROUTE` | Select tier, lower-restriction eligible pool, lane(s), and Luna/high for coordinator/workers. | lane owner(s), pool, and model ready |
@@ -109,7 +109,7 @@ Load `chrome-network-recovery.md` whenever Chrome control, navigation, or page l
 
 For `ERR_BLOCKED_BY_CLIENT`, reconnect Chrome only when control also dropped; otherwise preserve the browser binding, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and stop the lane only when Chrome control itself remains unavailable after both recovery attempts.
 
-If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` with the exact error class/code and scope-probe results, then pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately. A worker sends the evidence to `Reddit 主控台` under `risk-escalation.md`; only the coordinator asks the user to repair the session. Never enter credentials.
+If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` with the exact error class/code and scope-probe results, then pause account mutations. If Reddit currently shows logout/wrong account, credentials, captcha, rate limit, or lock, pause only the impossible actions. A displayed timed rate limit is automatic wait-and-resume; states requiring user repair return through `Reddit 主控台`. Never enter credentials, and never infer a current blocker from history alone.
 
 ## Active Pool
 
@@ -160,7 +160,7 @@ Use one of four decisions; never say only `account safety`.
 - `act`: rules, context, account state, quality, and lane gate pass.
 - `skip_candidate`: low score, stale/saturated thread, weak fit, unclear eligibility for one target, duplicate angle, or unavailable control. Search another candidate.
 - `soft_pause`: action appears allowed but has concrete elevated moderation or pacing risk. Pause only that lane/candidate and escalate once to the coordinator with a safer variant.
-- `hard_stop`: captcha, sitewide rate limit, lock/suspension, wrong/logged-out account, credential request, explicit account-wide warning, clear rule prohibition for the current target, or unsafe/deceptive action. Community removals/filters/locks/bans activate `R1/R2` retirement and retarget automatically; any number of retirements remains non-blocking without separate account-wide evidence.
+- `hard_stop`: a currently visible captcha, sitewide rate limit, lock/suspension, wrong/logged-out account, credential request, explicit account-wide warning, clear rule prohibition for the current target, or unsafe/deceptive action prevents that action now. Historical/cleared states never qualify. A timed rate limit preserves the mission and automatically re-probes at expiry; after any blocker clears, resume the unchanged latest user command without a recovery tier or second confirmation. Community removals/filters/locks/bans activate `R1/R2` retirement and retarget automatically; any number of retirements remains non-blocking without separate active account-wide evidence.
 
 If an own newly submitted main post is awaiting moderator approval, delete/withdraw it when possible, retire that subreddit, send `SUBREDDIT_RETIRED`, and continue the post lane with another eligible community unless Reddit separately shows an account-wide blocker.
 

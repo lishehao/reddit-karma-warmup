@@ -46,7 +46,7 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 - If an own recent post is awaiting moderator approval, withdraw/delete when possible, verify cleanup, retire that subreddit, send the non-blocking notice, and close that item without pausing unrelated work.
 - If the author deletes/locks the parent of an active own comment or reply, retire that subreddit and send the same non-blocking notice. A random old/removed item discovered during scanning is only `Skip` and does not retire a community.
 - If a mod requests an edit, summarize it and act only when the current authorization clearly covers that edit.
-- Account warnings, captcha, rate limit, or login mismatch are global hard stops.
+- Currently active account warnings, captcha, rate limit, or login mismatch pause the actions they prevent. A timed rate limit automatically resumes at expiry; historical/cleared states do not stop follow-up.
 
 ## Next Sweep
 

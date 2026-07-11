@@ -12,7 +12,7 @@ Reddit does not publish a global safe comments-per-hour or posts-per-day limit. 
 | `K1 Growing` | `50-199` karma plus `>=7d` clean recent state | up to `16/hour` after explicit override | up to `60/day` | `0-3/day` |
 | `K2 Established` | `>=200` karma plus `>=14d` clean recent state | up to `20/hour` after explicit override | up to `60/day` | `0-3/day` |
 
-These are internal ceilings, not Reddit platform limits, safety guarantees, or quotas. Normal operations use the low/standard/high envelopes from `default-operations-sop.md`; account tier and recovery state clamp those envelopes. The user may request another count; distribute it across the requested window, warn once when it materially exceeds the current tier, and publish only passing candidates.
+These are internal defaults, not Reddit platform limits, safety guarantees, quotas, or authority to refuse an explicit operation. Normal operations use the low/standard/high envelopes from `default-operations-sop.md`. The user's latest explicit count/intensity/duration replaces the default envelope; distribute it across the requested window, give at most one non-blocking caution when it materially exceeds the tier suggestion, and publish only passing candidates. Historical or cleared incidents never clamp the requested envelope.
 
 Use `new-account-bootstrap.md` when `K0` is in `fresh_bootstrap`. Passing its checkpoints changes the substate to `active_new` but does not create another tier. Promote to `K1/K2` only when both the karma band and account-level health signals pass. Community removals retire only their exact subreddits; they do not demote the account tier or create a generic slowdown.
 
@@ -56,11 +56,12 @@ Trigger: removals/filters/locks/bans have retired at least two communities. This
 
 ### `R3 Account Stop`
 
-Trigger: captcha, sitewide rate limit, lock/suspension, account-wide warning, login mismatch, credential request, or Reddit explicitly identifies spam/automation abuse.
+Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, sitewide rate limit, lock/suspension, account-wide warning, login mismatch, credential request, or spam/automation-abuse restriction. A past or already-cleared event never triggers `R3`.
 
-- Stop all account mutations; do not schedule more publishing.
-- Resume only after the user restores the account/session and the warning state is understood.
-- The first clean `24h` after resumption uses `K0 recovery`: `2-5 comments/hour`, `4-10 comments/day`, and `0-1` fully preflighted main post.
+- Pause only the actions the active state makes impossible and preserve the user's latest mission unchanged.
+- For a visible timed rate limit, wait until the displayed expiry using the current turn or the lane's existing Heartbeat as appropriate, re-probe once, and automatically resume the original mission. Do not ask for confirmation.
+- For captcha, credentials, login mismatch, or a persistent lock/warning that requires user repair, return the exact repair through `Reddit 主控台`; after the state clears, automatically resume the latest mission unless the user changed or stopped it.
+- Do not impose a `24h/72h` recovery tier, lower comment/post envelope, or recovery preset after resumption. Defaults remain advisory and the user's explicit command remains controlling.
 - A dropped Chrome connection alone is not `R3`; reconnect and verify whether the prior action posted before retrying.
 
 ## Choose The Lane
@@ -137,7 +138,7 @@ Decision:
 - `pass`: eligibility and format are clear, similar native content survives, angle fits.
 - `skip_candidate`: eligibility is unclear, required format cannot be met, same-subreddit window is used, angle is repetitive, or submit surface says moderator approval is required.
 - `retire_subreddit`: an own item is removed/filtered/locked, the account is banned from that subreddit, the parent post is deleted/locked in a way that invalidates the action, or a submitted post becomes `awaiting moderator approval`.
-- `hard_stop`: captcha, sitewide rate limit, account-wide warning, lock/suspension, login mismatch, credential request, or clear unsafe/deceptive action.
+- `hard_stop`: a currently visible captcha, sitewide rate limit, account-wide warning, lock/suspension, login mismatch, credential request, or clear unsafe/deceptive action prevents submission now. Past/cleared evidence is never sufficient.
 
 On `retire_subreddit`, delete/withdraw a pending post when possible, verify cleanup, never repost in that subreddit, send the non-blocking retirement notice, and continue the same lane in another eligible community.
 

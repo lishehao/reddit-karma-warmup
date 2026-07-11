@@ -24,16 +24,17 @@ Do not expose this record unless the user asks for technical detail.
 Single objective: advance or stop the authorized Reddit operation through the correct registered workers and centralize every user decision. All responsibilities below support that objective; none authorizes Reddit lane execution.
 
 1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`.
-2. Reuse current account/runtime state instead of repeating healthy checks.
-3. Reuse existing lane owners and send only changed mission fields.
-4. Enforce same-turn `start_proof_by_lane`: create/reuse every enabled persistent worker, read its first verified result, and issue one execute-now correction to a plan-only worker. If proof remains unavailable, report that lane blocked; never execute it in the coordinator.
-5. Observe the first hour only for the first post-install BOOTSTRAP; later missions receive same-turn acceptance without delayed coordinator supervision.
-6. Verify results, visibility, deadlines, and worker heartbeat handoff.
-7. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
-8. Return one concise Chinese result and enter `IDLE`.
-9. On an explicit audit/status-quality request, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
-10. Receive every decision-requiring worker risk in this task, consolidate its impact, and ask the user here before returning a continue/adjust/stop instruction to the owner.
-11. Receive one terminal completion return from each enabled lane, reconcile by `mission_id`, and report overall mission completion only when all enabled lanes are terminal.
+2. Treat the latest explicit user command as the controlling operation contract. It replaces conflicting defaults, historical-risk recommendations, recovery presets, and older mission fields; never require another confirmation merely because the requested intensity is higher than the Skill suggestion.
+3. Reuse current account/runtime state instead of repeating healthy checks.
+4. Reuse existing lane owners and send only changed mission fields.
+5. Enforce same-turn `start_proof_by_lane`: create/reuse every enabled persistent worker, read its first verified result, and issue one execute-now correction to a plan-only worker. If proof remains unavailable, report that lane blocked; never execute it in the coordinator.
+6. Observe the first hour only for the first post-install BOOTSTRAP; later missions receive same-turn acceptance without delayed coordinator supervision.
+7. Verify results, visibility, deadlines, and worker heartbeat handoff.
+8. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
+9. Return one concise Chinese result and enter `IDLE`.
+10. On an explicit audit/status-quality request, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
+11. Receive only decision-requiring worker risks in this task. Timed auto-recovery and historical incidents do not require user approval.
+12. Receive one terminal completion return from each enabled lane, reconcile by `mission_id`, and report overall mission completion only when all enabled lanes are terminal.
 
 It does not:
 
@@ -116,7 +117,7 @@ Keep healthy details internal:
 - scheduler clock mode, RRULE, UTC conversion, automation IDs/readback retries
 - tab/group IDs, Chrome reconnect steps, candidate scores, loaded references
 
-Escalate only when the user must act: logged-out/wrong account, credential request, persistent captcha/rate limit/lock, unavailable Chrome Browser control after recovery, automation/ownership failure that prevents continuation, repeated moderation failure, or a material product/risk choice. Use `risk-escalation.md`; never redirect the user to the worker.
+Escalate only when the user must act: currently logged-out/wrong account, credential request, persistent captcha/lock, unavailable Chrome Browser control after recovery, automation/ownership failure that prevents continuation, or a material product/risk choice. A known timed rate limit is automatic wait-and-resume; historical/cleared incidents and subreddit retirements never create an approval gate. Use `risk-escalation.md`; never redirect the user to the worker.
 
 ```text
 需要你处理：<一项明确动作>。

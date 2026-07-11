@@ -47,7 +47,7 @@ When several causes remain possible, give at most the two strongest based on the
 | `transient_network` | `ERR_NETWORK_CHANGED`, `ERR_CONNECTION_TIMED_OUT`, `ERR_TIMED_OUT`, `ERR_CONNECTION_RESET`, `ERR_CONNECTION_CLOSED`, `ERR_EMPTY_RESPONSE` | unstable network, VPN/proxy transition, busy/down site, or middlebox | Bounded retry and scope probes; do not infer account enforcement. |
 | `proxy_or_tls` | `ERR_PROXY_CONNECTION_FAILED`, `ERR_TUNNEL_CONNECTION_FAILED`, `ERR_CERT_*`, `ERR_SSL_*` | proxy/VPN/TLS path problem | Never bypass a certificate warning or change proxy/VPN settings. Probe scope, then escalate if persistent. |
 | `site_or_http` | HTTP `500-599`, persistent `403`, `ERR_CONNECTION_REFUSED` | site/server/WAF/route issue; `403` is not automatically an account ban | Probe Reddit home and another route. Retry only when mutation state is safe. |
-| `rate_or_account` | HTTP `429`, Reddit rate-limit/captcha/challenge/login/lock/warning UI | possible platform/account enforcement | Stop mutations immediately and return evidence through `risk-escalation.md`; do not use network retries to bypass it. |
+| `rate_or_account` | current HTTP `429`, Reddit rate-limit/captcha/challenge/login/lock/warning UI | possible platform/account enforcement | Pause impossible mutations. For a displayed timed limit, preserve the mission and re-probe automatically at expiry; escalate only a state that needs user repair. Do not use network retries to bypass it. |
 | `client_block` | `ERR_BLOCKED_BY_CLIENT` | route blocked by client/extension/filter; not proof of Reddit restriction | Reconnect only if control also dropped; otherwise use a clean lane tab and native Reddit entry route. Skip one persistently blocked deep route. |
 | `form_replay` | `ERR_CACHE_MISS`, resubmit warning, submit result unknown | replay could duplicate an action | Never reload/resubmit blindly. Inspect target thread/profile/history first. |
 | `page_runtime` | `Aw, Snap!`, blank/white page, endless loading, script/selector failure without network code | renderer, memory, page script, stale DOM, or unknown loading fault | One reload, then one fresh lane tab; scope before classifying. |
@@ -79,7 +79,7 @@ Do not inspect cookies/local storage, clear browsing data, disable extensions, r
 2. If still failing and no hard-stop/account signal exists, update this lane's same logical Heartbeat timer for a recovery checkpoint `5-10 min` later. End the turn with the normal three-line report; `下轮计划` names the exact probe and withheld mutation.
 3. `attempt 2` at the Heartbeat wake: rerun the scope probes once. If healthy, reconfirm account/context and resume from the last safe state. If still unhealthy, return `lane_blocked` or `account_blocked` to `Reddit 主控台` with the exact code, scope results, and mutation state.
 
-Do not ask the user before these attempts unless there is a hard-stop/account signal or the repair would require changing the user's machine/network settings. Never create a second recovery automation. Reuse the lane's existing `operation_timer_id`. Never compress missed work after recovery.
+Do not ask the user before these attempts unless the current account state requires an external repair or the repair would require changing the user's machine/network settings. A known timed rate limit does not require approval. Never create a second recovery automation. Reuse the lane's existing `operation_timer_id`. Never compress missed work after recovery.
 
 ## Mutation Integrity
 

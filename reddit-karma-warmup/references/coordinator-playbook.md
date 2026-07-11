@@ -28,6 +28,7 @@ Do not expose this record unless the user asks for technical detail.
 7. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
 8. Return one concise Chinese result and enter `IDLE`.
 9. On an explicit audit/status-quality request, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
+10. Receive every decision-requiring worker risk in this task, consolidate its impact, and ask the user here before returning a continue/adjust/stop instruction to the owner.
 
 It does not:
 
@@ -37,7 +38,7 @@ It does not:
 - create a second main task
 - recreate an existing lane task merely because a new mission arrived
 - poll after its watch deadline
-- require workers to callback
+- require routine progress callbacks; risk/blocker callbacks under `risk-escalation.md` are mandatory
 - ask the user to interpret task IDs, models, UTC math, automation fields, or logs
 - send a final `已启动` message when no requested Chrome action or verified no-action sweep has occurred
 
@@ -99,11 +100,12 @@ At mission handoff:
 4. Return the four-field report.
 5. Enter `IDLE` and stop proactive reads.
 
-## Pull, Not Callback
+## Routine Pull, Risk Callback
 
 - Workers store verified actions, local history, and compact reports in their own tasks.
 - The main task reads them during a bounded watch or when the user asks.
-- Workers never wait for coordinator acknowledgement and never manage sibling tasks.
+- Workers do not callback for routine progress and never manage sibling tasks.
+- A decision-requiring risk/blocker is the only callback path: the worker sends it immediately to this coordinator, pauses the affected scope, and waits for a routed user decision.
 - After `IDLE`, no automatic main-task pull occurs.
 
 ## Technical Abstraction
@@ -114,7 +116,7 @@ Keep healthy details internal:
 - scheduler clock mode, RRULE, UTC conversion, automation IDs/readback retries
 - tab/group IDs, Chrome reconnect steps, candidate scores, loaded references
 
-Escalate only when the user must act: logged-out/wrong account, credential request, persistent captcha/rate limit/lock, unavailable Chrome Browser control after recovery, or a material product/risk choice.
+Escalate only when the user must act: logged-out/wrong account, credential request, persistent captcha/rate limit/lock, unavailable Chrome Browser control after recovery, automation/ownership failure that prevents continuation, repeated moderation failure, or a material product/risk choice. Use `risk-escalation.md`; never redirect the user to the worker.
 
 ```text
 需要你处理：<一项明确动作>。

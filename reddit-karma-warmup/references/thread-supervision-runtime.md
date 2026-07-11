@@ -1,6 +1,6 @@
 # Persistent Task Supervision Runtime
 
-Load only in the user-facing `Loci Reddit运营` coordinator for `BOOTSTRAP`, `MISSION`, or `STATUS`. This is the bundled supervision subset for Reddit operations; no external `thread-supervisor` Skill is required.
+Load only in the user-facing `Loci Reddit运营` coordinator for `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`. This is the bundled supervision subset for Reddit operations; no external `thread-supervisor` Skill is required.
 
 ## Required Capability Bundle
 
@@ -10,10 +10,13 @@ The host must expose equivalent operations for:
 - create a persistent user-visible task
 - read a task's recent result
 - send or amend a task instruction
+- send a decision-requiring risk/blocker from a worker back to the exact coordinator task
 - rename a task when title control exists
 - view each relevant task-owned automation and its persisted binding/schedule/run evidence when the host exposes it
 
 The user's `开始` or concrete operation command explicitly authorizes creation of the requested lane tasks. Do not create them during install/preflight and do not create unrelated tasks.
+
+Persistent tasks are intentional: each lane needs durable history, an exact task ID, an owned heartbeat, independent recovery, and a reliable risk-return path. A temporary subagent may assist a worker with bounded read-only analysis when available, but it cannot own Chrome mutations, a lane, a continuation heartbeat, or a user-risk decision.
 
 ## Registry
 
@@ -42,7 +45,7 @@ Reuse an owner when its title/role still matches and it remains readable. Create
 
 ## Supervision
 
-- Pull worker state from the coordinator during its bounded first-hour watch. Do not require worker callbacks.
+- Pull routine worker state from the coordinator during its bounded first-hour watch. Do not require routine callbacks; require structured risk/blocker callbacks under `risk-escalation.md`.
 - Read only the latest result needed to classify `running`, `first_round_ok`, `blocked`, or `completed`.
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
 - Every worker owns its dedicated Chrome tab, history, and one continuation heartbeat explicitly targeting `worker_thread_id`. The worker creates/updates that heartbeat inside its own task and verifies the stored target after every change.
@@ -51,6 +54,7 @@ Reuse an owner when its title/role still matches and it remains readable. Create
 - The coordinator never batch-creates lane heartbeats. It checks worker reports for `thread_binding_verified` or provisional `creator_thread_bound` and repairs only a reported mismatch.
 - Different lane tasks sharing one Chrome profile/account remain independent; do not pause one merely because another is active.
 - When the user explicitly requests an execution/quality audit, load `operations-audit.md`, read the relevant workers' latest evidence and owned automations, and compare them with the coordinator's mission contract. This is an on-demand pull, not continuous monitoring or a callback requirement.
+- When a worker escalates a substantive blocker, the coordinator becomes the only user-facing decision surface. It may instruct affected owners to pause, but workers never contact the user or ask for confirmation in their own tasks.
 
 ## User Surface
 
@@ -59,7 +63,7 @@ The user continues speaking only in `Loci Reddit运营`. Report lane titles and 
 ## Exclusions
 
 - no invisible subagents in place of persistent tasks
-- no callback requirement or callback capability probe
+- no routine callback requirement; decision-requiring risk/blocker return to the coordinator is mandatory
 - no Goal Mode
 - no combined worker or combined execution heartbeat
 - no coordinator fallback that publishes, replies, performs exploratory/natural browsing, or votes; exact read-only permalink/profile verification during acceptance or audit is allowed

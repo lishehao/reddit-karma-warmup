@@ -15,11 +15,11 @@ Choose exactly one context before loading detailed references:
 | Context | Trigger | Behavior |
 |-|-|-|
 | `INSTALL` | Install, upgrade, inspect, package, or explain | Load `references/runtime-and-setup.md`; do not mutate Reddit. |
-| `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
-| `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
+| `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
+| `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
 | `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/thread-supervision-runtime.md` and `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
 | `AUDIT` | The user asks whether workers, automations, execution, cadence, published content, length, or quality are following the plan | Load `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, and `references/operations-audit.md`; inspect the relevant workers and their automations read-only by default. |
-| `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, `references/operation-style-profiles.md`, the assigned lane playbook, and `references/scheduler-and-heartbeats.md` only when continuation is required. Never become a coordinator. |
+| `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, `references/operation-style-profiles.md`, `references/risk-escalation.md`, the assigned lane playbook, and `references/scheduler-and-heartbeats.md` only when continuation is required. Never become a coordinator. |
 
 Lane references:
 
@@ -30,6 +30,7 @@ Lane references:
 - operation direction and voice: `references/operation-style-profiles.md`
 - persistent task creation/reuse/read/send supervision: `references/thread-supervision-runtime.md`
 - on-demand worker, automation, cadence, and content audit: `references/operations-audit.md`
+- worker-to-main risk escalation and user decision routing: `references/risk-escalation.md`
 - no user target pool: `references/loci-subreddit-pool-v1.md`
 - 8-12 hour run: `references/twelve-hour-ops-template.md`
 - model assignment: `references/model-runtime.md`
@@ -55,6 +56,7 @@ The main task remains the user's only operational entrypoint. A user command suc
 - Use persistent task/thread creation, read, and send/update tools. Do not replace these tasks with invisible subagents, one combined worker, or a coordinator-owned execution heartbeat.
 - Each lane task owns its Chrome tab, history, first action, and continuation heartbeat. It must never absorb another lane.
 - `Loci Reddit运营` only routes, reads, verifies, and reports. It never publishes, votes, follows up, or schedules a combined lane continuation.
+- Workers keep ordinary progress locally, but every decision-requiring risk/blocker must be sent to `Loci Reddit运营` under `risk-escalation.md`. Workers never ask the user inside a lane task.
 - If required task create/read/send capability is unavailable, or a required lane task cannot be created or reclaimed, report that exact lane as `startup_blocked`. Do not execute it sequentially in the main task.
 
 ## Start-Now Gate
@@ -103,6 +105,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 - Each worker heartbeat is created/updated by that worker with explicit `targetThreadId=worker_thread_id` when supported, then read back for an exact target match. Names never prove ownership; a mismatch is repaired before the trigger remains active.
 - The main task never owns an execution heartbeat. Its optional first-hour watch heartbeat is read-only, is named as supervision rather than continuation, and cannot contain Reddit lane actions.
 - Each worker owns at most one next one-shot heartbeat for its lane and may mutate only an automation targeting that same task/lane.
+- Routine progress is pull-based. A substantive risk/blocker is the exception: the worker immediately sends one structured escalation to the coordinator, pauses the affected scope, and waits for the coordinator to return the user's decision.
 - Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
 - Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use one verified one-shot heartbeat, and the current turn ends after reporting that handoff.
 - A heartbeat is continuation-only. Never create it as the first operational outcome after a user command, and never use its future wakeup to defer the first requested Chrome micro-slot.
@@ -118,7 +121,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 
 Automatically repair stale Chrome control, lane-tab recovery, missing first-round evidence, scheduler encoding/readback, and worker prompt drift. Keep task IDs, model fallback, tab IDs, UTC math, automation IDs, retries, scores, and technical logs internal.
 
-Ask the user only when they must act: Reddit is logged out/wrong-account, credentials are required, captcha/rate limit/lock persists, Chrome Browser control remains unavailable, or a material product/risk choice cannot be inferred.
+Ask the user only in `Loci Reddit运营` when they must act: Reddit is logged out/wrong-account, credentials are required, captcha/rate limit/lock persists, Chrome Browser control remains unavailable, or a material product/risk choice cannot be inferred. Workers escalate these states and never ask the user directly.
 
 ## Compact Report
 

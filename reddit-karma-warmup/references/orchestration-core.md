@@ -56,7 +56,7 @@ Every enabled lane on first activation must reach `ACT` or a verified no-action/
 - `运营` enables four lanes: comments, posts, follow-up, and natural browsing. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
 - User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator and workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
 - Session-level authorization covers ordinary actions in the active session and its one-shot continuations. Do not ask before every item.
-- Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action.
+- Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action. A worker sends that question to the coordinator under `risk-escalation.md`; it never asks inside the lane task.
 - Do not silently turn requested posts into comments or requested follow-up into discovery.
 
 ## Task Naming
@@ -107,7 +107,7 @@ Treat stale tabs, missing controls, dropped browser sessions, `ERR_BLOCKED_BY_CL
 
 For `ERR_BLOCKED_BY_CLIENT`, reconnect/reacquire Chrome, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and stop the lane only when Chrome control itself remains unavailable after both recovery attempts.
 
-If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` and pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately and ask the user to repair the session. Never enter credentials.
+If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` and pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately. A worker sends the evidence to `Loci Reddit运营` under `risk-escalation.md`; only the coordinator asks the user to repair the session. Never enter credentials.
 
 ## Active Pool
 
@@ -133,7 +133,7 @@ Real operations require persistent task create/read/send capability. The user's 
 
 For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. If proof remains unavailable, mark that lane `startup_blocked`; coordinator execution is forbidden.
 
-The `Loci Reddit运营` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks to it.
+The `Loci Reddit运营` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they must return decision-requiring risks/blockers to it.
 
 The coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, but only through its verified one-shot heartbeat. Dispatch and early acceptance are insufficient: it runs the mandatory boundary sweep at `startup_watch_deadline`. It must not use Goal Mode or generate progress-only turns while waiting. After that handoff, workers continue independently and the coordinator becomes user-driven again.
 
@@ -147,7 +147,7 @@ Automation ownership follows the lane and target thread:
 - A global policy message delivered to several lane tasks applies to the current lane only. Do not inspect or coordinate the other lane tasks.
 - The coordinator sends amendments to lane owners instead of taking over their automations. Each owner changes only its own trigger.
 - Different lanes sharing an account, target, or policy window remain independent. Do not compare them for collisions.
-- During BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During MISSION, it reads only affected lanes until verified one-shot completion or the bounded watch deadline. STATUS reads relevant lanes once. AUDIT performs one bounded evidence pull under `operations-audit.md`, including exact read-only permalink verification when needed. Workers record state locally and do not callback.
+- During BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During MISSION, it reads only affected lanes until verified one-shot completion or the bounded watch deadline. STATUS reads relevant lanes once. AUDIT performs one bounded evidence pull under `operations-audit.md`, including exact read-only permalink verification when needed. Workers record routine state locally and callback only for decision-requiring risks/blockers.
 - The coordinator may own one temporary read-only watch automation named `Loci Reddit运营-首轮监督`. Its prompt may only read worker state and report; it cannot open Reddit, publish, vote, reply, or continue lane work. BOOTSTRAP keeps it through the fixed first-hour boundary; ongoing MISSION keeps it for at most one hour; one-shot MISSION may delete it after verified completion. Lane automations remain owned by their lane tasks.
 - Automation name, prompt, or lane title never proves thread ownership. Exact `target_thread_id` match or provisional creator-thread evidence from `scheduler-and-heartbeats.md` is required.
 
@@ -157,7 +157,7 @@ Use one of four decisions; never say only `account safety`.
 
 - `act`: rules, context, account state, quality, and lane gate pass.
 - `skip_candidate`: low score, stale/saturated thread, weak fit, unclear eligibility for one target, duplicate angle, or unavailable control. Search another candidate.
-- `soft_pause`: action appears allowed but has concrete elevated moderation or pacing risk. Pause only that lane/candidate and ask once with a safer variant.
+- `soft_pause`: action appears allowed but has concrete elevated moderation or pacing risk. Pause only that lane/candidate and escalate once to the coordinator with a safer variant.
 - `hard_stop`: captcha, rate limit, lock/suspension, wrong/logged-out account, credential request, account-wide warning, clear rule prohibition, locked/removed target, or unsafe/deceptive action. A community-specific removal/visibility failure stops that target and activates `R1/R2` from `proactive-playbook.md`; it becomes account-wide only when the recovery definition says so.
 
 If an own newly submitted main post is awaiting moderator approval, delete/withdraw it when possible and stop only the post lane unless Reddit also shows an account-wide blocker.

@@ -166,7 +166,7 @@ first_due = now or exact time
 browse_next_delay_range = custom or 20-40 min
 ```
 
-Every worker must load only its lane references, start the first due action immediately, verify visible results, update its local history, maintain at most one next trigger explicitly bound to `worker_thread_id`, and keep all status in its own task. Workers never callback or coordinate sibling lanes.
+Every worker must load only its lane references plus `risk-escalation.md`, start the first due action immediately, verify visible results, update its local history, and maintain at most one next trigger explicitly bound to `worker_thread_id`. Ordinary status stays in its own task. Workers never coordinate sibling lanes, but they must send one structured callback to `coordinator_thread_id` for every decision-requiring risk/blocker and then pause the affected scope.
 
 A newly dispatched worker's first response must include `start_proof`; it cannot end after reading, planning, naming, or scheduling. Every later execution-heartbeat response must include `slot_proof`. It creates its continuation heartbeat only after the current micro-slot is verified.
 

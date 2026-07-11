@@ -62,7 +62,7 @@ Keep dependency details internal when all required checks pass. Return only a sh
 
 ```text
 状态健康。Skill、Chrome、Reddit 登录、Heartbeat 和当地时间均可用。当前账号：u/name。
-可以执行评论、发帖、跟进和自然浏览（含符合门槛的 Upvote/Downvote）。是否按标准强度开始 3 小时运营？
+可以执行评论、发帖、跟进和自然浏览（含符合门槛的 Upvote/Downvote）。是否按标准强度、混合探索风格开始 3 小时运营？
 ```
 
 If required checks fail, return `状态异常` with only the failed capability, its impact, and a direct repair action. Do not list successful checks. Python absence is never a failed required capability. `状态健康` describes environment readiness only; live account/community risk is assessed during the first operating slot.
@@ -87,7 +87,7 @@ When installation/preflight is healthy but the user has not supplied an operatin
 ```text
 状态健康。当前账号：u/name。
 
-你希望接下来怎么运营？可以指定时长、低/标准/高强度，或者直接指定评论、发帖、跟进、自然浏览；如果暂时没想法，直接回复“开始”，我会按标准强度先运行 3 小时。
+你希望接下来怎么运营？可以指定时长、低/标准/高强度，以及混合探索、建设者、游戏/3D、空间地点、轻社交/创意或自定义风格；也可以直接指定评论、发帖、跟进、自然浏览。如果暂时没想法，直接回复“开始”，我会按标准强度、混合探索风格先运行 3 小时。
 ```
 
 Do not append dependency fields, model details, thread capability, or another confirmation question.

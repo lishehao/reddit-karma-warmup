@@ -14,7 +14,7 @@ Select the slot budget from the operation contract:
 
 An explicit user read count, vote target, vote cap, interval/range, or browse-only instruction overrides the corresponding default. If only a vote target is supplied, set a reasonable read budget that can evaluate enough independent items; do not promise that every target will pass.
 
-Spread a standard slot across roughly `3-6` eligible communities. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, and can state one specific reason for its assessment. Feed-card impressions, title-only scans, duplicates, ads, deleted/locked items, and accidental opens do not count.
+Spread a standard slot across roughly `3-6` eligible communities. Use the resolved operation style to bias discovery, while preserving diversity and skipping unrelated targets. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, and can state one specific reason for its assessment. Feed-card impressions, title-only scans, duplicates, ads, deleted/locked items, and accidental opens do not count.
 
 Keep a rolling record:
 
@@ -39,7 +39,7 @@ Score only after a qualified read:
 | Factor | Points | Good signal |
 |-|-:|-|
 | Specific quality or originality | 0-30 | a concrete useful, funny, insightful, high-effort, or constructive element |
-| Declared-interest fit | 0-25 | naturally fits the truthful AR/3D/games/creative-tech/place/social interests, or the user's supplied interests |
+| Declared-interest fit | 0-25 | naturally fits the resolved truthful operation style or the user's supplied interests |
 | Community contribution | 0-20 | useful to the subreddit and not merely engagement bait |
 | Context confidence | 0-15 | body/media and enough surrounding discussion were actually read |
 | Account coherence | 0-10 | the action fits prior visible interests without inventing an identity |

@@ -1,7 +1,7 @@
 ---
 name: reddit-karma-warmup
 description: >-
-  Run authorized Reddit community operations through the user's logged-in Chrome session. Use for zero-account bootstrap, proactive comments, main posts, notification/reply follow-up, natural browsing with occasional genuine votes, duration/intensity-based operations, later missions dispatched through the stable Loci Reddit operations task, or packaging and inspecting this workflow.
+  Run authorized Reddit community operations through the user's logged-in Chrome session. Use for zero-account bootstrap, proactive comments, main posts, notification/reply follow-up, natural browsing with occasional genuine votes, duration/intensity/style-based operations, later missions dispatched through the stable Loci Reddit operations task, or packaging and inspecting this workflow.
 ---
 
 # Reddit Karma Warmup
@@ -15,10 +15,10 @@ Choose exactly one context before loading detailed references:
 | Context | Trigger | Behavior |
 |-|-|-|
 | `INSTALL` | Install, upgrade, inspect, package, or explain | Load `references/runtime-and-setup.md`; do not mutate Reddit. |
-| `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/coordinator-playbook.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
-| `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/coordinator-playbook.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
+| `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/coordinator-playbook.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
+| `MISSION` | The user gives a later active operation command in `Loci Reddit运营` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/coordinator-playbook.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
 | `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
-| `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, the assigned lane playbook, and `references/scheduler-and-heartbeats.md` only when continuation is required. Never become a coordinator. |
+| `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, `references/operation-style-profiles.md`, the assigned lane playbook, and `references/scheduler-and-heartbeats.md` only when continuation is required. Never become a coordinator. |
 
 Lane references:
 
@@ -26,6 +26,7 @@ Lane references:
 - notifications/replies: `references/followup-playbook.md`; add copy/publish gates only when replying
 - bootstrap-only profile/join/flair setup: `references/community-presence-playbook.md`
 - natural browsing with optional genuine upvote/downvote: `references/browse-vote-playbook.md`
+- operation direction and voice: `references/operation-style-profiles.md`
 - no user target pool: `references/loci-subreddit-pool-v1.md`
 - 8-12 hour run: `references/twelve-hour-ops-template.md`
 - model assignment: `references/model-runtime.md`
@@ -38,7 +39,7 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - If Chrome control or Reddit login is missing on a first-time setup, keep installation complete, return one novice repair action from `runtime-and-setup.md`, and resume preflight when the user replies `继续`. Never create an account, enter credentials, or start workers before the logged-in account is confirmed.
 - User replies `开始` with no other scope: enter `BOOTSTRAP`, default to `3 hours`, and start the first actions immediately.
 - A later user command in `Loci Reddit运营`: enter `MISSION`; reuse existing lane tasks and never rerun installation or bootstrap after `bootstrap_state=initialized`, even while the account remains `K0 fresh_bootstrap`.
-- A user asks what is possible: list comments, posts, follow-up, and natural browsing (including gated Upvote/Downvote); do not mutate until they issue an operation command.
+- A user asks what is possible: list comments, posts, follow-up, natural browsing (including gated Upvote/Downvote), and the selectable operation styles; do not mutate until they issue an operation command.
 - A lane worker receives a resume heartbeat: restore its own history and unfinished target; do not create a main task or restart the session.
 
 The main task remains the user's only operational entrypoint. A user command such as `评论 20 条` routes to `主动评论`; it does not rename the main task or make the main task publish.
@@ -62,9 +63,9 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 
 1. Classify the request as `BOOTSTRAP`, `MISSION`, or `STATUS`.
 2. Restore the known Chrome account, worker registry, account tier, history, scheduler clock mode, and active operations. Reconnect recoverable Chrome state automatically.
-3. Convert the request into a contract: lane(s), target/count, duration, intensity, pool, language, `operation_stop_at`, and watch deadline. `运营` enables all four lanes; a named action enables only that lane.
+3. Convert the request into a contract: lane(s), target/count, duration, intensity, operation style/voice modifier, pool, language, `operation_stop_at`, and watch deadline. `运营` enables all four lanes; a named action enables only that lane.
 4. Reuse each matching lane task when authorized and immediately controllable; create/name one only when allowed and no valid owner exists.
-5. Send each owner its delta: objective, remaining count, intensity, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
+5. Send each owner its delta: objective, remaining count, intensity, resolved operation style/voice modifier, pool, stop time, first due slot, and model `gpt-5.6-luna/high`.
 6. Pass the `Start-Now Gate` in this same turn for every enabled lane. Read each worker's verified first result; if one cannot produce proof now, execute that lane's first micro-slot sequentially in the current task. Never enter Goal Mode or call `create_goal`.
 7. Verify the first result. Only now may a worker/current task create a one-shot heartbeat for delayed continuation.
 8. For `BOOTSTRAP`, keep the main task's read-only watch through one-shot heartbeats for the first hour. For an ongoing `MISSION`, watch for at most the first hour; a verified one-shot mission with no continuation may close earlier.
@@ -74,7 +75,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 ## Zero-Account Defaults
 
 - Main model: `gpt-5.6-sol/xhigh`. Every lane worker: `gpt-5.6-luna/high`.
-- Default operation: `3 hours` at `standard` intensity, automatically decomposed across comments, posts, follow-up, and natural browsing.
+- Default operation: `3 hours` at `standard` intensity and `mixed` style, automatically decomposed across comments, posts, follow-up, and natural browsing.
 - Profile/community setup is a one-time bootstrap step only when the visible account is incomplete; it is not a recurring operation lane.
 - Comment/post volumes come from the intensity envelope and account tier. After each verified comment, use a local `60-120 sec` pause; discovery, reading, drafting, and checks are additional.
 - Follow-up: inspect Notifications and recent own activity; reply only to actionable items.
@@ -91,7 +92,7 @@ The same gate applies to every execution-lane heartbeat resume: complete and ver
 - Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use one verified one-shot heartbeat, and the current turn ends after reporting that handoff.
 - A heartbeat is continuation-only. Never create it as the first operational outcome after a user command, and never use its future wakeup to defer the first requested Chrome micro-slot.
 - Heartbeat capability and heartbeat timing observability are separate. Successful create/update with an automation ID/card proves capability; missing `next_run_at` or hidden display time means `created_unreadable`, not failure. Continue current Reddit work, never ask the user to repair an unexposed field, and validate timing when the heartbeat actually fires.
-- The user's latest explicit duration, intensity, count, language, target community, and lane override defaults. Counts remain candidate- and rule-gated.
+- The user's latest explicit duration, intensity, operation style/voice modifier, count, language, target community, and lane override defaults. Counts remain candidate- and rule-gated.
 - Main posts require same-day rules, eligibility, flair, frequency, and moderation-state checks. Ordinary comments require target-context and obvious-risk checks.
 - Every verified comment/reply appends its measured character count, word count, sentence form, and length tier. Before drafting the next one, consult the latest `10` comment/reply entries and choose a context-appropriate length instead of defaulting to a repeated two-sentence shape.
 - Pool layers are gates: `B/B+` may enter action discovery when row rules fit; `A` is research-first; `A0/No-go` are read-only.

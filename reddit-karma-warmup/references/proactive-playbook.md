@@ -84,14 +84,14 @@ For early accounts, execute comments first. Broad `运营` still enables the pos
 
 ## Active Pool Gate
 
-User-provided targets override the bundled pool. Otherwise load `loci-subreddit-pool-v1.md`. Use `publish-consistency.md` to build the eligible pool.
+User-provided targets override the bundled pool. Otherwise load `loci-subreddit-pool-v1.md`. Use `operation-style-profiles.md` to rank direction fit and `publish-consistency.md` to build the eligible pool.
 
 - `B`: eligible when the row and live context fit.
 - `B+`: ordinary comments and low-frequency feedback/demo contexts when row rules fit.
 - `A`: research-first; interact only for a clear ordinary non-product reason.
 - `A0` and `No-go`: read-only; no post, comment, vote, join, flair, or warm-up action.
 
-Within `B/B+`, start from communities with the clearest ordinary participation path and lowest row restriction. Avoid strict-on-topic, high-removal-risk, account-gated, sensitive, or moderator-approval communities when a comparable lower-restriction target exists.
+Within `B/B+`, start from communities with the clearest ordinary participation path, lowest row restriction, and strongest resolved-style fit. Avoid strict-on-topic, high-removal-risk, account-gated, sensitive, or moderator-approval communities when a comparable lower-restriction target exists.
 
 Prefer `New` and `Rising` for early comment opportunities. Use `Hot` and `Top` to learn community language and survivor patterns.
 

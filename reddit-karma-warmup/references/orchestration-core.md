@@ -14,6 +14,7 @@ Maintain one small state record:
 | `model_runtime` | coordinator request/actual `gpt-5.6-sol/xhigh`, worker request/actual `gpt-5.6-luna/high`, fallback reason |
 | `history_ledger` | recent outward subreddit, cluster, angle, measured `char_count`/`word_count`/`sentence_form`/length tier, opening, claims, and permalinks |
 | `browse_ledger` | qualified reads, subreddit/URL/topic, specific observation, persona fit, vote/no-vote decision, score/reason, and views since last vote |
+| `operation_style` | resolved style profile and optional voice modifier used for future candidate discovery |
 | `eligible_pool` | user/default pool after layer, row restriction, account fit, and history filtering |
 | `lanes` | enabled lane owners, status, current slot, remaining target |
 | `task_titles` | current task title and dispatched lane task titles after routing |
@@ -109,6 +110,7 @@ If Chrome remains unavailable after recovery attempts, report `chrome_unavailabl
 ## Active Pool
 
 - User targets override the bundled Loci pool.
+- Within the eligible pool, use `operation-style-profiles.md` to rank topic/community fit before candidate scoring. Style never upgrades an `A0/No-go` target or bypasses live rules.
 - Merge custom and bundled targets only when the user allows expansion or gives no exclusive pool.
 - `B`: may enter native posts/comments when row rules fit.
 - `B+`: may enter ordinary comments and low-frequency feedback/demo contexts when row rules fit.
@@ -166,7 +168,7 @@ The `browsing` lane loads `browse-vote-playbook.md` and uses its qualified-read 
 
 1. Define a small time/count target that can finish without a burst.
 2. Restore history and choose a lower-restriction eligible community.
-3. Inspect the relevant Reddit surfaces and score/triage the candidate.
+3. Apply the resolved operation style, inspect the relevant Reddit surfaces, and score/triage the candidate. Do not force a style into an unrelated target.
 4. Load `publish-consistency.md`; run Double-Check A.
 5. Run `outbound-copy-gate.md`, choose length from context/history, and enter the final draft.
 6. Run Double-Check B immediately before submit.

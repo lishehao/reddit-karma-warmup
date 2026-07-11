@@ -11,7 +11,7 @@ account: username, tier/substate, bootstrap_state, warning/removal state
 runtime: Chrome, local timezone/UTC, scheduler clock mode
 workers: lane -> task ID, title, last state, owned automation
 history: recent subreddit, action, angle, length, permalink
-active_missions: mission ID, lane, intensity, target, remaining, stop time
+active_missions: mission ID, lane, intensity, operation style/voice modifier, target, remaining, stop time
 main_state: INTAKE | DISPATCH | WATCH | HANDOFF | IDLE
 ```
 
@@ -122,7 +122,8 @@ Escalate only when the user must act: logged-out/wrong account, credential reque
 
 The user stays in `Loci Reddit运营` for all of these:
 
-- `开始` / `运营 3 小时` / `高强度运营 6 小时`
+- `开始` / `运营 3 小时` / `高强度运营 6 小时，游戏/3D风格`
+- `换成空间地点风格` / `后续更轻松一点`
 - `评论 20 条` / `去 r/... 评论`
 - `发 2 篇帖子`
 - `看回复` / `跟进这个链接`

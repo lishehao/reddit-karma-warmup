@@ -6,11 +6,12 @@ Use for `BOOTSTRAP` and `MISSION`. The main task is always `Loci Reddit运营`; 
 
 The user always talks to `Loci Reddit运营`:
 
-- `运营 [duration] [intensity]`: enable comments, posts, follow-up, and natural browsing.
+- `运营 [duration] [intensity] [style]`: enable comments, posts, follow-up, and natural browsing.
 - `评论 ...`, `发帖 ...`, `跟进 ...`, or `自然浏览 ...`: enable only the named lane unless the user combines them.
 - Duration may be supplied without intensity; intensity may be supplied without duration.
-- Defaults: `duration=3h`, `intensity=standard`.
+- Defaults: `duration=3h`, `intensity=standard`, `operation_style=mixed`.
 - Intensity aliases: `low/轻度/低`, `standard/标准/中等`, `high/高强度/高`.
+- Style aliases and profiles come from `operation-style-profiles.md`: `mixed`, `builder`, `gaming-3d`, `spatial-place`, `social-creative`, or `custom`.
 - An explicit per-lane count replaces that lane's intensity target. User-supplied duration/intensity/count still remains quality-, rule-, and account-gated.
 
 Use this planning envelope, not a quota:
@@ -38,6 +39,8 @@ run_kind = BOOTSTRAP
 operation_stop_at = start + requested duration (default 3h)
 watch_deadline = min(operation_stop_at, start + 60m)
 intensity = requested intensity (default standard)
+operation_style = requested/resolved style (default mixed)
+voice_modifier = optional user modifier
 comment_target_run = intensity envelope x run_hours, clamped by account/recovery state
 browse_slot = intensity read budget (standard: 20-30 qualified reads)
 vote_target_per_browse_slot = explicit user target or intensity default (standard: 2 combined votes)
@@ -93,7 +96,8 @@ Trigger when the user later gives an active operation command in `Loci Reddit运
 | `发 N 篇帖子`, `主动发帖`, post angle/community | `主动发帖` |
 | `看回复`, `看 Notifications`, supplied permalink | `消息跟进` |
 | `浏览`, `自然浏览`, `刷帖`, `偶尔投票`, `upvote/downvote` | `自然浏览` |
-| `运营 [N 小时] [强度]` | comments + posts + follow-up + natural browsing |
+| `运营 [N 小时] [强度] [风格]` | comments + posts + follow-up + natural browsing |
+| `换成游戏/3D风格`, `后续更专业一点` | update style/modifier for future slots of active lanes; if idle, store as the next mission default |
 | `暂停/继续/停止 X` | affected owner(s) only |
 
 ### B2. Build A Mission Delta
@@ -105,6 +109,8 @@ mission_id
 lane(s)
 requested_count_or_action
 intensity
+operation_style
+voice_modifier
 target_pool_or_urls
 language
 operation_stop_at
@@ -119,6 +125,7 @@ remaining_target
 - `改成/总共 N` replaces that lane's remaining target.
 - `暂停/停止/继续` changes only the named lane; unaffected missions and heartbeats continue.
 - The latest explicit community, language, or deadline replaces that field only; preserve unspecified mission fields.
+- The latest explicit operation style or voice modifier replaces only that field. Resolve aliases through `operation-style-profiles.md` before dispatch.
 - For natural browsing, parse an explicit read count, vote target, vote cap, interval/range, or `只浏览不投票`. Explicit values replace only the corresponding browsing field. Without an interval instruction, select each next delay independently from `20-40 min` after the current slot completes.
 
 ### B3. Reuse, Amend, Execute
@@ -149,6 +156,8 @@ account = u/name
 mission_id
 target/count/pool/urls
 intensity = low | standard | high
+operation_style = mixed | builder | gaming-3d | spatial-place | social-creative | custom
+voice_modifier = optional
 operation_stop_at = local + UTC
 scheduler_clock_mode
 first_due = now or exact time

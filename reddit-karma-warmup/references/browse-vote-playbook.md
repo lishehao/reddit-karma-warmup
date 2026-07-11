@@ -21,12 +21,12 @@ Keep a rolling record:
 ```text
 time | subreddit | url | content_type | qualified_read
 topic | specific_observation | persona_fit | vote_decision | vote_score | vote_reason
-eligible_views_since_vote | vote_runtime_stability | verification_level
+eligible_views_since_vote | vote_result = vote_accepted | no_vote | explicit_failure
 ```
 
 Use the slot's combined-vote target as an active search objective:
 
-- Standard operation seeks at least `2` verified votes in the slot and may continue up to the cap when more independently qualified items pass.
+- Standard operation seeks at least `2` accepted votes in the slot and may continue up to the cap when more independently qualified items pass.
 - Any mix of Upvote and Downvote is allowed; never force one of each or balance directions artificially.
 - Do not vote before reading. One item may receive only one direction, and each decision needs its own score and reason.
 - Continue until the target is reached or the read/time budget is exhausted. If too few items pass, finish below target, report the shortfall, and do not lower thresholds.
@@ -63,11 +63,11 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 
 - Use `B/B+` communities first. `A` remains research-first and may receive a vote only for an unmistakably ordinary native reason. `A0/No-go` is read-only with no votes.
 - Never vote on own content, affiliated/team content, a supplied campaign target, or the same target from another account. Never coordinate votes.
-- Reselect this lane's dedicated Chrome tab and confirm the intended account/URL. Require exactly one intended vote control that is visible and enabled before clicking.
-- Click each target at most once. A click call that resolves without an exception after the preflight above is `interaction_confirmed` and counts toward the slot. If the immediate UI also exposes `aria-pressed`, selected styling, `upmod/downmod`, score change, or an equivalent intended active state, upgrade it to `state_confirmed`.
-- Reload/reopen is not required after every vote. At most once per slot, optionally sample persistence when the UI is stable. If the post-reload DOM does not expose vote state but there is no opposite state or Reddit error, log `state_unobservable_after_reload`; keep the vote counted, continue the slot, do not click again, and do not ask the user.
-- When the user has explicitly confirmed that this Chrome/account voting path is stable, store `vote_runtime_stability=user_confirmed` for the mission. Do not ask for repeated confirmation unless a concrete failure below occurs.
-- Stop the affected voting action only for a click exception, an explicit opposite-state result, Reddit error/banner, account mismatch/logout, captcha, rate limit, warning, lock, or an unavailable/ambiguous control before click. A merely hidden post-reload state is not a failure.
+- Reselect this lane's dedicated Chrome tab and confirm the intended account/URL. Require exactly one intended Upvote/Downvote control that is visible and enabled before clicking.
+- Click each target at most once. A click call that returns without an exception after this preflight is final `vote_accepted` evidence and immediately counts toward the slot.
+- Do not inspect selected styling, `aria-pressed`, score change, `upmod/downmod`, reload persistence, profile history, or another surface to reconfirm a vote. Do not reopen the target for vote verification and do not maintain stronger/weaker vote evidence levels.
+- Never click again because the post-click state is hidden, unchanged, ambiguous, or no longer readable. A successful click call remains accepted unless that same call returns an explicit failure.
+- Record `explicit_failure` only for a click exception, Reddit error/banner, account mismatch/logout, captcha, sitewide rate limit, warning, lock, or an unavailable/ambiguous control before click. Do not ask the user to confirm whether a normal click worked.
 - `ERR_BLOCKED_BY_CLIENT` on one page/control is a recoverable route failure: apply `orchestration-core.md` Chrome recovery, then continue the slot through another eligible native Reddit route when needed. Do not convert one blocked route into a lane-wide stop or count unqualified impressions toward the read budget.
 - Record every qualified read and every vote/no-vote decision. A below-target or no-vote slot is valid only after the configured read/time budget was actually exhausted or a concrete blocker appeared.
 
@@ -81,7 +81,7 @@ For a continuing run:
 2. Otherwise select a fresh whole-minute delay from `20-40 min` after the current slot completes. Do not reuse a fixed repeating interval.
 3. Convert that delay into one exact local and UTC next-run time, reconcile it against the stop time, and update/reuse this lane's logical timer for that one-shot due time.
 4. Do not create a fixed recurrence, schedule from the prior slot's start time, or catch up missed slots.
-5. Carry `vote_runtime_stability` and this verification policy into the continuation heartbeat. Never regenerate the old rule that hidden reload state stops the mission or requires user confirmation.
+5. Carry the one-click `vote_accepted` rule into the continuation Heartbeat. Never regenerate selected-state, reload, persistence, or user-confirmation checks.
 
 Use the shared compact report:
 

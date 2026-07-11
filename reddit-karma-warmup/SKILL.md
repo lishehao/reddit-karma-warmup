@@ -158,7 +158,7 @@ One worker may process several items only when they all serve its single objecti
 - Every verified comment/reply appends its measured character count, word count, sentence form, and length tier. Before drafting the next one, consult the latest `10` comment/reply entries and choose a context-appropriate length instead of defaulting to a repeated two-sentence shape.
 - Pool layers are gates: `B/B+` may enter action discovery when row rules fit; `A` is research-first; `A0/No-go` are read-only.
 - Never invent identity, experience, expertise, metrics, product use, testing, or affiliation. Votes must follow a qualified read and a specific quality reason; never force a vote to satisfy cadence, coordinate votes, spam, harass, doxx, or bypass subreddit rules.
-- For voting, a unique enabled control plus a successful one-time click is operational confirmation. Immediate selected state is stronger evidence; reload persistence is optional sampling. Hidden post-reload state alone never triggers a user confirmation, retry click, or lane pause. Preserve an explicit user confirmation that the account/browser vote path is stable until a concrete click/account/Reddit error disproves it.
+- For voting, one unique visible/enabled control plus a one-time click call that returns without exception is final `vote_accepted` evidence. Count it immediately. Never inspect selected state, score change, reload/reopen persistence, profile history, or another surface; never ask the user to confirm and never click again because state is hidden or ambiguous.
 
 ## Recovery And User Abstraction
 

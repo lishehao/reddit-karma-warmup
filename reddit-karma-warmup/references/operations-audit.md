@@ -54,7 +54,7 @@ Compare requested work with actual verified work:
 
 - comments/posts/replies: exact text plus permalink and visibility evidence
 - follow-up: Notifications and recent own Posts/Comments surfaces actually checked; actionable items handled or specifically rejected
-- browsing: qualified-read count, concrete observations, vote decisions, and verified votes/no-votes
+- browsing: qualified-read count, concrete observations, vote decisions, accepted one-time click results, and no-votes
 - no-action: exact candidates/surfaces and the valid gate that rejected them
 
 A no-action result is valid only when its reason matches the Skill. For example, `K0 has not waited 6h` cannot reject the first daily post; `ERR_BLOCKED_BY_CLIENT` on one route cannot end the whole browsing lane before Chrome recovery and alternate-route attempts.

@@ -19,9 +19,10 @@ Do not escalate ordinary operations noise:
 - no actionable Notification
 - no qualified vote after the read budget
 - a recoverable Chrome route error that succeeds after recovery
+- a transient DNS/network/proxy/site loading error while its bounded `chrome-network-recovery.md` checkpoint is still pending
 - normal count shortfall because too few candidates passed
 
-These remain in the worker report unless they become lane-wide or require a user decision.
+These remain in the worker report unless bounded recovery fails, they become lane-wide/account-wide, or they require a user decision.
 
 ## Worker Protocol
 

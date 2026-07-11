@@ -34,6 +34,7 @@ Lane references:
 - no user target pool: `references/loci-subreddit-pool-v1.md`
 - 8-12 hour run: `references/twelve-hour-ops-template.md`
 - model assignment: `references/model-runtime.md`
+- Chrome control/page/network error self-diagnosis: load `references/chrome-network-recovery.md` only after a browser control, navigation, or loading failure
 
 Do not load every reference. The subreddit pool is routing data, not a workflow.
 
@@ -147,7 +148,7 @@ One worker may process several items only when they all serve its single objecti
 
 ## Recovery And User Abstraction
 
-Automatically repair stale Chrome control, lane-tab recovery, missing first-round evidence, scheduler encoding/readback, and worker prompt drift. Keep task IDs, model fallback, tab IDs, UTC math, automation IDs, retries, scores, and technical logs internal.
+Automatically repair stale Chrome control, lane-tab recovery, missing first-round evidence, scheduler encoding/readback, and worker prompt drift. On Chrome control/navigation/loading failure, load `chrome-network-recovery.md`, classify the exact returned code and scope, and run bounded recovery before declaring a blocker. Keep task IDs, model fallback, tab IDs, UTC math, automation IDs, retries, scores, and technical logs internal.
 
 Ask the user only in `Reddit 主控台` when they must act: Reddit is logged out/wrong-account, credentials are required, captcha/rate limit/lock persists, Chrome Browser control remains unavailable, or a material product/risk choice cannot be inferred. Workers escalate these states and never ask the user directly.
 

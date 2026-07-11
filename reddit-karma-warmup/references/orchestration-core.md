@@ -98,18 +98,18 @@ Chrome is required for account mutations, but the shared Chrome profile and Redd
 
 ## Chrome Recovery
 
-Treat stale tabs, missing controls, dropped browser sessions, `ERR_BLOCKED_BY_CLIENT`, and ordinary connection errors as recoverable first. `ERR_BLOCKED_BY_CLIENT` on one Reddit route is not evidence of an account restriction and is not permission to end the whole lane.
+Load `chrome-network-recovery.md` whenever Chrome control, navigation, or page loading fails. Treat stale tabs, missing controls, dropped browser sessions, `ERR_BLOCKED_BY_CLIENT`, and ordinary connection errors as recoverable first. `ERR_BLOCKED_BY_CLIENT`, DNS/network codes, blank pages, or HTTP `5xx` are not evidence of an account restriction by themselves.
 
 1. Stop the current click/type sequence in this lane's tab.
 2. Record the last verified state: target URL, whether text was entered, whether submit was clicked, and whether visibility was confirmed.
-3. Reacquire/reconnect Chrome control, reclaim this lane's tab or open a replacement dedicated tab, navigate to Reddit, and confirm the intended account.
+3. Follow the classified layer: reconnect Chrome only for an explicit `control_channel` disconnect; for `stale_tab`, preserve the browser binding and open/reclaim only this lane's replacement tab. Navigate to Reddit and confirm the intended account after recovery.
 4. If the disconnect happened after or near submit, inspect the target thread/profile first. If the action exists, log it and continue; do not resubmit.
 5. If no send occurred, reopen the target in this lane's tab, re-read current context, and continue from the last safe step.
-6. Allow up to two recovery attempts for one incident. Do not loop indefinitely.
+6. Use the reference's bounded two-attempt state machine. The second attempt may be a `5-10 min` recovery Heartbeat using this lane's existing timer; do not loop indefinitely or create another timer.
 
-For `ERR_BLOCKED_BY_CLIENT`, reconnect/reacquire Chrome, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and stop the lane only when Chrome control itself remains unavailable after both recovery attempts.
+For `ERR_BLOCKED_BY_CLIENT`, reconnect Chrome only when control also dropped; otherwise preserve the browser binding, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and stop the lane only when Chrome control itself remains unavailable after both recovery attempts.
 
-If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` and pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately. A worker sends the evidence to `Reddit 主控台` under `risk-escalation.md`; only the coordinator asks the user to repair the session. Never enter credentials.
+If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` with the exact error class/code and scope-probe results, then pause account mutations. If Reddit is logged out, on the wrong account, asks for credentials, or shows captcha/rate limit/lock, stop immediately. A worker sends the evidence to `Reddit 主控台` under `risk-escalation.md`; only the coordinator asks the user to repair the session. Never enter credentials.
 
 ## Active Pool
 

@@ -69,7 +69,7 @@ If required checks fail, return `状态异常` with only the failed capability, 
 
 Do not report `状态异常`, pause installation, or ask the user to reply `继续` merely because the automation view omits `next_run_at`, DTSTART, or a displayed next-run label. Record `heartbeat_timing=created_unreadable` internally and continue. Only failed create/update/delete capability is a scheduler dependency failure.
 
-Do not treat the first dropped/stale connection as failure. Run the Chrome recovery flow in `orchestration-core.md`. If Chrome remains unavailable after recovery, is logged out, shows the wrong account, or hits captcha/rate limit/account lock, do not perform real Reddit actions and tell the user the concrete state. Setup-only checks and non-account read-only explanations may continue.
+Do not treat the first dropped/stale connection or page-loading code as failure. Run `chrome-network-recovery.md` through `orchestration-core.md`: record the exact code, distinguish control/tab/network/proxy/site/route/account scope, and perform bounded recovery in the same logged-in Chrome session. If Chrome remains unavailable after recovery, is logged out, shows the wrong account, or hits captcha/rate limit/account lock, do not perform real Reddit actions and tell the user the concrete state. Setup-only checks and non-account read-only explanations may continue.
 
 ## Runtime Start
 

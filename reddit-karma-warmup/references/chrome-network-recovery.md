@@ -19,6 +19,24 @@ last_verified_state
 
 Read the exact returned error or visible Chrome error page. A blank page, spinner, missing selector, or timeout is `unknown_loading_failure` until scoped; do not invent a Chrome code.
 
+Derive a `likely_cause` from the exact code plus scope probes. Always present it as a possibility, never a proven root cause:
+
+| Evidence | User-safe likely-cause wording |
+|-|-|
+| `ERR_NETWORK_CHANGED` | 网络或代理连接可能刚刚发生切换 |
+| `ERR_CONNECTION_RESET/CLOSED` | 网络、VPN/代理或安全软件可能中断了连接 |
+| `ERR_CONNECTION_TIMED_OUT`, `ERR_TIMED_OUT`, `ERR_EMPTY_RESPONSE` | 当前网络较慢，或目标站点暂时繁忙/无响应 |
+| `ERR_NAME_NOT_RESOLVED` | URL 可能有误，或 DNS 暂时无法解析域名 |
+| `ERR_INTERNET_DISCONNECTED` | 设备当前可能没有可用网络连接 |
+| `ERR_PROXY_CONNECTION_FAILED`, `ERR_TUNNEL_CONNECTION_FAILED` | 代理连接或代理隧道可能不可用 |
+| `ERR_CERT_*`, `ERR_SSL_*` | TLS 证书、系统时间或代理 HTTPS 路径可能异常 |
+| HTTP `500-599` | Reddit 服务或该路由可能暂时异常 |
+| persistent HTTP `403` | 该路由可能被 WAF、权限或登录状态阻止；尚不能判断为账号处罚 |
+| `ERR_BLOCKED_BY_CLIENT` | 浏览器扩展、内容过滤或客户端规则可能阻止了该请求 |
+| blank/spinner/`Aw, Snap!` | 页面脚本、渲染资源、内存或网络加载可能异常 |
+
+When several causes remain possible, give at most the two strongest based on the probes. Use wording such as `可能原因：...`; do not blame the user's network, proxy, Reddit, or account without evidence.
+
 ## Error Classes
 
 | Class | Typical evidence | Initial interpretation | Required behavior |
@@ -61,7 +79,7 @@ Do not inspect cookies/local storage, clear browsing data, disable extensions, r
 2. If still failing and no hard-stop/account signal exists, update this lane's same logical Heartbeat timer for a recovery checkpoint `5-10 min` later. End the turn with the normal three-line report; `下轮计划` names the exact probe and withheld mutation.
 3. `attempt 2` at the Heartbeat wake: rerun the scope probes once. If healthy, reconfirm account/context and resume from the last safe state. If still unhealthy, return `lane_blocked` or `account_blocked` to `Reddit 主控台` with the exact code, scope results, and mutation state.
 
-Never create a second recovery automation. Reuse the lane's existing `operation_timer_id`. Never compress missed work after recovery.
+Do not ask the user before these attempts unless there is a hard-stop/account signal or the repair would require changing the user's machine/network settings. Never create a second recovery automation. Reuse the lane's existing `operation_timer_id`. Never compress missed work after recovery.
 
 ## Mutation Integrity
 
@@ -76,6 +94,7 @@ Record internally:
 
 ```text
 error_class + exact_code
+likely_cause + cause_confidence = low | medium | high
 scope = control | tab | all_network | proxy_tls | reddit_domain | reddit_route | account
 attempts
 mutation_state
@@ -84,12 +103,20 @@ account_reconfirmed
 result = recovered | skipped_route | heartbeat_recheck | escalated
 ```
 
-A recovered transient error stays local. A persistent lane/account blocker returns to `Reddit 主控台`. Ordinary Heartbeat output still uses only:
+A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. A persistent lane/account blocker returns to `Reddit 主控台`. Ordinary Heartbeat output still uses only:
 
 ```text
-本轮完成：<recovery/action result>
+本轮完成：<exact code；可能原因；已自动重试/恢复结果；action result>
 下一轮心跳：<exact local time/timezone and UTC, or none>
 下轮计划：<exact recovery probe or resumed lane target>
+```
+
+Example while recovery is pending:
+
+```text
+本轮完成：页面加载失败（ERR_NETWORK_CHANGED）；可能原因是网络或代理刚刚切换；已自动重试 1 次，未重复提交。
+下一轮心跳：2026-07-12 01:18:00 Asia/Shanghai（2026-07-11 17:18:00 UTC）
+下轮计划：复查 Reddit 首页与中性页面；恢复后确认账号并继续当前评论候选。
 ```
 
 ## Primary References

@@ -39,6 +39,8 @@ mission_id: <id>
 lane: <comments|posts|follow-up|browsing>
 severity: <decision_required|lane_blocked|account_blocked|execution_integrity_failed|material_reputation_risk>
 evidence: <one concise factual paragraph>
+likely_cause: <one or two evidence-based possibilities, explicitly marked as possible>
+recovery_attempts: <what was retried and the observed result>
 affected_scope: <candidate|subreddit|lane|account>
 current_state: <paused/stopped; completed actions preserved>
 safe_options: <continue unchanged only if defensible | safer adjustment | stop>
@@ -60,8 +62,9 @@ On `RISK_ESCALATION`:
 
 ```text
 风险：<发生了什么，以及证据>。
+可能原因：<基于错误码和范围探测的一个或两个可能原因，不写成定论>。
 影响：<暂停了哪些动作；哪些仍在继续>。
-当前处理：<已暂停/撤回/保留的内容和自动化状态>。
+当前处理：<已自动检查/重试了什么；已暂停/撤回/保留的内容和自动化状态>。
 建议：<最稳妥的下一步；必要时给一个可继续的替代方案>。
 请确认：继续原方案 / 按建议调整 / 停止该范围。
 ```

@@ -44,7 +44,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - lane playbooks: candidate and action rules for that lane only.
 - `chrome-network-recovery.md`: bounded Chrome/page/network recovery in the current lane.
 - `outbound-copy-gate.md` and `publish-consistency.md`: outbound writing quality and variation.
-- `operation-style-profiles.md` and `loci-subreddit-pool-v1.md`: optional style and default target pool.
+- `operation-style-profiles.md` and `loci-subreddit-pool-v1.md`: optional style and the large default community archive. Never load the whole archive by default; retrieve only exact subreddit rows or a small keyword-filtered candidate set.
 
 When two references conflict, the owner above wins.
 

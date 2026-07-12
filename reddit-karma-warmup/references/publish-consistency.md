@@ -20,13 +20,21 @@ Consistency means stable identity and facts, not repetitive wording. Never contr
 
 Use `loci-subreddit-pool-v1.md` as the default routing source when the user gives no exclusive pool.
 
+The archive is intentionally large. Read it progressively:
+
+- known subreddit: use an anchored case-insensitive search for the exact row, such as `rg -ni '^\| r/Unity3D \|' loci-subreddit-pool-v1.md`, then read only that row plus the field header
+- pool discovery: search by a narrow combination of tier, community type, pain, rule, or publish-surface terms; inspect only the matching rows and keep a small candidate set
+- never read the complete archive into context merely to select one subreddit
+
+Each row's `主要用户`, `痛点/反馈`, `版规/边界`, `可发内容`, `账号适配/备注`, and `近期信号/更新` are the routing evidence. Do not infer publish permission from pain relevance alone.
+
 1. Start with `B` or `B+` rows whose `版规/边界`, `可发内容`, and `账号适配/备注` support the intended action.
 2. Prefer rows with ordinary native participation, no special build/link requirement, and low current moderation friction.
 3. Deprioritize rows requiring special flair/megathread, minimum karma/age, strict on-topic proof, official build links, or narrow self-promo exceptions unless the action exactly fits.
 4. Treat `A` as research-first. Use it only when the interaction is plainly natural, non-product, and no lower-restriction alternative serves the same purpose.
 5. Exclude `A0` and `No-go` from comments, posts, votes, joins, flair, and warm-up.
 
-The bundled row is historical evidence. Live Reddit state wins when it conflicts with the reference.
+The bundled row is historical evidence synced from the Feishu archive. Live Reddit state wins when it conflicts with the reference.
 
 Classify the candidate before discovery:
 

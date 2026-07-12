@@ -73,7 +73,7 @@ Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, s
 
 ## Active Pool Gate
 
-User-provided targets override the bundled pool. Otherwise load `loci-subreddit-pool-v1.md`. Use `operation-style-profiles.md` to rank direction fit and `publish-consistency.md` to build the eligible pool.
+User-provided targets override the bundled pool. Otherwise query `loci-subreddit-pool-v1.md` through the progressive retrieval protocol in `publish-consistency.md`; do not load the entire archive. Use `operation-style-profiles.md` to rank direction fit and `publish-consistency.md` to build the eligible pool.
 
 - `B`: eligible when the row and live context fit.
 - `B+`: ordinary comments and low-frequency feedback/demo contexts when row rules fit.

@@ -7,8 +7,8 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 ## Default Sequence
 
 1. **Inspect first.** Confirm the account, visible age/karma/history, email-verification or eligibility signals where Reddit exposes them, notifications, and any currently active warning/removal state. Keep historical/cleared events in the ledger without turning them into startup blockers.
-2. **Establish a truthful profile.** Load `community-presence-playbook.md`; add a low-risk display/about/avatar/banner only where needed.
-3. **Join a few high-fit communities.** Run the membership gate; prefer `1-3` in the first slot.
+2. **Establish a truthful presence baseline.** `Reddit 主控台` enables `Reddit 主页台`; that worker loads `community-presence-playbook.md`, adds a low-risk display/about/avatar/banner only where needed, and returns verified proof.
+3. **Join a few high-fit communities.** `Reddit 主页台` runs the membership gate and prefers `1-3` in the first slot. Accept its terminal baseline proof before outward lanes begin.
 4. **Browse before and alongside publishing.** Run one intensity-sized qualified-read slot across eligible communities. Standard starts with `20-30` reads and targets `2` combined accepted one-click votes without lowering `browse-vote-playbook.md` gates.
 5. **Run the first-hour launch.** Immediately execute comments, post preflight, follow-up, and natural browsing using the selected intensity. Comments remain micro/fragment/one-liner first and span lower-restriction communities.
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.

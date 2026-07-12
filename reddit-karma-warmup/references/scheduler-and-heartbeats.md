@@ -9,7 +9,7 @@ The coordinator is the only scheduler. Workers execute Reddit slots; they never 
 For any operation that extends beyond the current slot:
 
 1. Execute the first lane slot immediately in the user's command turn.
-2. After each enabled lane returns `start_proof`, `Reddit 主控台` creates one recurring, repeat-on Heartbeat explicitly targeting that worker's exact `worker_thread_id`.
+2. After each enabled lane returns `start_proof`, `Reddit 主控台` creates one recurring, repeat-on Heartbeat explicitly targeting that worker's exact `worker_thread_id` only when nonterminal future work remains. A terminal one-slot presence mission receives no lane Heartbeat.
 3. The same Heartbeat remains active for the whole mission. It must not be `COUNT=1` or depend on a worker creating its successor.
 4. The coordinator also creates one recurring, read-only supervisor Heartbeat targeting `Reddit 主控台` for the mission lifetime.
 5. Every timer carries `mission_id`, lane, local/UTC start and stop, `operation_stop_at`, current plan revision, and an explicit no-action-after-deadline guard.

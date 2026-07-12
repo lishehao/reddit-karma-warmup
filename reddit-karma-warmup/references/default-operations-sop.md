@@ -34,7 +34,7 @@ These are planning targets, never quotas:
 | `standard` | `4-6/hour` | candidate/preflight sweep every `2-3h` | every `30-45 min` | `20-30` qualified reads; vote target/cap `2/4` |
 | `high` | `6-10/hour` | candidate/preflight sweep every `60-90 min` | every `20-30 min` | `30-45` qualified reads; vote target/cap `4/6` |
 
-Natural browsing includes qualified reading plus independently gated votes. After each browsing slot, choose the next delay independently from `20-40 min` unless the user overrides it. Profile setup, joins, and flair are bootstrap housekeeping, not a fifth recurring lane.
+Natural browsing includes qualified reading plus independently gated votes. After each browsing slot, choose the next delay independently from `20-40 min` unless the user overrides it. Profile setup, joins, and flair belong to the conditionally enabled presence lane; they are never coordinator mutations and normally terminate after one bootstrap slot.
 
 ## Normalize BOOTSTRAP
 
@@ -47,6 +47,7 @@ run_kind = BOOTSTRAP
 mission_id
 account + tier/substate
 enabled_lanes
+presence_required = true | false
 start_local + start_utc
 operation_stop_at = start + requested duration
 first_hour_quality_deadline = min(operation_stop_at, start + 60m)
@@ -63,10 +64,10 @@ browse_next_delay_range
 
 Then route, without restating their procedures:
 
-1. `new-account-bootstrap.md` and `community-presence-playbook.md` define the one-time truthful account baseline.
+1. `new-account-bootstrap.md` decides whether a baseline is required; `Reddit 主页台` executes `community-presence-playbook.md` and returns proof before outward lanes start.
 2. `thread-supervision-runtime.md` creates/reuses exact lane owners and verifies task IDs.
 3. `coordinator-playbook.md` owns same-turn acceptance and mission-lifetime recurring supervision; the first hour adds richer quality checks.
-4. Each worker receives the handoff below and starts its first due slot immediately.
+4. If presence is required, dispatch and accept `Reddit 主页台` first. Then every enabled outward worker receives the handoff below and starts its first due slot immediately.
 
 Do not claim startup success until `coordinator-playbook.md` acceptance passes. Planning, task creation, and Heartbeat creation are not action proof.
 
@@ -80,7 +81,8 @@ After `bootstrap_state=initialized`, later commands reuse owners/history and nev
 | main posts, angle, or post community | `Reddit 发帖台` |
 | Notifications, replies, supplied permalink | `Reddit 跟进台` |
 | browsing, reading, Upvote/Downvote | `Reddit 浏览台` |
-| broad operation | all four owners |
+| profile/about, Join/subscribe, Flair/tag, membership review | `Reddit 主页台` |
+| broad operation | all four outward owners; add `Reddit 主页台` only when presence is explicitly requested or bootstrap requires it |
 | pause/resume/stop | affected owner(s) only |
 
 Build only the changed mission fields:
@@ -123,7 +125,8 @@ Every worker receives:
 
 ```text
 role = WORKER
-lane = comments | posts | follow-up | browsing
+lane = comments | posts | follow-up | browsing | presence
+stage = S3_PRESENCE_BASELINE | S4_FIRST_SLOT | S6_RUN_SLOT
 single_objective = exact one-line outcome from SKILL.md
 out_of_scope = other lane outcomes and sibling coordination
 worker_thread_id = exact persistent task ID
@@ -143,7 +146,7 @@ first_due = now or exact time
 browse_next_delay_range
 ```
 
-The worker preserves one objective. Discovery, scoring, copy, rules, pacing, verification, reporting, and recovery are supporting steps. It executes now and returns `start_proof`. After proof, the coordinator creates the recurring Heartbeat; later wakes return `slot_proof` or `not_due` and never mutate scheduling.
+The worker preserves one objective. Discovery, scoring, copy, rules, pacing, verification, reporting, and recovery are supporting steps. At `S3` or `S4`, it executes now and returns `start_proof`. At `S6`, it returns `slot_proof` or `not_due`. It never mutates scheduling. A terminal one-slot presence task returns `MISSION_COMPLETE` with no proposed recurring timer.
 
 Workers send event returns only for a decision-requiring risk/blocker, one non-blocking `SUBREDDIT_RETIRED` notice per newly retired subreddit, or one terminal completion of the whole assigned mission. Ordinary slot progress remains local.
 

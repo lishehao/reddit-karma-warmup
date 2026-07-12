@@ -1,6 +1,6 @@
 # Proactive Playbook
 
-Use only for new comments on existing Reddit threads and optional main posts. Dedicated browsing and vote decisions belong to `browse-vote-playbook.md`. Shared lifecycle, Chrome lease, risk, scheduling, and reporting come from `orchestration-core.md`.
+Shared proactive policy for two distinct owners. `Reddit 评论台` loads the shared account/removal/pool rules plus `Comment Candidate Gate`, `Comment Execution`, and the comment report path; it must skip all main-post sections. `Reddit 发帖台` loads the shared rules plus `Main Post Gate`, `Post Diversity`, `Beginner-Trap Angle`, and the post report path; it must skip all comment-candidate/execution sections. Neither task may absorb the other lane. Dedicated browsing and vote decisions belong to `browse-vote-playbook.md`; lifecycle, risk, and reporting come from `orchestration-core.md`.
 
 ## Account Bands
 
@@ -64,13 +64,12 @@ Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, s
 - Do not impose a `24h/72h` recovery tier, lower comment/post envelope, or recovery preset after resumption. Defaults remain advisory and the user's explicit command remains controlling.
 - A dropped Chrome connection alone is not `R3`; reconnect and verify whether the prior action posted before retrying.
 
-## Choose The Lane
+## Role Gate
 
-- `comment lane`: the user asks for comments or broad participation.
-- `post lane`: the user explicitly asks for main posts or a post window is enabled by the broad SOP.
-- `mixed`: keep separate comment and post targets; never count comments as posts.
-
-For early accounts, execute comments first. Broad `运营` still enables the post candidate/preflight lane; a comment-only command does not add posts.
+- A handoff with `lane=comments` is accepted only by `Reddit 评论台`; execute comment sections and ignore every post target/section.
+- A handoff with `lane=posts` is accepted only by `Reddit 发帖台`; execute post sections and ignore every comment target/section.
+- There is no mixed proactive worker. Broad `运营` enables two independent tasks with separate targets, tabs, proof, and ledgers; never count comments as posts or let one task backfill the other.
+- An off-role handoff is returned to `Reddit 主控台` as routing drift. Do not reinterpret it locally.
 
 ## Active Pool Gate
 
@@ -172,12 +171,12 @@ Weak: `Any tips for beginners?`
 
 ## Proactive Slot Report
 
-On a direct user command or execution-heartbeat resume, finish and verify the current comment/post micro-slot before scheduling or reporting. Record the permalink/action as `slot_proof`, or record the exact candidates/surfaces checked and rejection gate as verified no-action proof. Planning the next post/comment window is not a completed slot.
+On a direct user command or execution-heartbeat resume, finish and verify only the assigned comment or post micro-slot before reporting. Record the permalink/action as `slot_proof`, or record the exact candidates/surfaces checked and rejection gate as verified no-action proof. Planning another window is not a completed slot.
 
 Use the three-line compact report from `orchestration-core.md`:
 
-- `本轮完成`：已完成的评论、主帖、数量、subreddit 和 permalink
+- `本轮完成`：仅写本任务已完成的评论或主帖、数量、subreddit 和 permalink
 - `下一轮心跳`：核验后的本地日期时间、时区及 UTC
-- `下轮计划`：计划进行的评论或发帖工作及目标数量
+- `下轮计划`：仅写本任务下一轮评论或发帖工作及目标数量
 
 Keep candidate scores, `insight_basis`, final text/translation, preflight, Check A/B, and history/length comparisons in the internal action log. Show them only when the user asks or they explain a risk or missing action.

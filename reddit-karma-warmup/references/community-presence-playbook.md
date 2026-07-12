@@ -1,6 +1,6 @@
 # Bootstrap Profile And Community Setup
 
-Use only during first-account bootstrap or an explicit one-off setup repair. It is not a recurring operation lane, has no worker, and owns no heartbeat. It covers profile/homepage upkeep, target-based join/subscribe, truthful flair/tag, and membership review.
+Use only in `Reddit 主页台` during first-account bootstrap or an explicit setup/repair mission. This lane covers profile/homepage upkeep, target-based Join/subscribe, truthful Flair/tag, and membership review. It never runs in `Reddit 主控台`. It normally terminates after one verified slot; the coordinator creates a recurring timer only when the user explicitly requested later presence work and nonterminal work remains.
 
 ## Presence State
 
@@ -50,7 +50,7 @@ Use ordinary truthful flair such as `Beginner`, `Hobbyist`, `Indie Dev`, `VR Use
 2. Compute remaining cadence capacity.
 3. Inspect profile and high-fit membership candidates.
 4. Run membership gate.
-5. Reselect the main task's dedicated bootstrap tab before each edit/join/flair action, verify account/target, and verify final state.
+5. Reselect `Reddit 主页台`'s dedicated tab before each edit/join/flair action, verify account/target, and verify final state.
 6. Update timestamps and set the next review only when another action is genuinely due.
 
-Complete and verify the bootstrap setup before operation workers start. Summarize changed communities/profile surfaces inside the main task's first report. Keep watched/skipped candidates, scores, reasons, and remaining cadence internal unless they explain why no action occurred.
+Return `start_proof` containing verified changed state or exact inspected surfaces plus the valid no-action gate. Complete and verify this baseline before outward operation tasks start. For the usual one-slot bootstrap mission, immediately return `MISSION_COMPLETE`; `Reddit 主控台` summarizes changed communities/profile surfaces in its first report. Keep watched/skipped candidates, scores, reasons, and remaining cadence local unless they explain no action.

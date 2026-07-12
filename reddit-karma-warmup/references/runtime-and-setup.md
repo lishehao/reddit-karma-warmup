@@ -77,7 +77,7 @@ The repository `README.md` owns installation and dependency preflight. Once it r
 
 1. Restore the reported Chrome account, heartbeat support, task/model fallback, local timezone, and detected `scheduler_clock_mode`.
 2. Confirm the already-validated Chrome control remains connected and still shows that Reddit account; read current local time and UTC again.
-3. Choose the requested mode, create or reuse every enabled persistent lane task, and send each task its execute-now mission. Default broad operation creates/reuses all four workers before lane execution.
+3. Choose the requested mode, create or reuse every enabled persistent lane task, and send each task its execute-now mission. Default broad operation uses the four outward workers; when bootstrap presence is required, create/reuse `Reddit 主页台`, accept its baseline proof first, then start the four outward lanes.
 4. Do not send a final `已启动` acknowledgement until that slot yields a verified requested action or browser-backed no-action/blocker. Planning, worker dispatch, and heartbeat creation do not satisfy this gate.
 5. Run the scheduler smoke test when the installed environment is new or previously drifted, after start proof and without replacing the first operating slot.
 6. Report any runtime regression precisely. Do not silently replace Chrome control with Computer Use, the in-app Browser, Playwright, or another browser surface.

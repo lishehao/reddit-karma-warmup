@@ -6,7 +6,7 @@ Use for about `8-12h`, overnight, or other long low-frequency runs. This is a pl
 
 - Execute the H0/current slot immediately.
 - Each worker owns one lane and at most one future trigger.
-- The coordinator creates one recurring Heartbeat per enabled worker plus one recurring read-only supervisor for the full window. Each worker wake runs one due slot or records `not_due`; workers never renew timers.
+- The coordinator creates one recurring Heartbeat per enabled worker with nonterminal future work plus one recurring read-only supervisor for the full window. Each worker wake runs one due slot or records `not_due`; workers never renew timers. A terminal bootstrap presence slot receives no recurring timer.
 - Do not run every lane at every wake-up and do not catch up after a late trigger.
 - Follow-up keeps its own `20-40 min` default sweep rhythm; the table below is only a coarse session map.
 
@@ -14,7 +14,7 @@ Use for about `8-12h`, overnight, or other long low-frequency runs. This is a pl
 
 | Window | Default work |
 |-|-|
-| H0-H1 | Account/time check, bootstrap-only profile setup when incomplete, then immediate comment, post-preflight, follow-up, and natural-browse micro-slots at the selected intensity. The coordinator checks the first permalink in parallel. |
+| H0-H1 | Account/time check; `Reddit 主页台` completes bootstrap presence when required; then immediate comment, post-preflight, follow-up, and natural-browse micro-slots at the selected intensity. The coordinator checks the first permalink in parallel. |
 | H1-H3 | Continue all four operation lanes at the selected intensity after first-hour reconciliation. |
 | H3-H6 | Keep diverse comment/browse slots, follow-up sweeps, and native post candidate checks; publish only passing candidates. |
 | H6-H10 | Continue the selected intensity without catch-up bursts; explicit high-volume mode may progress toward its authorized daily ceiling. |

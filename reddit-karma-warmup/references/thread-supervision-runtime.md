@@ -32,6 +32,7 @@ comments | Reddit 评论台 | qualified new comments only
 posts | Reddit 发帖台 | eligible native main posts only
 follow-up | Reddit 跟进台 | actionable account follow-up only
 browsing | Reddit 浏览台 | qualified reading and gated vote decisions only
+presence | Reddit 主页台 | truthful profile, membership, and flair state only
 ```
 
 Task search/title metadata is discovery only. It may survive after the underlying rollout has been removed and therefore never proves that a worker can accept another mission. Prefer the exact owner ID already stored in the coordinator registry.
@@ -71,7 +72,9 @@ The card defines one outcome, not one action. A worker may search, score, draft,
 
 ## Dispatch
 
-1. Resolve enabled lanes before creating anything. Broad `开始/运营` enables all four; a named lane enables only that lane.
+When `presence_required=true`, run this dispatch sequence for `Reddit 主页台` first and accept its terminal baseline proof. Only then run the same sequence as one outward batch for comments, posts, follow-up, and browsing. Do not send `first_due=now` outward handoffs before the presence gate finishes.
+
+1. Resolve enabled lanes before creating anything. Broad `开始/运营` enables comments, posts, follow-up, and browsing. A first bootstrap additionally enables presence only when the baseline is incomplete; a named lane enables only that lane.
 2. List/reconcile the registry once.
 3. Select the exact registered candidate for each lane. Keep archived/retired candidates out of the active set; create the one missing task when no eligible unarchived candidate exists. Capture every created task ID and rename it immediately when title control exists.
 4. Pin the verified `Reddit 主控台`; explicitly unpin every candidate worker. Verify distinct candidate IDs for broad operation, with each ID mapped to exactly one lane title. A title, plan, or heartbeat card without a persistent task ID is not a worker.
@@ -103,7 +106,7 @@ The user continues speaking only in `Reddit 主控台`. Report lane titles and c
 ## Presentation And Lifecycle
 
 - Pin: `Reddit 主控台` only.
-- Keep unpinned/unarchived: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, and `Reddit 浏览台`, including while idle between missions.
+- Keep unpinned/unarchived: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, `Reddit 浏览台`, and `Reddit 主页台`, including while idle between missions.
 - Archive after completion: installer probes, timezone diagnostics, smoke tests, and other temporary tasks that own no active heartbeat/tab.
 - Retired worker: stop/remove its heartbeat, release its tab, remove it from the registry, unpin it, then archive it.
 - Never archive a task merely to hide a blocker or while an automation still targets it.

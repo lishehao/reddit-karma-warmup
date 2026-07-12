@@ -53,7 +53,7 @@ Every enabled lane on first activation must reach `ACT` or a verified no-action/
 ## Scope And Authorization
 
 - The user's latest explicit request overrides defaults for lane, target, language, duration, count, pool, and output.
-- `运营` enables four lanes: comments, posts, follow-up, and natural browsing. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
+- `运营` enables four outward lanes: comments, posts, follow-up, and natural browsing. A first bootstrap additionally enables presence only when the profile/community baseline is incomplete. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
 - User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator and workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
 - Session-level authorization covers ordinary actions in the active session and subsequent wakes of the coordinator-managed recurring Heartbeat targeting that lane. Do not ask before every item.
 - Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action. A worker sends that question to the coordinator under `risk-escalation.md`; it never asks inside the lane task.
@@ -80,10 +80,11 @@ Default titles:
 | proactive post lane | `Reddit 发帖台` |
 | follow-up lane | `Reddit 跟进台` |
 | browsing lane | `Reddit 浏览台` |
+| profile/community presence lane | `Reddit 主页台` |
 
 The user-facing task always keeps `Reddit 主控台`, including for a single-lane MISSION. Only an explicitly handed-off WORKER task uses a lane title. Account tier and mission type never change these titles.
 
-After resolving exact task IDs, pin `Reddit 主控台` and explicitly keep all four worker tasks unpinned. Pinning is presentation state, not ownership proof. Do not archive active or idle registered workers; archive only completed temporary probes/diagnostics and retired workers after their heartbeat is removed and tab state is released.
+After resolving exact task IDs, pin `Reddit 主控台` and explicitly keep every execution task unpinned. Pinning is presentation state, not ownership proof. Do not archive active or idle registered workers; archive only completed temporary probes/diagnostics and retired workers after their heartbeat is removed and tab state is released.
 
 ## Independent Lane Tabs
 
@@ -130,8 +131,19 @@ If Chrome remains unavailable after recovery attempts, report `chrome_unavailabl
 | `comments` | new comments on existing threads | notifications, main posts, or voting |
 | `posts` | new main posts and full live preflight | ordinary comment volume or notifications |
 | `browsing` | qualified reading and optional gated upvote/downvote decisions | comments, posts, replies, profile edits, joins, or Notifications |
+| `presence` | profile/about, Join/subscribe, truthful Flair/tag, membership review | comments, posts, replies, voting, Notifications, or general browsing quotas |
 
-Real operations require persistent task create/read/send capability. The user's `开始` or concrete operation command is explicit authorization to create the requested user-visible lane tasks. Default broad operation requires all four workers; a named single-lane mission requires that one worker. Never replace them with sequential coordinator execution or invisible subagents.
+Each lane follows one fixed microflow; its playbook owns the detailed gates:
+
+| Lane | Microflow | Slot exit |
+|-|-|-|
+| `comments` | discover discussion -> inspect context/rules/history -> choose length -> draft -> double-check -> submit -> verify | permalink or candidate-backed no-action |
+| `posts` | choose community/angle -> live rules/eligibility/flair/frequency preflight -> draft native post -> double-check -> submit -> verify visibility | permalink or preflight-backed no-action |
+| `follow-up` | inspect Notifications plus own activity -> triage Act/Watch/Skip -> draft only for Act -> submit -> verify | reply/action proof or completed quiet sweep |
+| `browsing` | discover -> qualified read -> score direction/quality -> independently gate vote -> click at most once -> ledger | read ledger plus accepted vote/no-vote decisions |
+| `presence` | inspect profile/membership -> compute cadence -> score target -> edit/Join/Flair only when eligible -> verify state | changed-state proof or inspected no-action; normally terminal |
+
+Real operations require persistent task create/read/send capability. The user's `开始` or concrete operation command is explicit authorization to create the requested user-visible lane tasks. Default broad operation requires the four outward workers; BOOTSTRAP adds the presence worker only when required; a named single-lane mission requires that one worker. Never replace them with sequential coordinator execution or invisible subagents.
 
 For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. If proof remains unavailable, mark that lane `startup_blocked`; coordinator execution is forbidden.
 
@@ -150,7 +162,7 @@ Automation management is centralized; execution ownership still follows lane and
 - The coordinator sends mission amendments to workers and updates the corresponding recurring Heartbeat itself.
 - Different lanes sharing an account, target, or policy window remain independent. Do not compare them for collisions.
 - The recurring coordinator supervisor reads enabled lanes on its bounded cadence until mission end. STATUS and AUDIT may also perform one bounded evidence pull. Workers record routine state locally and return only risk/blocker, subreddit-retirement, or terminal-completion events.
-- The coordinator owns one recurring read-only automation named `Reddit 主控台-任务监督` plus one distinct recurring Heartbeat per enabled lane. The supervisor cannot open Reddit or execute lane work.
+- The coordinator owns one recurring read-only automation named `Reddit 主控台-任务监督` plus one distinct recurring Heartbeat per enabled lane that still has nonterminal future work. The supervisor cannot open Reddit or execute lane work; a terminal one-slot presence mission has no lane Heartbeat.
 - Automation name, prompt, or lane title never proves task ownership. Exact `target_thread_id` plus repeat/time/deadline verification from `scheduler-and-heartbeats.md` is required.
 
 ## Decision Classes

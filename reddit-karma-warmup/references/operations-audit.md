@@ -23,7 +23,7 @@ Never infer success from a task title, automation name/card, plan, or `已启动
 Check:
 
 - every enabled lane has its own persistent task ID
-- worker role matches `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, or `Reddit 浏览台`
+- worker role matches `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, `Reddit 浏览台`, or conditionally enabled `Reddit 主页台`
 - every canonical owner is unarchived and accepted its current mission; archived or summary-only candidates are not live owners
 - the coordinator did not execute a lane action
 - each continuation targets its owning worker, not the coordinator or another lane
@@ -134,9 +134,12 @@ Use concise Chinese:
 发帖：<执行｜自动化｜节奏｜长度/质量｜结论>。
 跟进：<执行｜自动化｜节奏｜质量｜结论>。
 浏览：<执行｜自动化｜节奏｜投票证据｜结论>。
+主页：<仅在启用时：Profile/Join/Flair 执行｜证据｜是否终止｜结论>。
 主要问题：<按影响排序的 1-3 项>。
 下一步：<只写可执行修复或待现场补证>。
 ```
+
+Omit the `主页` line when the presence lane was not enabled for the audited mission.
 
 Keep task IDs, raw scheduler fields, and internal scores hidden unless they explain a failure or the user asks for technical detail.
 

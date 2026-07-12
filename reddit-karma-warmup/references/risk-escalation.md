@@ -23,8 +23,11 @@ Do not escalate ordinary operations noise:
 - a transient DNS/network/proxy/site loading error while its bounded `chrome-network-recovery.md` checkpoint is still pending
 - normal count shortfall because too few candidates passed
 - any historical or already-cleared removal, warning, rate limit, lock, or login fault
+- a `STALE_OWNER_TOMBSTONE` that the coordinator atomically replaces with verified mission delivery and a correctly bound new Heartbeat
 
 These remain in the worker report unless bounded recovery fails, they become lane-wide/account-wide, or they require a user decision.
+
+Missing-rollout evidence is an orchestration condition, never Reddit account risk. Do not ask the user to approve a successful owner replacement. If one bounded replacement cannot accept the mission or receive a valid continuation, classify `execution_integrity_failed`, pause only that lane, and return the exact old/new task evidence to `Reddit 主控台`.
 
 `SCHEDULER_CONTINUATION_FAILURE` is orchestration state, never Reddit account risk. The coordinator preserves completed actions, reports exact planned/started/completed/blocked/missed counts, and marks the mission `degraded` or `partial_completed`; it does not change account tier or subreddit eligibility.
 

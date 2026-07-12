@@ -9,7 +9,7 @@ Audit the current active mission by default. Include older rounds only when the 
 Collect the smallest evidence set that can prove the result:
 
 1. Coordinator mission contract: enabled lanes, count/intensity/style, start/stop times, expected first action, and expected next slots.
-2. Worker registry: one distinct readable `worker_thread_id` per enabled lane, correct title/role, latest `1-3` relevant turns, and exact action/no-action evidence.
+2. Worker registry: one distinct `LIVE_REGISTERED` `worker_thread_id` per enabled lane, correct title/role, latest `1-3` relevant turns, successful current mission delivery, and exact action/no-action evidence. Search/title/readable-summary evidence alone is insufficient.
 3. Coordinator-managed automation: automation ID, exact `target_thread_id`, prompt/lane match, repeat-on state, recurrence, stop guard, intended local/UTC next run, and actual wake/run time when exposed.
 4. Published evidence: exact text, permalink, author/subreddit, submit time, worker verification, and current visibility state. The coordinator may open only exact permalinks and relevant profile/history surfaces in a dedicated read-only tab; it must not perform exploratory browsing or mutations.
 5. Recent action ledger: timestamps, subreddits/clusters, action type, character/word counts, sentence form, length tier, and quality-gate evidence.
@@ -24,11 +24,14 @@ Check:
 
 - every enabled lane has its own persistent task ID
 - worker role matches `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, or `Reddit 浏览台`
+- every canonical owner is unarchived and accepted its current mission; archived or summary-only candidates are not live owners
 - the coordinator did not execute a lane action
 - each continuation targets its owning worker, not the coordinator or another lane
 - no combined execution heartbeat absorbed several lanes
+- every stale-owner replacement records old/new task IDs, the exact missing-rollout reason, and the new automation binding
+- no active automation targets a stale/retired task ID, and only one canonical live owner exists per lane
 
-Any missing worker ID, coordinator-executed lane action, or mismatched `target_thread_id` is `不合格` even when an individual Reddit action succeeded.
+Any missing worker ID, summary-only owner, orphan automation, duplicate canonical owner, coordinator-executed lane action, or mismatched `target_thread_id` is `不合格` even when an individual Reddit action succeeded. If the host cannot expose automation evidence, mark that cleanup field `无证据`; do not claim the stale owner was fully retired.
 
 ### 2. Automation Timing
 
@@ -147,3 +150,5 @@ An audit request is read-only. If the user also asks to fix problems:
 4. The coordinator never substitutes for the worker or creates a combined execution trigger.
 
 The coordinator deactivates a misbound/repeat-off/one-shot lane Heartbeat and creates one corrected recurring replacement explicitly targeting the worker.
+
+For a stale task owner, the coordinator follows the atomic transaction in `thread-supervision-runtime.md`: remove old-ID automation bindings, keep the tombstone archived, create at most one replacement, deliver the current mission, verify the exact new ID, and bind only the new recurring Heartbeat. Do not ask a lane worker to repair its own missing rollout.

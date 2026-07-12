@@ -34,7 +34,29 @@ follow-up | Reddit 跟进台 | actionable account follow-up only
 browsing | Reddit 浏览台 | qualified reading and gated vote decisions only
 ```
 
-Reuse an owner when its title/role still matches and it remains readable. Create a replacement only when no owner exists or the prior task is genuinely unavailable. Never create duplicate owners to increase throughput.
+Task search/title metadata is discovery only. It may survive after the underlying rollout has been removed and therefore never proves that a worker can accept another mission. Prefer the exact owner ID already stored in the coordinator registry.
+
+Classify every candidate before reuse:
+
+| State | Evidence | Action |
+|-|-|-|
+| `LIVE_REGISTERED` | exact registry ID, correct lane, unarchived, and the current mission dispatch succeeds | retain the owner and update its mission state |
+| `RETIRED` | archived, explicitly released, or already removed from the registry | keep archived; never auto-unarchive for reuse |
+| `STALE_OWNER_TOMBSTONE` | task metadata/summary exists but read or send returns `failed to resolve rollout path`, `file does not exist`, or equivalent missing-rollout evidence | retire atomically and create at most one replacement |
+| `TRANSIENT_UNREACHABLE` | host unavailable, transport/tool timeout, or another temporary control failure without missing-rollout evidence | preserve the owner and retry once after recovery; do not archive or duplicate it |
+
+`Readable summary` is not a health state. The first real mission delivery is the definitive write-capability check and already serves useful work; do not send a separate probe. A successful delivery promotes the candidate to `LIVE_REGISTERED`. A missing-rollout error is deterministic and must not be retried against the old ID.
+
+For `STALE_OWNER_TOMBSTONE`, run one coordinator-owned replacement transaction:
+
+1. Record the old task ID, lane, prior archive state, and exact failure.
+2. Inspect coordinator-managed automations for the old ID. Disable/remove every timer still targeting it before archival; absence of automation evidence remains explicit.
+3. Remove the old ID from the active registry, unpin it, and keep/set it archived. Do not temporarily unarchive it again.
+4. Create exactly one replacement, capture the returned new task ID, set the canonical lane title, and keep it unpinned/unarchived.
+5. Send the actual current mission to the new ID, require same-turn `start_proof`, then create and verify only the new worker's recurring Heartbeat.
+6. Persist `old_worker_thread_id`, `replacement_worker_thread_id`, replacement reason, and new automation binding in coordinator state.
+
+When the replacement succeeds, this is an internal self-repair, not a user approval gate or Reddit account risk. Escalate only if the replacement task cannot be created, cannot accept the mission, or cannot receive a correctly bound continuation. Never create a second replacement in the same reconciliation pass.
 
 Every task handoff begins with this compact objective card; do not bury it below setup details:
 
@@ -51,9 +73,9 @@ The card defines one outcome, not one action. A worker may search, score, draft,
 
 1. Resolve enabled lanes before creating anything. Broad `开始/运营` enables all four; a named lane enables only that lane.
 2. List/reconcile the registry once.
-3. Create every missing persistent task, capture the returned thread/task ID as `worker_thread_id`, and rename it immediately when title control exists.
-4. Pin the verified `Reddit 主控台`; explicitly unpin every worker. Read/list the created tasks and verify four distinct IDs for broad operation, with each ID mapped to exactly one lane title. A title, plan, or heartbeat card without a persistent task ID is not a worker. If an enabled lane lacks its own readable ID, mark that lane `startup_blocked`; never let the coordinator absorb it.
-5. Send each worker the `default-operations-sop.md` handoff contract: `role=WORKER`, lane, `single_objective`, `out_of_scope`, `worker_thread_id`, coordinator thread ID, account, mission, intensity, style, targets, stop time, first due=`now`, and its required references.
+3. Select the exact registered candidate for each lane. Keep archived/retired candidates out of the active set; create the one missing task when no eligible unarchived candidate exists. Capture every created task ID and rename it immediately when title control exists.
+4. Pin the verified `Reddit 主控台`; explicitly unpin every candidate worker. Verify distinct candidate IDs for broad operation, with each ID mapped to exactly one lane title. A title, plan, or heartbeat card without a persistent task ID is not a worker.
+5. Send each candidate exactly one actual `default-operations-sop.md` mission handoff: `role=WORKER`, lane, `single_objective`, `out_of_scope`, `worker_thread_id`, coordinator thread ID, account, mission, intensity, style, targets, stop time, first due=`now`, and required references. Success promotes it to `LIVE_REGISTERED`. Missing-rollout evidence triggers the one replacement transaction and exactly one mission delivery to the replacement; a transient failure preserves the candidate without creating a duplicate. After this step, verify one distinct live ID per enabled lane. If a lane still lacks one, mark only that lane `startup_blocked`; never let the coordinator absorb it.
 6. Require the worker to execute its first Chrome slot immediately and return `start_proof`; task creation or acknowledgement is not proof.
 7. Read each enabled worker in the same coordinator turn. A plan-only worker receives one explicit amendment: execute the assigned lane now, verify it, then report proof.
 8. If the amended worker still has no proof, mark only that lane `startup_blocked`. Never execute the lane in the coordinator and never merge it into another worker.
@@ -72,6 +94,7 @@ The card defines one outcome, not one action. A worker may search, score, draft,
 - When a worker escalates a substantive blocker, the coordinator becomes the only user-facing decision surface. It may instruct affected owners to pause, but workers never contact the user or ask for confirmation in their own tasks.
 - When a worker returns `MISSION_COMPLETE`, the coordinator marks only that lane terminal and disables its Heartbeat. It reports overall completion only after every lane enabled for the same `mission_id` is terminal and all mission Heartbeats are inactive.
 - When a worker returns `SUBREDDIT_RETIRED`, record the subreddit in the shared retired set, notify the user once, and leave all workers/timers running. Never convert this event into a risk decision without separate account-level evidence.
+- A recovered `STALE_OWNER_TOMBSTONE` remains internal. The mission report may state that one lane owner was replaced, but does not ask the user to approve continuation. A failed replacement is `execution_integrity_failed` and returns through `Reddit 主控台`.
 
 ## User Surface
 

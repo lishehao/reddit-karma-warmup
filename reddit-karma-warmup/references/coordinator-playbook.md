@@ -61,11 +61,12 @@ Stable titles:
 
 Before dispatch:
 
-1. Read the registry and the matching task once.
-2. Reuse it when its lane ownership still matches, even when it is idle or its previous mission ended.
-3. Create a user-visible persistent worker when no valid owner exists or the prior task is genuinely unavailable. The user's operation command authorizes creation for its requested lane(s).
-4. Never create duplicate owners for one lane to increase throughput.
-5. Send the worker its new mission delta and exact local/UTC stop time.
+1. Read the exact registered owner first; use title/search results only to discover an unregistered candidate.
+2. Apply the `LIVE_REGISTERED / RETIRED / STALE_OWNER_TOMBSTONE / TRANSIENT_UNREACHABLE` gate in `thread-supervision-runtime.md`. A cached/readable summary is not reuse proof, and an archived worker is retired rather than auto-unarchived.
+3. Send the actual current mission delta and exact local/UTC stop time to a candidate as the definitive write-capability check. Do not send a separate probe.
+4. On missing-rollout evidence, complete the old-timer cleanup and one-replacement transaction from `thread-supervision-runtime.md`; on transient host/tool failure, preserve the existing owner and do not create a duplicate.
+5. Create a user-visible persistent worker only when no live owner exists. The user's operation command authorizes creation for its requested lane(s).
+6. Verify the exact new task ID, same-turn mission acceptance, and new recurring automation binding before replacing the registry entry. Never create duplicate owners for throughput or repeat replacement inside one reconciliation pass.
 
 ## Mission Scheduler And Supervisor
 
@@ -92,7 +93,7 @@ For every later active command, read affected workers in the current user turn u
 At mission handoff:
 
 1. Read affected owners once.
-2. Confirm requested action/remaining count, recurring lane Heartbeat binding, next trigger, repeat-on state, and stop time.
+2. Confirm requested action/remaining count, exact live worker ID, any stale-owner replacement record, recurring lane Heartbeat binding, next trigger, repeat-on state, and stop time.
 3. Confirm the recurring supervisor Heartbeat and slot ledger are active.
 4. Return the three-line report.
 5. End the active turn; future reads happen only on supervisor wakes or user commands.

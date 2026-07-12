@@ -32,6 +32,7 @@ def main() -> int:
             "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
             "never search or reuse old tasks",
             "Every launcher command creates another fresh run",
+            "自然浏览/投票：随以上执行台读取内容时完成",
         ],
         ROOT / "references" / "launcher-playbook.md": [
             "returns to idle",
@@ -40,6 +41,9 @@ def main() -> int:
             "Do not list/search/read/reuse/unarchive/revive historical tasks",
             "repeated direct user dispatch commands",
             "next command repeats fresh creation with a new run ID",
+            "Post-Dispatch Instruction",
+            "Broad `开始/运营` enables comments, posts, and follow-up",
+            "Create browsing only for an explicit pure-browse/vote request",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
             "not discovery, reuse, or ongoing supervision",
@@ -69,6 +73,8 @@ def main() -> int:
             "不得退回旧任务",
             "执行线程始终不会返回启动台",
             "每次用户回复“开始”",
+            "已启动：<本次创建的任务>",
+            "自然浏览/投票：随以上执行台读取内容时完成",
         ]
 
     errors: list[str] = []

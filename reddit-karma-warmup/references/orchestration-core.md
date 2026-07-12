@@ -11,7 +11,7 @@ self_task_id + lane + title
 account + tier/substate
 mission_id + latest user request + duration/count/intensity/style/language
 operation_stop_at + remaining_target
-action_target + action_cap + qualified_read_floor + vote_owner
+action_target + action_cap + qualified_read_floor + incidental_vote_count
 own_tab_id + optional group_id + current URL
 own_history_ledger
 own_heartbeat_id + next_due_local + next_due_utc
@@ -24,7 +24,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 
 | State | Required action | Exit |
 |-|-|-|
-| `SCOPE` | Apply the latest instruction for this lane; replace conflicting old fields/defaults; resolve exact target/cap/read floor and vote ownership. | local mission clear |
+| `SCOPE` | Apply the latest instruction for this lane; replace conflicting old fields/defaults; resolve exact target/cap/read floor and voting mode. | local mission clear |
 | `PROBE` | Discover/reconnect Chrome, confirm account, local time and UTC. | environment recorded |
 | `TAB` | Create/reclaim only this task's dedicated tab or Tab Group. | tab/account/URL confirmed |
 | `HISTORY` | Restore this lane's recent actions, openings, lengths, targets, and permalinks. | local history ready |
@@ -43,10 +43,10 @@ The first user command reaches `ACT` or a browser-backed no-action/recovery chec
 
 | Lane | Owns | Excludes |
 |-|-|-|
-| comments | proactive comment discovery and submission; independently gated incidental votes only when `vote_owner=true` | main posts, notifications, profile changes |
-| posts | native main post discovery/preflight/submission; independently gated incidental votes only when `vote_owner=true` | comments, notifications, profile changes |
-| follow-up | Notifications and replies to own activity | proactive discovery, new posts, votes |
-| browsing | qualified reading and independently gated votes | publishing text, notifications, profile changes |
+| comments | proactive comment discovery and submission; independently gated incidental votes on already-read candidates | main posts, notifications, vote hunting, profile changes |
+| posts | native main post discovery/preflight/submission; independently gated incidental votes on already-read external research samples | comments, notifications, vote hunting, profile changes |
+| follow-up | Notifications and replies to own activity; independently gated incidental votes on already-read inbound replies | proactive discovery, new posts, vote hunting |
+| browsing | explicit pure-browse missions with qualified reading and independently gated votes | default broad-operation dispatch, publishing text, notifications, profile changes |
 | presence | profile/about, Join/subscribe, truthful Flair/tag | outward content, notifications, votes |
 
 An off-lane user request is not forwarded. Tell the user which canonical task handles it and continue only the current lane if applicable.
@@ -76,7 +76,7 @@ One candidate rejection, empty pool, route error, or failed wake is never termin
 
 Use one native click for the selected action. Record immediate UI state, permalink/target when available, exact copy or vote direction, time, and any current warning. Delayed survivor/profile visibility is a quality signal rather than a prerequisite for continuing the lane.
 
-For votes, one accepted click is sufficient proof. Do not toggle or repeatedly inspect selected state. For uncertain text submission, inspect the exact target once before considering any retry; never duplicate an uncertain mutation.
+For votes, inspect the control state once before clicking. If either direction is already explicitly selected, record `existing_vote` and do not click; if state is ambiguous, record `no_vote`. After one accepted click, do not toggle or repeatedly verify it. For uncertain text submission, inspect the exact target once before considering any retry; never duplicate an uncertain mutation.
 
 ## Reporting
 

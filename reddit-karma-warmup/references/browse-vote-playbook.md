@@ -1,6 +1,11 @@
 # Browse And Vote Playbook
 
-Load for `Reddit 浏览台` or for a comment/post task whose mission explicitly says `vote_owner=true`. The browsing lane never publishes text. A publishing lane applies only this file's qualified-read, score, one-click, ledger, and vote-target rules while keeping its original publishing scope.
+Load for `Reddit 浏览台` and for incidental vote decisions inside comments, posts, and follow-up tasks. The browsing lane never publishes text. Other lanes use only the independent score, eligibility, pre-click state, one-click, and ledger rules on content already opened for their primary objective.
+
+## Two Modes
+
+- `explicit_browse`: user explicitly requested pure browsing/voting. Use the read floor, vote target/cap, scan expansion, scheduling, and browse report below.
+- `incidental`: comments, posts, or follow-up already opened a qualifying external item. Score it once without a vote target. Do not extend the slot, widen discovery, or delay the primary task to find a vote. Record `incidental_vote_count`, then continue the primary lane.
 
 ## Browse Slot
 
@@ -21,7 +26,7 @@ Keep a rolling record:
 ```text
 time | subreddit | url | content_type | qualified_read
 topic | specific_observation | persona_fit | vote_decision | vote_score | vote_reason
-eligible_views_since_vote | vote_result = vote_accepted | no_vote | explicit_failure
+eligible_views_since_vote | vote_result = vote_accepted | existing_vote | no_vote | explicit_failure
 ```
 
 Use the slot's combined-vote target as an active completion objective:
@@ -64,18 +69,19 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 ## Eligibility And Verification
 
 - Use `B/B+` communities first. `A` remains research-first and may receive a vote only for an unmistakably ordinary native reason. `A0/No-go` is read-only with no votes.
-- Never vote on own content, affiliated/team content, a supplied campaign target, or the same target from another account. Never coordinate votes.
-- Reselect this lane's dedicated Chrome tab and confirm the intended account/URL. Require exactly one intended Upvote/Downvote control that is visible and enabled before clicking.
+- Never vote on own content, affiliated/team content, moderator/Automod content, a supplied campaign target, or the same target from another account. Never coordinate votes.
+- Reselect this lane's dedicated Chrome tab and confirm the intended account/URL. Require exactly one intended Upvote/Downvote control that is visible and enabled.
+- Before clicking, inspect the intended controls once. If either direction is already explicitly selected, record `existing_vote` and do not click. If selected state cannot be determined reliably, record `no_vote`; do not risk toggling an existing vote.
 - Click each target at most once. A click call that returns without an exception after this preflight is final `vote_accepted` evidence and immediately counts toward the slot.
-- Do not inspect selected styling, `aria-pressed`, score change, `upmod/downmod`, reload persistence, profile history, or another surface to reconfirm a vote. Do not reopen the target for vote verification and do not maintain stronger/weaker vote evidence levels.
+- After the click, do not inspect selected styling, `aria-pressed`, score change, `upmod/downmod`, reload persistence, profile history, or another surface to reconfirm a vote. Do not reopen the target for vote verification and do not maintain stronger/weaker vote evidence levels.
 - Never click again because the post-click state is hidden, unchanged, ambiguous, or no longer readable. A successful click call remains accepted unless that same call returns an explicit failure.
 - Record `explicit_failure` only for a click exception, Reddit error/banner, account mismatch/logout, captcha, sitewide rate limit, warning, lock, or an unavailable/ambiguous control before click. Do not ask the user to confirm whether a normal click worked.
 - `ERR_BLOCKED_BY_CLIENT` on one page/control is a recoverable route failure: apply `orchestration-core.md` Chrome recovery, then continue the slot through another eligible native Reddit route when needed. Do not convert one blocked route into a lane-wide stop or count unqualified impressions toward the read budget.
-- Record every qualified read and every vote/no-vote decision. A below-target or no-vote slot is valid only after the authorized time window ended or a concrete blocker appeared, with the initial read floor and expansion stages documented.
+- Record every qualified read and every vote/existing-vote/no-vote decision. In `explicit_browse`, a below-target or no-vote slot is valid only after the authorized time window ended or a concrete blocker appeared, with the initial read floor and expansion stages documented. In `incidental` mode, no-vote is always valid and the lane immediately resumes its primary objective.
 
 ## Scheduling And Report
 
-Execute the first browse slot immediately. Every execution-heartbeat resume must also complete its current qualified-read slot and record the read/vote/no-vote result as `slot_proof` before scheduling another trigger.
+In `explicit_browse`, execute the first browse slot immediately. Every execution-heartbeat resume must also complete its current qualified-read slot and record the read/vote/no-vote result as `slot_proof` before scheduling another trigger. Incidental votes never create or change a separate browse schedule.
 
 For a continuing run:
 

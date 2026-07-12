@@ -1,6 +1,6 @@
 # Proactive Playbook
 
-Shared proactive policy for two distinct owners. `Reddit 评论台` loads the shared account/removal/pool rules plus `Comment Candidate Gate`, `Comment Execution`, and the comment report path; it must skip all main-post sections. `Reddit 发帖台` loads the shared rules plus `Main Post Gate`, `Post Diversity`, `Beginner-Trap Angle`, and the post report path; it must skip all comment-candidate/execution sections. Neither task may absorb the other lane. Vote decisions normally belong to `Reddit 浏览台`; a comment/post task may also load `browse-vote-playbook.md` only when its mission says `vote_owner=true`. Lifecycle, target-driven scanning, risk, and reporting come from `default-operations-sop.md` and `orchestration-core.md`.
+Shared proactive policy for two distinct owners. `Reddit 评论台` loads the shared account/removal/pool rules plus `Comment Candidate Gate`, `Comment Execution`, and the comment report path; it must skip all main-post sections. `Reddit 发帖台` loads the shared rules plus `Main Post Gate`, `Post Diversity`, `Beginner-Trap Angle`, and the post report path; it must skip all comment-candidate/execution sections. Neither task may absorb the other lane. Each task may apply `browse-vote-playbook.md` in incidental mode only to external content already opened for its primary work. Lifecycle, target-driven scanning, risk, and reporting come from `default-operations-sop.md` and `orchestration-core.md`.
 
 ## Account Bands
 
@@ -115,7 +115,7 @@ The comment target is an execution objective. A qualified candidate read require
 7. Measure the exact published text and append `char_count`, `word_count`, `sentence_form`, `length_tier`, and `why_this_length` to history and follow-up state. After a verified proactive comment, use a local `60-120 sec` pause before the next publish; first follow-up is normally `20-40 min` later.
 8. During a new start, use the selected intensity envelope. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill the target.
 
-When this task has `vote_owner=true`, score the already qualified-read post independently through `browse-vote-playbook.md` before drafting. A passing vote may be cast once and counted toward this task's separate vote target; comment score never becomes vote score, and submitting a comment never requires a vote.
+Before drafting, independently score the already qualified-read post or parent through the incidental mode in `browse-vote-playbook.md`. A passing natural vote may be cast once, but there is no vote target and submitting a comment never requires a vote. Comment score never becomes vote score; do not read extra items or delay the comment to hunt for votes.
 
 Comments should be mostly short, while longer replies remain available when the target genuinely needs explanation. Do not default to two polished sentences, mechanically rotate lengths, add filler, summarize the post, repeat top comments, or mention Loci/product links unless the user explicitly requests it and rules permit it.
 
@@ -159,7 +159,7 @@ On `retire_subreddit`, a pending-review own post must be deleted/withdrawn immed
 
 The post target is an execution objective. A failed candidate causes immediate retargeting and continued live scanning while the slot and authorized window remain. Do not treat one subreddit preflight, one pending-review deletion, or one weak angle as completion. Finish below target only after the target-driven expansion stages are exhausted by the deadline or a current concrete post-lane blocker remains.
 
-When this task has `vote_owner=true`, recent external posts opened during research may receive an independently scored vote through `browse-vote-playbook.md`. Never vote on the account's own post, affiliated content, or because a source post inspired the draft.
+Recent external posts already opened during research receive one independent incidental vote assessment through `browse-vote-playbook.md`. Never vote on the account's own post, affiliated content, moderator/Automod content, or merely because a source inspired the draft. There is no vote target and no extra browsing for votes.
 
 After drafting, run Double-Check B on the final title/body/flair, live submit state, history, length/structure, and duplicate-send risk before clicking Post.
 
@@ -195,7 +195,7 @@ On a direct user command or execution-heartbeat resume, finish and verify only t
 
 Use the three-line compact report from `orchestration-core.md`:
 
-- `本轮完成`：仅写本任务已完成的评论或主帖、数量、subreddit 和 permalink
+- `本轮完成`：仅写本任务已完成的评论或主帖、数量、附带投票数量、subreddit 和 permalink
 - `下一轮心跳`：核验后的本地日期时间、时区及 UTC
 - `下轮计划`：仅写本任务下一轮评论或发帖工作及目标数量
 

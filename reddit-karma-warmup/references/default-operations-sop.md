@@ -7,7 +7,8 @@ Use in the reusable stateless launcher to split each direct dispatch request, an
 - missing duration: `3h`
 - missing intensity: `standard`
 - missing style: `mixed`
-- broad `开始/运营`: comments + posts + follow-up + browsing
+- broad `开始/运营`: comments + posts + follow-up
+- browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
 - presence: only when explicitly requested or the first profile baseline is incomplete
 
 Resolve style through `operation-style-profiles.md`. Explicit user counts, duration, language, pool, style, or lane replace defaults without another confirmation.
@@ -34,16 +35,17 @@ Each lane works backward from the exact action target instead of stopping after 
 
 More qualified reading is always allowed. Fewer actions are not an acceptable convenience outcome while time and eligible surfaces remain. Never lower a score threshold, invent experience, reuse near-duplicate text, violate live rules, or exceed the action cap merely to fill the number. If the final target is still short, report the exact actions completed, qualified candidates assessed, expansion stages attempted, and concrete reason the remaining candidates failed.
 
-## Vote Ownership
+## Natural Incidental Voting
 
-Exactly one lane in a run owns vote mutations:
+Comments, posts, and follow-up tasks may independently score and cast a natural vote only on content they already had to open for their primary objective:
 
-- broad mixed operation: `BROWSING_WORKER`
-- comments-only operation: `COMMENTS_WORKER` may own incidental voting while reading comment candidates
-- posts-only operation: `POSTS_WORKER` may own incidental voting while researching live subreddit content
-- explicit user assignment: the named lane
+- comments: the candidate post or parent chain already read for comment discovery
+- posts: external survivor/reference posts already read during live rules and angle research
+- follow-up: another user's inbound reply already read during Notifications or own-activity review
 
-The launcher writes `vote_owner=true|false` into every mission. A publishing lane with `vote_owner=true` loads `browse-vote-playbook.md`, scores votes independently from comment/post scores, and works toward the supplied vote target. Other lanes may read the same content but never click a vote control. No task discovers or checks siblings to enforce this; ownership is fixed in the mission.
+Incidental voting has no separate target, cap, or read floor. Never extend a slot, widen discovery, or delay the primary lane merely to find votes. The dedicated `BROWSING_WORKER` remains available only for an explicit pure-browse/vote request and is the only mode with a vote target and browse floor.
+
+Every vote uses the independent score in `browse-vote-playbook.md`; comment, post, or reply scores never become vote scores. Before clicking, inspect the intended control once: if either direction is already explicitly selected, record `existing_vote` and do not click; if the state cannot be determined reliably, record `no_vote`. After one successful click, accept it without repeated verification. Never vote on own, team/affiliated, moderator/Automod, or supplied campaign content.
 
 ## Launcher Dispatch
 
@@ -63,7 +65,7 @@ first_due=now
 heartbeat_owner=self
 launcher_callback=none
 sibling_visibility=none
-vote_owner=true|false
+incidental_voting=already_read_content_only
 action_target + action_cap + qualified_read_floor
 ```
 

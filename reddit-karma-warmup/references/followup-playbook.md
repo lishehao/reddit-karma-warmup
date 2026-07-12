@@ -1,6 +1,6 @@
 # Follow-Up Playbook
 
-Use only for notifications, supplied Reddit URLs, replies to the account's own recent posts/comments, and mod/Automod follow-up. Shared lifecycle and scheduling come from `orchestration-core.md` and `scheduler-and-heartbeats.md`.
+Use only for notifications, supplied Reddit URLs, replies to the account's own recent posts/comments, and mod/Automod follow-up. Shared lifecycle and scheduling come from `orchestration-core.md` and `scheduler-and-heartbeats.md`. Load `browse-vote-playbook.md` in incidental mode for another user's inbound reply already opened during this sweep.
 
 ## Cadence And Surfaces
 
@@ -35,6 +35,8 @@ Score each exact inbound item:
 - `Closed`: resolved chain, removed item, withdrawn pending post, or no further useful action.
 
 Session-level authorization covers `Act` replies. Do not request per-reply confirmation.
+
+After reading the exact inbound chain, independently assess the other user's reply for an incidental vote. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. There is no vote quota: do not browse unrelated feeds, reopen closed chains, or delay a reply to find votes. Record `incidental_vote_count`, `existing_vote`, or `no_vote` locally and continue triage.
 
 This lane has no artificial reply quota. Its completion target is one full required-surface sweep plus every passing `Act` available in that sweep. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments even when the first surface is quiet; never report a partial sweep as completion.
 
@@ -78,7 +80,7 @@ The follow-up lane owns its execution state, cleanup queue, and self-targeted re
 
 Use the three-line compact report from `orchestration-core.md`:
 
-- `本轮完成`：已检查的 Notifications、本人帖子/评论，以及完成的回复或清理动作和 permalink
+- `本轮完成`：已检查的 Notifications、本人帖子/评论，以及完成的回复、清理动作、附带投票数量和 permalink
 - `下一轮心跳`：核验后的本地日期时间、时区及 UTC
 - `下轮计划`：下一次跟进范围和目标动作
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate exact targets, simple score gates, scan expansion, and vote ownership."""
+"""Validate exact targets, score gates, scan expansion, and lane-local voting."""
 
 import json
 from pathlib import Path
@@ -14,8 +14,10 @@ def read(relative: str) -> str:
 
 required = {
     "SKILL.md": [
-        "vote_owner=true",
         "exact target/cap/read floor",
+        "incidental voting on already-read candidates",
+        "explicit pure-browse missions",
+        "自然浏览/投票：随以上执行台读取内容时完成",
     ],
     "references/default-operations-sop.md": [
         "Target-Driven Scan Loop",
@@ -23,14 +25,18 @@ required = {
         "action_cap",
         "qualified_read_floor",
         "Fewer actions are not an acceptable convenience outcome",
-        "Exactly one lane in a run owns vote mutations",
+        "Natural Incidental Voting",
+        "broad `开始/运营`: comments + posts + follow-up",
+        "browsing: only when the user explicitly requests",
+        "incidental_voting=already_read_content_only",
     ],
     "references/proactive-playbook.md": [
         "Comment Candidate Gate",
         "post_candidate_score >=82",
         "The comment target is an execution objective",
         "The post target is an execution objective",
-        "vote_owner=true",
+        "no vote target",
+        "already qualified-read post",
     ],
     "references/browse-vote-playbook.md": [
         "Initial qualified-read floor",
@@ -42,6 +48,8 @@ required = {
         "Act >=75",
         "no artificial reply quota",
         "every passing `Act`",
+        "incidental vote",
+        "incidental_vote_count",
     ],
     "references/outbound-copy-gate.md": [
         "comment_fun_score",
@@ -57,11 +65,19 @@ for relative, needles in required.items():
             errors.append(f"missing:{relative}:{needle}")
 
 forbidden = {
-    "references/default-operations-sop.md": [
-        "read budget is exhausted",
-    ],
     "references/browse-vote-playbook.md": [
         "Continue until the target is reached or the read/time budget is exhausted",
+    ],
+    "SKILL.md": [
+        "vote_owner",
+    ],
+    "references/default-operations-sop.md": [
+        "read budget is exhausted",
+        "vote_owner",
+        "comments + posts + follow-up + browsing",
+    ],
+    "references/proactive-playbook.md": [
+        "vote_owner",
     ],
 }
 for relative, needles in forbidden.items():
@@ -79,6 +95,6 @@ print(json.dumps({
         "counts": "EXACT_TARGET_AND_CAP",
         "discovery": "EXPAND_UNTIL_TARGET_OR_DEADLINE",
         "quality": "NEVER_LOWER_THRESHOLD",
-        "votes": "ONE_MISSION_OWNER_INDEPENDENT_SCORE",
+        "votes": "LANE_LOCAL_INCIDENTAL_PLUS_EXPLICIT_BROWSE",
     },
 }, ensure_ascii=False, sort_keys=True))

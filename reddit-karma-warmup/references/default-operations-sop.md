@@ -12,13 +12,38 @@ Use in the reusable stateless launcher to split each direct dispatch request, an
 
 Resolve style through `operation-style-profiles.md`. Explicit user counts, duration, language, pool, style, or lane replace defaults without another confirmation.
 
-Planning targets are quality-gated:
+Planning targets are quality-gated. Resolve every range to one exact `action_target` and one `action_cap` before the first slot. The target is work to complete inside the authorized window; the cap is the most that lane may publish or cast without a new user instruction.
 
-| Intensity | Comments | Posts | Follow-up | Browsing |
+| Intensity | Comment target/cap; candidate-read floor | Post target/cap; research floor | Follow-up | Browse floor; vote target/cap |
 |-|-|-|-|-|
-| low | `2-4/hour` | one candidate/rules sweep per session | `45-60m` | `12-18` qualified reads; vote target/cap `2/2` |
-| standard | `4-6/hour` | one candidate/rules sweep every `2-3h` | `30-45m` | `20-30` qualified reads; vote target/cap `2/4` |
-| high | `6-10/hour` | one candidate/rules sweep every `60-90m` | `20-30m` | `30-45` qualified reads; vote target/cap `4/6` |
+| low | `3/4 per hour`; `9` | `1/1 per session`; `3` subreddit-angle candidates with `5` survivor samples each | full sweep every `45-60m` | `12`; `2/2` |
+| standard | `5/6 per hour`; `15` | `1/1 every 2-3h`; `3` subreddit-angle candidates with `5` survivor samples each | full sweep every `30-45m` | `20`; `2/4` |
+| high | `8/10 per hour`; `24` | `1/1 every 60-90m`; `4` subreddit-angle candidates with `5` survivor samples each | full sweep every `20-30m` | `30`; `4/6` |
+
+An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
+
+## Target-Driven Scan Loop
+
+Each lane works backward from the exact action target instead of stopping after an arbitrary first batch:
+
+1. Set `action_target`, `action_cap`, `qualified_read_floor`, `deadline`, and the lane's score threshold. A slot normally completes only when both the action target and read floor are met.
+2. Start with live `New`/`Rising` items in the highest-fit eligible communities. Open the actual post or comment chain; titles and feed impressions do not count.
+3. Score each exact candidate. Act immediately when it passes; record `Watch`/`Skip` and continue without drafting weak content.
+4. If either the target or read floor is not met, keep scanning while time remains: widen to more eligible communities, then recent `Hot`, deeper comment chains, and adjacent current topics. Refresh live surfaces instead of recycling rejected candidates.
+5. Complete normally only when both the action target and read floor are met. If the cap is reached before the read floor, continue qualified reading without more mutations. Otherwise stop only when the authorized window ends or a current concrete blocker prevents that lane's remaining work.
+
+More qualified reading is always allowed. Fewer actions are not an acceptable convenience outcome while time and eligible surfaces remain. Never lower a score threshold, invent experience, reuse near-duplicate text, violate live rules, or exceed the action cap merely to fill the number. If the final target is still short, report the exact actions completed, qualified candidates assessed, expansion stages attempted, and concrete reason the remaining candidates failed.
+
+## Vote Ownership
+
+Exactly one lane in a run owns vote mutations:
+
+- broad mixed operation: `BROWSING_WORKER`
+- comments-only operation: `COMMENTS_WORKER` may own incidental voting while reading comment candidates
+- posts-only operation: `POSTS_WORKER` may own incidental voting while researching live subreddit content
+- explicit user assignment: the named lane
+
+The launcher writes `vote_owner=true|false` into every mission. A publishing lane with `vote_owner=true` loads `browse-vote-playbook.md`, scores votes independently from comment/post scores, and works toward the supplied vote target. Other lanes may read the same content but never click a vote control. No task discovers or checks siblings to enforce this; ownership is fixed in the mission.
 
 ## Launcher Dispatch
 
@@ -38,6 +63,8 @@ first_due=now
 heartbeat_owner=self
 launcher_callback=none
 sibling_visibility=none
+vote_owner=true|false
+action_target + action_cap + qualified_read_floor
 ```
 
 The missions share only user-provided scope and account identity. They do not share runtime state, Heartbeats, risk, completion, cadence, history, or control.

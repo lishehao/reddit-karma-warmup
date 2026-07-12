@@ -20,7 +20,7 @@ Out of scope:
 2. Broad `开始/运营` enables comments, posts, follow-up, and browsing. Add presence only when the profile baseline is incomplete or explicitly requested. A named lane enables only that lane.
 3. Use `thread-supervision-runtime.md` to create one new persistent task per enabled lane. Do not list/search/read/reuse/unarchive/revive historical tasks.
 4. Capture only the exact IDs returned by this run's task-creation calls. Rename each new task to its canonical lane title and keep it unpinned.
-5. Send one complete handoff containing lane, objective, exclusions, account, duration/count, intensity, style, language, target pool, stop time, first due=`now`, required references, and `heartbeat_owner=self`.
+5. Send one complete handoff containing lane, objective, exclusions, account, duration/count, intensity, style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `vote_owner=true|false`, required references, and `heartbeat_owner=self`.
 6. Verify only that the exact task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
 7. Return a compact mapping of the newly created lane titles, then enter `L3_IDLE`.
 

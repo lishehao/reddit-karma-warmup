@@ -1,6 +1,6 @@
 # Proactive Playbook
 
-Shared proactive policy for two distinct owners. `Reddit 评论台` loads the shared account/removal/pool rules plus `Comment Candidate Gate`, `Comment Execution`, and the comment report path; it must skip all main-post sections. `Reddit 发帖台` loads the shared rules plus `Main Post Gate`, `Post Diversity`, `Beginner-Trap Angle`, and the post report path; it must skip all comment-candidate/execution sections. Neither task may absorb the other lane. Dedicated browsing and vote decisions belong to `browse-vote-playbook.md`; lifecycle, risk, and reporting come from `orchestration-core.md`.
+Shared proactive policy for two distinct owners. `Reddit 评论台` loads the shared account/removal/pool rules plus `Comment Candidate Gate`, `Comment Execution`, and the comment report path; it must skip all main-post sections. `Reddit 发帖台` loads the shared rules plus `Main Post Gate`, `Post Diversity`, `Beginner-Trap Angle`, and the post report path; it must skip all comment-candidate/execution sections. Neither task may absorb the other lane. Vote decisions normally belong to `Reddit 浏览台`; a comment/post task may also load `browse-vote-playbook.md` only when its mission says `vote_owner=true`. Lifecycle, target-driven scanning, risk, and reporting come from `default-operations-sop.md` and `orchestration-core.md`.
 
 ## Account Bands
 
@@ -27,7 +27,7 @@ This is not the default. Enable it only when the user explicitly requests about 
 - High intensity starts with a `6-10` passing-comment first-hour envelope. The comment task records and verifies its own first permalink without an external acceptance task.
 - After the first hour, continue within the selected high envelope. A subreddit visibility/removal failure retires only that subreddit; only an `R3` account-level signal disables this mode.
 - Prefer at least `6` communities and `3` clusters across a 60-comment day when the eligible pool supports it; avoid more than `5` proactive comments in one subreddit per `24h`.
-- Keep the normal `Act >=80`, truthfulness, copy-length, history, and `60-120 sec` post-submit pause. If not enough candidates pass, publish fewer.
+- Keep the normal `Act >=80`, truthfulness, copy-length, history, and `60-120 sec` post-submit pause. If the initial pool is short, continue the target-driven expansion loop; finish below target only at the deadline or a concrete blocker, never by lowering the gate.
 - Only `R3` disables Daily 60 mode. `R1/R2` retire the affected subreddit(s) but keep the account tier and authorized envelope in unrelated eligible communities. Do not compensate for retired candidates with bursts.
 
 ## Removal Scope Levels
@@ -88,20 +88,21 @@ Prefer `New` and `Rising` for early comment opportunities. Use `Hot` and `Top` t
 
 Score the exact post and intended parent comment, not only the subreddit.
 
-| Factor | Points |
-|-|-:|
-| Specific context and contribution opportunity | 0-25 |
-| Community and topic fit | 0-20 |
-| Timing and thread visibility | 0-15 |
-| Non-duplication versus existing comments | 0-15 |
-| Account credibility without invented experience | 0-15 |
-| Rule, safety, and promotion risk | 0-10 |
+| Factor | Points | Simple question |
+|-|-:|-|
+| Exact context relevance | 0-25 | Did we read the actual post/parent and understand the point? |
+| New value available | 0-25 | Can we add one thing not already repeated? |
+| Freshness and visibility | 0-20 | Is the thread still alive enough for the reply to be seen? |
+| Community/account fit | 0-15 | Does it naturally fit the subreddit and truthful account history? |
+| Rules and truthfulness | 0-15 | Is it permitted, non-promotional, and free of invented experience? |
 
 - `Act`: `>=80`; if replying to a particular comment, target fit should be `>=82`.
 - `Watch`: `68-79`; read/learn, do not force a reply.
 - `Skip`: `<68`, stale, saturated, unsafe, generic, or dependent on fake experience/product mention.
 
 For a fast-rising topic, also require a clear current hook: the thread is still young, the reply adds something not already dominant, and the topic is native to the subreddit. Search the exact current topic when freshness affects correctness; turn research into one compact insight rather than a source dump.
+
+The comment target is an execution objective. A qualified candidate read requires opening the exact post, reading its body/media and enough existing comments to score non-duplication; title-only impressions do not count. After every `Watch`/`Skip`, continue the `Target-Driven Scan Loop` in `default-operations-sop.md`. Do not finish below target merely because the first community, page, or initial read floor produced too few passing candidates. Stop short only at the authorized deadline, action cap, or a current concrete blocker after the expansion stages were attempted.
 
 ## Comment Execution
 
@@ -114,11 +115,25 @@ For a fast-rising topic, also require a clear current hook: the thread is still 
 7. Measure the exact published text and append `char_count`, `word_count`, `sentence_form`, `length_tier`, and `why_this_length` to history and follow-up state. After a verified proactive comment, use a local `60-120 sec` pause before the next publish; first follow-up is normally `20-40 min` later.
 8. During a new start, use the selected intensity envelope. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill the target.
 
+When this task has `vote_owner=true`, score the already qualified-read post independently through `browse-vote-playbook.md` before drafting. A passing vote may be cast once and counted toward this task's separate vote target; comment score never becomes vote score, and submitting a comment never requires a vote.
+
 Comments should be mostly short, while longer replies remain available when the target genuinely needs explanation. Do not default to two polished sentences, mechanically rotate lengths, add filler, summarize the post, repeat top comments, or mention Loci/product links unless the user explicitly requests it and rules permit it.
 
 ## Main Post Gate
 
 Choose subreddit + audience + angle after history comparison and before drafting. Treat this live same-day preflight as the post-specific part of Double-Check A:
+
+After live eligibility is known, score the exact subreddit + audience + angle:
+
+| Factor | Points | Simple question |
+|-|-:|-|
+| Live rules and eligibility | 0-25 | Are age/Karma, flair, format, placement, and promotion rules clearly satisfied? |
+| Audience and pain fit | 0-25 | Does this community actually care about the post's problem or experience? |
+| Current demand and timing | 0-20 | Do recent live posts/comments show current interest in this angle? |
+| Native format fit | 0-15 | Does the shape match recent surviving posts without copying them? |
+| Originality and account coherence | 0-15 | Is it distinct from recent history and truthful for this account? |
+
+`pass` requires `post_candidate_score >=82`, at least `20/25` on live rules and eligibility, and no mandatory-rule conflict. `watch` is `70-81`: continue research or retarget. `skip_candidate` is `<70` or any live eligibility blocker. A high total never overrides a failed mandatory rule.
 
 Do not reject a first daily post merely because the account is `K0` or because six hours have not elapsed. `6h` is only the spacing gate between the first and second same-day posts. The first post still requires all live subreddit eligibility, account-age/Karma, format, history, and moderation checks below.
 
@@ -142,6 +157,10 @@ Decision:
 
 On `retire_subreddit`, a pending-review own post must be deleted/withdrawn immediately without confirmation. Confirm the native deletion dialog when shown, accept one visible deleted/missing result as cleanup proof, never repost there, send the non-blocking retirement notice, and continue the same lane in another eligible community. If the cleanup route fails, queue only that exact permalink for automatic recovery/retry while post discovery continues elsewhere; do not ask the user or pause this lane or any sibling lane.
 
+The post target is an execution objective. A failed candidate causes immediate retargeting and continued live scanning while the slot and authorized window remain. Do not treat one subreddit preflight, one pending-review deletion, or one weak angle as completion. Finish below target only after the target-driven expansion stages are exhausted by the deadline or a current concrete post-lane blocker remains.
+
+When this task has `vote_owner=true`, recent external posts opened during research may receive an independently scored vote through `browse-vote-playbook.md`. Never vote on the account's own post, affiliated content, or because a source post inspired the draft.
+
 After drafting, run Double-Check B on the final title/body/flair, live submit state, history, length/structure, and duplicate-send risk before clicking Post.
 
 ## Post Diversity
@@ -155,7 +174,7 @@ For multiple planned posts, vary both community cluster and angle when viable:
 - place/outdoor/location
 - competitor/product communities
 
-Diversity never justifies a weak target. Publish fewer posts if no second distinct community passes.
+Diversity never justifies a weak target. Keep widening the eligible live search while time remains; publish fewer only when the authorized deadline arrives without a second passing community.
 
 ## Beginner-Trap Angle
 

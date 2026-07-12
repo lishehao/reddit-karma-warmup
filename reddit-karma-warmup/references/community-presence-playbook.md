@@ -28,7 +28,15 @@ Before join/subscribe:
 
 1. Open the subreddit and read home/about/sidebar plus recent `Hot` or `New`.
 2. Confirm the pool layer is not `A0`/`No-go`.
-3. Score target relevance, activity, culture fit, rules/risk, diversity value, and useful truthful flair.
+3. Score the exact community:
+
+| Factor | Points | Simple question |
+|-|-:|-|
+| Relevance | 0-25 | Does it fit the account's truthful interests? |
+| Current activity | 0-20 | Are recent native posts and discussions alive? |
+| Culture fit | 0-20 | Can the account participate normally rather than only promote? |
+| Rules and risk | 0-20 | Are ordinary membership and participation clearly allowed? |
+| Diversity/flair value | 0-15 | Does it add a useful distinct interest or truthful flair? |
 
 - `Act >=78`: fit is clear and cadence remains.
 - `Watch 60-77`: revisit later.

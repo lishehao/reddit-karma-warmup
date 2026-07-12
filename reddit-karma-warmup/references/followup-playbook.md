@@ -19,12 +19,24 @@ Shorten the next sweep only for an active direct exchange or time-sensitive mod 
 
 ## Triage
 
-- `Act`: a direct question, useful correction/feedback, real disagreement, misunderstanding worth clarifying, socially expected compact acknowledgement, or safe mod/Automod response.
-- `Watch`: thread is developing, tone is unclear, another person already answered, or only performance changed.
-- `Skip`: generic praise needing no reply, bait/hostility, unsafe/sensitive topic, locked/removed/old target, or a reply that would require invented experience or promotion.
+Score each exact inbound item:
+
+| Factor | Points | Simple question |
+|-|-:|-|
+| Reply need | 0-30 | Is there a direct question, correction, misunderstanding, or expected acknowledgement? |
+| Useful value | 0-25 | Can the account add a clear answer, clarification, or precise thanks? |
+| Conversation freshness | 0-20 | Is the exchange still active and worth continuing now? |
+| Tone and context fit | 0-15 | Does a reply fit the parent chain rather than interrupt it? |
+| Truthfulness and safety | 0-10 | Can it be answered without invention, promotion, or unsafe claims? |
+
+- `Act >=75`: reply when the lane has session authorization.
+- `Watch 60-74`: keep open and reassess in the next full sweep.
+- `Skip <60`: generic praise needing no reply, bait/hostility, unsafe/sensitive topic, locked/removed/old target, or a reply requiring invented experience or promotion.
 - `Closed`: resolved chain, removed item, withdrawn pending post, or no further useful action.
 
 Session-level authorization covers `Act` replies. Do not request per-reply confirmation.
+
+This lane has no artificial reply quota. Its completion target is one full required-surface sweep plus every passing `Act` available in that sweep. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments even when the first surface is quiet; never report a partial sweep as completion.
 
 ## Reply Execution
 

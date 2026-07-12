@@ -11,6 +11,7 @@ self_task_id + lane + title
 account + tier/substate
 mission_id + latest user request + duration/count/intensity/style/language
 operation_stop_at + remaining_target
+action_target + action_cap + qualified_read_floor + vote_owner
 own_tab_id + optional group_id + current URL
 own_history_ledger
 own_heartbeat_id + next_due_local + next_due_utc
@@ -23,7 +24,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 
 | State | Required action | Exit |
 |-|-|-|
-| `SCOPE` | Apply the latest instruction for this lane; replace conflicting old fields/defaults. | local mission clear |
+| `SCOPE` | Apply the latest instruction for this lane; replace conflicting old fields/defaults; resolve exact target/cap/read floor and vote ownership. | local mission clear |
 | `PROBE` | Discover/reconnect Chrome, confirm account, local time and UTC. | environment recorded |
 | `TAB` | Create/reclaim only this task's dedicated tab or Tab Group. | tab/account/URL confirmed |
 | `HISTORY` | Restore this lane's recent actions, openings, lengths, targets, and permalinks. | local history ready |
@@ -42,8 +43,8 @@ The first user command reaches `ACT` or a browser-backed no-action/recovery chec
 
 | Lane | Owns | Excludes |
 |-|-|-|
-| comments | proactive comment discovery and submission | main posts, notifications, votes, profile changes |
-| posts | native main post discovery/preflight/submission | comments, notifications, votes, profile changes |
+| comments | proactive comment discovery and submission; independently gated incidental votes only when `vote_owner=true` | main posts, notifications, profile changes |
+| posts | native main post discovery/preflight/submission; independently gated incidental votes only when `vote_owner=true` | comments, notifications, profile changes |
 | follow-up | Notifications and replies to own activity | proactive discovery, new posts, votes |
 | browsing | qualified reading and independently gated votes | publishing text, notifications, profile changes |
 | presence | profile/about, Join/subscribe, truthful Flair/tag | outward content, notifications, votes |

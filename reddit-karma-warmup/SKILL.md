@@ -12,8 +12,8 @@ Use a reusable stateless launcher plus independent lane tasks. There is no persi
 | Role | Stable title | Owns | Never does |
 |-|-|-|-|
 | `REDDIT_LAUNCHER` | `Reddit 启动台` | install/upgrade, read-only preflight, accept any later user dispatch command, create fresh requested lane tasks, deliver each new mission, then idle | Reddit actions, old-task discovery/reuse, ongoing supervision, worker callbacks, Heartbeats, cross-lane status |
-| `COMMENTS_WORKER` | `Reddit 评论台` | proactive comment discovery, drafting, submission, verification, its own timer/recovery/report | posts, follow-up, voting, sibling inspection |
-| `POSTS_WORKER` | `Reddit 发帖台` | subreddit/rules preflight, native posts, verification, its own timer/recovery/report | comments, follow-up, voting, sibling inspection |
+| `COMMENTS_WORKER` | `Reddit 评论台` | proactive comment discovery, drafting, submission, verification, its own timer/recovery/report; incidental voting only when its mission says `vote_owner=true` | posts, follow-up, sibling inspection |
+| `POSTS_WORKER` | `Reddit 发帖台` | subreddit/rules preflight, native posts, verification, its own timer/recovery/report; incidental voting only when its mission says `vote_owner=true` | comments, follow-up, sibling inspection |
 | `FOLLOWUP_WORKER` | `Reddit 跟进台` | Notifications and replies to own activity, its own timer/recovery/report | proactive discovery, new posts, voting, sibling inspection |
 | `BROWSING_WORKER` | `Reddit 浏览台` | qualified reading, independently gated Upvote/Downvote, its own timer/recovery/report | text publishing, sibling inspection |
 | `PRESENCE_WORKER` | `Reddit 主页台` | truthful profile, Join/subscribe, Flair/tag, membership review, optional own timer | outward content, sibling inspection |
@@ -37,7 +37,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - `runtime-and-setup.md`: installation, preflight, immediate launcher naming, and launcher exit.
 - `launcher-playbook.md`: reusable stateless fresh allocation and delivery proof.
 - `thread-supervision-runtime.md`: create one fresh independent task per requested lane; never search or reuse old tasks.
-- `default-operations-sop.md`: normalize the first mission and lane-specific later mission.
+- `default-operations-sop.md`: normalize the first mission, exact action targets/caps, target-driven scan loop, vote ownership, and lane-specific later mission.
 - `orchestration-core.md`: one lane's executable slot, dedicated Chrome tab, action verification, and local state.
 - `scheduler-and-heartbeats.md`: worker-owned recurring Heartbeat, time verification, retry, update, and terminal cleanup.
 - `risk-escalation.md`: lane-local recovery and direct user repair inside the affected lane.
@@ -69,7 +69,7 @@ Every lane task independently follows:
 2. Discover/reconnect Chrome and create or reclaim only its own tab.
 3. Confirm the visible Reddit account, current local time, UTC, and stop time.
 4. Read live context. For posts, always recheck current subreddit rules, account age/Karma/Flair requirements, and recent posting eligibility before drafting.
-5. Execute and verify the first requested micro-slot in the current turn. A future Heartbeat never defers the first slot.
+5. Resolve the slot's exact target/cap/read floor, then execute and verify the first requested micro-slot in the current turn. Continue live discovery toward the target; a future Heartbeat never defers the first slot or substitutes for unfinished scanning that still fits this turn.
 6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.
 7. On each wake, complete one due slot or record a concrete `not_due`/no-action/recovery checkpoint; then keep or update the same timer.
 8. At explicit stop, deadline, or verified lane completion, remove only its own Heartbeat and report locally.

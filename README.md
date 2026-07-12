@@ -87,7 +87,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - `Reddit 浏览台`
 - `Reddit 主页台`，仅在首次主页基础未完成或用户明确要求时
 
-启动台为每个新任务发送完整 lane mission，设置 `first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`，验证消息投递成功后进入 idle。它不等待执行结果。下一条用户命令会生成另一个新 run，不继承前一轮状态。
+启动台为每个新任务发送完整 lane mission，设置明确动作目标/上限/最低有效阅读量、唯一 `vote_owner`、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`，验证消息投递成功后进入 idle。它不等待执行结果。下一条用户命令会生成另一个新 run，不继承前一轮状态。
 
 启动台禁止搜索、读取、复用、反归档、唤醒、改名或向历史执行任务重新发 mission。即使旧任务同名、仍可读或仍在运行，也必须忽略。每个新 run 只认本次 `create_thread` 返回的新 Task ID；fresh task 创建失败时只报告本次失败，不得退回旧任务。
 
@@ -96,6 +96,8 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 每个执行台：
 
 - 立即执行自己的首轮，不等 Heartbeat；
+- 同时完成动作数量目标与最低有效阅读量；未满足时继续读取真实最新帖子和评论并扩展合格社区，不因第一批候选不足而提前结束；
+- 每个候选独立评分，达到门槛才动作；增加阅读量不能降低评论、发帖或投票阈值；
 - 使用独立 Chrome tab/Tab Group；
 - 自己创建、验证、更新和结束指向自身任务的 recurring Heartbeat；
 - 自己处理网络恢复、规则复核、重试、候选替换和用户修复；

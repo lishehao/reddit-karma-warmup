@@ -91,3 +91,15 @@ Rules:
 - Compare recent account posts for title pattern, opening, angle, paragraph shape, and length. Avoid repeating all of them together.
 - Preserve factual/persona consistency even when the post format changes.
 - Run final title/body/flair checks through Double-Check B in `publish-consistency.md`.
+
+Before submission, score the final title/body package separately from the candidate/community score:
+
+| Factor | Points | Simple question |
+|-|-:|-|
+| Clear hook | 0-25 | Is the reason to read obvious without clickbait? |
+| Native subreddit fit | 0-25 | Does it sound and look like a useful native post here? |
+| Specific value | 0-20 | Does it provide or ask one concrete thing? |
+| Compression | 0-15 | Is it no longer than the community and idea require? |
+| Distinct/account-consistent shape | 0-15 | Is it non-duplicative while remaining truthful? |
+
+Publish only at `post_copy_score >=80` with all live eligibility checks still passing. `70-79` rewrites once; `<70` retargets or skips. A copy score never overrides the mandatory post gate.

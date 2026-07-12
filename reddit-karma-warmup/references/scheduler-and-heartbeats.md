@@ -19,6 +19,25 @@ For any operation that extends beyond the current slot:
 
 Heartbeat recurrence is infrastructure cadence, not a quota to mutate Reddit. A worker may wake before its next planned action and record `not_due`; it never publishes merely because a Heartbeat fired.
 
+## Timer Persistence And Replacement
+
+`technical_failure != timer_terminal`. A recurring Heartbeat carries recovery checkpoints through temporary failure and remains repeat-on until one of these allowlisted terminal reasons applies:
+
+```text
+user_stop | operation_stop_at_reached | lane_terminal | mission_terminal | verified_timer_replacement
+```
+
+Chrome disconnects, stale tabs, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, route/page failures, uncertain mutations, candidate rejection, subreddit retirement, missing proof, lane recovery, account challenge, and timed rate limits are not timer-deletion reasons. Withhold only the exact unsafe/impossible action and let the existing lane and supervisor Heartbeats deliver later re-probes. Several failed recovery wakes still do not justify timer deletion; they end only at the mission deadline, explicit user stop, terminal proof, or a verified replacement.
+
+For a missing, stopped, malformed, duplicate, repeat-off, or misbound timer:
+
+1. Prefer updating the existing item in place and verify target, repeat-on state, recurrence, next wake, and deadline guard.
+2. If replacement is required, create the corrected recurring item first and verify all fields the runtime exposes.
+3. Only after the replacement is proven may the coordinator deactivate the superseded item.
+4. If replacement cannot be proven, retain any still-valid continuation, mark the mission `degraded`, and retry repair on the supervisor's next wake. Never create a no-timer gap merely to make the registry look clean.
+
+Failures are lane-local. One lane's recovery, blocker, or timer repair never pauses, deletes, rewrites, or delays another lane's Heartbeat. The recurring supervisor Heartbeat also remains active while any lane is recovering so it can observe and repair continuation.
+
 ## Mission Ledger
 
 The coordinator stores:
@@ -114,8 +133,8 @@ On each supervisor wake:
 2. Verify each lane Heartbeat still exists, is active/repeat-on, targets the right worker, remains before the stop time, and has produced a new worker turn near its expected wake.
 3. Reconcile `planned_slots`, `started_slots`, `completed_slots`, `blocked_slots`, `missed_slots`, and `last_verified_at` from worker proof.
 4. Apply worker-proposed `next_due_at` or user amendments by updating the existing recurring timer/prompt when required.
-5. Repair one missing, stopped, misbound, or malformed Heartbeat in place. Never leave a duplicate active.
-6. If continuation still fails, mark `SCHEDULER_CONTINUATION_FAILURE`, preserve completed Reddit actions, set mission `degraded` or `partial_completed`, and report through `Reddit 主控台`. This is orchestration failure, not account risk.
+5. Repair one missing, stopped, misbound, or malformed Heartbeat in place. If replacement is required, verify the new timer before deactivating the superseded item; never leave a continuation gap or a duplicate active after successful replacement.
+6. If continuation still fails, mark `SCHEDULER_CONTINUATION_FAILURE`, preserve completed Reddit actions and every valid recurring timer, set mission `degraded` or `partial_completed`, and retry repair on the next supervisor wake. Report through `Reddit 主控台`; this is orchestration failure, not account risk.
 7. At the deadline or after all lanes are terminal, delete/deactivate every mission Heartbeat, reconcile totals, and issue one final mission report.
 
 The first post-install hour still receives richer health/quality checks, but it uses this same mission-lifetime supervisor Heartbeat. Do not create a separate one-shot bootstrap timer.
@@ -134,7 +153,7 @@ Classify:
 
 Hidden `next_run_at` alone is not failure. A visible `COUNT=1` or repeat-off lane timer for a multi-slot mission is failure and must be replaced before claiming sustained operation.
 
-If an exact UTC-offset error is visible, update the same Heartbeat in place using the detected scheduler clock mode. Do not wait for the wrong trigger.
+If an exact UTC-offset error is visible, update the same Heartbeat in place using the detected scheduler clock mode. Do not wait for the wrong trigger and do not delete it before the corrected schedule is verified.
 
 ## Continuation Failure
 
@@ -164,11 +183,13 @@ Never claim `持续运行中` from first-round proof plus timer creation alone. 
 
 ## Stop And Amendment
 
-- User pause/stop: coordinator updates/deletes affected recurring Heartbeats and verifies they are inactive.
+- User pause/stop: coordinator updates/deletes only the explicitly affected recurring Heartbeats and verifies they are inactive.
 - Duration/intensity/count/style change: coordinator increments `plan_revision`, updates ledger and existing timers/prompts, and preserves completed work.
 - Worker terminal return: coordinator marks that lane terminal and disables its Heartbeat.
 - Deadline: prompt guard prevents new mutation even if scheduler cleanup is late; supervisor performs cleanup and final reconciliation.
 - Do not archive a worker while a Heartbeat still targets it.
+
+No other condition authorizes Heartbeat deletion. Retryable failures, blocked routes, pending cleanup, uncertain mutation state, account challenge, or a degraded lane keep their recurring timers active so later wakes can re-probe without burst catch-up.
 
 ## Smoke Test
 

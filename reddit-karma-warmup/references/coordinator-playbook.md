@@ -104,10 +104,11 @@ At mission handoff:
 - Workers store verified actions, local history, and compact reports in their own tasks.
 - The main task reads them during recurring supervisor wakes or when the user asks.
 - Workers do not callback for routine progress or ordinary heartbeat completion and never manage sibling tasks.
-- A decision-requiring risk/blocker is the immediate callback path: the worker sends it to this coordinator, pauses the affected scope, and waits for a routed user decision.
+- A decision-requiring risk/blocker is the immediate callback path: the worker sends it to this coordinator, withholds only the exact impossible or uncertain action, and waits for a routed user decision while recurring lane/supervisor Heartbeats remain active for re-probe.
 - A non-blocking `SUBREDDIT_RETIRED` notice records the exact subreddit, informs the user once, and continues all unaffected work without asking a question.
 - A terminal `MISSION_COMPLETE` return records completion by `mission_id` and lane. When every enabled lane is terminal, send one concise overall completion report; otherwise wait without polling.
 - Outside an active turn, only the recurring supervisor, worker risk/completion returns, or a user command re-enters the coordinator.
+- Recoverable failures and account re-probes do not authorize timer deletion. The coordinator removes a Heartbeat only for explicit user stop, deadline, verified terminal completion, or after a corrected replacement has been created and verified. A lane failure never changes sibling timers.
 
 ## Technical Abstraction
 

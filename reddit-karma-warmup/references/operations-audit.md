@@ -68,6 +68,8 @@ For every removal/filter/lock/subreddit ban/pending withdrawal, verify that the 
 
 For every own post found pending moderator approval, require immediate delete/withdraw proof or an exact cleanup permalink in automatic retry state. Waiting for user confirmation, waiting for moderator approval, pausing the post/follow-up lane, or affecting any sibling lane is `不合格`. For technical failures, verify lane-local bounded retry and an active continuation; a shared `ERR_BLOCKED_BY_CLIENT`/network code alone never justifies a process-wide pause.
 
+Heartbeat lifecycle is `不合格` when a candidate/subreddit/page/route/tab/Chrome/network/client-block/uncertain-mutation/lane failure deletes, deactivates, or pauses a lane or supervisor timer; when one lane failure changes a sibling timer; or when an old malformed/misbound timer is removed before a corrected replacement is verified. Require evidence that the recurring retry wake remains active. Timer removal is valid only for explicit user stop, deadline, verified lane/mission terminal completion, or after verified replacement.
+
 Use visibility labels from `startup-health-check.md`. If the coordinator cannot independently open the permalink, report worker proof separately from current independent visibility.
 
 ### 4. Cadence And Coverage
@@ -154,6 +156,6 @@ An audit request is read-only. If the user also asks to fix problems:
 3. Re-audit the repaired evidence once.
 4. The coordinator never substitutes for the worker or creates a combined execution trigger.
 
-The coordinator deactivates a misbound/repeat-off/one-shot lane Heartbeat and creates one corrected recurring replacement explicitly targeting the worker.
+The coordinator repairs a misbound/repeat-off/one-shot lane Heartbeat in place when possible. If replacement is required, it first creates and verifies the corrected recurring item targeting the worker, then deactivates the superseded timer.
 
-For a stale task owner, the coordinator follows the atomic transaction in `thread-supervision-runtime.md`: remove old-ID automation bindings, keep the tombstone archived, create at most one replacement, deliver the current mission, verify the exact new ID, and bind only the new recurring Heartbeat. Do not ask a lane worker to repair its own missing rollout.
+For a stale task owner, the coordinator follows the atomic transaction in `thread-supervision-runtime.md`: create at most one replacement, deliver the current mission, verify the exact new ID and new recurring Heartbeat, then remove old-ID automation bindings and archive the tombstone. Do not ask a lane worker to repair its own missing rollout.

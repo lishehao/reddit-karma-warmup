@@ -81,6 +81,8 @@ Do not inspect cookies/local storage, clear browsing data, disable extensions, r
 
 Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The worker never creates a recovery automation; it returns the proposed recovery time and relies on the existing coordinator-managed recurring Heartbeat. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision.
 
+Never delete, deactivate, or pause a lane or supervisor Heartbeat because a Chrome, network, page, route, client-block, or recovery attempt failed. Multiple unsuccessful recovery wakes remain `lane_recovering` and continue on the existing timer until the deadline, explicit user stop, terminal proof, or verified timer replacement. An explicit account blocker may withhold the mutations it prevents, but its Heartbeats stay active for timed re-probe unless the user stops the operation. `submit_uncertain` withholds only that exact mutation; it does not stop continuation or sibling lanes.
+
 ## Mutation Integrity
 
 - `before_input`: safe to reopen and redraft after recovery.

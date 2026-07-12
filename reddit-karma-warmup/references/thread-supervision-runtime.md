@@ -51,11 +51,11 @@ Classify every candidate before reuse:
 For `STALE_OWNER_TOMBSTONE`, run one coordinator-owned replacement transaction:
 
 1. Record the old task ID, lane, prior archive state, and exact failure.
-2. Inspect coordinator-managed automations for the old ID. Disable/remove every timer still targeting it before archival; absence of automation evidence remains explicit.
-3. Remove the old ID from the active registry, unpin it, and keep/set it archived. Do not temporarily unarchive it again.
-4. Create exactly one replacement, capture the returned new task ID, set the canonical lane title, and keep it unpinned/unarchived.
-5. Send the actual current mission to the new ID, require same-turn `start_proof`, then create and verify only the new worker's recurring Heartbeat.
-6. Persist `old_worker_thread_id`, `replacement_worker_thread_id`, replacement reason, and new automation binding in coordinator state.
+2. Inspect coordinator-managed automations for the old ID and record every timer still targeting it; absence of automation evidence remains explicit. Do not remove a still-active continuation yet.
+3. Create exactly one replacement, capture the returned new task ID, set the canonical lane title, and keep it unpinned/unarchived.
+4. Send the actual current mission to the new ID, require same-turn `start_proof`, then create and verify the new worker's recurring Heartbeat.
+5. Only after the new owner and timer are verified, disable/remove timers targeting the old ID, remove the old ID from the active registry, unpin it, and keep/set it archived. Do not temporarily unarchive it again.
+6. Persist `old_worker_thread_id`, `replacement_worker_thread_id`, replacement reason, old-timer retirement proof, and new automation binding in coordinator state.
 
 When the replacement succeeds, this is an internal self-repair, not a user approval gate or Reddit account risk. Escalate only if the replacement task cannot be created, cannot accept the mission, or cannot receive a correctly bound continuation. Never create a second replacement in the same reconciliation pass.
 
@@ -90,11 +90,11 @@ When `presence_required=true`, run this dispatch sequence for `Reddit 主页台`
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
 - Every worker owns its dedicated Chrome tab and history. After first proof, the coordinator creates one repeat-on Heartbeat explicitly targeting each worker ID and records it in the registry; workers never mutate automations.
 - The coordinator owns one repeat-on, read-only `Reddit 主控台-任务监督` Heartbeat for every multi-slot mission. It cannot execute Reddit actions or continue lane work.
-- The coordinator verifies exact `target_thread_id`, repeat-on state, next run, recurrence, and stop guard for every created timer. A lane Heartbeat bound to the coordinator or another worker is removed/repaired before handoff.
+- The coordinator verifies exact `target_thread_id`, repeat-on state, next run, recurrence, and stop guard for every created timer. Repair a misbound lane Heartbeat in place when possible; if replacement is required, create and verify the corrected timer before removing the superseded item.
 - Central batch creation is allowed only after every enabled lane has first proof and only with one distinct Heartbeat per exact worker ID. A combined execution Heartbeat remains forbidden.
 - Different lane tasks sharing one Chrome profile/account remain independent; do not pause one merely because another is active.
 - The recurring supervisor performs lightweight continuation monitoring. When the user explicitly requests a deeper execution/quality audit, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
-- When a worker escalates a substantive blocker, the coordinator becomes the only user-facing decision surface. It may instruct affected owners to pause, but workers never contact the user or ask for confirmation in their own tasks.
+- When a worker escalates a substantive blocker, the coordinator becomes the only user-facing decision surface. The affected worker withholds only the exact impossible or uncertain action while its recurring Heartbeat remains active for re-probe; workers never contact the user or ask for confirmation in their own tasks.
 - When a worker returns `MISSION_COMPLETE`, the coordinator marks only that lane terminal and disables its Heartbeat. It reports overall completion only after every lane enabled for the same `mission_id` is terminal and all mission Heartbeats are inactive.
 - When a worker returns `SUBREDDIT_RETIRED`, record the subreddit in the shared retired set, notify the user once, and leave all workers/timers running. Never convert this event into a risk decision without separate account-level evidence.
 - A recovered `STALE_OWNER_TOMBSTONE` remains internal. The mission report may state that one lane owner was replaced, but does not ask the user to approve continuation. A failed replacement is `execution_integrity_failed` and returns through `Reddit 主控台`.

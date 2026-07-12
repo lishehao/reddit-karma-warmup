@@ -36,14 +36,14 @@ On every wake:
 1. Verify the Heartbeat targets this exact task and current lane mission.
 2. Read actual local time/timezone and UTC; compare with intended schedule.
 3. Reconnect Chrome or reclaim only this task's tab.
-4. If the slot is due, execute one bounded lane slot and record action/no-action/recovery proof.
+4. If the slot is due, resume its preserved `slot_target_remaining` and continue discovery/action toward zero. A runtime boundary may yield an interim checkpoint, but does not complete or reset the slot.
 5. If not due, record `not_due`; do not manufacture activity.
-6. Recompute the next due time from remaining duration/count and live conditions.
+6. Recompute the next due time from the exact remaining duration/count and live conditions; unfinished action targets receive the next permissible continuation rather than a fresh slot.
 7. Update only this task's timer when mission fields, cadence, or cutoff changed.
 
 ## Survival And Repair
 
-Technical failure is not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake.
+Technical failure is not timer termination. Candidate scarcity is also not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake. Resume the same remaining target after recovery. If every current expansion route is genuinely exhausted, yield an interim checkpoint and retry fresh surfaces on the next wake rather than declaring the action target complete.
 
 For a malformed/missing/misbound timer, repair in place when possible. Otherwise create and verify one corrected self-targeted replacement before removing the old timer. Never inspect, pause, repair, or delete another task's timer.
 

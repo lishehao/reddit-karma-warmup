@@ -25,6 +25,9 @@ required = {
         "action_cap",
         "qualified_read_floor",
         "Fewer actions are not an acceptable convenience outcome",
+        "slot_target_remaining",
+        "primary completion condition",
+        "Reaching the read floor with too few actions means expand, not finish",
         "Natural Incidental Voting",
         "broad `开始/运营`: comments + posts + follow-up",
         "browsing: only when the user explicitly requests",
@@ -34,7 +37,7 @@ required = {
     "references/proactive-playbook.md": [
         "Comment Candidate Gate",
         "post_candidate_score >=82",
-        "The comment target is an execution objective",
+        "The comment target is the slot's primary completion condition",
         "The post target is an execution objective",
         "no vote target",
         "already qualified-read post",

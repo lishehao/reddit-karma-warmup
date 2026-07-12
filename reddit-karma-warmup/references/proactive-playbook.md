@@ -102,7 +102,7 @@ Score the exact post and intended parent comment, not only the subreddit.
 
 For a fast-rising topic, also require a clear current hook: the thread is still young, the reply adds something not already dominant, and the topic is native to the subreddit. Search the exact current topic when freshness affects correctness; turn research into one compact insight rather than a source dump.
 
-The comment target is an execution objective. A qualified candidate read requires opening the exact post, reading its body/media and enough existing comments to score non-duplication; title-only impressions do not count. After every `Watch`/`Skip`, continue the `Target-Driven Scan Loop` in `default-operations-sop.md`. Do not finish below target merely because the first community, page, or initial read floor produced too few passing candidates. Stop short only at the authorized deadline, action cap, or a current concrete blocker after the expansion stages were attempted.
+The comment target is the slot's primary completion condition. A qualified candidate read requires opening the exact post, reading its body/media and enough existing comments to score non-duplication; title-only impressions do not count. After every `Watch`/`Skip`, continue the `Target-Driven Scan Loop` in `default-operations-sop.md`. Reaching the candidate-read floor with fewer verified comments requires broader discovery. Preserve the exact remaining comment count across Heartbeats and stop short only at the authorized deadline, explicit user stop, or a current hard blocker after expansion and recovery were attempted.
 
 ## Comment Execution
 
@@ -221,11 +221,11 @@ Weak: `Any tips for beginners?`
 
 ## Proactive Slot Report
 
-On a direct user command or execution-heartbeat resume, finish and verify only the assigned comment or post micro-slot before reporting. Record the permalink/action as `slot_proof`, or record the exact candidates/surfaces checked and rejection gate as verified no-action proof. Planning another window is not a completed slot.
+On a direct user command or execution-heartbeat resume, work the assigned comment or post target immediately. A slot is complete only when its verified action target is met or a terminal condition is reached. If runtime must yield first, record an interim progress checkpoint and schedule continuation of the same remaining target; a no-action scan is not completed-slot proof. Planning another window is not a completed slot.
 
 Use the three-line compact report from `orchestration-core.md`:
 
-- `本轮完成`：仅写本任务已完成的评论或主帖、数量、附带投票数量、subreddit 和 permalink
+- `本轮完成`：写本任务已完成的评论或主帖、`verified/target`、剩余数量、附带投票数量、subreddit 和 permalink；未达目标时明确标为“进行中”
 - `下一轮心跳`：核验后的本地日期时间、时区及 UTC
 - `下轮计划`：仅写本任务下一轮评论或发帖工作及目标数量
 

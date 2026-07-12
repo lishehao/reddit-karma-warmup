@@ -11,7 +11,7 @@ self_task_id + lane + title
 account + tier/substate
 mission_id + latest user request + duration/count/intensity/style/language
 operation_stop_at + remaining_target
-action_target + action_cap + qualified_read_floor + incidental_vote_count
+action_target + slot_target_remaining + action_cap + qualified_read_floor + incidental_vote_count
 own_tab_id + optional group_id + current URL
 own_history_ledger
 own_heartbeat_id + next_due_local + next_due_utc
@@ -33,7 +33,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 | `DRAFT` | Text lanes choose varied length and write target-specific copy; browsing chooses a vote/no-vote decision. | final candidate ready |
 | `CHECK_B` | Recheck account, page, copy/direction, target, and duplicate state. | act/rewrite/retarget/recover |
 | `ACT` | Perform at most the selected action and verify immediate result. | proof recorded |
-| `RECONCILE` | Update remaining work and next due time from actual conditions. | next state known |
+| `RECONCILE` | Subtract only verified actions from `slot_target_remaining`; preserve unfinished count and compute the next due time from actual conditions. | next state known |
 | `SCHEDULE` | Create/update/retain only this task's own Heartbeat. | timer state recorded |
 | `REPORT` | Return the three-line local result. | turn ends |
 
@@ -70,7 +70,7 @@ Load `chrome-network-recovery.md` for failures. Retry only this task's action an
 - `user_repair`: current visible state requires user action in this task.
 - `terminal`: explicit stop, deadline, or verified lane completion.
 
-One candidate rejection, empty pool, route error, or failed wake is never terminal.
+One candidate rejection, an empty scan batch/pool page, completed read floor, route error, or failed wake is never terminal while the action target and authorized time remain.
 
 ## Action Verification
 

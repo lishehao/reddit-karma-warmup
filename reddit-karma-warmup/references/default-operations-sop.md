@@ -14,7 +14,7 @@ Use in the reusable stateless launcher to split each direct dispatch request, an
 
 Resolve style through `operation-style-profiles.md`. Explicit user counts, duration, language, pool, style, or lane replace defaults without another confirmation.
 
-Planning targets are quality-gated. Resolve every range to one exact `action_target` and one `action_cap` before the first slot. The target is work to complete inside the authorized window; the cap is the most that lane may publish or cast without a new user instruction.
+Planning targets are quality-gated. Resolve every range to one exact `action_target` and one `action_cap` before the first slot. The action target is the primary completion condition inside the authorized window; the cap is the most that lane may publish or cast without a new user instruction. A candidate-read floor is a discovery-depth checkpoint, never a substitute for the action target and never a reason to stop early.
 
 | Intensity | Comment target/cap; candidate-read floor | Post target/cap; research floor | Follow-up | Browse floor; vote target/cap |
 |-|-|-|-|-|
@@ -28,13 +28,13 @@ An explicit user count replaces both the corresponding target and cap unless the
 
 Each lane works backward from the exact action target instead of stopping after an arbitrary first batch:
 
-1. Set `action_target`, `action_cap`, `qualified_read_floor`, `deadline`, and the lane's score threshold. A slot normally completes only when both the action target and read floor are met.
+1. Set `action_target`, `action_cap`, `qualified_read_floor`, `deadline`, and the lane's score threshold. Store `slot_target_remaining = action_target - verified_actions` and preserve it across every continuation.
 2. Start with live `New`/`Rising` items in the highest-fit eligible communities. Open the actual post or comment chain; titles and feed impressions do not count.
 3. Score each exact candidate. Act immediately when it passes; record `Watch`/`Skip` and continue without drafting weak content.
-4. If either the target or read floor is not met, keep scanning while time remains: widen to more eligible communities, then recent `Hot`, deeper comment chains, and adjacent current topics. Refresh live surfaces instead of recycling rejected candidates.
-5. Complete normally only when both the action target and read floor are met. If the cap is reached before the read floor, continue qualified reading without more mutations. Otherwise stop only when the authorized window ends or a current concrete blocker prevents that lane's remaining work.
+4. While `slot_target_remaining > 0`, keep scanning while authorized time remains: widen to more eligible communities, then recent `Hot`, deeper comment chains, subreddit search, and adjacent current topics. Refresh live surfaces instead of recycling rejected candidates. Reaching the read floor with too few actions means expand, not finish.
+5. Complete a comment or post slot normally only when `slot_target_remaining == 0`. Once the target is verified, do not keep reading merely to fill the read floor. Stop short only when the user deadline/operation cutoff is reached, the user explicitly stops, or a current hard blocker prevents the remaining action. A thin first page, one empty community, candidate scarcity, or a completed read floor is never terminal.
 
-More qualified reading is always allowed. Fewer actions are not an acceptable convenience outcome while time and eligible surfaces remain. Never lower a score threshold, invent experience, reuse near-duplicate text, violate live rules, or exceed the action cap merely to fill the number. If the final target is still short, report the exact actions completed, qualified candidates assessed, expansion stages attempted, and concrete reason the remaining candidates failed.
+More qualified reading is always allowed while the action target remains. Fewer actions are not an acceptable convenience outcome while authorized time and recoverable discovery surfaces remain. Never lower a score threshold, invent experience, reuse near-duplicate text, violate live rules, or exceed the action cap merely to fill the number. If execution must yield before the target is met, record an interim checkpoint, carry the exact remaining count into the same slot's next Heartbeat, and continue. A final shortfall report is allowed only at a terminal condition and must state verified actions/target, qualified candidates assessed, expansion stages attempted, and the exact terminal reason.
 
 ## Natural Incidental Voting
 

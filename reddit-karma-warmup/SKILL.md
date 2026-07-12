@@ -70,9 +70,9 @@ Every lane task independently follows:
 2. Discover/reconnect Chrome and create or reclaim only its own tab.
 3. Confirm the visible Reddit account, current local time, UTC, and stop time.
 4. Read live context. For posts, always recheck current subreddit rules, account age/Karma/Flair requirements, and recent posting eligibility before drafting.
-5. Resolve the slot's exact target/cap/read floor, then execute and verify the first requested micro-slot in the current turn. Continue live discovery toward the target; a future Heartbeat never defers the first slot or substitutes for unfinished scanning that still fits this turn.
+5. Resolve the slot's exact target/cap/read floor, then execute immediately. For comments and posts, verified action count is the primary completion condition; reading is discovery evidence, not completion. Continue live discovery until the target is met or the current runtime must yield.
 6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.
-7. On each wake, complete one due slot or record a concrete `not_due`/no-action/recovery checkpoint; then keep or update the same timer.
+7. On each wake, resume the same unfinished slot with its exact `slot_target_remaining`; do not reset the count or treat candidate scarcity as completion. Record `not_due`/no-action/recovery only as an interim checkpoint, then keep or update the same timer.
 8. At explicit stop, deadline, or verified lane completion, remove only its own Heartbeat and report locally.
 
 ## Independence Gates

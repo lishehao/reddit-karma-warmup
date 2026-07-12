@@ -41,7 +41,7 @@ Bootstrap profile edits/joins, notification sweeps, browsing, and verified no-ac
 
 ## Acceptance And Recovery
 
-A lane with a first outward action reaches `first_round_ok` only after its persistent worker exists, `submit_verified`, `surface_visible`, and `survivor_visible`, plus a coordinator-created recurring Heartbeat explicitly targeting that worker when continuation is required. The Heartbeat must be repeat-on, have the mission deadline guard, and pass target/time readback when exposed. `created_unreadable` is provisional only until the recurring supervisor confirms the first real wake and new worker turn. A combined execution continuation, `COUNT=1`, repeat-off, or mismatched target cannot satisfy this check.
+A lane with a first outward action reaches `first_round_ok` only after its persistent worker exists, `submit_verified`, `surface_visible`, and `survivor_visible`, plus a coordinator-created recurring Heartbeat explicitly targeting that worker when continuation is required. A pending-review post is automatically deleted/withdrawn, its subreddit retired, and the lane retargeted without user confirmation; it cannot satisfy startup proof. The Heartbeat must be repeat-on, have the mission deadline guard, and pass target/time readback when exposed. `created_unreadable` is provisional only until the recurring supervisor confirms the first real wake and new worker turn. A combined execution continuation, `COUNT=1`, repeat-off, or mismatched target cannot satisfy this check.
 
 Non-publishing lanes use action-specific acceptance instead of permalink checks:
 

@@ -33,7 +33,7 @@ Single objective: advance or stop the authorized Reddit operation through the co
 8. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
 9. Return one concise Chinese result and enter `IDLE`.
 10. On an explicit audit/status-quality request, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
-11. Receive only decision-requiring worker risks in this task. Timed auto-recovery and historical incidents do not require user approval.
+11. Receive only risks that truly require user action or a material choice. Pending-review deletion, subreddit retirement, timed auto-recovery, lane-local technical retry, and historical incidents never require user approval.
 12. Receive one terminal completion return from each enabled lane, disable its Heartbeat, reconcile by `mission_id`, and report overall mission completion only when all enabled lanes are terminal.
 
 It does not:

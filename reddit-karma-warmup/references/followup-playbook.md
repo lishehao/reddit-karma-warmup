@@ -43,7 +43,8 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 
 - Never argue with moderators.
 - If Automod/moderators removed or filtered content, retire that subreddit, send `SUBREDDIT_RETIRED`, do not repost there, and continue other follow-up work.
-- If an own recent post is awaiting moderator approval, withdraw/delete when possible, verify cleanup, retire that subreddit, send the non-blocking notice, and close that item without pausing unrelated work.
+- If an own recent post shows `Post is awaiting moderator approval`, `Waiting for approval`, or equivalent pending-review UI, treat it as pre-authorized cleanup: immediately open its own controls, choose Delete/Withdraw, confirm the deletion dialog when shown, and accept one visible `Post deleted`/missing-own-post result as cleanup proof. Retire that subreddit, send the non-blocking notice, close the item, and continue the sweep. Never ask the user whether to delete, wait for moderator review, or pause any lane.
+- If the cleanup route is temporarily blocked, record the exact permalink in this lane's cleanup queue, run `chrome-network-recovery.md`, and retry on the next due follow-up wake. The post and subreddit remain closed for engagement immediately; the follow-up lane continues other items, and every sibling lane remains unchanged.
 - If the author deletes/locks the parent of an active own comment or reply, retire that subreddit and send the same non-blocking notice. A random old/removed item discovered during scanning is only `Skip` and does not retire a community.
 - If a mod requests an edit, summarize it and act only when the current authorization clearly covers that edit.
 - Currently active account warnings, captcha, rate limit, or login mismatch pause the actions they prevent. A timed rate limit automatically resumes at expiry; historical/cleared states do not stop follow-up.
@@ -57,9 +58,9 @@ On a direct user command or execution-heartbeat resume, complete the current Not
 - quiet queue: `40-90 min`
 - several replies or uncertainty: `57-96 min`
 
-Choose from state, not random imitation. Update/reuse the lane's logical timer for one next due time, verify local/UTC readback and automation ID, and never stack another follow-up trigger for the same slot.
+Choose from state, not random imitation. Return one proposed exact local/UTC next due time to `Reddit 主控台`; only the coordinator updates/reuses the lane's logical timer. Never create or mutate a follow-up trigger in this worker.
 
-The follow-up lane owns only its follow-up automation. It may read proactive comment, post, or browsing automation status for context, but must not pause, resume, delete, or rewrite those triggers. If a global policy affects them, update the follow-up trigger only and report the other implications to their owner tasks or coordinator.
+The follow-up lane owns only follow-up execution state and its cleanup queue. It never inspects or mutates sibling tasks/timers and never creates, pauses, resumes, deletes, or rewrites any automation. Scheduling evidence is returned to the coordinator.
 
 ## Follow-Up Report
 

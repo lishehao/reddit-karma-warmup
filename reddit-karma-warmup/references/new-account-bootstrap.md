@@ -69,7 +69,7 @@ Use a real workflow question with one clear ask. The second same-day post, when 
 - tool-choice tradeoff
 - AR/3D/location/social design pain
 
-Do not use `I built an app`, `Would you use this?`, tester recruitment, surveys, product screenshots, or link drops. If submit says moderator approval is required, skip; if the submitted post becomes pending, withdraw it.
+Do not use `I built an app`, `Would you use this?`, tester recruitment, surveys, product screenshots, or link drops. If submit says moderator approval is required, skip. If an own submitted post becomes pending, delete/withdraw immediately without asking, verify once, retire that subreddit, and continue elsewhere; a temporary cleanup-route failure enters automatic retry and never pauses another lane.
 
 ## Bootstrap State
 

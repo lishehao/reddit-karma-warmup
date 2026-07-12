@@ -7,7 +7,7 @@ Load in the `Reddit 主控台` coordinator and every worker. The user makes risk
 Escalate immediately when at least one is true:
 
 - `decision_required`: a genuine soft-risk choice changes whether/how the action should continue
-- `lane_blocked`: Chrome remains unavailable after recovery, the worker task/heartbeat cannot continue correctly, or the lane cannot meet its mission for a non-candidate-specific reason
+- `lane_blocked`: a concrete external repair is required after automatic recovery, or the worker task/Heartbeat cannot technically continue; ordinary retryable route/network/client-block failures are `lane_recovering`, not escalation
 - `account_blocked`: a currently visible logout/wrong account, credential request, captcha, sitewide rate limit, lock/suspension, or explicit account-wide warning prevents the action now
 - `execution_integrity_failed`: automation targets the wrong task, fires at a materially wrong time, has recurrence inconsistent with the mission, runs after the stop time, or published evidence cannot be reconciled safely
 - `scheduler_continuation_failed`: a promised multi-slot mission has no valid recurring Heartbeat, a timer is `COUNT=1`/repeat-off/misbound, or no worker wake/slot proof appears after one bounded coordinator repair
@@ -24,6 +24,8 @@ Do not escalate ordinary operations noise:
 - normal count shortfall because too few candidates passed
 - any historical or already-cleared removal, warning, rate limit, lock, or login fault
 - a `STALE_OWNER_TOMBSTONE` that the coordinator atomically replaces with verified mission delivery and a correctly bound new Heartbeat
+- pending-review cleanup, including automatic deletion/withdrawal and retry of an exact cleanup permalink
+- a retryable lane-local Chrome/control/network/client-block/route failure while the lane Heartbeat remains active
 
 These remain in the worker report unless bounded recovery fails, they become lane-wide/account-wide, or they require a user decision.
 
@@ -34,6 +36,8 @@ Missing-rollout evidence is an orchestration condition, never Reddit account ris
 ## Non-Blocking Subreddit Retirement Notice
 
 A removal/filter/lock/subreddit ban, invalidating parent deletion, or pending-approval withdrawal retires only that exact subreddit. It is not `RISK_ESCALATION` without separate account-level evidence.
+
+Pending approval is never `decision_required`. Delete/withdraw the own post immediately, verify once, retire the subreddit, and continue. If cleanup is temporarily unreachable, queue the exact permalink for automatic lane-local retry; do not ask the user or pause any lane.
 
 The worker immediately retargets to another eligible community and sends one informational event to `coordinator_thread_id`:
 
@@ -54,7 +58,7 @@ The coordinator informs the user once without asking for confirmation and withou
 
 When escalation is required:
 
-1. Stop new actions in the affected scope. Keep unrelated lanes outside this worker's control.
+1. Stop only the currently impossible exact action. Keep the lane Heartbeat active for recovery when technically possible, continue other safe work in this lane, and keep unrelated lanes outside this worker's control.
 2. Preserve exact evidence: URL/surface, time local+UTC, Reddit/browser message, submit state, automation ID/target when relevant, and actions already completed.
 3. Report whether this worker's recurring Heartbeat should be paused; only the coordinator changes it. Do not inspect or alter sibling automations.
 4. Send one message to the exact `coordinator_thread_id`:
@@ -62,7 +66,7 @@ When escalation is required:
 ```text
 RISK_ESCALATION
 mission_id: <id>
-lane: <comments|posts|follow-up|browsing>
+lane: <comments|posts|follow-up|browsing|presence>
 severity: <decision_required|lane_blocked|account_blocked|execution_integrity_failed|scheduler_continuation_failed|material_reputation_risk>
 evidence: <one concise factual paragraph>
 likely_cause: <one or two evidence-based possibilities, explicitly marked as possible>
@@ -82,7 +86,7 @@ If the worker-to-coordinator message capability is unavailable, keep the affecte
 On `RISK_ESCALATION`:
 
 1. Read the worker's latest evidence and classify the affected scope.
-2. For an account-wide blocker, send a pause instruction to every mutation lane. For a lane/candidate blocker, leave unrelated lanes running.
+2. For explicit current Reddit account-wide UI, pause only the mutations that UI makes impossible. For a lane/candidate/route blocker, leave every unrelated lane and Heartbeat running. Identical technical error codes across lanes do not prove an account-wide blocker.
 3. Deduplicate simultaneous reports about the same root cause into one user decision.
 4. Explain the issue in the main task only when a user repair or genuine decision is required:
 
@@ -105,8 +109,9 @@ The latest explicit user command controls authorized operations after a current 
 
 - Candidate-specific issue: skip/retarget automatically; no escalation unless the user explicitly required that exact target.
 - Subreddit-specific removal/rule/ban issue: retire that subreddit, send `SUBREDDIT_RETIRED`, and continue elsewhere. Multiple retired communities are still non-blocking. Escalate for a decision only when that exact subreddit was explicitly required and no substitute is acceptable, or Reddit separately shows account-wide evidence.
-- Lane-wide issue: pause one worker and ask through the coordinator.
-- Account-wide issue: coordinator pauses all mutation lanes and asks through the coordinator.
+- Retryable lane-wide technical issue: keep that worker's Heartbeat active, mark `lane_recovering`, automatically retry, and do not ask the user; siblings continue.
+- Lane issue requiring a concrete external repair: surface only that repair through the coordinator; siblings continue.
+- Account-wide issue: only explicit current Reddit account-level UI may pause the mutations it prevents; never infer it from shared Chrome/network/client-block errors.
 - Automation-only issue: preserve completed Reddit actions, pause the incorrect continuation, repair through the owning worker, then re-audit binding/time before resuming.
 
 Routine progress remains pull-based. Risk escalation is exceptional and must not become per-item callback noise.

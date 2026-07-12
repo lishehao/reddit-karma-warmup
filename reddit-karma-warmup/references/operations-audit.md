@@ -66,6 +66,8 @@ Refusing, downgrading, or requesting confirmation for a current explicit mission
 
 For every removal/filter/lock/subreddit ban/pending withdrawal, verify that the exact subreddit entered the retired set, `SUBREDDIT_RETIRED` informed the coordinator once, and the worker continued in another eligible community. An account-tier downgrade, generic slowdown, or process-wide pause from removal evidence alone is `不合格` unless Reddit separately displayed an account-level warning/rate-limit/captcha/lock/suspension/login problem.
 
+For every own post found pending moderator approval, require immediate delete/withdraw proof or an exact cleanup permalink in automatic retry state. Waiting for user confirmation, waiting for moderator approval, pausing the post/follow-up lane, or affecting any sibling lane is `不合格`. For technical failures, verify lane-local bounded retry and an active continuation; a shared `ERR_BLOCKED_BY_CLIENT`/network code alone never justifies a process-wide pause.
+
 Use visibility labels from `startup-health-check.md`. If the coordinator cannot independently open the permalink, report worker proof separately from current independent visibility.
 
 ### 4. Cadence And Coverage

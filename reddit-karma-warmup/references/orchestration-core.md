@@ -171,10 +171,10 @@ Use one of four decisions; never say only `account safety`.
 
 - `act`: rules, context, account state, quality, and lane gate pass.
 - `skip_candidate`: low score, stale/saturated thread, weak fit, unclear eligibility for one target, duplicate angle, or unavailable control. Search another candidate.
-- `soft_pause`: action appears allowed but has concrete elevated moderation or pacing risk. Pause only that lane/candidate and escalate once to the coordinator with a safer variant.
+- `recover_lane`: a tab, route, client-block, network, or control failure prevents the current step. Preserve mutation integrity, run bounded recovery, keep the lane Heartbeat active, and continue another safe candidate/surface when possible. Never ask for confirmation or affect siblings.
 - `hard_stop`: a currently visible captcha, sitewide rate limit, lock/suspension, wrong/logged-out account, credential request, explicit account-wide warning, clear rule prohibition for the current target, or unsafe/deceptive action prevents that action now. Historical/cleared states never qualify. A timed rate limit preserves the mission and automatically re-probes at expiry; after any blocker clears, resume the unchanged latest user command without a recovery tier or second confirmation. Community removals/filters/locks/bans activate `R1/R2` retirement and retarget automatically; any number of retirements remains non-blocking without separate active account-wide evidence.
 
-If an own newly submitted main post is awaiting moderator approval, delete/withdraw it when possible, retire that subreddit, send `SUBREDDIT_RETIRED`, and continue the post lane with another eligible community unless Reddit separately shows an account-wide blocker.
+If an own newly submitted main post is awaiting moderator approval, delete/withdraw it immediately without asking, verify cleanup once, retire that subreddit, send `SUBREDDIT_RETIRED`, and continue the post lane with another eligible community. A temporary cleanup-route failure enters the observing lane's retry queue and does not pause post discovery, follow-up processing, browsing, comments, presence work, or sibling Heartbeats.
 
 Never invent firsthand experience, identity, expertise, metrics, affiliations, product usage, or testing. Do not coordinate votes, use another account on the same target, harass, doxx, or engage sensitive/vulnerable-user threads.
 

@@ -139,7 +139,7 @@ Decision:
 - `retire_subreddit`: an own item is removed/filtered/locked, the account is banned from that subreddit, the parent post is deleted/locked in a way that invalidates the action, or a submitted post becomes `awaiting moderator approval`.
 - `hard_stop`: a currently visible captcha, sitewide rate limit, account-wide warning, lock/suspension, login mismatch, credential request, or clear unsafe/deceptive action prevents submission now. Past/cleared evidence is never sufficient.
 
-On `retire_subreddit`, delete/withdraw a pending post when possible, verify cleanup, never repost in that subreddit, send the non-blocking retirement notice, and continue the same lane in another eligible community.
+On `retire_subreddit`, a pending-review own post must be deleted/withdrawn immediately without confirmation. Confirm the native deletion dialog when shown, accept one visible deleted/missing result as cleanup proof, never repost there, send the non-blocking retirement notice, and continue the same lane in another eligible community. If the cleanup route fails, queue only that exact permalink for automatic recovery/retry while post discovery continues elsewhere; do not ask the user or pause this lane or any sibling lane.
 
 After drafting, run Double-Check B on the final title/body/flair, live submit state, history, length/structure, and duplicate-send risk before clicking Post.
 

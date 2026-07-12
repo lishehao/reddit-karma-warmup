@@ -41,7 +41,7 @@ Bootstrap profile edits/joins, notification sweeps, browsing, and verified no-ac
 
 ## Acceptance And Recovery
 
-A lane with a first outward action reaches `first_round_ok` only after its persistent worker exists, `submit_verified`, `surface_visible`, and `survivor_visible`, plus a successfully created lane-owned heartbeat handoff when continuation is required. The heartbeat must report `thread_binding_verified`, or provisional `creator_thread_bound` when the worker created it and every target field is hidden. A combined coordinator continuation or mismatched `target_thread_id` cannot satisfy this check. Exact persisted timing should be verified when exposed; `created_unreadable` is acceptable until the heartbeat's first real wakeup proves or disproves timing.
+A lane with a first outward action reaches `first_round_ok` only after its persistent worker exists, `submit_verified`, `surface_visible`, and `survivor_visible`, plus a coordinator-created recurring Heartbeat explicitly targeting that worker when continuation is required. The Heartbeat must be repeat-on, have the mission deadline guard, and pass target/time readback when exposed. `created_unreadable` is provisional only until the recurring supervisor confirms the first real wake and new worker turn. A combined execution continuation, `COUNT=1`, repeat-off, or mismatched target cannot satisfy this check.
 
 Non-publishing lanes use action-specific acceptance instead of permalink checks:
 
@@ -58,4 +58,4 @@ On `visibility_failed`:
 4. Send the evidence to the owning worker and immediately retarget to another eligible community.
 5. Keep startup acceptance open until one replacement action passes or the lane exhausts eligible alternatives. A removal alone never creates `startup_blocked`; use that state only when no substitute remains, execution infrastructure fails, or Reddit shows an account-wide blocker.
 
-Early acceptance does not end coordinator observation. Keep the temporary read-only heartbeat through `startup_watch_deadline`, run the final first-hour sweep, then delete it and enter `IDLE`. Do not use Goal Mode or active polling between checks. Later worker rounds do not receive coordinator visibility supervision unless the user explicitly requests another audit.
+Early acceptance does not end coordinator observation. Keep the recurring read-only mission supervisor active through `operation_stop_at`; run richer first-hour checks through `first_hour_quality_deadline`, then continue lower-cost scheduler/slot reconciliation. Do not use Goal Mode or active polling between wakes.

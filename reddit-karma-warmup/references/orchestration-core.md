@@ -1,6 +1,6 @@
 # Orchestration Core
 
-Canonical owner of one worker's executable slot: state restoration, lane/tab boundary, candidate decision, action verification, reconciliation, and timer handoff. Coordinator/task-registry/timer procedures remain in their owning references. Lane playbooks own candidate selection and lane-specific gates.
+Canonical owner of one worker's executable slot: state restoration, lane/tab boundary, candidate decision, action verification, reconciliation, and proof handoff. Coordinator/task-registry/timer procedures remain in their owning references. Lane playbooks own candidate selection and lane-specific gates.
 
 ## Session State
 
@@ -18,11 +18,11 @@ Maintain one small state record:
 | `eligible_pool` | user/default pool after layer, row restriction, account fit, and history filtering |
 | `lanes` | enabled lane owners, status, current slot, remaining target |
 | `task_titles` | current task title and dispatched lane task titles after routing |
-| `worker_registry` | task ID, lane, title, last read time, status, remaining target, and owned automation |
+| `worker_registry` | task ID, lane, title, last read time, status, remaining target, and coordinator-managed automation targeting this worker |
 | `startup_handoff` | batch objective, per-lane first-round state, immediate/delayed visibility result, retry count, heartbeat readback, and handoff result |
 | `browser_context` | this lane's dedicated `tab_id`, optional `group_id`, current URL, and confirmed account |
 | `action_log` | verified actions and candidate skips |
-| `operation_timer` | one logical timer per lane/mission, with reusable automation ID, current next due time, and expected/actual worker task binding |
+| `operation_timer` | coordinator-managed recurring timer ID, expected next wake, deadline, and expected/actual worker task binding |
 | `turn_gate` | `start_proof_by_lane` for a user command and `slot_proof` for each execution-lane heartbeat resume |
 
 Do not create large parallel state tables unless the user asks for an export.
@@ -45,17 +45,17 @@ Every first run and resume follows the same state machine:
 | `CHECK_B` | Text lanes recheck account/page/copy/history/duplicate; browsing rechecks account/URL/direction and eligibility. | submit / vote / rewrite / retarget / stop |
 | `ACT` | Reselect this lane's dedicated tab, confirm account/target, perform action, and verify. | result recorded |
 | `RECONCILE` | Update remaining target from actual time and quality. | next decision known |
-| `SCHEDULE` | Create the lane timer after first proof, or update/reuse its automation ID for the next one-shot due time; read timing back when exposed. | verified, created_unreadable, or manual fallback |
+| `SCHEDULE_HANDOFF` | Return proof and proposed next due state to the coordinator; never mutate automations. | proof/state returned |
 | `REPORT` | Return compact operational record. | turn ends |
 
-Every enabled lane on first activation must reach `ACT` or a verified no-action/blocker result before both `SCHEDULE` and `REPORT`. `START_NOW_PROOF_BY_LANE` is a hard transition guard: no path from `SCOPE`, `ROUTE`, `NAME`, `PLAN_SLOT`, or worker dispatch may jump directly to `SCHEDULE`/`REPORT`. An execution-lane heartbeat resume starts at `PROBE`, refreshes `HISTORY`, completes the current slot, records `SLOT_PROOF`, and only then schedules its successor. A coordinator-watch heartbeat is read-only and may only observe lanes that already passed their start gate.
+Every enabled lane on first activation must reach `ACT` or a verified no-action/blocker result before `SCHEDULE_HANDOFF` and `REPORT`. `START_NOW_PROOF_BY_LANE` is a hard transition guard: no path from planning may jump directly to scheduling/reporting. A lane Heartbeat resume starts at `PROBE`, refreshes `HISTORY`, completes one due slot or records `not_due`, then returns proof/state. The coordinator creates and maintains all recurring Heartbeats.
 
 ## Scope And Authorization
 
 - The user's latest explicit request overrides defaults for lane, target, language, duration, count, pool, and output.
 - `运营` enables four lanes: comments, posts, follow-up, and natural browsing. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
 - User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator and workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
-- Session-level authorization covers ordinary actions in the active session and subsequent wakes of its lane-owned logical timer. Do not ask before every item.
+- Session-level authorization covers ordinary actions in the active session and subsequent wakes of the coordinator-managed recurring Heartbeat targeting that lane. Do not ask before every item.
 - Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action. A worker sends that question to the coordinator under `risk-escalation.md`; it never asks inside the lane task.
 - Do not silently turn requested posts into comments or requested follow-up into discovery.
 
@@ -135,23 +135,23 @@ Real operations require persistent task create/read/send capability. The user's 
 
 For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. If proof remains unavailable, mark that lane `startup_blocked`; coordinator execution is forbidden.
 
-The `Reddit 主控台` task is not another lane. It stores the worker registry, answers the user, accepts the first round of each newly dispatched batch, and reads workers later when the user asks. It never performs lane mutations or owns a combined continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they return only decision-requiring risks/blockers, non-blocking subreddit-retirement notices, and exactly one terminal lane-mission completion.
+The `Reddit 主控台` task is not another lane. It stores the registry/slot ledger, answers the user, accepts first proof, centrally creates recurring Heartbeats, and supervises continuation. It never performs lane mutations or creates a combined execution continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they return only decision-requiring risks/blockers, non-blocking subreddit-retirement notices, and exactly one terminal lane-mission completion.
 
-For the first post-install BOOTSTRAP only, the coordinator remains responsible through the fixed first-hour watch in `coordinator-playbook.md`, reusing one verified read-only logical heartbeat timer across checkpoints. Dispatch and early acceptance are insufficient: it runs checkpoints near `+15m`, `+35m`, and the mandatory boundary sweep near `+60m`. It must not use Goal Mode or poll while waiting. After that one-time handoff, workers continue independently and the coordinator becomes user-driven again.
+For every multi-slot mission, the coordinator remains responsible through a recurring read-only supervisor Heartbeat until the deadline. The first BOOTSTRAP hour adds checkpoints near `+15m`, `+35m`, and `+60m`; later supervision verifies wake turns, slot counts, binding, recurrence, and continuation. It must not use Goal Mode or poll inside an active turn.
 
 The coordinator is the technical abstraction boundary. Recover implementation faults internally when possible and keep task, model, scheduler, tab, retry, and scoring details out of normal user reports. Escalate only a concrete user-required repair using the short schema in `coordinator-playbook.md`.
 
-Automation ownership follows the lane and target thread:
+Automation management is centralized; execution ownership still follows lane and target task:
 
-- The registry supplies the exact `worker_thread_id`; the worker passes it as explicit `targetThreadId` whenever the automation API supports that field.
-- Before creating, updating, pausing, or deleting an automation, verify its `target_thread_id` equals the registered `worker_thread_id` for the current lane and that its prompt belongs to the same lane.
-- A lane task may mutate only its own automation. Other lanes are outside its state; it must not inspect, classify, pause, rewrite, or absorb their work.
+- The registry supplies the exact `worker_thread_id`; the coordinator passes it as explicit `targetThreadId` when creating/updating that lane's recurring Heartbeat.
+- Before creating, updating, pausing, or deleting an automation, the coordinator verifies target, lane prompt, recurrence, next wake, and deadline.
+- A lane task never mutates any automation and never inspects sibling tasks/timers.
 - A global policy message delivered to several lane tasks applies to the current lane only. Do not inspect or coordinate the other lane tasks.
-- The coordinator sends amendments to lane owners instead of taking over their automations. Each owner changes only its own trigger.
+- The coordinator sends mission amendments to workers and updates the corresponding recurring Heartbeat itself.
 - Different lanes sharing an account, target, or policy window remain independent. Do not compare them for collisions.
-- During the first post-install BOOTSTRAP, the coordinator reads all enabled lanes through the full first-hour watch. During later MISSION commands, it reads affected lanes only for same-turn acceptance, then returns to `IDLE`. STATUS reads relevant lanes once. AUDIT performs one bounded evidence pull under `operations-audit.md`, including exact read-only permalink verification when needed. Workers record routine state locally and return only risk/blocker, subreddit-retirement, or terminal-completion events.
-- The coordinator may own one temporary read-only watch automation named `Reddit 主控台-首轮监督` only during that first post-install BOOTSTRAP. Its prompt may only read worker state and report; it cannot open Reddit, publish, vote, reply, or continue lane work. Delete it at the first-hour boundary. Lane automations remain owned by their lane tasks.
-- Automation name, prompt, or lane title never proves thread ownership. Exact `target_thread_id` match or provisional creator-thread evidence from `scheduler-and-heartbeats.md` is required.
+- The recurring coordinator supervisor reads enabled lanes on its bounded cadence until mission end. STATUS and AUDIT may also perform one bounded evidence pull. Workers record routine state locally and return only risk/blocker, subreddit-retirement, or terminal-completion events.
+- The coordinator owns one recurring read-only automation named `Reddit 主控台-任务监督` plus one distinct recurring Heartbeat per enabled lane. The supervisor cannot open Reddit or execute lane work.
+- Automation name, prompt, or lane title never proves task ownership. Exact `target_thread_id` plus repeat/time/deadline verification from `scheduler-and-heartbeats.md` is required.
 
 ## Decision Classes
 
@@ -184,18 +184,18 @@ The `browsing` lane loads `browse-vote-playbook.md` and uses its qualified-read 
 
 Counts are planning targets, not permission to lower candidate thresholds. Do not compensate for delays or misses with compressed activity.
 
-## Resume And Schedule
+## Resume And Scheduler Handoff
 
 After each slot:
 
 - mark actual actions and remaining target
 - recompute from actual local time, not the original ideal timeline
 - stop at user stop time or when no quality candidate remains in the budget
-- if continuing, update/reuse this lane's logical timer to the next one-shot due time; verify local time, UTC time, repeat-off state, automation ID, and scheduler readback when those fields are exposed
-- if creation succeeds but persisted timing is hidden, record `created_unreadable`, keep the trigger, finish the current slot, and validate timing at the next real wakeup; do not pause Reddit work or ask the user to repair it
-- if creation itself fails, finish the current slot and report a manual next local/UTC time
+- if continuing, report proposed `next_due_at`, remaining work, and current proof to the coordinator; do not touch scheduling
+- if the recurring Heartbeat fired, include actual wake time so the coordinator supervisor can reconcile it
+- if the worker observes a wrong/missing timer card, report evidence but do not repair it
 
-Never run this scheduling section until the current user-command turn has `START_NOW_PROOF_BY_LANE`, or the current execution-heartbeat turn has `SLOT_PROOF`. The first heartbeat may resume the second slot, never the first; every later heartbeat must execute its own slot before creating another.
+The coordinator must not create the recurring lane Heartbeat until the current user-command turn has `START_NOW_PROOF_BY_LANE`. The first Heartbeat resumes a later slot, never the first. Every wake executes one due slot or records `not_due`; no successor creation exists.
 
 ## Report Handoff
 

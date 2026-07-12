@@ -20,7 +20,7 @@ The host must expose equivalent operations for:
 
 The user's `开始` or concrete operation command explicitly authorizes creation of the requested lane tasks. Do not create them during install/preflight and do not create unrelated tasks.
 
-Persistent tasks are intentional: each lane needs durable history, an exact task ID, an owned logical operation timer, independent recovery, and a reliable risk-return path. A temporary subagent may assist a worker with bounded read-only analysis when available, but it cannot own Chrome mutations, a lane, an operation timer, or a user-risk decision.
+Persistent tasks are intentional: each lane needs durable history, an exact task ID, a coordinator-managed recurring Heartbeat targeted to that ID, independent recovery, and a reliable risk-return path. A temporary subagent may assist a worker with bounded read-only analysis when available, but it cannot own Chrome mutations, a lane, scheduling, or a user-risk decision.
 
 ## Registry
 
@@ -42,7 +42,7 @@ Every task handoff begins with this compact objective card; do not bury it below
 唯一目标：<one lane outcome>
 本轮交付：<count/time/deadline>
 明确不做：<other lane outcomes>
-长期计时：复用 operation_timer_id；首轮立即执行
+长期计时：主控台创建 recurring operation_timer_id；首轮立即执行
 ```
 
 The card defines one outcome, not one action. A worker may search, score, draft, check rules, pace, verify, and report only as supporting steps toward that outcome.
@@ -60,17 +60,17 @@ The card defines one outcome, not one action. A worker may search, score, draft,
 
 ## Supervision
 
-- Pull routine worker state from the coordinator only during the first post-install BOOTSTRAP checkpoints near `+15m`, `+35m`, and `+60m`. Later missions receive same-turn acceptance but no delayed pull unless the user requests `STATUS/AUDIT`. Do not require routine callbacks; require risk/blocker returns, non-blocking `SUBREDDIT_RETIRED` notices, and one terminal `MISSION_COMPLETE` return per assigned lane mission.
+- Pull routine worker state through the coordinator's recurring mission supervisor Heartbeat. The first BOOTSTRAP hour adds checks near `+15m`, `+35m`, and `+60m`; later operation keeps lower-cost slot/scheduler reconciliation until the mission deadline. Do not require routine callbacks; require risk/blocker returns, non-blocking `SUBREDDIT_RETIRED` notices, and one terminal `MISSION_COMPLETE` return per assigned lane mission.
 - Read only the latest result needed to classify `running`, `first_round_ok`, `blocked`, or `completed`.
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
-- Every worker owns its dedicated Chrome tab, history, and one logical operation timer heartbeat explicitly targeting `worker_thread_id`. The worker creates it only after first proof, then updates/reuses the same automation ID until mission completion and verifies the stored target/time after every change.
-- Only during the first post-install BOOTSTRAP, the coordinator may own the read-only `Reddit 主控台-首轮监督` heartbeat. It cannot execute Reddit actions or continue lane work, and later missions must not recreate it.
-- If creation of the coordinator watch reports that its task already owns a heartbeat, inspect only that coordinator-targeted item. A prompt containing comment/post/follow-up/browsing execution proves a misbound lane heartbeat: do not treat the lane as handed off, deactivate/remove the wrong item, and instruct the actual lane worker to create its own explicitly bound replacement. Do not inspect unrelated correctly bound worker heartbeats.
-- The coordinator never batch-creates lane heartbeats. It checks worker reports for `thread_binding_verified` or provisional `creator_thread_bound` and repairs only a reported mismatch.
+- Every worker owns its dedicated Chrome tab and history. After first proof, the coordinator creates one repeat-on Heartbeat explicitly targeting each worker ID and records it in the registry; workers never mutate automations.
+- The coordinator owns one repeat-on, read-only `Reddit 主控台-任务监督` Heartbeat for every multi-slot mission. It cannot execute Reddit actions or continue lane work.
+- The coordinator verifies exact `target_thread_id`, repeat-on state, next run, recurrence, and stop guard for every created timer. A lane Heartbeat bound to the coordinator or another worker is removed/repaired before handoff.
+- Central batch creation is allowed only after every enabled lane has first proof and only with one distinct Heartbeat per exact worker ID. A combined execution Heartbeat remains forbidden.
 - Different lane tasks sharing one Chrome profile/account remain independent; do not pause one merely because another is active.
-- When the user explicitly requests an execution/quality audit, load `operations-audit.md`, read the relevant workers' latest evidence and owned automations, and compare them with the coordinator's mission contract. This is an on-demand pull, not continuous monitoring or a callback requirement.
+- The recurring supervisor performs lightweight continuation monitoring. When the user explicitly requests a deeper execution/quality audit, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
 - When a worker escalates a substantive blocker, the coordinator becomes the only user-facing decision surface. It may instruct affected owners to pause, but workers never contact the user or ask for confirmation in their own tasks.
-- When a worker returns `MISSION_COMPLETE`, the coordinator marks only that lane terminal. It reports overall completion only after every lane enabled for the same `mission_id` has returned terminal state; a single lane's ordinary heartbeat completion is not overall completion.
+- When a worker returns `MISSION_COMPLETE`, the coordinator marks only that lane terminal and disables its Heartbeat. It reports overall completion only after every lane enabled for the same `mission_id` is terminal and all mission Heartbeats are inactive.
 - When a worker returns `SUBREDDIT_RETIRED`, record the subreddit in the shared retired set, notify the user once, and leave all workers/timers running. Never convert this event into a risk decision without separate account-level evidence.
 
 ## User Surface
@@ -89,7 +89,7 @@ The user continues speaking only in `Reddit 主控台`. Report lane titles and c
 ## Exclusions
 
 - no invisible subagents in place of persistent tasks
-- no routine or per-heartbeat callback requirement; only risk/blocker, non-blocking subreddit retirement, and terminal mission completion are event returns
+- no routine or per-Heartbeat callback requirement; the recurring coordinator supervisor pulls worker proof and maintains slot counts
 - no Goal Mode
 - no combined worker or combined execution heartbeat
 - no coordinator fallback that publishes, replies, performs exploratory/natural browsing, or votes; exact read-only permalink/profile verification during acceptance or audit is allowed

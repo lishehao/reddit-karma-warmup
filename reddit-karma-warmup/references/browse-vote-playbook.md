@@ -79,7 +79,7 @@ For a continuing run:
 
 1. Use the user's interval or range when supplied.
 2. Otherwise select a fresh whole-minute delay from `20-40 min` after the current slot completes. Do not reuse a fixed repeating interval.
-3. Convert that delay into one exact local and UTC next-run time, reconcile it against the stop time, and update/reuse this lane's logical timer for that one-shot due time.
+3. Convert that delay into one exact local and UTC proposed `next_due_at`, reconcile it against the stop time, and return it to the coordinator ledger. Do not mutate the recurring browsing Heartbeat.
 4. Do not create a fixed recurrence, schedule from the prior slot's start time, or catch up missed slots.
 5. Carry the one-click `vote_accepted` rule into the continuation Heartbeat. Never regenerate selected-state, reload, persistence, or user-confirmation checks.
 

@@ -79,7 +79,7 @@ Do not inspect cookies/local storage, clear browsing data, disable extensions, r
 2. If still failing and no hard-stop/account signal exists, update this lane's same logical Heartbeat timer for a recovery checkpoint `5-10 min` later. End the turn with the normal three-line report; `下轮计划` names the exact probe and withheld mutation.
 3. `attempt 2` at the Heartbeat wake: rerun the scope probes once. If healthy, reconfirm account/context and resume from the last safe state. If still unhealthy, return `lane_blocked` or `account_blocked` to `Reddit 主控台` with the exact code, scope results, and mutation state.
 
-Do not ask the user before these attempts unless the current account state requires an external repair or the repair would require changing the user's machine/network settings. A known timed rate limit does not require approval. Never create a second recovery automation. Reuse the lane's existing `operation_timer_id`. Never compress missed work after recovery.
+Do not ask the user before these attempts unless the current account state requires an external repair or the repair would require changing the user's machine/network settings. A known timed rate limit does not require approval. The worker never creates a recovery automation; it returns the proposed recovery time and relies on the existing coordinator-managed recurring Heartbeat. Never compress missed work after recovery.
 
 ## Mutation Integrity
 

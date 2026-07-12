@@ -51,13 +51,13 @@ Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是依赖。
 
 1. Chrome Browser control 可实际连接；掉线时最多重连两次。
 2. 通过 Chrome 只读打开 Reddit，确认用户已登录并记录准确账号。不要输入、索取或保存密码。
-3. Automation/Heartbeat 能创建、更新和删除一次性任务。
+3. Automation/Heartbeat 能创建、更新、读取和删除 repeat-on 的长期任务，并能显式绑定目标 Thread。
 4. Codex 能创建、读取并向独立用户任务发送后续指令；预检只确认能力，不提前创建运营任务。
 5. 能读取真实当地时间、时区、UTC offset 与 UTC 时间。
 
 Chrome Browser control 是 Reddit 写操作的硬依赖。Computer Use、内置 Browser、Playwright、终端浏览器和普通 Web Search 不能替代。macOS 屏幕录制、系统音频录制和辅助功能权限不是本 Skill 的依赖。
 
-Heartbeat 创建与删除成功即可证明能力可用。若运行时不显示 `next_run_at`、DTSTART 或下一次运行标签，内部记录 `created_unreadable` 并继续；这不是用户可修复的问题，也不能阻断第一轮。只有创建、更新或删除本身失败，才不能依赖多轮自动续跑。
+Heartbeat 创建、repeat-on 读取和删除成功即可证明基础能力可用。若运行时不显示 `next_run_at`、DTSTART 或下一次运行标签，内部记录 `created_unreadable` 并继续；这不是用户可修复的问题，也不能阻断第一轮。首次依赖无人值守的多小时运行时，由 Skill 的主控台监督 Heartbeat 验证第一次真实 recurring wake。
 
 ### 4. 向用户交接
 
@@ -66,7 +66,7 @@ Heartbeat 创建与删除成功即可证明能力可用。若运行时不显示 
 ```text
 状态健康。当前账号：u/name。
 
-你希望接下来怎么运营？可以指定时长、低/标准/高强度，以及混合探索、建设者、游戏/3D、空间地点、轻社交/创意或自定义风格；也可以直接指定评论、发帖、跟进或自然浏览。自然浏览还可以指定阅读量、投票目标和轮次间隔。如果暂时没想法，回复“开始”即授权我创建或复用主动评论、主动发帖、消息跟进和自然浏览四个独立工作任务，并按标准强度、混合探索风格运行 3 小时。
+你希望接下来怎么运营？可以指定时长、低/标准/高强度，以及混合探索、建设者、游戏/3D、空间地点、轻社交/创意或自定义风格；也可以直接指定评论、发帖、跟进或自然浏览。自然浏览还可以指定阅读量、投票目标和轮次间隔。如果暂时没想法，回复“开始”即授权我创建或复用 Reddit 评论台、Reddit 发帖台、Reddit 跟进台和 Reddit 浏览台四个独立工作任务，并按标准强度、混合探索风格运行 3 小时。
 ```
 
 不要展示依赖表、日志、Task ID、Automation ID、模型回退或时区计算。
@@ -75,18 +75,22 @@ Heartbeat 创建与删除成功即可证明能力可用。若运行时不显示 
 
 ### 5. 用户开始运营后
 
-用户回复“开始”或给出具体运营指令，即明确授权为所启用的工作线创建或复用用户可见的独立 Codex 任务。调用已安装的 `$reddit-karma-warmup` 并由 Skill 接管全部运营细节。Skill 已在 `references/thread-supervision-runtime.md` 内置与本流程兼容的任务创建、复用、读取、发消息和首轮验收协议，不需要另装 `thread-supervisor` Skill。所有指令和汇报都留在 `Loci Reddit运营` 主任务，但主任务只负责派发、读取、验证和汇报，不能自己执行 Reddit 动作。默认广泛运营必须创建或复用 `主动评论`、`主动发帖`、`消息跟进`、`自然浏览` 四个独立任务；单独点名一种动作时只启用对应任务。禁止使用不可见 subagent、一个合并 worker，或名为“首轮后续”的合并执行 Heartbeat 替代这些任务。每个工作任务拥有自己的 Chrome tab、历史和续跑 Heartbeat；主任务只能拥有名为 `Loci Reddit运营-首轮监督` 的只读监督 Heartbeat。
+用户回复“开始”或给出具体运营指令，即明确授权为所启用的工作线创建或复用用户可见的独立 Codex 任务。调用已安装的 `$reddit-karma-warmup` 并由 Skill 接管全部运营细节。Skill 已在 `references/thread-supervision-runtime.md` 内置与本流程兼容的任务创建、复用、读取、发消息和首轮验收协议，不需要另装 `thread-supervisor` Skill。所有指令和汇报都留在 `Reddit 主控台`；主控台负责派发、集中调度、读取、验证和汇报，不能自己执行 Reddit 动作。默认广泛运营必须创建或复用 `Reddit 评论台`、`Reddit 发帖台`、`Reddit 跟进台`、`Reddit 浏览台` 四个独立任务；单独点名一种动作时只启用对应任务。禁止使用不可见 subagent、一个合并 worker 或合并执行 Heartbeat 替代这些任务。
+
+首轮 proof 后，主控台为每个启用的执行台创建一个显式绑定该 Thread、repeat-on、带 mission 截止保护的长期 Heartbeat，并为自己创建一个 repeat-on 的只读任务监督 Heartbeat。执行台只在被唤醒后执行 bounded slot、记录 proof，不创建、不续排、不修改 Heartbeat。用户修改任务、任务结束或调度异常时，只有主控台更新、修复或删除 Heartbeat。
 
 `运营 [时长] [强度] [风格]` 自动拆成四条工作线。默认风格是混合探索，也可选建设者、游戏/3D、空间地点、轻社交/创意或自定义，并可附加“更犀利”“更轻松”等语气修饰。自然浏览包含符合门槛的 Upvote/Downvote；标准强度每轮默认阅读 `20-30` 条并以 `2` 次合格投票为目标。每轮完成后，默认重新选择 `20-40` 分钟的等待时间再开始下一轮；用户可以改成例如“标准强度运营 3 小时，游戏/3D 风格”“自然浏览 30 条，目标投票 5 次，每 10-20 分钟一轮”或“只浏览不投票”。不要再次运行安装流程。
 
-必须在同一个用户 turn 创建或复用全部启用的独立工作任务，并让每个任务通过 Chrome 完成和验证一个请求相关微轮次，或形成真实浏览后的具体无动作/阻塞证据。读 Skill、做计划、派发任务、创建 Heartbeat 或回复“已启动”都不算开始；任一工作线没有 proof，就不能声称整项任务已启动。worker 只返回计划时，主任务只能向该 worker 追加一次“立即执行”指令并重新读取；仍无 proof 就报告该 lane 启动失败，禁止主任务代做。只有取得 `start_proof_by_lane` 后，各 worker 自己的 Heartbeat 才能承接下一轮。此后每次执行型 Heartbeat 唤醒也必须先完成当前 slot 并记录 `slot_proof`，再安排后继 Heartbeat；禁止连续排期却不执行。
+必须在同一个用户 turn 创建或复用全部启用的独立工作任务，并让每个任务通过 Chrome 完成和验证一个请求相关微轮次，或形成真实浏览后的具体无动作/阻塞证据。读 Skill、做计划、派发任务、创建 Heartbeat 或回复“已启动”都不算开始；任一工作线没有 proof，就不能声称整项任务已启动。worker 只返回计划时，主控台只能向该 worker 追加一次“立即执行”指令并重新读取；仍无 proof 就报告该 lane 启动失败，禁止主控台代做。
+
+多小时持续运行不能用 `COUNT=1` 或 repeat-off 后依赖 worker 自续。主控台必须验证每个长期 Heartbeat 的 `targetThreadId`、repeat-on、下一次运行、本地/UTC、recurrence 和截止保护，并通过自己的监督 Heartbeat维护 `planned/started/completed/blocked/missed` slot 统计。只有至少一次 recurring wake 产生新的 worker turn 和 slot proof 后，才能声称持续调度已实际运行；链路断裂按 `SCHEDULER_CONTINUATION_FAILURE` 上报，不得归因于 Reddit 账号风险。
 
 ## Requirements
 
 - Codex 本地 Skill 支持
 - ChatGPT Chrome Extension 提供的 Chrome Browser control
 - 用户已在同一 Chrome profile 登录 Reddit
-- 多轮运行需要一次性 Automation/Heartbeat
+- 多轮运行需要 repeat-on Automation/Heartbeat，并支持显式 `targetThreadId`
 - Codex 独立任务的创建、读取和后续发送能力
 - 能访问 GitHub HTTPS archive
 

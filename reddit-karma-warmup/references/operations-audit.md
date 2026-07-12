@@ -10,7 +10,7 @@ Collect the smallest evidence set that can prove the result:
 
 1. Coordinator mission contract: enabled lanes, count/intensity/style, start/stop times, expected first action, and expected next slots.
 2. Worker registry: one distinct readable `worker_thread_id` per enabled lane, correct title/role, latest `1-3` relevant turns, and exact action/no-action evidence.
-3. Owned automation: automation ID, exact `target_thread_id`, prompt/lane match, one-shot/repeat state, intended local and UTC time, persisted schedule, and actual wake/run time when exposed.
+3. Coordinator-managed automation: automation ID, exact `target_thread_id`, prompt/lane match, repeat-on state, recurrence, stop guard, intended local/UTC next run, and actual wake/run time when exposed.
 4. Published evidence: exact text, permalink, author/subreddit, submit time, worker verification, and current visibility state. The coordinator may open only exact permalinks and relevant profile/history surfaces in a dedicated read-only tab; it must not perform exploratory browsing or mutations.
 5. Recent action ledger: timestamps, subreddits/clusters, action type, character/word counts, sentence form, length tier, and quality-gate evidence.
 
@@ -36,14 +36,14 @@ For each due continuation, compare:
 
 ```text
 intended_local | intended_utc | persisted_schedule | actual_wake_utc
-target_thread_id | one_shot/repeat | operation_stop_at
+target_thread_id | recurrence/repeat_on | operation_stop_at
 ```
 
 Classify timing:
 
 - `准确`: target binding is correct and actual/persisted time is within `5 min` of the intended UTC instant
 - `轻微延迟`: correct binding and `>5` to `15 min` late, with no hour-scale offset or missed work
-- `不准确`: wrong task, wrong day/hour, local/UTC offset error, repeat unexpectedly enabled, fired after stop time, or `>15 min` late without a concrete runtime reason
+- `不准确`: wrong task, wrong day/hour, local/UTC offset error, repeat is off/`COUNT=1`, recurrence differs from the mission, fired after stop time, or `>15 min` late without a concrete runtime reason
 - `无证据`: create succeeded but persisted and actual run time are both unavailable
 
 If the next run has not become due, audit only binding and persisted schedule; do not call it missed. Compare actual wake history after it becomes due.
@@ -142,8 +142,8 @@ Keep task IDs, raw scheduler fields, and internal scores hidden unless they expl
 An audit request is read-only. If the user also asks to fix problems:
 
 1. Send the correction to the owning worker task.
-2. The worker repairs only its lane action or heartbeat and returns new proof.
+2. The worker repairs only its lane action and returns new proof; scheduler repair belongs to the coordinator.
 3. Re-audit the repaired evidence once.
 4. The coordinator never substitutes for the worker or creates a combined execution trigger.
 
-The coordinator may deactivate a proven coordinator-targeted misbound lane heartbeat under `thread-supervision-runtime.md`, then require the correct worker to create its replacement.
+The coordinator deactivates a misbound/repeat-off/one-shot lane Heartbeat and creates one corrected recurring replacement explicitly targeting the worker.

@@ -49,7 +49,7 @@ account + tier/substate
 enabled_lanes
 start_local + start_utc
 operation_stop_at = start + requested duration
-watch_deadline = min(operation_stop_at, start + 60m)
+first_hour_quality_deadline = min(operation_stop_at, start + 60m)
 intensity
 operation_style
 voice_modifier
@@ -65,7 +65,7 @@ Then route, without restating their procedures:
 
 1. `new-account-bootstrap.md` and `community-presence-playbook.md` define the one-time truthful account baseline.
 2. `thread-supervision-runtime.md` creates/reuses exact lane owners and verifies task IDs.
-3. `coordinator-playbook.md` owns same-turn acceptance and the one-time first-hour watch.
+3. `coordinator-playbook.md` owns same-turn acceptance and mission-lifetime recurring supervision; the first hour adds richer quality checks.
 4. Each worker receives the handoff below and starts its first due slot immediately.
 
 Do not claim startup success until `coordinator-playbook.md` acceptance passes. Planning, task creation, and Heartbeat creation are not action proof.
@@ -108,7 +108,7 @@ Amendment semantics:
 - Explicit browsing read/vote/cap/interval values replace only those fields.
 - Count without duration derives a minimum window from the lane playbook when straightforward.
 
-Send only this delta to the existing owner. `coordinator-playbook.md` owns same-turn acceptance; the worker owns later Heartbeats.
+Send only this delta to the existing owner. `coordinator-playbook.md` owns same-turn acceptance and all later Heartbeat creation/updates; workers only execute their lane wakes.
 
 ## STATUS And Control
 
@@ -128,7 +128,7 @@ single_objective = exact one-line outcome from SKILL.md
 out_of_scope = other lane outcomes and sibling coordination
 worker_thread_id = exact persistent task ID
 coordinator_thread_id = exact Reddit 主控台 task ID
-operation_timer_id = NONE or exact lane-owned automation ID
+operation_timer_id = NONE or exact coordinator-managed recurring automation ID targeting this worker
 model = gpt-5.6-luna
 thinking_effort = high
 account = u/name
@@ -143,7 +143,7 @@ first_due = now or exact time
 browse_next_delay_range
 ```
 
-The worker preserves one objective. Discovery, scoring, copy, rules, pacing, verification, reporting, recovery, and timer handling are supporting steps. It executes now, returns `start_proof`, and creates its logical timer only after first-slot proof. Later wakes return `slot_proof` before updating the same timer.
+The worker preserves one objective. Discovery, scoring, copy, rules, pacing, verification, reporting, and recovery are supporting steps. It executes now and returns `start_proof`. After proof, the coordinator creates the recurring Heartbeat; later wakes return `slot_proof` or `not_due` and never mutate scheduling.
 
 Workers send event returns only for a decision-requiring risk/blocker, one non-blocking `SUBREDDIT_RETIRED` notice per newly retired subreddit, or one terminal completion of the whole assigned mission. Ordinary slot progress remains local.
 

@@ -9,7 +9,8 @@ Escalate immediately when at least one is true:
 - `decision_required`: a genuine soft-risk choice changes whether/how the action should continue
 - `lane_blocked`: Chrome remains unavailable after recovery, the worker task/heartbeat cannot continue correctly, or the lane cannot meet its mission for a non-candidate-specific reason
 - `account_blocked`: a currently visible logout/wrong account, credential request, captcha, sitewide rate limit, lock/suspension, or explicit account-wide warning prevents the action now
-- `execution_integrity_failed`: automation targets the wrong task, fires at a materially wrong time, repeats unexpectedly, runs after the stop time, or published evidence cannot be reconciled safely
+- `execution_integrity_failed`: automation targets the wrong task, fires at a materially wrong time, has recurrence inconsistent with the mission, runs after the stop time, or published evidence cannot be reconciled safely
+- `scheduler_continuation_failed`: a promised multi-slot mission has no valid recurring Heartbeat, a timer is `COUNT=1`/repeat-off/misbound, or no worker wake/slot proof appears after one bounded coordinator repair
 - `material_reputation_risk`: an intended action appears technically possible but has clear moderation, deception, identity, or brand risk requiring a user choice
 
 Do not escalate ordinary operations noise:
@@ -24,6 +25,8 @@ Do not escalate ordinary operations noise:
 - any historical or already-cleared removal, warning, rate limit, lock, or login fault
 
 These remain in the worker report unless bounded recovery fails, they become lane-wide/account-wide, or they require a user decision.
+
+`SCHEDULER_CONTINUATION_FAILURE` is orchestration state, never Reddit account risk. The coordinator preserves completed actions, reports exact planned/started/completed/blocked/missed counts, and marks the mission `degraded` or `partial_completed`; it does not change account tier or subreddit eligibility.
 
 ## Non-Blocking Subreddit Retirement Notice
 
@@ -50,14 +53,14 @@ When escalation is required:
 
 1. Stop new actions in the affected scope. Keep unrelated lanes outside this worker's control.
 2. Preserve exact evidence: URL/surface, time local+UTC, Reddit/browser message, submit state, automation ID/target when relevant, and actions already completed.
-3. Cancel or pause only this worker's next trigger when continuing it could worsen the risk. Do not alter sibling automations.
+3. Report whether this worker's recurring Heartbeat should be paused; only the coordinator changes it. Do not inspect or alter sibling automations.
 4. Send one message to the exact `coordinator_thread_id`:
 
 ```text
 RISK_ESCALATION
 mission_id: <id>
 lane: <comments|posts|follow-up|browsing>
-severity: <decision_required|lane_blocked|account_blocked|execution_integrity_failed|material_reputation_risk>
+severity: <decision_required|lane_blocked|account_blocked|execution_integrity_failed|scheduler_continuation_failed|material_reputation_risk>
 evidence: <one concise factual paragraph>
 likely_cause: <one or two evidence-based possibilities, explicitly marked as possible>
 recovery_attempts: <what was retried and the observed result>
@@ -67,7 +70,7 @@ safe_options: <continue unchanged only if defensible | safer adjustment | stop>
 user_action_needed: <exact decision or repair>
 ```
 
-5. End the worker turn in `awaiting_coordinator_decision` only when user action or a genuine choice is required. A visible timed rate limit with a known expiry is automatic recovery: preserve the mission, reuse this lane's timer for the expiry when needed, re-probe, and continue without requesting a decision. Do not ask the user, create a substitute task, or broaden the pause to siblings.
+5. End the worker turn in `awaiting_coordinator_decision` only when user action or a genuine choice is required. A visible timed rate limit with a known expiry is automatic recovery: preserve the mission, return the expiry to the coordinator scheduler, and continue on a later recurring wake without requesting a decision. Do not ask the user, create a substitute task, or broaden the pause to siblings.
 
 If the worker-to-coordinator message capability is unavailable, keep the affected scope paused and mark `risk_return_unavailable`. Unattended continuation for that lane is not allowed; the coordinator's next bounded pull must surface it.
 

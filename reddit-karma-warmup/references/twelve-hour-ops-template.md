@@ -6,7 +6,7 @@ Use for about `8-12h`, overnight, or other long low-frequency runs. This is a pl
 
 - Execute the H0/current slot immediately.
 - Each worker owns one lane and at most one future trigger.
-- Each wake-up runs one small due slot, reconciles, then updates the same logical timer to its next one-shot due time.
+- The coordinator creates one recurring Heartbeat per enabled worker plus one recurring read-only supervisor for the full window. Each worker wake runs one due slot or records `not_due`; workers never renew timers.
 - Do not run every lane at every wake-up and do not catch up after a late trigger.
 - Follow-up keeps its own `20-40 min` default sweep rhythm; the table below is only a coarse session map.
 

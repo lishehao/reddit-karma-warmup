@@ -71,39 +71,39 @@ When two references appear to cover the same decision, the owner above wins. Sup
 1. Send each enabled owner its mission with `first_due=now`; every worker opens/reclaims its own Chrome tab and performs the first micro-slot immediately.
 2. Every worker returns `start_proof`: a verified action/permalink, or exact browser surfaces/candidates plus the valid gate producing no action/blocker.
 3. The coordinator reads every enabled worker in the same user turn. A plan-only worker receives one execute-now correction; if proof still fails, mark only that lane `startup_blocked`.
-4. Planning, task creation, heartbeat creation, or `已启动` is not proof. No worker creates its logical operation timer before current-slot proof.
+4. Planning, task creation, Heartbeat creation, or `已启动` is not proof. Only after current-slot proof does the coordinator create the recurring mission Heartbeats.
 5. Report the actual first result in Chinese, then end the turn; never keep an active turn waiting for the next delayed slot.
 
 ### Phase 3: Independent Worker Continuation
 
-1. Each worker owns one lane, dedicated tab/history, and one logical heartbeat timer explicitly bound to its own task ID for the mission lifetime.
-2. On every heartbeat wake, the worker restores state, executes/verifies the current slot, records `slot_proof`, and only then updates the same timer to the next due time when work remains.
+1. Each worker owns one lane and dedicated tab/history. `Reddit 主控台` owns scheduling and creates one recurring, repeat-on Heartbeat explicitly bound to each worker task for the mission lifetime.
+2. On every Heartbeat wake, the worker restores state, executes/verifies one due slot, and records `slot_proof` or `not_due`. It never creates, updates, renews, or deletes the Heartbeat.
 3. Workers keep routine progress locally. They never coordinate siblings or ask the user directly.
 4. Decision-requiring risks use `risk-escalation.md`: pause the affected scope, return evidence to `Reddit 主控台`, and await the routed user decision.
 5. A subreddit removal/filter/lock/ban sends one non-blocking `SUBREDDIT_RETIRED` notice, retires only that subreddit, and continues elsewhere without waiting for user approval.
 6. When the lane's whole mission reaches its target, deadline, user stop, or terminal no-more-work condition, send exactly one `MISSION_COMPLETE` return to `Reddit 主控台`. This is mission-level completion, never a per-heartbeat callback.
 
-### Phase 4: One-Time First-Hour Supervision
+### Phase 4: Mission-Lifetime Supervision
 
-1. Run this phase only for the first post-install `BOOTSTRAP` while `bootstrap_state` is not initialized.
-2. The coordinator owns one read-only logical heartbeat timer, reuses its automation ID, and checks workers near `start+15m`, `start+35m`, and the `start+60m` boundary.
-3. Check worker status, action/no-action evidence, permalink visibility, heartbeat binding/time, cadence, risks, and a small length/quality sample. The coordinator never performs lane actions.
-4. At the final boundary, reconcile the first hour, delete the coordinator heartbeat, set `bootstrap_state=initialized`, and enter `IDLE`.
-5. Later missions and Skill upgrades never restart this phase unless the user explicitly asks for renewed supervision.
+1. Every multi-slot `BOOTSTRAP` or later `MISSION` receives one recurring, repeat-on, read-only supervisor Heartbeat targeting `Reddit 主控台` until `operation_stop_at`.
+2. The supervisor reconciles worker wake turns, slot proof, lane-Heartbeat binding/repeat/time, cadence, and `planned/started/completed/blocked/missed` counts. It never performs lane actions.
+3. The first post-install hour additionally checks permalink visibility and a small length/quality sample near `+15m`, `+35m`, and `+60m`, then sets `bootstrap_state=initialized`; the same supervisor continues for the remaining mission window.
+4. Missing, repeat-off, `COUNT=1`, misbound, or non-firing lane Heartbeats receive one bounded in-place repair. Persistent failure is `SCHEDULER_CONTINUATION_FAILURE`, not Reddit account risk.
+5. At mission completion/deadline/stop, the coordinator removes all mission Heartbeats, reconciles final counts, and enters `IDLE`.
 
 ### Phase 5: Later Missions
 
 1. The user continues speaking only in `Reddit 主控台`; classify the command as `MISSION` and reuse the relevant owners/history.
 2. Send only the changed mission fields. The affected worker executes its first due slot now, and the coordinator performs same-turn acceptance exactly as Phase 2.
-3. Worker-owned heartbeats continue remaining work. The coordinator returns to `IDLE` and does not create another first-hour watch.
+3. The coordinator creates or updates the affected recurring lane Heartbeats plus its mission supervisor Heartbeat, then ends the active turn. Future continuation is Heartbeat-driven until the mission deadline.
 
 ### Phase 6: Status, Audit, Control, And Risk
 
 - `STATUS`: read relevant workers once; report progress, risk, and next run. Do not create work.
 - `AUDIT`: use `operations-audit.md` to inspect ownership, automation timing, execution, visibility, cadence, length, and quality.
-- pause/resume/stop: route the control to affected owners and verify their own heartbeat change.
+- pause/resume/stop: the coordinator updates or removes the affected recurring Heartbeats, routes the control to workers, and verifies both timer and worker state.
 - risk callback: explain evidence, impact, current pause, and recommendation in `Reddit 主控台`; ask the user to continue, adjust, or stop, then route the decision back to the owner.
-- In `IDLE`, never poll. Worker risk callbacks, non-blocking subreddit-retirement notices, mission-completion returns, or a new user command are the only re-entry paths after the one-time Bootstrap watch.
+- In `IDLE`, never poll. The recurring mission supervisor, worker risk/retirement/completion returns, or a new user command are the only re-entry paths while a mission remains active.
 
 ## Single-Objective Task Contract
 
@@ -138,7 +138,7 @@ One worker may process several items only when they all serve its single objecti
 - Follow-up: inspect Notifications and recent own activity; reply only to actionable items.
 - Natural browsing: use the selected intensity's read budget and vote target. Standard defaults to `20-30` qualified reads and a target of `2` combined genuine votes per slot, with up to `4` when additional items independently pass. After a slot completes, the next browsing slot defaults to a freshly selected `20-40 min` delay. An explicit user read, vote, or interval setting, including `0` votes, overrides only that field; a below-target slot is valid when the read/time budget is exhausted without enough passing items.
 - The post lane is enabled during broad operation, but publishing still requires a fully eligible native candidate and live preflight; a verified no-post result is valid.
-- During the one-time post-install BOOTSTRAP only, the main task checks the first outward permalink immediately, near `+15 min`, and at the first-hour boundary while workers continue independently.
+- During the first post-install hour, the recurring coordinator supervisor adds permalink and content-quality checks; afterward it continues lower-cost schedule/slot reconciliation until mission end.
 
 ## Shared Invariants
 
@@ -146,9 +146,8 @@ One worker may process several items only when they all serve its single objecti
 - Historical or already-cleared removals, warnings, rate limits, locks, and login faults are ledger context only. They never create a recovery tier, cooldown, reduced envelope, approval prompt, or refusal for a new command. A current state may pause only the action it actually makes impossible; after it clears, automatically resume the unchanged latest user command unless the user has since amended or stopped it.
 - Real account actions require the already logged-in Chrome Browser control. Never enter credentials and never substitute Computer Use, the in-app Browser, Playwright, or ordinary Web Search.
 - Each worker owns a dedicated Reddit tab and optional Tab Group. Workers do not inspect, wait for, compare, or modify other workers' tabs, targets, actions, or automations.
-- Each worker heartbeat is created/updated by that worker with explicit `targetThreadId=worker_thread_id` when supported, then read back for an exact target match. Names never prove ownership; a mismatch is repaired before the trigger remains active.
-- The main task never owns an execution heartbeat. Its optional first-hour watch heartbeat is read-only, is named as supervision rather than continuation, and cannot contain Reddit lane actions.
-- Each worker owns one logical heartbeat timer for its active mission and may mutate only that exact automation targeting its same task/lane. Reuse its automation ID until stop/completion.
+- The coordinator creates, updates, verifies, and stops every mission Heartbeat. Lane Heartbeats explicitly target their worker tasks; the recurring coordinator supervisor Heartbeat explicitly targets `Reddit 主控台` and is read-only.
+- Workers never create, update, renew, replace, pause, or delete Heartbeats. They execute the bounded lane slot delivered by their recurring Heartbeat and report proof/state only.
 - Routine progress is pull-based. Three event returns are exceptions: a substantive risk/blocker, one non-blocking `SUBREDDIT_RETIRED` notice per newly retired subreddit, and one terminal `MISSION_COMPLETE` when the lane mission ends. A retirement notice never pauses unrelated work or asks for a decision.
 - Removal, filtering, lock, pending approval, parent deletion, or a subreddit ban is not account-wide evidence. Retire only the exact subreddit and continue at the same account tier/envelope. Only currently active, explicit account-level warning/rate-limit/captcha/lock/suspension/login evidence may pause the actions it prevents.
 - Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.

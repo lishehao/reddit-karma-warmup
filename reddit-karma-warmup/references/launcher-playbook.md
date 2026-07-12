@@ -4,7 +4,7 @@ Load only in `Reddit 启动台`. The launcher installs, checks readiness, alloca
 
 ## Single Objective
 
-Create or reuse the exact independent lane tasks requested by the user's first operation and deliver each complete mission successfully.
+Create one fresh independent lane task for every requested lane and deliver each complete mission successfully.
 
 Out of scope:
 
@@ -18,15 +18,15 @@ Out of scope:
 
 1. Normalize the first request through `default-operations-sop.md`.
 2. Broad `开始/运营` enables comments, posts, follow-up, and browsing. Add presence only when the profile baseline is incomplete or explicitly requested. A named lane enables only that lane.
-3. Use `thread-supervision-runtime.md` to resolve one distinct persistent task per enabled lane.
-4. Rename each task to its canonical lane title and keep it unpinned.
+3. Use `thread-supervision-runtime.md` to create one new persistent task per enabled lane. Do not list/search/read/reuse/unarchive/revive historical tasks.
+4. Capture only the exact IDs returned by this run's task-creation calls. Rename each new task to its canonical lane title and keep it unpinned.
 5. Send one complete handoff containing lane, objective, exclusions, account, duration/count, intensity, style, language, target pool, stop time, first due=`now`, required references, and `heartbeat_owner=self`.
 6. Verify only that the exact task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
 7. Return a compact mapping of lane titles, then enter `L3_IDLE`.
 
 The launcher never creates timers for workers. Each worker creates and owns its self-targeted Heartbeat after executing its immediate first slot.
 
-If one lane task cannot be created or accept delivery, report only that lane as unavailable. Dispatch every other requested lane normally. Do not merge lanes and do not execute the missing lane in the launcher.
+If one fresh lane task cannot be created or accept delivery, report only that lane as unavailable. Dispatch every other requested lane normally. Do not fall back to an old task, merge lanes, or execute the missing lane in the launcher.
 
 ## Handoff Card
 

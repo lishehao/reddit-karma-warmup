@@ -29,15 +29,19 @@ def main() -> int:
             "launcher_callback=none",
             "The user speaks directly to the relevant lane task after dispatch",
             "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
+            "never search or reuse old tasks",
         ],
         ROOT / "references" / "launcher-playbook.md": [
             "then becomes idle",
             "It is not a coordinator",
             "The launcher never creates timers for workers",
+            "Do not list/search/read/reuse/unarchive/revive historical tasks",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
-            "not ongoing supervision",
+            "not discovery, reuse, or ongoing supervision",
             "Workers never register with, callback, or send completion/risk events to the launcher",
+            "The launcher must not call task list/search/read to find historical workers",
+            "fresh_task_creation_failed",
         ],
         ROOT / "references" / "scheduler-and-heartbeats.md": [
             "The worker is the only scheduler for its lane",
@@ -57,6 +61,8 @@ def main() -> int:
             "heartbeat_owner=self",
             "启动台进入 idle",
             "不读取、不 callback、不暂停、不修改其他执行台",
+            "必须忽略",
+            "不得退回旧任务",
         ]
 
     errors: list[str] = []
@@ -84,6 +90,11 @@ def main() -> int:
         ROOT / "references" / "thread-supervision-runtime.md": [
             "recurring supervisor",
             "callback target",
+            "Search for an unarchived task",
+            "Reuse it only when",
+        ],
+        ROOT / "references" / "launcher-playbook.md": [
+            "Create or reuse the exact independent lane tasks",
         ],
     }
     for path, needles in forbidden.items():
@@ -104,6 +115,10 @@ def main() -> int:
         "launcher_callback": "FORBIDDEN",
         "coordinator_supervisor": "ABSENT",
         "sibling_failure": "NO_INTERFERENCE",
+        "old_same_title_task": "IGNORE_CREATE_FRESH",
+        "old_archived_task": "IGNORE_CREATE_FRESH",
+        "old_live_run": "IGNORE_CREATE_FRESH",
+        "fresh_create_failure": "REPORT_NO_OLD_TASK_FALLBACK",
     }
     print("AUTONOMOUS_LANE_CONTRACT=PASS")
     for scenario, result in scenarios.items():

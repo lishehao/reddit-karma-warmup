@@ -21,7 +21,7 @@
 - 安装或升级 Skill；
 - 只读检查 Chrome、Reddit 登录、独立任务、Heartbeat 和真实时间；
 - 解析用户第一次运营范围；
-- 创建或复用对应执行台并投递初始任务；
+- 为本次 run 创建全新的对应执行台并投递初始任务；
 - 完成投递后进入 idle。
 
 启动台不操作 Reddit、不创建或管理运营 Heartbeat、不读取执行台后续状态、不接收 callback、不汇总风险或结果，也不晋升为 `Reddit 主控台`。
@@ -77,7 +77,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 你希望怎么运营？可以指定评论、发帖、跟进、自然浏览、时长、强度和风格。暂时没想法就回复“开始”，我会创建独立的 Reddit 评论台、发帖台、跟进台和浏览台；它们之后各自运行，你直接去对应任务继续沟通。
 ```
 
-用户回复“开始”时，默认标准强度、混合探索、3 小时，并创建或复用：
+用户回复“开始”时，默认标准强度、混合探索、3 小时，并为本次 run 创建全新的：
 
 - `Reddit 评论台`
 - `Reddit 发帖台`
@@ -86,6 +86,8 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - `Reddit 主页台`，仅在首次主页基础未完成或用户明确要求时
 
 启动台为每个任务发送完整 lane mission，设置 `first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`，验证消息投递成功后进入 idle。它不等待执行结果。
+
+启动台禁止搜索、读取、复用、反归档、唤醒、改名或向历史执行任务重新发 mission。即使旧任务同名、仍可读或仍在运行，也必须忽略。每个新 run 只认本次 `create_thread` 返回的新 Task ID；fresh task 创建失败时只报告本次失败，不得退回旧任务。
 
 ### 5. 执行台自治
 
@@ -106,7 +108,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - ChatGPT Chrome Extension 提供的 Chrome Browser control
 - 用户已在同一 Chrome profile 登录 Reddit
 - 多轮任务需要 repeat-on Heartbeat 和显式 `targetThreadId`
-- 首次分配需要独立任务创建/读取/发送能力
+- 首次分配需要独立任务创建及向本次新任务发送指令的能力
 - GitHub HTTPS archive 可访问
 
 ## Repository Layout

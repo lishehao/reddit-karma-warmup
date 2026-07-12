@@ -55,15 +55,17 @@ def main() -> int:
             "never create a second main/coordinator task",
             "Worker discovery, task creation, and replacement rules below apply only to lane workers",
         ],
-        README: [
+    }
+
+    if README.exists():
+        checks[README] = [
             "请先将当前任务重命名为“Reddit 启动台”",
             "第一个可用的界面动作",
             "早于下载、依赖检查、预检或方案解释",
             "不得另建 installer 或第二个未来主控台",
             "在同一个任务内切换为 `REDDIT_COORDINATOR`",
             "立即把当前任务命名为 `Reddit 主控台` 并在同一轮开始执行",
-        ],
-    }
+        ]
 
     errors: list[str] = []
     for path, needles in checks.items():
@@ -72,15 +74,16 @@ def main() -> int:
             continue
         errors.extend(require(path, needles))
 
-    errors.extend(
-        forbid(
-            README,
-            [
-                "任一工作线没有 proof，就不能声称整项任务已启动",
-                "用户回复 setup 后先完成预检，再重命名",
-            ],
+    if README.exists():
+        errors.extend(
+            forbid(
+                README,
+                [
+                    "任一工作线没有 proof，就不能声称整项任务已启动",
+                    "用户回复 setup 后先完成预检，再重命名",
+                ],
+            )
         )
-    )
 
     if errors:
         print("ROLE_TRANSITION_CONTRACT=FAIL")

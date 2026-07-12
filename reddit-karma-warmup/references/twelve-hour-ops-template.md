@@ -1,6 +1,6 @@
 # Twelve-Hour Autonomous Lane Template
 
-Use inside one lane task when the user requests a long timed run. A broad request is already split by `Reddit 启动台`; each task follows this template independently.
+Use inside one lane task when the user requests a long timed run. A broad request is already split by `Reddit 分发台`; each task follows this template independently.
 
 ## Contract
 

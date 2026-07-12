@@ -7,7 +7,7 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 ## Default Sequence
 
 1. **Inspect first.** Confirm the account, visible age/karma/history, email-verification or eligibility signals where Reddit exposes them, notifications, and any currently active warning/removal state. Keep historical/cleared events in the ledger without turning them into startup blockers.
-2. **Establish a truthful presence baseline.** `Reddit 启动台` may allocate `Reddit 主页台`; that task loads `community-presence-playbook.md`, makes one immediate best-effort display/about/avatar/banner checkpoint, and owns any requested retry without holding outward tasks.
+2. **Establish a truthful presence baseline.** `Reddit 分发台` may allocate `Reddit 主页台`; that task loads `community-presence-playbook.md`, makes one immediate best-effort display/about/avatar/banner checkpoint, and owns any requested retry without holding outward tasks.
 3. **Join a few high-fit communities.** `Reddit 主页台` runs the membership gate and prefers `1-3` in the first slot. Profile/Join/Flair incompleteness never blocks outward lanes once account identity is known.
 4. **Read before and alongside publishing.** Comment, post, and follow-up tasks independently assess natural incidental votes on external content they already open. These votes have no quota and never cause extra browsing. Create a separate intensity-sized browse slot only when the user explicitly requests pure browsing/voting.
 5. **Run the first-hour launch.** Immediately execute comments, post preflight, and follow-up using the selected intensity. Comments remain micro/fragment/one-liner first and span lower-restriction communities. Add pure browsing only when explicitly requested.

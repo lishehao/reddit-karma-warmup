@@ -24,6 +24,7 @@ def main() -> int:
         ROOT / "SKILL.md": [
             "REDDIT_LAUNCHER",
             "Reddit 启动台",
+            "Reddit 分发台",
             "reusable stateless launcher",
             "There is no persistent main coordinator",
             "heartbeat_owner=self",
@@ -31,19 +32,21 @@ def main() -> int:
             "The user speaks directly to the relevant lane task after dispatch",
             "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
             "never search or reuse old tasks",
-            "Every launcher command creates another fresh run",
+            "Every distribution command creates another fresh run",
             "自然浏览/投票：随以上执行台读取内容时完成",
+            "L2_READY",
         ],
         ROOT / "references" / "launcher-playbook.md": [
             "returns to idle",
             "It is not a coordinator",
             "The launcher never creates timers for workers",
             "Do not list/search/read/reuse/unarchive/revive historical tasks",
-            "repeated direct user dispatch commands",
+            "For every direct command it creates fresh requested lane tasks",
             "next command repeats fresh creation with a new run ID",
             "Post-Dispatch Instruction",
             "Broad `开始/运营` enables comments, posts, and follow-up",
             "Create browsing only for an explicit pure-browse/vote request",
+            "Load in `Reddit 分发台` after temporary `Reddit 启动台` setup passes preflight",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
             "not discovery, reuse, or ongoing supervision",
@@ -58,23 +61,24 @@ def main() -> int:
         ],
         ROOT / "references" / "risk-escalation.md": [
             "There is no callback or central risk surface",
-            "Never send this to `Reddit 启动台`",
+            "Never send this to `Reddit 分发台`",
         ],
     }
 
     if README.exists():
         checks[README] = [
-            "可重复使用的无状态启动台 + 相互独立的执行台",
+            "临时启动台 -> 可重复使用的无状态分发台 + 相互独立的执行台",
             "也不晋升为 `Reddit 主控台`",
             "heartbeat_owner=self",
             "然后回到 idle",
             "不读取、不 callback、不暂停、不修改其他执行台",
             "必须忽略",
             "不得退回旧任务",
-            "执行线程始终不会返回启动台",
+            "执行任务始终不会返回分发台",
             "每次用户回复“开始”",
             "已启动：<本次创建的任务>",
             "自然浏览/投票：随以上执行台读取内容时完成",
+            "当前任务已切换为 Reddit 分发台",
         ]
 
     errors: list[str] = []
@@ -122,6 +126,7 @@ def main() -> int:
 
     scenarios = {
         "setup_command": "RENAME_LAUNCHER_FIRST",
+        "setup_health_passed": "RENAME_DISTRIBUTOR",
         "launcher_dispatch": "DELIVER_ONCE_THEN_IDLE",
         "worker_first_slot": "EXECUTE_NOW",
         "worker_continuation": "SELF_OWNED_HEARTBEAT",

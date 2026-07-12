@@ -1,6 +1,6 @@
 # Reusable Stateless Launcher
 
-Load only in `Reddit 启动台`. The launcher installs/checks readiness once, then may accept repeated direct user dispatch commands. For every command it creates fresh requested lane tasks, delivers the new missions, and returns to idle. It is not a coordinator.
+Load in `Reddit 分发台` after temporary `Reddit 启动台` setup passes preflight. For every direct command it creates fresh requested lane tasks, delivers the new missions, and returns to idle. It is not a coordinator.
 
 ## Single Objective
 
@@ -22,7 +22,7 @@ Out of scope:
 4. Capture only the exact IDs returned by this run's task-creation calls. Rename each new task to its canonical lane title and keep it unpinned.
 5. Send one complete handoff containing lane, objective, exclusions, account, duration/count, intensity, style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `incidental_voting=already_read_content_only` for comments/posts/follow-up, required references, and `heartbeat_owner=self`.
 6. Verify only that the exact task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
-7. Return the created titles plus the routing instruction below, using only the tasks created in this dispatch, then enter `L3_IDLE`.
+7. Return the created titles plus the routing instruction below, using only the tasks created in this dispatch, then enter `L4_IDLE`.
 
 The launcher never creates timers for workers. Each worker creates and owns its self-targeted Heartbeat after executing its immediate first slot.
 
@@ -51,7 +51,7 @@ sibling_visibility=none
 - 主帖、版规和发帖候选：Reddit 发帖台
 - Notifications、回复和后续互动：Reddit 跟进台
 - 自然浏览/投票：随以上执行台读取内容时完成；纯浏览任务才单独创建 Reddit 浏览台
-- 新开一轮或重新分配任务：回到 Reddit 启动台
+- 新开一轮或重新分配任务：回到 Reddit 分发台
 ```
 
 Include only execution routes whose tasks were created in this dispatch. Always retain the natural-browsing explanation and final launcher route. If browsing was explicitly created, replace its line with `纯浏览/投票：Reddit 浏览台`.

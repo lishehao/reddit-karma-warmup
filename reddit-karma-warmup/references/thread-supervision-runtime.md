@@ -1,6 +1,6 @@
 # Fresh-Only Task Allocation
 
-Load only in `Reddit 启动台` for each direct user dispatch command. This is repeatable one-way fresh task creation, not discovery, reuse, or ongoing supervision.
+Load only in `Reddit 分发台` for each direct user dispatch command. This is repeatable one-way fresh task creation, not discovery, reuse, or ongoing supervision.
 
 ## Canonical Titles
 

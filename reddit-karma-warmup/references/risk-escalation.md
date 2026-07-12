@@ -35,7 +35,7 @@ Use:
 完成后在本任务回复“继续”。
 ```
 
-Never send this to `Reddit 启动台` and never inspect sibling state.
+Never send this to `Reddit 分发台` and never inspect sibling state.
 
 ## Subreddit Retirement
 

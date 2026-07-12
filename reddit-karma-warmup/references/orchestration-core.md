@@ -40,15 +40,15 @@ Every first run and resume follows the same state machine:
 | `NAME` | Rename the current task and dispatched lane tasks after state is fixed. | concise Chinese titles applied or unavailability recorded |
 | `PLAN_SLOT` | Create only the next executable slot from remaining time/count. | slot has target and time budget |
 | `DISCOVER` | Inspect lane surfaces and candidate context. | candidate passes or pool exhausted |
-| `CHECK_A` | Check pool/rules/history/eligibility before drafting. | pass / retarget / stop |
+| `CHECK_A` | Check pool/rules/history/eligibility before drafting. | pass / retarget / recover |
 | `DRAFT` | Text lanes choose length and write target-specific copy; browsing applies its vote gate without drafting text. | final draft or vote decision ready |
-| `CHECK_B` | Text lanes recheck account/page/copy/history/duplicate; browsing rechecks account/URL/direction and eligibility. | submit / vote / rewrite / retarget / stop |
+| `CHECK_B` | Text lanes recheck account/page/copy/history/duplicate; browsing rechecks account/URL/direction and eligibility. | submit / vote / rewrite / retarget / recover |
 | `ACT` | Reselect this lane's dedicated tab, confirm account/target, perform action, and verify. | result recorded |
 | `RECONCILE` | Update remaining target from actual time and quality. | next decision known |
 | `SCHEDULE_HANDOFF` | Return proof and proposed next due state to the coordinator; never mutate automations. | proof/state returned |
 | `REPORT` | Return compact operational record. | turn ends |
 
-Every enabled lane on first activation must reach `ACT` or a verified no-action/blocker result before `SCHEDULE_HANDOFF` and `REPORT`. `START_NOW_PROOF_BY_LANE` is a hard transition guard: no path from planning may jump directly to scheduling/reporting. A lane Heartbeat resume starts at `PROBE`, refreshes `HISTORY`, completes one due slot or records `not_due`, then returns proof/state. The coordinator creates and maintains all recurring Heartbeats.
+Every enabled lane on first activation must reach `ACT` or a browser-backed no-action/recovery checkpoint before `SCHEDULE_HANDOFF` and `REPORT`. `START_NOW_PROOF_BY_LANE` prevents plan-only deferral but does not require a successful mutation. A lane Heartbeat resume starts at `PROBE`, refreshes `HISTORY`, completes one due slot or records `not_due`, then returns proof/state. The coordinator creates and maintains all recurring Heartbeats.
 
 ## Scope And Authorization
 
@@ -56,7 +56,7 @@ Every enabled lane on first activation must reach `ACT` or a verified no-action/
 - `运营` enables four outward lanes: comments, posts, follow-up, and natural browsing. A first bootstrap additionally enables presence only when the profile/community baseline is incomplete. Missing duration defaults to `3 hours`; missing intensity defaults to `standard`. A named action enables only its matching lane.
 - User model/effort overrides take priority when available. Otherwise use `model-runtime.md`: coordinator and workers request `gpt-5.6-luna/high`, and unavailable overrides do not block execution.
 - Session-level authorization covers ordinary actions in the active session and subsequent wakes of the coordinator-managed recurring Heartbeat targeting that lane. Do not ask before every item.
-- Ask only when the request is genuinely ambiguous or a concrete soft-risk choice materially changes the action. A worker sends that question to the coordinator under `risk-escalation.md`; it never asks inside the lane task.
+- Infer ordinary operational details from the latest command, selected style, live rules, and safest eligible substitute. Ask only when the user explicitly required one exact target/action and every compliant interpretation materially changes that requirement. A worker sends that rare question to the coordinator; it never asks inside the lane task.
 - Do not silently turn requested posts into comments or requested follow-up into discovery.
 
 ## Task Naming
@@ -108,9 +108,9 @@ Load `chrome-network-recovery.md` whenever Chrome control, navigation, or page l
 5. If no send occurred, reopen the target in this lane's tab, re-read current context, and continue from the last safe step.
 6. Use the reference's bounded two-attempt state machine. The second attempt may be a `5-10 min` recovery Heartbeat using this lane's existing timer; do not loop indefinitely or create another timer.
 
-For `ERR_BLOCKED_BY_CLIENT`, reconnect Chrome only when control also dropped; otherwise preserve the browser binding, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and stop the lane only when Chrome control itself remains unavailable after both recovery attempts.
+For `ERR_BLOCKED_BY_CLIENT`, reconnect Chrome only when control also dropped; otherwise preserve the browser binding, open a clean dedicated tab, and retry through a native Reddit entry surface such as the subreddit home, Notifications, profile history, or an already visible link instead of repeating only the blocked deep URL. If one candidate/route remains blocked after recovery, record `skip_candidate`, continue the remaining slot on another eligible route/community, and keep the lane in recurring recovery if Chrome control remains unavailable.
 
-If Chrome remains unavailable after recovery attempts, report `chrome_unavailable_after_reconnect` with the exact error class/code and scope-probe results, then pause account mutations. If Reddit currently shows logout/wrong account, credentials, captcha, rate limit, or lock, pause only the impossible actions. A displayed timed rate limit is automatic wait-and-resume; states requiring user repair return through `Reddit 主控台`. Never enter credentials, and never infer a current blocker from history alone.
+If Chrome remains unavailable after one wake's bounded recovery, report `chrome_unavailable_after_reconnect`, keep the Heartbeat active, and re-probe on later wakes. Ask the user only after the same control failure persists across three consecutive recovery wakes. If Reddit shows a timed rate limit, keep read-only/independent work active and resume mutations automatically at expiry. Login/account mismatch, credentials, CAPTCHA/challenge, lock/suspension, or required acknowledgement with no automatic path enters the hard user-repair allowlist; never infer one from history alone.
 
 ## Active Pool
 
@@ -145,7 +145,7 @@ Each lane follows one fixed microflow; its playbook owns the detailed gates:
 
 Real operations require persistent task create/read/send capability. The user's `开始` or concrete operation command is explicit authorization to create the requested user-visible lane tasks. Default broad operation requires the four outward workers; BOOTSTRAP adds the presence worker only when required; a named single-lane mission requires that one worker. Never replace them with sequential coordinator execution or invisible subagents.
 
-For the first turn of a new operation, delegation is valid only when the coordinator can read every enabled worker's verified `ACT`/no-action result before its own final response. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. If proof remains unavailable, mark that lane `startup_blocked`; coordinator execution is forbidden.
+For the first turn of a new operation, delegation is valid per lane when the coordinator reads its verified `ACT` or browser-backed no-action/recovery checkpoint. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. A temporarily unreachable lane becomes `lane_recovering`; it never delays acceptance or scheduling of another lane, and coordinator execution remains forbidden.
 
 The `Reddit 主控台` task is not another lane. It stores the registry/slot ledger, answers the user, accepts first proof, centrally creates recurring Heartbeats, and supervises continuation. It never performs lane mutations or creates a combined execution continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they return only decision-requiring risks/blockers, non-blocking subreddit-retirement notices, and exactly one terminal lane-mission completion.
 
@@ -172,7 +172,7 @@ Use one of four decisions; never say only `account safety`.
 - `act`: rules, context, account state, quality, and lane gate pass.
 - `skip_candidate`: low score, stale/saturated thread, weak fit, unclear eligibility for one target, duplicate angle, or unavailable control. Search another candidate.
 - `recover_lane`: a tab, route, client-block, network, or control failure prevents the current step. Preserve mutation integrity, run bounded recovery, keep the lane Heartbeat active, and continue another safe candidate/surface when possible. Never ask for confirmation or affect siblings.
-- `hard_stop`: a currently visible captcha, sitewide rate limit, lock/suspension, wrong/logged-out account, credential request, explicit account-wide warning, clear rule prohibition for the current target, or unsafe/deceptive action prevents that action now. Historical/cleared states never qualify. A timed rate limit preserves the mission and automatically re-probes at expiry; after any blocker clears, resume the unchanged latest user command without a recovery tier or second confirmation. Community removals/filters/locks/bans activate `R1/R2` retirement and retarget automatically; any number of retirements remains non-blocking without separate active account-wide evidence.
+- `hard_user_repair`: only credentials required, persistent wrong/logged-out account, manual CAPTCHA/challenge, explicit account lock/suspension or required acknowledgement, or Chrome control unavailable across three consecutive recovery wakes. Preserve Heartbeats and all permitted work while waiting. A timed rate limit is `recover_lane`; clear rule prohibition or unsafe/deceptive copy is `skip_candidate`/retarget, never a mission stop. Historical/cleared states never qualify.
 
 If an own newly submitted main post is awaiting moderator approval, delete/withdraw it immediately without asking, verify cleanup once, retire that subreddit, send `SUBREDDIT_RETIRED`, and continue the post lane with another eligible community. A temporary cleanup-route failure enters the observing lane's retry queue and does not pause post discovery, follow-up processing, browsing, comments, presence work, or sibling Heartbeats.
 
@@ -202,7 +202,7 @@ After each slot:
 
 - mark actual actions and remaining target
 - recompute from actual local time, not the original ideal timeline
-- stop at user stop time or when no quality candidate remains in the budget
+- stop only at user stop/deadline/target completion; when no quality candidate remains in the current budget, record a no-action checkpoint and schedule fresh discovery
 - if continuing, report proposed `next_due_at`, remaining work, and current proof to the coordinator; do not touch scheduling
 - if the recurring Heartbeat fired, include actual wake time so the coordinator supervisor can reconcile it
 - if the worker observes a wrong/missing timer card, report evidence but do not repair it

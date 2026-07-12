@@ -27,8 +27,8 @@ Single objective: advance or stop the authorized Reddit operation through the co
 2. Treat the latest explicit user command as the controlling operation contract. It replaces conflicting defaults, historical-risk recommendations, recovery presets, and older mission fields; never require another confirmation merely because the requested intensity is higher than the Skill suggestion.
 3. Reuse current account/runtime state instead of repeating healthy checks.
 4. Reuse existing lane owners and send only changed mission fields. On bootstrap, enable `Reddit 主页台` only when profile/community baseline work is actually required.
-5. Enforce stage order from `SKILL.md`: accept the presence baseline first when required, then enforce same-turn `start_proof_by_lane` for every outward lane. Issue one execute-now correction to a plan-only task. If proof remains unavailable, report only that lane blocked; never execute it in the coordinator.
-6. After first proof, create/verify one recurring Heartbeat per enabled lane with nonterminal future work plus one recurring read-only supervisor Heartbeat for the mission lifetime. Do not create a timer for a terminal one-slot presence mission.
+5. Enforce stage order from `SKILL.md`: run one bounded presence checkpoint first when useful, then enforce same-turn action/no-action/recovery checkpoint per outward lane. Issue one execute-now correction to a plan-only task. If action proof remains unavailable, classify that lane `lane_recovering` and preserve independent progress; never execute it in the coordinator.
+6. Accept lanes independently. After each lane checkpoint, create/verify its recurring Heartbeat when nonterminal future discovery/recovery remains; create the recurring read-only supervisor as soon as the first lane is live. Do not wait for every lane and do not create a timer for a terminal one-slot presence mission.
 7. Verify results, visibility, deadlines, recurring Heartbeat binding/repeat/time, actual wake turns, and slot accounting.
 8. Repair recoverable Chrome, tab, task-prompt, and scheduler issues internally.
 9. Return one concise Chinese result and enter `IDLE`.
@@ -78,18 +78,18 @@ operation_stop_at = start + requested duration (default 3h)
 first_hour_quality_deadline = min(operation_stop_at, start + 60m)
 ```
 
-After same-turn lane proof, the coordinator creates:
+After each same-turn lane action/no-action/recovery checkpoint, the coordinator independently creates:
 
 - one repeat-on lane Heartbeat per enabled worker with nonterminal future work, explicitly targeted to that worker
 - one repeat-on read-only supervisor Heartbeat targeted to `Reddit 主控台`
 
-The supervisor checks continuation throughout the mission. Near `+15m`, `+35m`, and `+60m` of the first BOOTSTRAP it also checks permalink visibility, cadence, and a small content sample, then sets `bootstrap_state=initialized`. It continues with lower-cost schedule/slot checks after the first hour.
+The supervisor checks continuation throughout the mission. Near `+15m`, `+35m`, and `+60m` of the first BOOTSTRAP it also checks permalink visibility, cadence, and a small content sample without delaying lane continuation, then sets `bootstrap_state=initialized`. It continues with lower-cost schedule/slot checks after the first hour.
 
 Name the supervisor `Reddit 主控台-任务监督`. It may read worker tasks/automations, maintain the slot ledger, and repair scheduling, but may not open Reddit or execute comments, posts, follow-up, browsing, votes, profile edits, joins, or Flair changes. Persistent continuation failure is reported as orchestration failure, never account risk.
 
 ## Later MISSION Acceptance
 
-For every later active command, read affected workers in the current user turn until first proof, then create/update the coordinator-managed recurring lane and supervisor Heartbeats. Do not restart bootstrap profile setup or first-hour quality sampling, but keep mission-lifetime schedule supervision.
+For every later active command, read affected workers in the current user turn until each has an action/no-action/recovery checkpoint, then create/update that lane's coordinator-managed recurring Heartbeat independently. Do not restart bootstrap profile setup or first-hour quality sampling, but keep mission-lifetime schedule supervision.
 
 At mission handoff:
 
@@ -118,7 +118,7 @@ Keep healthy details internal:
 - scheduler clock mode, RRULE, UTC conversion, automation IDs/readback retries
 - tab/group IDs, Chrome reconnect steps, candidate scores, loaded references
 
-Escalate only when the user must act: currently logged-out/wrong account, credential request, persistent captcha/lock, unavailable Chrome Browser control after recovery, automation/ownership failure that prevents continuation, or a material product/risk choice. A known timed rate limit is automatic wait-and-resume; historical/cleared incidents and subreddit retirements never create an approval gate. Use `risk-escalation.md`; never redirect the user to the worker.
+Escalate only for the hard user-repair allowlist in `risk-escalation.md`, or when the user explicitly required one exact unsafe/prohibited target with no authorized substitute. Chrome/network/task/scheduler recovery, empty candidates, known timed limits, historical incidents, and subreddit retirements never create an approval gate. Use `risk-escalation.md`; never redirect the user to the worker.
 
 ```text
 需要你处理：<一项明确动作>。

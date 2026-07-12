@@ -76,8 +76,8 @@ Do not inspect cookies/local storage, clear browsing data, disable extensions, r
 `attempt 0` is the original failure.
 
 1. `attempt 1`: preserve mutation state, apply the class-specific immediate recovery, then probe current domain plus scope.
-2. If still failing and no hard-stop/account signal exists, keep this lane's recurring Heartbeat active and request a recovery checkpoint `5-10 min` later. End the turn with the normal three-line report; `下轮计划` names the exact probe and withheld mutation. Do not pause or edit sibling lanes.
-3. `attempt 2` at the Heartbeat wake: rerun the scope probes once. If healthy, reconfirm account/context and resume from the last safe state. If still unhealthy but the class remains technical/retryable, record `lane_recovering`, choose another native route/safe candidate when possible, and re-probe on a later varied wake until recovery or mission deadline. Return `lane_blocked` only when a concrete external user repair is required; return `account_blocked` only for explicit current Reddit account-level UI.
+2. If still failing and no user-repair state exists, keep this lane's recurring Heartbeat active and request a recovery checkpoint `5-10 min` later. End the turn with the normal three-line report; `下轮计划` names the exact probe and withheld mutation. Do not pause or edit sibling lanes.
+3. `attempt 2` at the Heartbeat wake: rerun the scope probes once. If healthy, reconfirm account/context and resume from the last safe state. If still technical/retryable, record `lane_recovering`, choose another native route/safe candidate when possible, and re-probe on later wakes until recovery or mission deadline. Chrome-control failure becomes user-repair eligible only after three consecutive recovery wakes; ordinary network/route/client-block failure never does by itself.
 
 Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The worker never creates a recovery automation; it returns the proposed recovery time and relies on the existing coordinator-managed recurring Heartbeat. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision.
 
@@ -105,7 +105,7 @@ account_reconfirmed
 result = recovered | skipped_route | heartbeat_recheck | lane_recovering | escalated
 ```
 
-A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. A persistent retryable lane fault stays `lane_recovering` with its Heartbeat active and does not return a user decision. Only an external-repair requirement or explicit account-level blocker returns to `Reddit 主控台`. Ordinary Heartbeat output still uses only:
+A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. A persistent retryable lane fault stays `lane_recovering` with its Heartbeat active and does not return a user decision. Only an allowlisted hard user-repair state returns to `Reddit 主控台`. Ordinary Heartbeat output still uses only:
 
 ```text
 本轮完成：<exact code；可能原因；已自动重试/恢复结果；action result>

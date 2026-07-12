@@ -1,6 +1,6 @@
 # Startup Health Check
 
-Load only for first-round acceptance of a newly dispatched batch. It verifies that the first outward action was actually published, remained visible after initial moderation, and handed off to a valid worker heartbeat. The coordinator uses a dedicated read-only Reddit acceptance tab or Tab Group; it never touches worker tabs.
+Load only for first-round quality acceptance of newly dispatched lanes. Immediate action/no-action/recovery evidence starts and schedules a lane; this reference verifies later visibility and quality without becoming a batch-wide startup barrier. The coordinator uses a dedicated read-only Reddit acceptance tab or Tab Group; it never touches worker tabs.
 
 ## Visibility Levels
 
@@ -23,7 +23,7 @@ The worker records after its first outward action:
 - local submit time and timezone
 - immediate reload result and any Reddit/Automod message
 
-For the proactive comment lane, write this first-action marker as soon as the first permalink exists, then continue within the selected first-hour intensity envelope. The coordinator's delayed visibility check runs in parallel; do not pause the worker merely because that check is pending. A concrete visibility failure retires only that subreddit and retargets the worker; only an explicit account-level result stops broader comments.
+For the proactive comment lane, write this first-action marker as soon as the first permalink exists, then continue within the selected first-hour intensity envelope. The coordinator's delayed visibility check runs in parallel; do not pause the worker merely because that check is pending. A concrete visibility failure retires only that subreddit and retargets the worker; an allowlisted account-level user-repair state withholds only the mutations it prevents while Heartbeats and permitted work continue.
 
 The coordinator then uses its own read-only acceptance tab:
 
@@ -33,7 +33,7 @@ The coordinator then uses its own read-only acceptance tab:
    - main post: subreddit `/new` plus the author's Posts view
    - comment/reply: parent thread comment chain plus the author's Comments view
 4. Record `surface_visible` or `visibility_failed`.
-5. Schedule or update one temporary coordinator heartbeat for `15-30 min` after the latest first outward action.
+5. Use the existing recurring coordinator supervisor for a `15-30 min` delayed check; do not create a separate startup timer.
 6. Reopen the same permalink and second surface. Record `survivor_visible` only if both still pass.
 7. If a separate signed-out/Guest Chrome context is already available, optionally open the permalink there and record `public_visible`; otherwise do not claim anonymous visibility.
 
@@ -41,7 +41,7 @@ Bootstrap profile edits/joins, notification sweeps, browsing, and verified no-ac
 
 ## Acceptance And Recovery
 
-A lane with a first outward action reaches `first_round_ok` only after its persistent worker exists, `submit_verified`, `surface_visible`, and `survivor_visible`, plus a coordinator-created recurring Heartbeat explicitly targeting that worker when continuation is required. A pending-review post is automatically deleted/withdrawn, its subreddit retired, and the lane retargeted without user confirmation; it cannot satisfy startup proof. The Heartbeat must be repeat-on, have the mission deadline guard, and pass target/time readback when exposed. `created_unreadable` is provisional only until the recurring supervisor confirms the first real wake and new worker turn. A combined execution continuation, `COUNT=1`, repeat-off, or mismatched target cannot satisfy this check.
+A publishing lane enters `first_round_running` once its persistent worker exists, `submit_verified` or a browser-backed no-action/recovery checkpoint is recorded, and its recurring Heartbeat targets that worker when continuation is required. `surface_visible` and delayed `survivor_visible` upgrade quality confidence but never delay that Heartbeat or sibling lanes. A pending-review post is automatically deleted/withdrawn, its subreddit retired, and the lane immediately retargeted without user confirmation. The Heartbeat must be repeat-on, have the mission deadline guard, and pass target/time readback when exposed. `created_unreadable` remains active and is checked on the first real wake. A combined execution continuation, `COUNT=1`, repeat-off, or mismatched target still fails scheduling integrity.
 
 Non-publishing lanes use action-specific acceptance instead of permalink checks:
 
@@ -56,6 +56,6 @@ On `visibility_failed`:
 2. Do not repost the same content immediately.
 3. Retire the exact subreddit and send `SUBREDDIT_RETIRED`; do not downgrade the account or pause other communities.
 4. Send the evidence to the owning worker and immediately retarget to another eligible community.
-5. Keep startup acceptance open until one replacement action passes or the lane exhausts eligible alternatives. A removal alone never creates `startup_blocked`; use that state only when no substitute remains, execution infrastructure fails, or Reddit shows an account-wide blocker.
+5. Continue replacement discovery on the current slot and later Heartbeats. Exhausting current alternatives records a no-action checkpoint, never `startup_blocked` or terminal completion; fresh discovery resumes on the next wake.
 
 Early acceptance does not end coordinator observation. Keep the recurring read-only mission supervisor active through `operation_stop_at`; run richer first-hour checks through `first_hour_quality_deadline`, then continue lower-cost scheduler/slot reconciliation. Do not use Goal Mode or active polling between wakes.

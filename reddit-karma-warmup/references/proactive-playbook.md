@@ -137,7 +137,8 @@ Decision:
 - `pass`: eligibility and format are clear, similar native content survives, angle fits.
 - `skip_candidate`: eligibility is unclear, required format cannot be met, same-subreddit window is used, angle is repetitive, or submit surface says moderator approval is required.
 - `retire_subreddit`: an own item is removed/filtered/locked, the account is banned from that subreddit, the parent post is deleted/locked in a way that invalidates the action, or a submitted post becomes `awaiting moderator approval`.
-- `hard_stop`: a currently visible captcha, sitewide rate limit, account-wide warning, lock/suspension, login mismatch, credential request, or clear unsafe/deceptive action prevents submission now. Past/cleared evidence is never sufficient.
+- `recover_lane`: a sitewide timed rate limit or temporary technical/account state prevents submission now; preserve the mission/Heartbeat, continue permitted work, and re-probe automatically.
+- `hard_user_repair`: only credentials, persistent login/account mismatch, manual CAPTCHA/challenge, explicit lock/suspension/required acknowledgement, or Chrome control unavailable across three recovery wakes. Unsafe/deceptive content is abandoned or rewritten; it never blocks the mission. Past/cleared evidence is never sufficient.
 
 On `retire_subreddit`, a pending-review own post must be deleted/withdrawn immediately without confirmation. Confirm the native deletion dialog when shown, accept one visible deleted/missing result as cleanup proof, never repost there, send the non-blocking retirement notice, and continue the same lane in another eligible community. If the cleanup route fails, queue only that exact permalink for automatic recovery/retry while post discovery continues elsewhere; do not ask the user or pause this lane or any sibling lane.
 

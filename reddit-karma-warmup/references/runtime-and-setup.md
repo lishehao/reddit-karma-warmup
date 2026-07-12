@@ -69,7 +69,7 @@ If required checks fail, return `状态异常` with only the failed capability, 
 
 Do not report `状态异常`, pause installation, or ask the user to reply `继续` merely because the automation view omits `next_run_at`, DTSTART, or a displayed next-run label. Record `heartbeat_timing=created_unreadable` internally and continue. Only failed create/update/delete capability is a scheduler dependency failure.
 
-Do not treat the first dropped/stale connection or page-loading code as failure. Run `chrome-network-recovery.md` through `orchestration-core.md`: record the exact code, distinguish control/tab/network/proxy/site/route/account scope, and perform bounded recovery in the same logged-in Chrome session. If Chrome remains unavailable after recovery or Reddit currently shows logout/wrong account/captcha/rate limit/account lock, pause only the impossible actions. A timed rate limit resumes automatically at expiry; tell the user only when an external repair is required. Setup-only checks and non-account read-only explanations may continue.
+Do not treat the first dropped/stale connection or page-loading code as failure. Run `chrome-network-recovery.md` through `orchestration-core.md`: record the exact code, distinguish control/tab/network/proxy/site/route/account scope, and perform bounded recovery in the same logged-in Chrome session. Keep retrying through recurring wakes; Chrome-control failure becomes user-repair eligible only after three consecutive recovery wakes. Timed rate limits resume automatically at expiry. Login/account mismatch, credentials, CAPTCHA/challenge, lock/suspension, or required acknowledgement with no automatic path withholds only the impossible mutations; tell the user only for the allowlisted repair while permitted work continues.
 
 ## Runtime Start
 
@@ -77,8 +77,8 @@ The repository `README.md` owns installation and dependency preflight. Once it r
 
 1. Restore the reported Chrome account, heartbeat support, task/model fallback, local timezone, and detected `scheduler_clock_mode`.
 2. Confirm the already-validated Chrome control remains connected and still shows that Reddit account; read current local time and UTC again.
-3. Choose the requested mode, create or reuse every enabled persistent lane task, and send each task its execute-now mission. Default broad operation uses the four outward workers; when bootstrap presence is required, create/reuse `Reddit 主页台`, accept its baseline proof first, then start the four outward lanes.
-4. Do not send a final `已启动` acknowledgement until that slot yields a verified requested action or browser-backed no-action/blocker. Planning, worker dispatch, and heartbeat creation do not satisfy this gate.
+3. Choose the requested mode, create or reuse every enabled persistent lane task, and send each task its execute-now mission. Default broad operation uses the four outward workers; when bootstrap presence is useful, run one bounded `Reddit 主页台` checkpoint first, then start outward lanes without waiting for decoration retries once account identity is known.
+4. Report startup per lane after a verified requested action or browser-backed no-action/recovery checkpoint. Planning, worker dispatch, and heartbeat creation alone do not satisfy this gate, but one recovering lane never delays healthy lanes.
 5. Run the scheduler smoke test when the installed environment is new or previously drifted, after start proof and without replacing the first operating slot.
 6. Report any runtime regression precisely. Do not silently replace Chrome control with Computer Use, the in-app Browser, Playwright, or another browser surface.
 

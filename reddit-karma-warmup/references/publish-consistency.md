@@ -65,7 +65,7 @@ For comments/replies:
 
 For main posts, also verify live home/about/rules, pinned posts, recent survivor patterns, karma/age, flair/title/megathread, link/self-promo rules, submit controls, same-subreddit history, and moderator-approval state.
 
-Decision: `pass_to_draft`, `retarget`, or `hard_stop`.
+Decision: `pass_to_draft`, `retarget`, `recover_lane`, or `hard_user_repair`.
 
 ## Copy Consistency
 
@@ -96,7 +96,8 @@ Decision:
 - `submit`: every check passes.
 - `rewrite`: copy or length/history consistency fails; revise and rerun Check B.
 - `retarget`: community, eligibility, history saturation, or live context fails; abandon draft and return to discovery.
-- `hard_stop`: a currently visible account/browser/platform warning that prevents the action now, or a clear rule prohibition for this target. Historical/cleared evidence does not qualify.
+- `recover_lane`: timed rate limit or temporary account/control state; preserve the mission, continue permitted work, and re-probe automatically.
+- `hard_user_repair`: only a current state from `risk-escalation.md`'s user-repair allowlist. A clear rule prohibition for this target is `retarget`; unsafe/deceptive copy is abandoned or rewritten. Historical/cleared evidence never qualifies.
 
 If removal/filter/lock/pending-approval evidence appears for an own action, apply `SUBREDDIT_RETIRED`, close that exact subreddit, and retarget. For pending approval, immediately delete/withdraw without asking and verify cleanup once; if its route is temporarily blocked, queue the exact permalink for automatic retry while all eligible work continues. Do not classify any of these as an account-wide failure without separate Reddit account-level evidence.
 

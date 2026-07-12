@@ -70,6 +70,8 @@ For every own post found pending moderator approval, require immediate delete/wi
 
 Heartbeat lifecycle is `不合格` when a candidate/subreddit/page/route/tab/Chrome/network/client-block/uncertain-mutation/lane failure deletes, deactivates, or pauses a lane or supervisor timer; when one lane failure changes a sibling timer; or when an old malformed/misbound timer is removed before a corrected replacement is verified. Require evidence that the recurring retry wake remains active. Timer removal is valid only for explicit user stop, deadline, verified lane/mission terminal completion, or after verified replacement.
 
+Blocker handling is `不合格` when the runtime asks permission or ends a mission because of empty candidates, one rules rejection, one removed/pending item, delayed survivor visibility, one worker/route/selector failure, unreadable scheduler fields, a timed rate limit, or a recoverable Chrome/network error. Require the progress-first ladder, per-lane scheduling, continued safe work, and later Heartbeat retry. Only the current hard user-repair allowlist may interrupt the user.
+
 Use visibility labels from `startup-health-check.md`. If the coordinator cannot independently open the permalink, report worker proof separately from current independent visibility.
 
 ### 4. Cadence And Coverage

@@ -72,32 +72,32 @@ The card defines one outcome, not one action. A worker may search, score, draft,
 
 ## Dispatch
 
-When `presence_required=true`, run this dispatch sequence for `Reddit 主页台` first and accept its terminal baseline proof. Only then run the same sequence as one outward batch for comments, posts, follow-up, and browsing. Do not send `first_due=now` outward handoffs before the presence gate finishes.
+When `presence_required=true`, run this dispatch sequence for `Reddit 主页台` first, but wait only for one bounded checkpoint. Then dispatch comments, posts, follow-up, and browsing even when presence needs later retry; only unresolved account/login identity holds outward mutations.
 
 1. Resolve enabled lanes before creating anything. Broad `开始/运营` enables comments, posts, follow-up, and browsing. A first bootstrap additionally enables presence only when the baseline is incomplete; a named lane enables only that lane.
 2. List/reconcile the registry once.
 3. Select the exact registered candidate for each lane. Keep archived/retired candidates out of the active set; create the one missing task when no eligible unarchived candidate exists. Capture every created task ID and rename it immediately when title control exists.
 4. Pin the verified `Reddit 主控台`; explicitly unpin every candidate worker. Verify distinct candidate IDs for broad operation, with each ID mapped to exactly one lane title. A title, plan, or heartbeat card without a persistent task ID is not a worker.
-5. Send each candidate exactly one actual `default-operations-sop.md` mission handoff: `role=WORKER`, lane, `single_objective`, `out_of_scope`, `worker_thread_id`, coordinator thread ID, account, mission, intensity, style, targets, stop time, first due=`now`, and required references. Success promotes it to `LIVE_REGISTERED`. Missing-rollout evidence triggers the one replacement transaction and exactly one mission delivery to the replacement; a transient failure preserves the candidate without creating a duplicate. After this step, verify one distinct live ID per enabled lane. If a lane still lacks one, mark only that lane `startup_blocked`; never let the coordinator absorb it.
-6. Require the worker to execute its first Chrome slot immediately and return `start_proof`; task creation or acknowledgement is not proof.
+5. Send each candidate exactly one actual `default-operations-sop.md` mission handoff: `role=WORKER`, lane, `single_objective`, `out_of_scope`, `worker_thread_id`, coordinator thread ID, account, mission, intensity, style, targets, stop time, first due=`now`, and required references. Success promotes it to `LIVE_REGISTERED`. Missing-rollout evidence triggers the one replacement transaction and exactly one mission delivery to the replacement; a transient failure preserves the candidate without creating a duplicate. After this step, verify one distinct live ID per enabled lane. If a lane still lacks one, mark only that lane `lane_recovering`; the recurring supervisor retries owner resolution while healthy lanes continue.
+6. Require the worker to execute its first Chrome slot immediately and return an action, browser-backed no-action, or recovery checkpoint; task creation or acknowledgement is not proof.
 7. Read each enabled worker in the same coordinator turn. A plan-only worker receives one explicit amendment: execute the assigned lane now, verify it, then report proof.
-8. If the amended worker still has no proof, mark only that lane `startup_blocked`. Never execute the lane in the coordinator and never merge it into another worker.
+8. If the amended worker still has no browser checkpoint because its task/runtime is temporarily unreachable, mark only that lane `lane_recovering`, retain its owner, and let the supervisor retry delivery. Never execute the lane in the coordinator and never merge it into another worker.
 
 ## Supervision
 
 - Pull routine worker state through the coordinator's recurring mission supervisor Heartbeat. The first BOOTSTRAP hour adds checks near `+15m`, `+35m`, and `+60m`; later operation keeps lower-cost slot/scheduler reconciliation until the mission deadline. Do not require routine callbacks; require risk/blocker returns, non-blocking `SUBREDDIT_RETIRED` notices, and one terminal `MISSION_COMPLETE` return per assigned lane mission.
-- Read only the latest result needed to classify `running`, `first_round_ok`, `blocked`, or `completed`.
+- Read only the latest result needed to classify `running`, `first_round_running`, `lane_recovering`, `user_repair`, or `completed`.
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
-- Every worker owns its dedicated Chrome tab and history. After first proof, the coordinator creates one repeat-on Heartbeat explicitly targeting each worker ID and records it in the registry; workers never mutate automations.
+- Every worker owns its dedicated Chrome tab and history. After that lane's first action/no-action/recovery checkpoint, the coordinator creates one repeat-on Heartbeat explicitly targeting its worker ID and records it in the registry; workers never mutate automations.
 - The coordinator owns one repeat-on, read-only `Reddit 主控台-任务监督` Heartbeat for every multi-slot mission. It cannot execute Reddit actions or continue lane work.
 - The coordinator verifies exact `target_thread_id`, repeat-on state, next run, recurrence, and stop guard for every created timer. Repair a misbound lane Heartbeat in place when possible; if replacement is required, create and verify the corrected timer before removing the superseded item.
-- Central batch creation is allowed only after every enabled lane has first proof and only with one distinct Heartbeat per exact worker ID. A combined execution Heartbeat remains forbidden.
+- Timer creation is per-lane, never a central all-lanes barrier. Create each distinct Heartbeat immediately after its own checkpoint; a combined execution Heartbeat remains forbidden.
 - Different lane tasks sharing one Chrome profile/account remain independent; do not pause one merely because another is active.
 - The recurring supervisor performs lightweight continuation monitoring. When the user explicitly requests a deeper execution/quality audit, load `operations-audit.md` and compare worker, automation, action, cadence, length, and quality evidence against the mission contract.
-- When a worker escalates a substantive blocker, the coordinator becomes the only user-facing decision surface. The affected worker withholds only the exact impossible or uncertain action while its recurring Heartbeat remains active for re-probe; workers never contact the user or ask for confirmation in their own tasks.
+- When a worker escalates an allowlisted user-repair state, the coordinator becomes the only user-facing decision surface. The affected worker withholds only the exact impossible or uncertain action while its recurring Heartbeat remains active for re-probe; workers never contact the user or ask for confirmation in their own tasks.
 - When a worker returns `MISSION_COMPLETE`, the coordinator marks only that lane terminal and disables its Heartbeat. It reports overall completion only after every lane enabled for the same `mission_id` is terminal and all mission Heartbeats are inactive.
 - When a worker returns `SUBREDDIT_RETIRED`, record the subreddit in the shared retired set, notify the user once, and leave all workers/timers running. Never convert this event into a risk decision without separate account-level evidence.
-- A recovered `STALE_OWNER_TOMBSTONE` remains internal. The mission report may state that one lane owner was replaced, but does not ask the user to approve continuation. A failed replacement is `execution_integrity_failed` and returns through `Reddit 主控台`.
+- A recovered `STALE_OWNER_TOMBSTONE` remains internal. The mission report may state that one lane owner was replaced, but does not ask the user to approve continuation. A failed replacement stays `lane_recovering`; the supervisor retries later without affecting other owners.
 
 ## User Surface
 

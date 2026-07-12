@@ -64,12 +64,12 @@ browse_next_delay_range
 
 Then route, without restating their procedures:
 
-1. `new-account-bootstrap.md` decides whether a baseline is required; `Reddit 主页台` executes `community-presence-playbook.md` and returns proof before outward lanes start.
+1. `new-account-bootstrap.md` decides whether a baseline is useful; `Reddit 主页台` executes one immediate best-effort `community-presence-playbook.md` checkpoint. Profile decoration itself never blocks outward lanes once the logged-in account identity is known.
 2. `thread-supervision-runtime.md` creates/reuses exact lane owners and verifies task IDs.
 3. `coordinator-playbook.md` owns same-turn acceptance and mission-lifetime recurring supervision; the first hour adds richer quality checks.
-4. If presence is required, dispatch and accept `Reddit 主页台` first. Then every enabled outward worker receives the handoff below and starts its first due slot immediately.
+4. If presence is useful, dispatch `Reddit 主页台` first and wait only for its bounded checkpoint. Then every enabled outward worker receives the handoff below and starts immediately even when presence remains retryable; only unresolved login/account identity holds outward mutations.
 
-Do not claim startup success until `coordinator-playbook.md` acceptance passes. Planning, task creation, and Heartbeat creation are not action proof.
+Report startup per lane. Planning, task creation, and Heartbeat creation are not action proof, but a browser-backed no-action/recovery checkpoint is valid evidence that the lane started and will continue discovery/recovery.
 
 ## Normalize Later MISSION
 
@@ -156,10 +156,10 @@ Terminal return:
 type = MISSION_COMPLETE
 mission_id
 lane
-completion_reason = target_reached | deadline_reached | user_stopped | terminal_no_more_work
+completion_reason = target_reached | deadline_reached | user_stopped
 actual_result + key evidence
 timer_state = cleared | stopped
 remaining = 0 or exact unfulfilled count with reason
 ```
 
-For a multi-lane mission, each lane returns once; only `Reddit 主控台` decides when the overall mission is complete.
+For a multi-lane mission, each lane returns once; only `Reddit 主控台` decides when the overall mission is complete. Temporary absence of candidates, route failure, rules rejection, or technical recovery never becomes terminal completion before the deadline.

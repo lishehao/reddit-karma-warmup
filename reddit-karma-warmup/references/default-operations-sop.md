@@ -7,6 +7,7 @@ Use in the reusable stateless launcher to split each direct dispatch request, an
 - missing duration: `3h`
 - missing intensity: `standard`
 - missing style: `mixed`
+- missing post angle: `beginner-common-mistake`
 - broad `开始/运营`: comments + posts + follow-up
 - browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
 - presence: only when explicitly requested or the first profile baseline is incomplete
@@ -58,6 +59,7 @@ single_objective
 out_of_scope
 account
 duration/count/intensity/style/language
+post_default_angle=beginner-common-mistake
 target_pool_or_urls
 start_local + start_utc
 operation_stop_at

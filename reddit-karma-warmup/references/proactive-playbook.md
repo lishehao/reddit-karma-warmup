@@ -119,6 +119,34 @@ Before drafting, independently score the already qualified-read post or parent t
 
 Comments should be mostly short, while longer replies remain available when the target genuinely needs explanation. Do not default to two polished sentences, mechanically rotate lengths, add filler, summarize the post, repeat top comments, or mention Loci/product links unless the user explicitly requests it and rules permit it.
 
+## Default Conservative Post Tendency
+
+Unless the user supplies another angle, start with `beginner-common-mistake`: one narrow question about a mistake, misleading assumption, premature optimization, or setup choice that many members personally encountered and can answer from experience. This is a community-memory prompt, not a generic request for tips.
+
+Priority order:
+
+1. common beginner mistake with a delayed consequence
+2. workflow friction that appears after the first simple success
+3. a concrete tool/setup tradeoff with two plausible choices
+4. a specific observation or artifact question when beginner prompts do not fit
+
+Use this default only when the subreddit has a real skill threshold and recent native advice/discussion posts survive. Before drafting:
+
+- search the subreddit for the exact topic and close variants; skip if it is an FAQ, pinned topic, recurring low-effort question, or substantially duplicated in the recent active window
+- identify the community-specific object, decision, and consequence; reject a question that could be pasted unchanged into another subreddit
+- prefer questions that invite short personal stories or contrasting lessons, not one canonical factual answer
+- never pretend to have used a tool, shipped a project, made a mistake, or be a beginner when that is untrue; ask directly or frame it as an observation
+- never use helplessness, deliberate factual errors, fake urgency, or obvious bait to manufacture corrections
+- keep the title self-contained and the body to zero or a short context line plus one clear ask when live survivor patterns support it
+
+Strong forms:
+
+- `What's the Unity mistake that feels harmless in a prototype but hurts once you try to ship?`
+- `What do new Blender users usually optimize way too early?`
+- `Which Quest performance "fix" tends to create a worse problem later?`
+
+Weak forms: `I'm new, any tips?`, `What mistakes should I avoid?`, or the same template with only the subreddit noun replaced.
+
 ## Main Post Gate
 
 Choose subreddit + audience + angle after history comparison and before drafting. Treat this live same-day preflight as the post-specific part of Double-Check A:
@@ -176,14 +204,16 @@ For multiple planned posts, vary both community cluster and angle when viable:
 
 Diversity never justifies a weak target. Keep widening the eligible live search while time remains; publish fewer only when the authorized deadline arrives without a second passing community.
 
-## Beginner-Trap Angle
+## Beginner-Trap Angle Gate
 
-Use beginner-trap questions only where members share a real skill threshold and recent survivor posts show an advice culture. Require:
+This gate specializes the default tendency. Use beginner-trap questions only where members share a real skill threshold and recent survivor posts show an advice culture. Require:
 
 - a concrete domain/workflow mistake
 - at least two recent examples of tips, mistakes, critique, or `what I wish I knew`
 - no FAQ, low-effort-question, survey, or beginner-post prohibition
 - no product, waitlist, or fake expertise needed
+- no invented novice identity or fabricated personal mistake
+- no recent duplicate or FAQ answer that makes the post redundant
 
 Strong: `What's the Unity beginner trap that only shows up once you try to ship?`
 

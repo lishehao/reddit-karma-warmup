@@ -29,6 +29,7 @@ required = {
         "broad `开始/运营`: comments + posts + follow-up",
         "browsing: only when the user explicitly requests",
         "incidental_voting=already_read_content_only",
+        "post_default_angle=beginner-common-mistake",
     ],
     "references/proactive-playbook.md": [
         "Comment Candidate Gate",
@@ -37,6 +38,10 @@ required = {
         "The post target is an execution objective",
         "no vote target",
         "already qualified-read post",
+        "Default Conservative Post Tendency",
+        "community-memory prompt",
+        "never pretend to have used a tool",
+        "search the subreddit for the exact topic and close variants",
     ],
     "references/browse-vote-playbook.md": [
         "Initial qualified-read floor",

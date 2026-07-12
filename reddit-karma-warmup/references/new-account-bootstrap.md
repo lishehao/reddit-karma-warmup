@@ -14,7 +14,7 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
 7. **Verify locally.** Record and verify the first permalink in the comment task while its mission continues. Any removal retires only its exact subreddit; continue in unaffected communities. Timed rate limits auto-resume; allowlisted account repair states withhold only impossible mutations while this task's Heartbeat and permitted work continue. A pending delayed check or historical event is not a reason to wait.
 8. **Continue after the first hour.** Continue the user's selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A currently active blocker uses its minimum recovery condition, then resumes the same latest command. Historical or cleared failures never select a recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
-9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. `K0` does not create a six-hour wait before the first eligible post. Only the second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
+9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Default to the truthful `beginner-common-mistake` tendency in `proactive-playbook.md`, using a narrow community-specific pitfall that experienced members can answer. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. `K0` does not create a six-hour wait before the first eligible post. Only the second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
 
 The user's explicit sequence overrides these defaults. Only a current allowlisted user-repair state can temporarily withhold the exact impossible mutation.
 
@@ -64,7 +64,7 @@ Demotion/recovery:
 
 ## Help-Seeking Post
 
-Use a real workflow question with one clear ask. The second same-day post, when allowed, must use a different native form such as a concrete observation, comparison, or artifact discussion rather than a rewritten copy of the first question.
+Use a real workflow question with one clear ask. The default first form is a community-specific beginner/common-mistake question that invites experienced members to recall what went wrong and why. Never claim the account personally made the mistake unless true. The second same-day post, when allowed, must use a different native form such as a concrete observation, comparison, or artifact discussion rather than a rewritten copy of the first question.
 
 - beginner trap
 - workflow friction

@@ -1,6 +1,6 @@
 # Operation Style Profiles
 
-Load for `BOOTSTRAP` or `MISSION` when target discovery, community selection, browsing preference, or writing posture depends on the requested operation style.
+Load for `ACCOUNT_BOOTSTRAP` or `MISSION` when target discovery, community selection, browsing preference, or writing posture depends on the requested operation style.
 
 ## Selector
 

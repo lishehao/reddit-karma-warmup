@@ -7,12 +7,20 @@
 把下面一句发送给普通 Codex 任务：
 
 ```text
-请通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，按 README 安装或升级 reddit-karma-warmup，并继续完成其中的预检与启动交接；不要进入目标模式。
+请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，按 README 安装或升级 reddit-karma-warmup，并继续完成其中的预检与启动交接；不要进入目标模式。
 ```
 
 ## Codex 安装协议
 
 如果你是执行上述 Prompt 的 Codex：当前 README 就是唯一安装协议。只读取一次并直接执行，不要寻找其他 installer 文档，不要进入 Goal Mode。
+
+### 0. Bootstrap 身份与立即命名
+
+收到 setup/安装命令后，第一个可用的界面动作必须是把当前任务重命名为 `Reddit 启动台`，早于下载、依赖检查、预检或方案解释。此时当前任务角色为 `REDDIT_BOOTSTRAP`：只负责安装/升级、只读预检和交接；不操作 Reddit、不创建工作任务、不创建运营 Heartbeat。
+
+保持同一个 Task ID、历史和已有 pin 状态。不得另建 installer 或第二个未来主控台。若需要用户修复 Chrome、登录或验证，保持 `Reddit 启动台`；修复后只继续缺失预检。
+
+预检健康后，在同一个任务内切换为 `REDDIT_COORDINATOR`，并在向用户返回健康结果前立即重命名为 `Reddit 主控台`。若重命名能力暂不可用，记录后继续，不得阻断安装或运营，并在下一个安全节点重试。若 Skill 已健康安装且用户直接给出运营指令，则跳过完整 setup，立即把当前任务命名为 `Reddit 主控台` 并在同一轮开始执行。
 
 ### 1. 下载与校验
 
@@ -61,7 +69,7 @@ Heartbeat 创建、repeat-on 读取和删除成功即可证明基础能力可用
 
 ### 4. 向用户交接
 
-预检健康时只回复：
+预检健康时，先把同一个任务切换为主控角色并重命名为 `Reddit 主控台`，再只回复：
 
 ```text
 状态健康。当前账号：u/name。
@@ -77,11 +85,11 @@ Heartbeat 创建、repeat-on 读取和删除成功即可证明基础能力可用
 
 用户回复“开始”或给出具体运营指令，即明确授权为所启用的工作线创建或复用用户可见的独立 Codex 任务。调用已安装的 `$reddit-karma-warmup` 并由 Skill 接管全部运营细节。Skill 已在 `references/thread-supervision-runtime.md` 内置与本流程兼容的任务创建、复用、读取、发消息和首轮验收协议，不需要另装 `thread-supervisor` Skill。所有指令和汇报都留在 `Reddit 主控台`；主控台负责派发、集中调度、读取、验证和汇报，不能自己执行 Reddit 动作。默认广泛运营必须创建或复用 `Reddit 评论台`、`Reddit 发帖台`、`Reddit 跟进台`、`Reddit 浏览台` 四个独立任务；单独点名一种动作时只启用对应任务。禁止使用不可见 subagent、一个合并 worker 或合并执行 Heartbeat 替代这些任务。
 
-首轮 proof 后，主控台为每个启用的执行台创建一个显式绑定该 Thread、repeat-on、带 mission 截止保护的长期 Heartbeat，并为自己创建一个 repeat-on 的只读任务监督 Heartbeat。执行台只在被唤醒后执行 bounded slot、记录 proof，不创建、不续排、不修改 Heartbeat。用户修改任务、任务结束或调度异常时，只有主控台更新、修复或删除 Heartbeat。
+每个启用的执行台独立返回一次真实动作、浏览器支持的无动作或恢复 checkpoint 后，主控台立即为该执行台创建一个显式绑定其 Task ID、repeat-on、带 mission 截止保护的长期 Heartbeat；不等待其他工作线。主控台另为自己创建一个 repeat-on 的只读任务监督 Heartbeat。执行台只在被唤醒后执行 bounded slot、记录 proof，不创建、不续排、不修改 Heartbeat。用户修改任务或整体任务结束时，由主控台更新或结束对应 Heartbeat；调度异常优先原位修复，只有替代 Heartbeat 已验证后才移除旧项。
 
 `运营 [时长] [强度] [风格]` 自动拆成四条工作线。默认风格是混合探索，也可选建设者、游戏/3D、空间地点、轻社交/创意或自定义，并可附加“更犀利”“更轻松”等语气修饰。自然浏览包含符合门槛的 Upvote/Downvote；标准强度每轮默认阅读 `20-30` 条并以 `2` 次合格投票为目标。每轮完成后，默认重新选择 `20-40` 分钟的等待时间再开始下一轮；用户可以改成例如“标准强度运营 3 小时，游戏/3D 风格”“自然浏览 30 条，目标投票 5 次，每 10-20 分钟一轮”或“只浏览不投票”。不要再次运行安装流程。
 
-必须在同一个用户 turn 创建或复用全部启用的独立工作任务，并让每个任务通过 Chrome 完成和验证一个请求相关微轮次，或形成真实浏览后的具体无动作/阻塞证据。读 Skill、做计划、派发任务、创建 Heartbeat 或回复“已启动”都不算开始；任一工作线没有 proof，就不能声称整项任务已启动。worker 只返回计划时，主控台只能向该 worker 追加一次“立即执行”指令并重新读取；仍无 proof 就报告该 lane 启动失败，禁止主控台代做。
+必须在同一个用户 turn 创建或复用全部启用的独立工作任务，并立即让每个任务通过 Chrome 完成和验证一个请求相关微轮次，或形成真实浏览后的具体无动作/恢复证据。读 Skill、做计划、派发任务或创建 Heartbeat 都不算该工作线已经开始。按工作线分别汇报：已有 checkpoint 的工作线可立即进入长期调度；暂时恢复中的工作线保留独立任务和 Heartbeat 重试，不能阻塞健康工作线。worker 只返回计划时，主控台追加一次“立即执行”指令；仍无 checkpoint 就标记该工作线恢复中，禁止主控台代做。
 
 多小时持续运行不能用 `COUNT=1` 或 repeat-off 后依赖 worker 自续。主控台必须验证每个长期 Heartbeat 的 `targetThreadId`、repeat-on、下一次运行、本地/UTC、recurrence 和截止保护，并通过自己的监督 Heartbeat维护 `planned/started/completed/blocked/missed` slot 统计。只有至少一次 recurring wake 产生新的 worker turn 和 slot proof 后，才能声称持续调度已实际运行；链路断裂按 `SCHEDULER_CONTINUATION_FAILURE` 上报，不得归因于 Reddit 账号风险。
 
@@ -106,11 +114,12 @@ reddit-karma-warmup/
   manifest.json
   agents/
   references/
+  scripts/
 ```
 
 ## Boundaries
 
-仅操作用户明确授权的账号和浏览器会话。遵守 Reddit 全站规则、实时 subreddit 规则和 Skill 内的执行边界；遇到登录失效、captcha、rate limit、账号 warning 或明确规则禁止时停止对应写操作。
+仅操作用户明确授权的账号和浏览器会话。遵守 Reddit 全站规则、实时 subreddit 规则和 Skill 内的执行边界。登录失效、captcha/challenge、锁定或必须由用户完成的确认只暂停受影响的写操作；定时 rate limit 到期后自动重试，明确 subreddit 禁止则更换候选社区，网络/页面/任务故障按 Skill 的有界恢复与后续 Heartbeat 继续尝试。
 
 ## License
 

@@ -2,7 +2,9 @@
 
 Canonical owner of coordinator lifecycle, same-turn acceptance, centralized mission scheduling, recurring supervision, and mission/risk/completion aggregation. It consumes normalized requests from `default-operations-sop.md` and delegates timer details to `scheduler-and-heartbeats.md`.
 
-The stable user-facing task is `Reddit 主控台`. It is a command router, bounded observer, and technical abstraction layer. Load `thread-supervision-runtime.md` for persistent task operations. It never publishes Reddit content.
+Load this playbook only after `runtime-and-setup.md` has completed `B2_PROMOTE`, or after the direct-mission fast path. The stable user-facing task is the same task ID that previously held the Bootstrap role; it is now `REDDIT_COORDINATOR` titled `Reddit 主控台`. It is a command router, bounded observer, and technical abstraction layer. It never creates or replaces itself, and it never publishes Reddit content. Load `thread-supervision-runtime.md` for persistent worker-task operations.
+
+Before dispatch, assert `role=REDDIT_COORDINATOR` and attempt the `Reddit 主控台` title once if it is not already applied. If the current role is still `REDDIT_BOOTSTRAP`, return to `runtime-and-setup.md`; do not create workers or mission Heartbeats. Unavailable title control is non-blocking presentation degradation.
 
 ## Main Task State
 
@@ -23,7 +25,7 @@ Do not expose this record unless the user asks for technical detail.
 
 Single objective: advance or stop the authorized Reddit operation through the correct registered workers and centralize every user decision. All responsibilities below support that objective; none authorizes Reddit lane execution.
 
-1. Translate plain-language requests into `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`.
+1. Translate plain-language requests into `ACCOUNT_BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`.
 2. Treat the latest explicit user command as the controlling operation contract. It replaces conflicting defaults, historical-risk recommendations, recovery presets, and older mission fields; never require another confirmation merely because the requested intensity is higher than the Skill suggestion.
 3. Reuse current account/runtime state instead of repeating healthy checks.
 4. Reuse existing lane owners and send only changed mission fields. On bootstrap, enable `Reddit 主页台` only when profile/community baseline work is actually required.
@@ -71,7 +73,7 @@ Before dispatch:
 
 ## Mission Scheduler And Supervisor
 
-Every multi-slot BOOTSTRAP or later MISSION uses the centralized recurring architecture in `scheduler-and-heartbeats.md`. The first post-install hour adds richer acceptance checks, but mission scheduling continues until the requested stop time.
+Every multi-slot `ACCOUNT_BOOTSTRAP` or later MISSION uses the centralized recurring architecture in `scheduler-and-heartbeats.md`. The first post-install hour adds richer acceptance checks, but mission scheduling continues until the requested stop time.
 
 ```text
 operation_stop_at = start + requested duration (default 3h)
@@ -83,7 +85,7 @@ After each same-turn lane action/no-action/recovery checkpoint, the coordinator 
 - one repeat-on lane Heartbeat per enabled worker with nonterminal future work, explicitly targeted to that worker
 - one repeat-on read-only supervisor Heartbeat targeted to `Reddit 主控台`
 
-The supervisor checks continuation throughout the mission. Near `+15m`, `+35m`, and `+60m` of the first BOOTSTRAP it also checks permalink visibility, cadence, and a small content sample without delaying lane continuation, then sets `bootstrap_state=initialized`. It continues with lower-cost schedule/slot checks after the first hour.
+The supervisor checks continuation throughout the mission. Near `+15m`, `+35m`, and `+60m` of the first `ACCOUNT_BOOTSTRAP` it also checks permalink visibility, cadence, and a small content sample without delaying lane continuation, then sets `bootstrap_state=initialized`. It continues with lower-cost schedule/slot checks after the first hour.
 
 Name the supervisor `Reddit 主控台-任务监督`. It may read worker tasks/automations, maintain the slot ledger, and repair scheduling, but may not open Reddit or execute comments, posts, follow-up, browsing, votes, profile edits, joins, or Flair changes. Persistent continuation failure is reported as orchestration failure, never account risk.
 

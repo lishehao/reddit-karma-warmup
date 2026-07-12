@@ -6,7 +6,7 @@ description: >-
 
 # Reddit Karma Warmup
 
-Use one stable user-facing persistent task named `Reddit 主控台` and up to five single-purpose persistent execution tasks: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, `Reddit 浏览台`, and the conditionally enabled `Reddit 主页台`. These are user-visible durable task owners, not temporary subagents. The main task is the only user-facing command surface; execution tasks are internal operation details.
+Use one stable user-facing persistent task with two sequential roles: `REDDIT_BOOTSTRAP` titled `Reddit 启动台` during setup, then `REDDIT_COORDINATOR` titled `Reddit 主控台` after healthy handoff. This is one task ID and history, never two main tasks. The coordinator may own up to five single-purpose persistent execution tasks: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, `Reddit 浏览台`, and the conditionally enabled `Reddit 主页台`. Execution tasks are internal operation details.
 
 ## Select Runtime Context
 
@@ -14,8 +14,8 @@ Choose exactly one context before loading detailed references:
 
 | Context | Trigger | Behavior |
 |-|-|-|
-| `INSTALL` | Install, upgrade, inspect, package, or explain | Load `references/runtime-and-setup.md`; do not mutate Reddit. |
-| `BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
+| `INSTALL` | Install, upgrade, inspect, package, or explain | Immediately enter `REDDIT_BOOTSTRAP` and rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md`; do not mutate Reddit. Promote/rename the same task after healthy handoff. |
+| `ACCOUNT_BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
 | `MISSION` | The user gives a later active operation command in `Reddit 主控台` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
 | `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/thread-supervision-runtime.md` and `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
 | `AUDIT` | The user asks whether workers, automations, execution, cadence, published content, length, or quality are following the plan | Load `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, and `references/operations-audit.md`; inspect the relevant workers and their automations read-only by default. |
@@ -48,10 +48,21 @@ Do not load every reference. The subreddit pool is routing data, not a workflow.
 - `orchestration-core.md`: one worker's slot state machine, lane boundary, tab ownership, decision classes, execution and reconciliation.
 - `scheduler-and-heartbeats.md`: timer math, binding, time verification, update/reuse, and stop behavior.
 - lane playbooks: candidate/action rules for their lane only.
+- `runtime-and-setup.md`: Bootstrap role, immediate setup rename, preflight, same-task promotion, and direct-mission fast path.
 
 When two references appear to cover the same decision, the owner above wins. Supporting references link to the owner instead of restating its procedure.
 
 ## End-To-End Stage Contract
+
+Setup precedes the operational stages and has its own owner/proof:
+
+| Setup stage | Owner/title | Required work | Exit proof |
+|-|-|-|-|
+| `B0_BOOTSTRAP_NAME` | current task / `Reddit 启动台` | immediately request the title change when a setup/install command arrives; do this before download, preflight, or explanation | title applied, or `rename_unavailable` recorded without blocking |
+| `B1_SETUP_PREFLIGHT` | `REDDIT_BOOTSTRAP` / `Reddit 启动台` | install/upgrade, validate, inspect Chrome control, Reddit login/account, task/Heartbeat capability, and local/UTC time; no Reddit mutation or worker creation | healthy handoff, or one allowlisted user-repair request while remaining Bootstrap |
+| `B2_PROMOTE` | same task ID | when setup is healthy, switch role to `REDDIT_COORDINATOR`, immediately rename `Reddit 主控台`, preserve history/pin/state, then present the operation handoff | same task ID plus coordinator title/role, or non-blocking rename backlog |
+
+`REDDIT_BOOTSTRAP` has one objective: establish a validated operating environment and hand the same task to the coordinator role. It never operates Reddit, creates lane workers, starts a mission, or schedules mission Heartbeats. `REDDIT_COORDINATOR` begins only after `B2_PROMOTE` and owns all later user commands.
 
 Every stage has one owner and one exit proof. Do not advance on a plan, acknowledgement, task title, or automation card alone.
 
@@ -69,7 +80,7 @@ Every stage has one owner and one exit proof. Do not advance on a plan, acknowle
 
 Execution order:
 
-1. `INSTALL` stops after preflight. An operational command continues through `S0-S2` in the same user turn.
+1. `INSTALL` runs `B0-B2` and stops after the promoted coordinator presents its handoff. An operational command in an already installed/healthy environment uses the direct-mission fast path: immediately rename the current user task `Reddit 主控台`, reuse healthy preflight state, and continue through `S0-S2` in the same turn.
 2. On a first-account bootstrap, start `S3` first, but treat profile/community decoration as best-effort. After one bounded presence checkpoint, start outward tasks immediately unless the exact logged-in account still cannot be established.
 3. Dispatch every enabled outward task in parallel at `S4`. Accept and schedule each lane independently as soon as it returns an action, browser-backed no-action, or recovery checkpoint; one slow/failed lane never delays healthy lanes.
 4. `S5` hands every nonterminal lane, including `lane_recovering`, to its own recurring Heartbeat. The main turn then ends after every requested lane has either an immediate checkpoint or a concrete owner/infrastructure record; workers never keep it alive waiting for another slot.
@@ -95,6 +106,8 @@ One worker may process several items only when they all serve its single objecti
 ## Hard Gates
 
 - `Reddit 主控台` is the only user-facing command/decision surface and never executes comments, posts, replies, browsing, or votes.
+- On a setup/install command, task renaming is the first available presentation action: `Reddit 启动台` before setup work, then `Reddit 主控台` immediately after healthy promotion. Title/pin control is presentation-only; unavailability records `rename_unavailable`, never blocks setup or operations, and is retried at the next safe point.
+- Bootstrap and coordinator are mutually exclusive roles on the same persistent task ID. Never create a second task to become the main console, and never let `Reddit 启动台` create execution workers or perform Reddit actions.
 - Real lane owners are persistent tasks with exact IDs. Temporary subagents may assist bounded read-only analysis but never own Chrome mutations, an execution lane, Heartbeat, or risk decision.
 - An operation command executes in the current turn. The first heartbeat may continue the second slot, never defer the first.
 - A browser-backed no-action result is a valid started checkpoint when it records inspected surfaces/candidates and the exact gate. An empty/low-quality candidate set never terminates the mission; the lane schedules fresh discovery on a later wake.

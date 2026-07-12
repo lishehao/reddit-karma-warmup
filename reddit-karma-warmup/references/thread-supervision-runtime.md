@@ -2,7 +2,7 @@
 
 Canonical owner of persistent task identity, registry, create/reuse/send/read operations, and task presentation/lifecycle. It does not define lane execution, timer math, or coordinator policy.
 
-Load only in the user-facing `Reddit 主控台` coordinator for `BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`. This is the bundled supervision subset for Reddit operations; no external `thread-supervisor` Skill is required.
+Load only in the user-facing `Reddit 主控台` coordinator for `ACCOUNT_BOOTSTRAP`, `MISSION`, `STATUS`, or `AUDIT`. This is the bundled supervision subset for Reddit operations; no external `thread-supervisor` Skill is required.
 
 ## Required Capability Bundle
 
@@ -18,11 +18,13 @@ The host must expose equivalent operations for:
 - archive a completed temporary or retired task after ownership is released
 - view each relevant task-owned automation and its persisted binding/schedule/run evidence when the host exposes it
 
-The user's `开始` or concrete operation command explicitly authorizes creation of the requested lane tasks. Do not create them during install/preflight and do not create unrelated tasks.
+The user's `开始` or concrete operation command explicitly authorizes creation of the requested lane tasks. The current main task must already be the same-task `REDDIT_COORDINATOR` produced by Bootstrap promotion, or the direct-mission fast path. Do not create workers during install/preflight, do not create unrelated tasks, and never create a second main/coordinator task.
 
 Persistent tasks are intentional: each lane needs durable history, an exact task ID, a coordinator-managed recurring Heartbeat targeted to that ID, independent recovery, and a reliable risk-return path. A temporary subagent may assist a worker with bounded read-only analysis when available, but it cannot own Chrome mutations, a lane, scheduling, or a user-risk decision.
 
 ## Registry
+
+Persist the exact coordinator task ID that survived the Bootstrap-to-coordinator transition. Worker discovery, task creation, and replacement rules below apply only to lane workers; they never replace the coordinator.
 
 Maintain one owner per lane:
 
@@ -85,7 +87,7 @@ When `presence_required=true`, run this dispatch sequence for `Reddit 主页台`
 
 ## Supervision
 
-- Pull routine worker state through the coordinator's recurring mission supervisor Heartbeat. The first BOOTSTRAP hour adds checks near `+15m`, `+35m`, and `+60m`; later operation keeps lower-cost slot/scheduler reconciliation until the mission deadline. Do not require routine callbacks; require risk/blocker returns, non-blocking `SUBREDDIT_RETIRED` notices, and one terminal `MISSION_COMPLETE` return per assigned lane mission.
+- Pull routine worker state through the coordinator's recurring mission supervisor Heartbeat. The first `ACCOUNT_BOOTSTRAP` hour adds checks near `+15m`, `+35m`, and `+60m`; later operation keeps lower-cost slot/scheduler reconciliation until the mission deadline. Do not require routine callbacks; require risk/blocker returns, non-blocking `SUBREDDIT_RETIRED` notices, and one terminal `MISSION_COMPLETE` return per assigned lane mission.
 - Read only the latest result needed to classify `running`, `first_round_running`, `lane_recovering`, `user_repair`, or `completed`.
 - Send amendments only for the same lane's current mission. Queue unrelated future changes in coordinator state until the worker is idle.
 - Every worker owns its dedicated Chrome tab and history. After that lane's first action/no-action/recovery checkpoint, the coordinator creates one repeat-on Heartbeat explicitly targeting its worker ID and records it in the registry; workers never mutate automations.

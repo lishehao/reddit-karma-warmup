@@ -37,7 +37,7 @@ Every first run and resume follows the same state machine:
 | `PROBE` | Auto-discover/reconnect Chrome, confirm account/time, then check scheduler/task capabilities. | environment recorded |
 | `HISTORY` | Restore recent profile/session actions and stable identity claims. | history ledger ready |
 | `ROUTE` | Select tier, lower-restriction eligible pool, lane(s), and Luna/high for coordinator/workers. | lane owner(s), pool, and model ready |
-| `NAME` | Rename the current task and dispatched lane tasks after state is fixed. | concise Chinese titles applied or unavailability recorded |
+| `NAME` | Ensure the already-promoted coordinator is titled `Reddit 主控台`, then rename dispatched lane tasks after state is fixed. Bootstrap naming/promotion is owned by `runtime-and-setup.md`. | concise Chinese titles applied or unavailability recorded |
 | `PLAN_SLOT` | Create only the next executable slot from remaining time/count. | slot has target and time budget |
 | `DISCOVER` | Inspect lane surfaces and candidate context. | candidate passes or pool exhausted |
 | `CHECK_A` | Check pool/rules/history/eligibility before drafting. | pass / retarget / recover |
@@ -61,20 +61,21 @@ Every enabled lane on first activation must reach `ACT` or a browser-backed no-a
 
 ## Task Naming
 
-After `ROUTE` determines the account state and enabled lanes, rename the current task before normal execution and rename each dispatched task immediately after creation when task-title control is available.
+Setup naming is outside this worker state machine and is owned by `runtime-and-setup.md`: a setup command immediately names the current task `Reddit 启动台`, then healthy preflight promotes and renames that same task `Reddit 主控台`. For a direct mission on an installed Skill, rename the current task `Reddit 主控台` before `SCOPE`/Chrome work. After `ROUTE`, rename each dispatched task immediately after creation when task-title control is available.
 
 Naming rules:
 
 - Chinese by default; retain English only when it is an unavoidable product/proper name.
 - Prefer exactly `4` Chinese characters; maximum `8` characters.
 - Name by durable responsibility, not temporary counts, timestamps, subreddit names, or model names.
-- Rename once after routing. Rename again only when the task's lane or responsibility materially changes; do not rename on every heartbeat.
+- Rename once at each real role transition: setup arrival -> Bootstrap title, healthy handoff -> coordinator title, or task creation -> lane title. Do not rename on every heartbeat.
 - If current-task ID/title control or child-title control is unavailable, record `title_unavailable` internally and continue. Never block publishing or ask the user only for naming.
 
 Default titles:
 
 | Responsibility | Title |
 |-|-|
+| setup/bootstrap role on the future coordinator task | `Reddit 启动台` |
 | global coordinator | `Reddit 主控台` |
 | proactive comment lane | `Reddit 评论台` |
 | proactive post lane | `Reddit 发帖台` |
@@ -82,7 +83,7 @@ Default titles:
 | browsing lane | `Reddit 浏览台` |
 | profile/community presence lane | `Reddit 主页台` |
 
-The user-facing task always keeps `Reddit 主控台`, including for a single-lane MISSION. Only an explicitly handed-off WORKER task uses a lane title. Account tier and mission type never change these titles.
+During setup, the user-facing task keeps `Reddit 启动台`. After healthy promotion, that same task ID keeps `Reddit 主控台`, including for a single-lane MISSION. Only an explicitly handed-off WORKER task uses a lane title. Never create a second main task for the role transition. Account tier and mission type never change these titles.
 
 After resolving exact task IDs, pin `Reddit 主控台` and explicitly keep every execution task unpinned. Pinning is presentation state, not ownership proof. Do not archive active or idle registered workers; archive only completed temporary probes/diagnostics and retired workers after their heartbeat is removed and tab state is released.
 
@@ -143,13 +144,13 @@ Each lane follows one fixed microflow; its playbook owns the detailed gates:
 | `browsing` | discover -> qualified read -> score direction/quality -> independently gate vote -> click at most once -> ledger | read ledger plus accepted vote/no-vote decisions |
 | `presence` | inspect profile/membership -> compute cadence -> score target -> edit/Join/Flair only when eligible -> verify state | changed-state proof or inspected no-action; normally terminal |
 
-Real operations require persistent task create/read/send capability. The user's `开始` or concrete operation command is explicit authorization to create the requested user-visible lane tasks. Default broad operation requires the four outward workers; BOOTSTRAP adds the presence worker only when required; a named single-lane mission requires that one worker. Never replace them with sequential coordinator execution or invisible subagents.
+Real operations require persistent task create/read/send capability. The user's `开始` or concrete operation command is explicit authorization to create the requested user-visible lane tasks. Default broad operation requires the four outward workers; `ACCOUNT_BOOTSTRAP` adds the presence worker only when required; a named single-lane mission requires that one worker. Never replace them with sequential coordinator execution or invisible subagents.
 
 For the first turn of a new operation, delegation is valid per lane when the coordinator reads its verified `ACT` or browser-backed no-action/recovery checkpoint. Worker creation or mission delivery alone is not execution. A plan-only worker gets one execute-now correction. A temporarily unreachable lane becomes `lane_recovering`; it never delays acceptance or scheduling of another lane, and coordinator execution remains forbidden.
 
 The `Reddit 主控台` task is not another lane. It stores the registry/slot ledger, answers the user, accepts first proof, centrally creates recurring Heartbeats, and supervises continuation. It never performs lane mutations or creates a combined execution continuation. Load `coordinator-playbook.md`. Workers do not send routine callbacks; they return only decision-requiring risks/blockers, non-blocking subreddit-retirement notices, and exactly one terminal lane-mission completion.
 
-For every multi-slot mission, the coordinator remains responsible through a recurring read-only supervisor Heartbeat until the deadline. The first BOOTSTRAP hour adds checkpoints near `+15m`, `+35m`, and `+60m`; later supervision verifies wake turns, slot counts, binding, recurrence, and continuation. It must not use Goal Mode or poll inside an active turn.
+For every multi-slot mission, the coordinator remains responsible through a recurring read-only supervisor Heartbeat until the deadline. The first `ACCOUNT_BOOTSTRAP` hour adds checkpoints near `+15m`, `+35m`, and `+60m`; later supervision verifies wake turns, slot counts, binding, recurrence, and continuation. It must not use Goal Mode or poll inside an active turn.
 
 The coordinator is the technical abstraction boundary. Recover implementation faults internally when possible and keep task, model, scheduler, tab, retry, and scoring details out of normal user reports. Escalate only a concrete user-required repair using the short schema in `coordinator-playbook.md`.
 

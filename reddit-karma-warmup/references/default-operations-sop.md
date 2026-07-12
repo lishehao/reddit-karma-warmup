@@ -1,6 +1,6 @@
 # Operation Request And Handoff Router
 
-Use for `BOOTSTRAP` and `MISSION` only. This file owns request normalization, planning envelopes, mission deltas, and the worker handoff payload. It does not redefine task creation/supervision (`thread-supervision-runtime.md`), coordinator behavior (`coordinator-playbook.md`), lane execution (`orchestration-core.md` plus lane playbooks), timers (`scheduler-and-heartbeats.md`), or the three-line report (`SKILL.md`).
+Use for `ACCOUNT_BOOTSTRAP` and `MISSION` only. This file owns request normalization, planning envelopes, mission deltas, and the worker handoff payload. It does not redefine task creation/supervision (`thread-supervision-runtime.md`), coordinator behavior (`coordinator-playbook.md`), lane execution (`orchestration-core.md` plus lane playbooks), timers (`scheduler-and-heartbeats.md`), or the three-line report (`SKILL.md`).
 
 ## Parse The User Request
 
@@ -36,14 +36,14 @@ These are planning targets, never quotas:
 
 Natural browsing includes qualified reading plus independently gated votes. After each browsing slot, choose the next delay independently from `20-40 min` unless the user overrides it. Profile setup, joins, and flair belong to the conditionally enabled presence lane; they are never coordinator mutations and normally terminate after one bootstrap slot.
 
-## Normalize BOOTSTRAP
+## Normalize ACCOUNT_BOOTSTRAP
 
-Use `BOOTSTRAP` only when the user starts after installation and `bootstrap_state` is not initialized. Account age/Karma continues to affect pacing after initialization but does not rerun bootstrap.
+Use `ACCOUNT_BOOTSTRAP` only when the user starts after installation and `bootstrap_state` is not initialized. Account age/Karma continues to affect pacing after initialization but does not rerun account bootstrap.
 
 Build:
 
 ```text
-run_kind = BOOTSTRAP
+run_kind = ACCOUNT_BOOTSTRAP
 mission_id
 account + tier/substate
 enabled_lanes

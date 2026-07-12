@@ -1,6 +1,6 @@
 # Reusable Stateless Launcher
 
-Load in `Reddit 分发台` after temporary `Reddit 启动台` setup passes preflight. For every direct command it creates fresh requested lane tasks, delivers the new missions, and returns to idle. It is not a coordinator.
+Load in the pinned `Reddit 分发台` after temporary `Reddit 启动台` setup passes preflight. For every direct command it creates fresh requested lane tasks, delivers the new missions, and returns to pinned idle. It is not a coordinator.
 
 ## Single Objective
 
@@ -19,7 +19,7 @@ Out of scope:
 1. Normalize the current direct user request through `default-operations-sop.md` and generate a new run ID.
 2. Broad `开始/运营` enables comments, posts, and follow-up. Add presence only when the profile baseline is incomplete or explicitly requested. Create browsing only for an explicit pure-browse/vote request. A named lane enables only that lane.
 3. Use `thread-supervision-runtime.md` to create one new persistent task per enabled lane. Do not list/search/read/reuse/unarchive/revive historical tasks.
-4. Capture only the exact IDs returned by this run's task-creation calls. Rename each new task to its canonical lane title and keep it unpinned.
+4. Capture only the exact IDs returned by this run's task-creation calls. Rename each new task to its canonical lane title and keep it unpinned. Never unpin the distribution task.
 5. Send one complete handoff containing lane, objective, exclusions, account, duration/count, intensity, style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `incidental_voting=already_read_content_only` for comments/posts/follow-up, required references, and `heartbeat_owner=self`.
 6. Verify only that the exact task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
 7. Return the created titles plus the routing instruction below, using only the tasks created in this dispatch, then enter `L4_IDLE`.
@@ -56,4 +56,4 @@ sibling_visibility=none
 
 Include only execution routes whose tasks were created in this dispatch. Always retain the natural-browsing explanation and final launcher route. If browsing was explicitly created, replace its line with `纯浏览/投票：Reddit 浏览台`.
 
-The launcher task stays stateless and idle after delivery. A worker never sends anything back. The user may continue that run in its lane task or send another direct command to this launcher; the next command repeats fresh creation with a new run ID and still does not inspect prior tasks.
+The distribution task stays pinned, stateless, and idle after delivery. A worker never sends anything back. The user may continue that run in its lane task or send another direct command to this distributor; the next command repeats fresh creation with a new run ID and still does not inspect prior tasks.

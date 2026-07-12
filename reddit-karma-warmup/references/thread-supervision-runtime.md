@@ -21,7 +21,7 @@ For every new launcher command/run:
 1. Resolve enabled lanes without listing old tasks.
 2. Call task creation exactly once for each enabled lane.
 3. Capture the new task ID returned by that exact creation call and bind it to a new `run_id` plus lane.
-4. Rename only that newly created task to the canonical lane title and keep it unpinned.
+4. Rename only that newly created task to the canonical lane title and keep it unpinned. The already-pinned distribution task is outside this worker presentation step and must remain pinned.
 5. Send the actual current mission to that new ID. Successful delivery is the only handoff proof.
 6. Record only this run's new IDs for the dispatch receipt, then release launcher ownership and enter idle.
 

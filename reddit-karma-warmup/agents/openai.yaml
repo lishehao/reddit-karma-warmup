@@ -1,4 +1,4 @@
 interface:
   display_name: "Reddit Community Operations"
   short_description: "Run structured Reddit operations through logged-in Chrome"
-  default_prompt: "Use $reddit-karma-warmup through logged-in Chrome. Temporarily name this task Reddit 启动台 for install/preflight, then rename the same healthy task Reddit 分发台. Broad operation creates fresh independent comment, post, and follow-up tasks; browsing is explicit-only. Deliver missions, return the routing instruction, then idle. Each lane owns execution, incidental votes, Heartbeat, recovery, and reports."
+  default_prompt: "Use $reddit-karma-warmup through logged-in Chrome. Temporarily name this task Reddit 启动台 for install/preflight, then rename and pin the exact same healthy task as Reddit 分发台. Broad operation creates fresh unpinned comment, post, and follow-up tasks; browsing is explicit-only. Deliver missions, return routing, then remain pinned idle. Each lane owns execution, incidental votes, Heartbeat, recovery, and reports."

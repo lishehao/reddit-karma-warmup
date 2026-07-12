@@ -6,7 +6,7 @@ Load only for install, upgrade, dependency preflight, or initial lane allocation
 
 The first available presentation action after a setup/install command is to rename the current task `Reddit 启动台`. Do this before download, preflight, or explanation. Rename failure is presentation-only and never blocks setup.
 
-`Reddit 启动台` is temporary and owns only installation plus read-only runtime checks. After every required preflight item passes, immediately rename this same task `Reddit 分发台`. The distribution task accepts repeated user-triggered fresh lane dispatch, never becomes `Reddit 主控台`, never owns recurring Heartbeats, and never supervises or receives callbacks from workers. Between user commands it remains stateless and idle.
+`Reddit 启动台` is temporary and owns only installation plus read-only runtime checks. After every required preflight item passes, immediately rename this same task `Reddit 分发台` and pin the exact current task. The distribution task accepts repeated user-triggered fresh lane dispatch, never becomes `Reddit 主控台`, never owns recurring Heartbeats, and never supervises or receives callbacks from workers. Between user commands it remains pinned, stateless, and idle.
 
 ## Runtime Requirements
 
@@ -14,6 +14,7 @@ The first available presentation action after a setup/install command is to rena
 - Chrome Browser control using the user's existing Chrome login state. Do not substitute Computer Use, in-app Browser, Playwright, or another browser for Reddit mutations.
 - The user is already logged in to the target Reddit account. Never handle credentials.
 - Persistent task create/send support for every fresh dispatch.
+- Current-task exact ID plus rename/pin support for the persistent distribution entrypoint. Do not search by title to recover self identity.
 - Automation/Heartbeat support for multi-round work. Each lane worker creates and owns its own timer after its immediate first slot.
 - Local time, timezone, UTC offset, and UTC readback.
 
@@ -33,12 +34,14 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 
 If a required item needs user repair, remain `Reddit 启动台` and request only that repair. On `继续`, recheck only missing items.
 
-When healthy, rename the same task `Reddit 分发台`, then ask how to operate. If the setup command already includes an operation, do not ask again: rename and dispatch immediately. If the user replies `开始`, default to standard intensity, mixed style, and three hours; dispatch the independent lane tasks immediately. Rename failure is presentation-only and does not block dispatch.
+When healthy, rename the same task `Reddit 分发台`, pin that exact task, then ask how to operate. If the setup command already includes an operation, do not ask again: complete rename/pin and dispatch immediately. If the user replies `开始`, default to standard intensity, mixed style, and three hours; dispatch the independent lane tasks immediately. Rename or pin failure is presentation-only and does not block dispatch; report the missing presentation action once without searching for another task.
 
 ```text
 状态健康。当前账号：u/name。
 
 当前任务已切换为 Reddit 分发台。
+
+分发台已置顶；后续新一轮运营都从这里分配。
 
 你希望怎么运营？可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格。暂时没想法就回复“开始”，我会创建独立的评论台、发帖台和跟进台；它们会在本来就读到的内容上自然判断是否投票。纯浏览台仅在你明确要求时创建。
 ```

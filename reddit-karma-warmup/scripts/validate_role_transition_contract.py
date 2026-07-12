@@ -35,9 +35,11 @@ def main() -> int:
             "Every distribution command creates another fresh run",
             "自然浏览/投票：随以上执行台读取内容时完成",
             "L2_READY",
+            "pinned=true",
+            "never list/search by title to find the task to pin",
         ],
         ROOT / "references" / "launcher-playbook.md": [
-            "returns to idle",
+            "returns to pinned idle",
             "It is not a coordinator",
             "The launcher never creates timers for workers",
             "Do not list/search/read/reuse/unarchive/revive historical tasks",
@@ -46,7 +48,8 @@ def main() -> int:
             "Post-Dispatch Instruction",
             "Broad `开始/运营` enables comments, posts, and follow-up",
             "Create browsing only for an explicit pure-browse/vote request",
-            "Load in `Reddit 分发台` after temporary `Reddit 启动台` setup passes preflight",
+            "Load in the pinned `Reddit 分发台` after temporary `Reddit 启动台` setup passes preflight",
+            "Never unpin the distribution task",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
             "not discovery, reuse, or ongoing supervision",
@@ -70,7 +73,7 @@ def main() -> int:
             "临时启动台 -> 可重复使用的无状态分发台 + 相互独立的执行台",
             "也不晋升为 `Reddit 主控台`",
             "heartbeat_owner=self",
-            "然后回到 idle",
+            "然后回到 pinned idle",
             "不读取、不 callback、不暂停、不修改其他执行台",
             "必须忽略",
             "不得退回旧任务",
@@ -79,6 +82,8 @@ def main() -> int:
             "已启动：<本次创建的任务>",
             "自然浏览/投票：随以上执行台读取内容时完成",
             "当前任务已切换为 Reddit 分发台",
+            "分发台已置顶；后续新一轮运营都从这里分配",
+            "执行台保持不置顶",
         ]
 
     errors: list[str] = []
@@ -127,6 +132,7 @@ def main() -> int:
     scenarios = {
         "setup_command": "RENAME_LAUNCHER_FIRST",
         "setup_health_passed": "RENAME_DISTRIBUTOR",
+        "setup_health_pin": "PIN_EXACT_DISTRIBUTOR_ID",
         "launcher_dispatch": "DELIVER_ONCE_THEN_IDLE",
         "worker_first_slot": "EXECUTE_NOW",
         "worker_continuation": "SELF_OWNED_HEARTBEAT",
@@ -140,6 +146,7 @@ def main() -> int:
         "fresh_create_failure": "REPORT_NO_OLD_TASK_FALLBACK",
         "same_launcher_second_command": "NEW_RUN_FRESH_EXECUTORS",
         "launcher_idle_reuse": "USER_TRIGGER_ONLY",
+        "launcher_idle_presentation": "PINNED",
         "worker_return_to_launcher": "FORBIDDEN",
     }
     print("AUTONOMOUS_LANE_CONTRACT=PASS")

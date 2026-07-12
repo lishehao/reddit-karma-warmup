@@ -11,7 +11,7 @@ Use a reusable stateless launcher plus independent lane tasks. There is no persi
 
 | Role | Stable title | Owns | Never does |
 |-|-|-|-|
-| `REDDIT_LAUNCHER` | `Reddit 分发台` after temporary `Reddit 启动台` setup | install/upgrade, read-only preflight, rename to distribution after health passes, accept later dispatch commands, create fresh requested lane tasks, deliver each mission, then idle | Reddit actions, old-task discovery/reuse, ongoing supervision, worker callbacks, Heartbeats, cross-lane status |
+| `REDDIT_LAUNCHER` | pinned `Reddit 分发台` after temporary `Reddit 启动台` setup | install/upgrade, read-only preflight, rename and pin the exact current task after health passes, accept later dispatch commands, create fresh requested lane tasks, deliver each mission, then idle | Reddit actions, old-task discovery/reuse, ongoing supervision, worker callbacks, Heartbeats, cross-lane status |
 | `COMMENTS_WORKER` | `Reddit 评论台` | proactive comment discovery, drafting, submission, verification, its own timer/recovery/report; incidental voting on already-read candidates | posts, follow-up, vote hunting, sibling inspection |
 | `POSTS_WORKER` | `Reddit 发帖台` | subreddit/rules preflight, native posts, verification, its own timer/recovery/report; incidental voting on already-read external research samples | comments, follow-up, vote hunting, sibling inspection |
 | `FOLLOWUP_WORKER` | `Reddit 跟进台` | Notifications and replies to own activity, incidental voting on already-read inbound replies, its own timer/recovery/report | proactive discovery, new posts, vote hunting, sibling inspection |
@@ -24,7 +24,7 @@ Every task has one objective. Tasks do not callback, inspect, wait for, pause, a
 
 | Request | Action |
 |-|-|
-| install/setup/upgrade/explain | Immediately rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md`. After preflight passes, rename it `Reddit 分发台` and load `references/launcher-playbook.md`. |
+| install/setup/upgrade/explain | Immediately rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md`. After preflight passes, rename the exact same task `Reddit 分发台`, pin it, and load `references/launcher-playbook.md`. |
 | any new `开始/运营` or named publishing command in `Reddit 分发台` | Load `references/default-operations-sop.md`, create fresh requested lane tasks, send each its new mission, verify delivery, then idle. This route can be used repeatedly. |
 | one named lane in an ordinary task | Rename the current task to that lane title when possible, load its playbook plus the shared runtime references, execute now, and own later continuation locally. |
 | later instruction inside a lane task | Replace that lane's conflicting old mission fields, execute the first changed slot now, and update only that task's Heartbeat. |
@@ -54,11 +54,11 @@ When two references conflict, the owner above wins.
 |-|-|-|
 | `L0_NAME` | First available presentation action: rename current task `Reddit 启动台`. | temporary setup title applied or non-blocking `rename_unavailable` |
 | `L1_PREFLIGHT` | Install/upgrade and read-only check Chrome control, Reddit account, task creation, Heartbeat support, local time and UTC. | healthy runtime or one concrete user repair |
-| `L2_READY` | After every required preflight item passes, rename this same task `Reddit 分发台`; then ask for the first operation or accept the operation already present in the setup command. | distribution title applied or non-blocking `rename_unavailable`; no second user turn when operation was already requested |
+| `L2_READY` | After every required preflight item passes, rename this same task `Reddit 分发台`, then call the host thread-pin tool with the exact current task ID and `pinned=true`; then ask for the first operation or accept the operation already present in the setup command. | distribution title attempted; exact self ID reports pinned or non-blocking `pin_unavailable`; no second user turn when operation was already requested |
 | `L3_DISPATCH` | Resolve requested lanes; call task creation once per lane without listing/searching history; capture only the newly returned IDs; rename and unpin them; send each complete mission with `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`. | one newly created exact task ID and successful mission delivery per requested lane |
-| `L4_IDLE` | Return the created titles plus the fixed task-routing instruction card. Wait only for another direct user command in this same distribution task. | no background reads/callbacks/scheduling/aggregation; a later user dispatch returns to `L3_DISPATCH` with a new run ID |
+| `L4_IDLE` | Keep this distribution task pinned, return the created titles plus the fixed task-routing instruction card, and wait for another direct user command here. | pinned state retained or `pin_unavailable`; no background reads/callbacks/scheduling/aggregation; a later user dispatch returns to `L3_DISPATCH` with a new run ID |
 
-If setup needs login, CAPTCHA, Chrome, or another real user repair, remain `Reddit 启动台`. When healthy, rename to `Reddit 分发台`; do not rename to `Reddit 主控台` and do not create one.
+If setup needs login, CAPTCHA, Chrome, or another real user repair, remain `Reddit 启动台`. When healthy, rename to and pin `Reddit 分发台`; do not rename to `Reddit 主控台` and do not create one. Resolve self identity from the host's exact current-thread context only; never list/search by title to find the task to pin. Pin/rename failure is presentation degradation and never blocks dispatch.
 
 After dispatch, the user may either continue the current run inside its execution task or return to `Reddit 分发台` and issue another command. Every distribution command creates another fresh run; no worker ever returns to the launcher.
 

@@ -58,9 +58,9 @@ On a direct user command or execution-heartbeat resume, complete the current Not
 - quiet queue: `40-90 min`
 - several replies or uncertainty: `57-96 min`
 
-Choose from state, not random imitation. Return one proposed exact local/UTC next due time to `Reddit 主控台`; only the coordinator updates/reuses the lane's logical timer. Never create or mutate a follow-up trigger in this worker.
+Choose from state, not random imitation. Compute one exact local/UTC next due time and update/reuse this follow-up task's own logical Heartbeat.
 
-The follow-up lane owns only follow-up execution state and its cleanup queue. It never inspects or mutates sibling tasks/timers and never creates, pauses, resumes, deletes, or rewrites any automation. Scheduling evidence is returned to the coordinator.
+The follow-up lane owns its execution state, cleanup queue, and self-targeted recurring Heartbeat. It never inspects or mutates sibling tasks/timers and reports scheduling evidence only in this task.
 
 ## Follow-Up Report
 

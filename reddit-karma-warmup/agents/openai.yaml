@@ -1,4 +1,4 @@
 interface:
   display_name: "Reddit Community Operations"
   short_description: "Run structured Reddit operations through logged-in Chrome"
-  default_prompt: "Use $reddit-karma-warmup to run standard-intensity, mixed-style Reddit operations for 3 hours through logged-in Chrome. Keep the main task coordinator-only; create or reuse four persistent lane tasks, execute the first slot now, then have the coordinator create recurring Heartbeats targeting each worker plus one read-only mission supervisor until the deadline."
+  default_prompt: "Use $reddit-karma-warmup through logged-in Chrome. For setup, immediately name the current task Reddit 启动台, complete read-only preflight, create or reuse the requested independent lane tasks, deliver their first missions, then idle. Each lane executes now, owns its own recurring Heartbeat and recovery, reports in its own task, and never callbacks or inspects sibling tasks."

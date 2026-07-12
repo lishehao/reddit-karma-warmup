@@ -24,7 +24,7 @@ This is not the default. Enable it only when the user explicitly requests about 
 
 - All tiers may plan toward `60/day` only while clean and explicitly authorized. Use at least a `6h` operating window for the full target.
 - For a shorter window, target at most `10 x available hours`; do not compress missed comments into a burst.
-- High intensity starts with a `6-10` passing-comment first-hour envelope. The coordinator checks the first permalink in parallel without pausing the comment worker.
+- High intensity starts with a `6-10` passing-comment first-hour envelope. The comment task records and verifies its own first permalink without an external acceptance task.
 - After the first hour, continue within the selected high envelope. A subreddit visibility/removal failure retires only that subreddit; only an `R3` account-level signal disables this mode.
 - Prefer at least `6` communities and `3` clusters across a 60-comment day when the eligible pool supports it; avoid more than `5` proactive comments in one subreddit per `24h`.
 - Keep the normal `Act >=80`, truthfulness, copy-length, history, and `60-120 sec` post-submit pause. If not enough candidates pass, publish fewer.
@@ -48,7 +48,7 @@ Trigger: one removal/filter/lock/ban or invalidating parent deletion in one comm
 Trigger: removals/filters/locks/bans have retired at least two communities. This remains a set of subreddit-level outcomes, not an inferred account penalty.
 
 - Retire every affected subreddit from future posts/comments and preserve each exact notice/permalink.
-- Send one consolidated non-blocking notice to `Reddit 主控台`; do not ask the user for permission to continue.
+- Add one consolidated non-blocking notice to this task's next report; do not ask the user for permission to continue.
 - Continue in unaffected eligible communities at the same account tier, comment envelope, and post window.
 - Do not impose a `24h/72h` account cooldown, Daily 60 shutdown, generic rate reduction, or account-wide post cap from removals alone.
 - Inspect whether the removed items shared an avoidable rule/format mismatch before drafting the next item, but do not treat that review as a pause or lower the candidate threshold.
@@ -60,7 +60,7 @@ Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, s
 
 - Pause only the actions the active state makes impossible and preserve the user's latest mission unchanged.
 - For a visible timed rate limit, wait until the displayed expiry using the current turn or the lane's existing Heartbeat as appropriate, re-probe once, and automatically resume the original mission. Do not ask for confirmation.
-- For captcha, credentials, login mismatch, or a persistent lock/warning that requires user repair, return the exact repair through `Reddit 主控台`; after the state clears, automatically resume the latest mission unless the user changed or stopped it.
+- For captcha, credentials, login mismatch, or a persistent lock/warning that requires user repair, ask for the exact repair directly in this task; after the state clears, automatically resume the latest mission unless the user changed or stopped it.
 - Do not impose a `24h/72h` recovery tier, lower comment/post envelope, or recovery preset after resumption. Defaults remain advisory and the user's explicit command remains controlling.
 - A dropped Chrome connection alone is not `R3`; reconnect and verify whether the prior action posted before retrying.
 
@@ -69,7 +69,7 @@ Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, s
 - A handoff with `lane=comments` is accepted only by `Reddit 评论台`; execute comment sections and ignore every post target/section.
 - A handoff with `lane=posts` is accepted only by `Reddit 发帖台`; execute post sections and ignore every comment target/section.
 - There is no mixed proactive worker. Broad `运营` enables two independent tasks with separate targets, tabs, proof, and ledgers; never count comments as posts or let one task backfill the other.
-- An off-role handoff is returned to `Reddit 主控台` as routing drift. Do not reinterpret it locally.
+- An off-role request is not forwarded. Tell the user the canonical task title for that lane and do not reinterpret it locally.
 
 ## Active Pool Gate
 

@@ -7,12 +7,12 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 ## Default Sequence
 
 1. **Inspect first.** Confirm the account, visible age/karma/history, email-verification or eligibility signals where Reddit exposes them, notifications, and any currently active warning/removal state. Keep historical/cleared events in the ledger without turning them into startup blockers.
-2. **Establish a truthful presence baseline.** `Reddit 主控台` enables `Reddit 主页台`; that worker loads `community-presence-playbook.md`, makes one immediate best-effort display/about/avatar/banner checkpoint, and schedules any retry without holding outward lanes.
+2. **Establish a truthful presence baseline.** `Reddit 启动台` may allocate `Reddit 主页台`; that task loads `community-presence-playbook.md`, makes one immediate best-effort display/about/avatar/banner checkpoint, and owns any requested retry without holding outward tasks.
 3. **Join a few high-fit communities.** `Reddit 主页台` runs the membership gate and prefers `1-3` in the first slot. Profile/Join/Flair incompleteness never blocks outward lanes once account identity is known.
 4. **Browse before and alongside publishing.** Run one intensity-sized qualified-read slot across eligible communities. Standard starts with `20-30` reads and targets `2` combined accepted one-click votes without lowering `browse-vote-playbook.md` gates.
 5. **Run the first-hour launch.** Immediately execute comments, post preflight, follow-up, and natural browsing using the selected intensity. Comments remain micro/fragment/one-liner first and span lower-restriction communities.
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
-7. **Verify in parallel.** Record the first permalink immediately so the coordinator can run `startup-health-check.md` while the comment worker continues. Any removal retires only its exact subreddit under `R1/R2`; continue in unaffected communities. Timed rate limits auto-resume; allowlisted account repair states withhold only impossible mutations while Heartbeats and permitted work continue. A pending delayed check or historical event is not a reason to wait.
+7. **Verify locally.** Record and verify the first permalink in the comment task while its mission continues. Any removal retires only its exact subreddit; continue in unaffected communities. Timed rate limits auto-resume; allowlisted account repair states withhold only impossible mutations while this task's Heartbeat and permitted work continue. A pending delayed check or historical event is not a reason to wait.
 8. **Continue after the first hour.** Continue the user's selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A currently active blocker uses its minimum recovery condition, then resumes the same latest command. Historical or cleared failures never select a recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
 9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. `K0` does not create a six-hour wait before the first eligible post. Only the second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
 
@@ -33,7 +33,7 @@ For internal Loci accounts without another supplied persona:
 - joins: prefer `1-3`, max `5`
 - browsing: one intensity-sized slot at launch; standard uses `20-30` qualified reads, vote target `2`, cap `4`; explicit user values override, and a shortfall is valid only after the configured budget is exhausted
 - proactive comments: use the selected intensity; `60/day` requires explicit high-volume mode, at least `6h`, and enough passing candidates
-- startup checkpoint: coordinator verifies the first permalink immediately and again after `15-30 min`, while the comment worker continues within the selected intensity unless a concrete failure appears
+- startup checkpoint: the comment task verifies its first permalink immediately; delayed visibility may be checked on its next wake without pausing work
 - main posts: `0-2/day`; never more than one per subreddit per `24h`
 - first main post: no skill-level `6h` wait; publish only after full live eligibility/preflight passes
 - first-hour comments: low `2-4`, standard `4-6`, high `6-10`, with `60-120 sec` local pause after every verified submission

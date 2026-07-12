@@ -79,9 +79,9 @@ Do not inspect cookies/local storage, clear browsing data, disable extensions, r
 2. If still failing and no user-repair state exists, keep this lane's recurring Heartbeat active and request a recovery checkpoint `5-10 min` later. End the turn with the normal three-line report; `下轮计划` names the exact probe and withheld mutation. Do not pause or edit sibling lanes.
 3. `attempt 2` at the Heartbeat wake: rerun the scope probes once. If healthy, reconfirm account/context and resume from the last safe state. If still technical/retryable, record `lane_recovering`, choose another native route/safe candidate when possible, and re-probe on later wakes until recovery or mission deadline. Chrome-control failure becomes user-repair eligible only after three consecutive recovery wakes; ordinary network/route/client-block failure never does by itself.
 
-Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The worker never creates a recovery automation; it returns the proposed recovery time and relies on the existing coordinator-managed recurring Heartbeat. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision.
+Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The worker relies on its own recurring Heartbeat for later recovery and may update that timer when the recovery time changes. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision.
 
-Never delete, deactivate, or pause a lane or supervisor Heartbeat because a Chrome, network, page, route, client-block, or recovery attempt failed. Multiple unsuccessful recovery wakes remain `lane_recovering` and continue on the existing timer until the deadline, explicit user stop, terminal proof, or verified timer replacement. An explicit account blocker may withhold the mutations it prevents, but its Heartbeats stay active for timed re-probe unless the user stops the operation. `submit_uncertain` withholds only that exact mutation; it does not stop continuation or sibling lanes.
+Never delete, deactivate, or pause this lane's Heartbeat because a Chrome, network, page, route, client-block, or recovery attempt failed. Multiple unsuccessful recovery wakes remain `lane_recovering` and continue on the existing timer until the deadline, explicit user stop, terminal proof, or verified timer replacement. An explicit account blocker may withhold the mutations it prevents, but this task's Heartbeat stays active for timed re-probe unless the user stops the operation. `submit_uncertain` withholds only that exact mutation; it does not stop other safe work in this task.
 
 ## Mutation Integrity
 
@@ -105,7 +105,7 @@ account_reconfirmed
 result = recovered | skipped_route | heartbeat_recheck | lane_recovering | escalated
 ```
 
-A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. A persistent retryable lane fault stays `lane_recovering` with its Heartbeat active and does not return a user decision. Only an allowlisted hard user-repair state returns to `Reddit 主控台`. Ordinary Heartbeat output still uses only:
+A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. A persistent retryable lane fault stays `lane_recovering` with its Heartbeat active and does not request a user decision. Only an allowlisted hard user-repair state is shown directly to the user in this task. Ordinary Heartbeat output still uses only:
 
 ```text
 本轮完成：<exact code；可能原因；已自动重试/恢复结果；action result>

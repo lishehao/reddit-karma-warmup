@@ -1,6 +1,6 @@
 # Bootstrap Profile And Community Setup
 
-Use only in `Reddit 主页台` during first-account bootstrap or an explicit setup/repair mission. This lane covers profile/homepage upkeep, target-based Join/subscribe, truthful Flair/tag, and membership review. It never runs in `Reddit 主控台`. It normally terminates after one verified slot; the coordinator creates a recurring timer only when the user explicitly requested later presence work and nonterminal work remains.
+Use only in `Reddit 主页台` during first-account bootstrap or an explicit setup/repair mission. This lane covers profile/homepage upkeep, target-based Join/subscribe, truthful Flair/tag, and membership review. It normally terminates after one verified slot; when the user explicitly requested later presence work, this task creates and owns its own recurring Heartbeat.
 
 ## Presence State
 
@@ -53,4 +53,4 @@ Use ordinary truthful flair such as `Beginner`, `Hobbyist`, `Indie Dev`, `VR Use
 5. Reselect `Reddit 主页台`'s dedicated tab before each edit/join/flair action, verify account/target, and verify final state.
 6. Update timestamps and set the next review only when another action is genuinely due.
 
-Return `start_proof` containing verified changed state or exact inspected surfaces plus the valid no-action gate. Complete and verify this baseline before outward operation tasks start. For the usual one-slot bootstrap mission, immediately return `MISSION_COMPLETE`; `Reddit 主控台` summarizes changed communities/profile surfaces in its first report. Keep watched/skipped candidates, scores, reasons, and remaining cadence local unless they explain no action.
+Record verified changed state or exact inspected surfaces plus the valid no-action gate. For the usual one-slot bootstrap mission, report completion in this task and create no recurring timer. Keep watched/skipped candidates, scores, reasons, and remaining cadence local unless they explain no action.

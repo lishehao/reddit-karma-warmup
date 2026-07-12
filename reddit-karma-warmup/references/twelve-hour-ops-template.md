@@ -1,37 +1,25 @@
-# Twelve Hour Ops Template
+# Twelve-Hour Autonomous Lane Template
 
-Use for about `8-12h`, overnight, or other long low-frequency runs. This is a planning overlay; lane behavior still comes from each playbook.
+Use inside one lane task when the user requests a long timed run. A broad request is already split by `Reddit 启动台`; each task follows this template independently.
 
-## Core Rule
+## Contract
 
-- Execute the H0/current slot immediately.
-- Each worker owns one lane and at most one future trigger.
-- The coordinator creates one recurring Heartbeat per enabled worker with nonterminal future work plus one recurring read-only supervisor for the full window. Each worker wake runs one due slot or records `not_due`; workers never renew timers. A terminal bootstrap presence slot receives no recurring timer.
-- Do not run every lane at every wake-up and do not catch up after a late trigger.
-- Follow-up keeps its own `20-40 min` default sweep rhythm; the table below is only a coarse session map.
+- `operation_stop_at = start + 12h` unless the user supplied another cutoff.
+- Execute the first lane slot immediately.
+- Create/update one repeat-on Heartbeat targeting this exact task.
+- Keep the same timer through recoverable failures.
+- At each wake, run one due slot or record `not_due`, then compute the next local/UTC wake.
+- Retire only this task's timer at stop, deadline, verified lane completion, or verified replacement.
+- Never inspect, report through, pause, or modify another lane task.
 
-## K0 Fresh Bootstrap Track
+## Lane Examples
 
-| Window | Default work |
+| Lane | Typical 12-hour behavior |
 |-|-|
-| H0-H1 | Account/time check; `Reddit 主页台` completes bootstrap presence when required; then immediate comment, post-preflight, follow-up, and natural-browse micro-slots at the selected intensity. The coordinator checks the first permalink in parallel. |
-| H1-H3 | Continue all four operation lanes at the selected intensity after first-hour reconciliation. |
-| H3-H6 | Keep diverse comment/browse slots, follow-up sweeps, and native post candidate checks; publish only passing candidates. |
-| H6-H10 | Continue the selected intensity without catch-up bursts; explicit high-volume mode may progress toward its authorized daily ceiling. |
-| H11 | Closeout visibility, replies, remaining target, and tier checkpoint. |
+| comments | distribute passing comments across varied periods and communities; preserve length/angle variation |
+| posts | perform periodic live rules/eligibility sweeps; publish only passing native posts |
+| follow-up | check Notifications and own activity on a varied cadence; reply only to Act items |
+| browsing | run qualified-read batches with independently gated votes and varied `20-40m` intervals |
+| presence | normally one slot; continue only when explicitly requested |
 
-## Activated K0 / K1 / K2 Track
-
-| Window | Default work |
-|-|-|
-| H0 | Execute one immediate micro-slot for comments, posts, follow-up, and natural browsing. |
-| H1-H3 | Continue all four lanes at the selected intensity. |
-| H4-H6 | Follow-up/visibility, diverse comment/browse slots, and native post candidate checks. |
-| H7-H9 | Continue within the chosen envelope; no forced daily target unless explicitly requested. |
-| H10-H11 | Final follow-up, visibility, comment/browse/post reconciliation, and closeout. |
-
-## Dispatch
-
-Broad operation enables comments, posts, follow-up, and natural browsing. Profile/community setup is bootstrap-only. Each worker receives the shared stop time, intensity, account tier, pool, first due slot, and its independent Chrome tab rule.
-
-Actual trigger intervals come from `scheduler-and-heartbeats.md`, not fixed hourly recurrence. Use the three-line report from `orchestration-core.md`; keep selected track, lane owners, slot math, stop time, and scheduler readback internal unless they create a risk or scheduling failure.
+Do not catch up after a delay with bursts. Replan from actual time and remaining quality opportunities.

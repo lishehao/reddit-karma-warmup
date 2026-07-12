@@ -1,174 +1,104 @@
 ---
 name: reddit-karma-warmup
-description: >-
-  Run authorized Reddit community operations through the user's logged-in Chrome session. Use for zero-account bootstrap, proactive comments, main posts, notification/reply follow-up, natural browsing with occasional genuine votes, duration/intensity/style-based operations, later missions dispatched through the stable Loci Reddit operations task, or packaging and inspecting this workflow.
+description: Run authorized Reddit community operations through the user's logged-in Chrome session. Use for one-time setup and lane dispatch, proactive comments, native posts, follow-up replies, natural browsing and voting, profile/community presence, timed autonomous lane operation, or lane-local status and recovery.
 ---
 
 # Reddit Karma Warmup
 
-Use one stable user-facing persistent task with two sequential roles: `REDDIT_BOOTSTRAP` titled `Reddit 启动台` during setup, then `REDDIT_COORDINATOR` titled `Reddit 主控台` after healthy handoff. This is one task ID and history, never two main tasks. The coordinator may own up to five single-purpose persistent execution tasks: `Reddit 评论台`, `Reddit 发帖台`, `Reddit 跟进台`, `Reddit 浏览台`, and the conditionally enabled `Reddit 主页台`. Execution tasks are internal operation details.
+Use a one-time launcher plus independent lane tasks. There is no persistent main coordinator.
 
-## Select Runtime Context
+## Roles
 
-Choose exactly one context before loading detailed references:
+| Role | Stable title | Owns | Never does |
+|-|-|-|-|
+| `REDDIT_LAUNCHER` | `Reddit 启动台` | install/upgrade, read-only preflight, parse the first request, create/reuse requested lane tasks, deliver each initial mission, then idle | Reddit actions, ongoing supervision, worker callbacks, Heartbeats, cross-lane status |
+| `COMMENTS_WORKER` | `Reddit 评论台` | proactive comment discovery, drafting, submission, verification, its own timer/recovery/report | posts, follow-up, voting, sibling inspection |
+| `POSTS_WORKER` | `Reddit 发帖台` | subreddit/rules preflight, native posts, verification, its own timer/recovery/report | comments, follow-up, voting, sibling inspection |
+| `FOLLOWUP_WORKER` | `Reddit 跟进台` | Notifications and replies to own activity, its own timer/recovery/report | proactive discovery, new posts, voting, sibling inspection |
+| `BROWSING_WORKER` | `Reddit 浏览台` | qualified reading, independently gated Upvote/Downvote, its own timer/recovery/report | text publishing, sibling inspection |
+| `PRESENCE_WORKER` | `Reddit 主页台` | truthful profile, Join/subscribe, Flair/tag, membership review, optional own timer | outward content, sibling inspection |
 
-| Context | Trigger | Behavior |
+Every task has one objective. Tasks do not callback, inspect, wait for, pause, amend, or report through another task. Sharing one Chrome profile or Reddit account is not a conflict; each task owns a separate tab or Tab Group.
+
+## Route The Current Request
+
+| Request | Action |
+|-|-|
+| install/setup/upgrade/explain | Immediately rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md` and `references/launcher-playbook.md`. |
+| generic `开始/运营` in the launcher | Load `references/default-operations-sop.md`, create/reuse the four outward lane tasks, send each its mission, verify delivery, then idle. |
+| one named lane in an ordinary task | Rename the current task to that lane title when possible, load its playbook plus the shared runtime references, execute now, and own later continuation locally. |
+| later instruction inside a lane task | Replace that lane's conflicting old mission fields, execute the first changed slot now, and update only that task's Heartbeat. |
+| lane status/pause/resume/stop | Read or change only the current lane task and its own Heartbeat. |
+
+Do not redirect a later lane request to the launcher. The user speaks directly to the relevant lane task after dispatch.
+
+## Reference Ownership
+
+- `runtime-and-setup.md`: installation, preflight, immediate launcher naming, and launcher exit.
+- `launcher-playbook.md`: one-time lane allocation and delivery proof.
+- `thread-supervision-runtime.md`: create/reuse one independent task per requested lane; no ongoing supervision.
+- `default-operations-sop.md`: normalize the first mission and lane-specific later mission.
+- `orchestration-core.md`: one lane's executable slot, dedicated Chrome tab, action verification, and local state.
+- `scheduler-and-heartbeats.md`: worker-owned recurring Heartbeat, time verification, retry, update, and terminal cleanup.
+- `risk-escalation.md`: lane-local recovery and direct user repair inside the affected lane.
+- lane playbooks: candidate and action rules for that lane only.
+- `chrome-network-recovery.md`: bounded Chrome/page/network recovery in the current lane.
+- `outbound-copy-gate.md` and `publish-consistency.md`: outbound writing quality and variation.
+- `operation-style-profiles.md` and `loci-subreddit-pool-v1.md`: optional style and default target pool.
+
+When two references conflict, the owner above wins.
+
+## Launcher Lifecycle
+
+| Stage | Required work | Exit proof |
 |-|-|-|
-| `INSTALL` | Install, upgrade, inspect, package, or explain | Immediately enter `REDDIT_BOOTSTRAP` and rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md`; do not mutate Reddit. Promote/rename the same task after healthy handoff. |
-| `ACCOUNT_BOOTSTRAP` | First `开始` after install, or `bootstrap_state` is not initialized and the visible account is blank/new/no-clean-history | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/new-account-bootstrap.md`, `references/startup-health-check.md`, `references/orchestration-core.md`, and `references/scheduler-and-heartbeats.md`. |
-| `MISSION` | The user gives a later active operation command in `Reddit 主控台` | Load `references/default-operations-sop.md`, `references/operation-style-profiles.md`, `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, `references/risk-escalation.md`, `references/orchestration-core.md`, and only the affected lane playbook(s). |
-| `STATUS` | Status, progress, risk, next run, pause, resume, or stop | Load `references/thread-supervision-runtime.md` and `references/coordinator-playbook.md`; read only relevant lane tasks unless a requested control change is needed. |
-| `AUDIT` | The user asks whether workers, automations, execution, cadence, published content, length, or quality are following the plan | Load `references/thread-supervision-runtime.md`, `references/coordinator-playbook.md`, and `references/operations-audit.md`; inspect the relevant workers and their automations read-only by default. |
-| `WORKER` | The task handoff explicitly says it owns one lane | Load `references/orchestration-core.md`, `references/operation-style-profiles.md`, `references/risk-escalation.md`, and only the assigned lane playbook. Never become a coordinator or mutate scheduling. |
+| `L0_NAME` | First available presentation action: rename current task `Reddit 启动台`. | title applied or non-blocking `rename_unavailable` |
+| `L1_PREFLIGHT` | Install/upgrade and read-only check Chrome control, Reddit account, task creation, Heartbeat support, local time and UTC. | healthy runtime or one concrete user repair |
+| `L2_DISPATCH` | Resolve requested lanes; create/reuse distinct persistent lane tasks; rename and unpin them; send each complete mission with `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`. | one exact live task ID and successful mission delivery per requested lane |
+| `L3_IDLE` | Return the lane titles the user should use next. | launcher performs no further reads, callbacks, scheduling, or aggregation |
 
-Lane references:
+If setup needs login, CAPTCHA, Chrome, or another real user repair, remain `Reddit 启动台`. When healthy, dispatch; do not rename to `Reddit 主控台` and do not create one.
 
-- comments: comment-only sections of `references/proactive-playbook.md`, plus `references/outbound-copy-gate.md` and `references/publish-consistency.md`
-- posts: post-only sections of `references/proactive-playbook.md`, plus `references/outbound-copy-gate.md` and `references/publish-consistency.md`
-- notifications/replies: `references/followup-playbook.md`; add copy/publish gates only when replying
-- profile/join/flair setup: `references/community-presence-playbook.md`; only `Reddit 主页台` loads it
-- natural browsing with optional genuine upvote/downvote: `references/browse-vote-playbook.md`
-- operation direction and voice: `references/operation-style-profiles.md`
-- persistent task creation/reuse/read/send supervision: `references/thread-supervision-runtime.md`
-- on-demand worker, automation, cadence, and content audit: `references/operations-audit.md`
-- worker-to-main risk escalation and user decision routing: `references/risk-escalation.md`
-- no user target pool: `references/loci-subreddit-pool-v1.md`
-- 8-12 hour run: `references/twelve-hour-ops-template.md`
-- model assignment: `references/model-runtime.md`
-- Chrome control/page/network error self-diagnosis: load `references/chrome-network-recovery.md` only after a browser control, navigation, or loading failure
+## Worker Lifecycle
 
-Do not load every reference. The subreddit pool is routing data, not a workflow.
+Every lane task independently follows:
 
-### Canonical Rule Ownership
+1. Apply the latest user mission and confirm its own exact lane.
+2. Discover/reconnect Chrome and create or reclaim only its own tab.
+3. Confirm the visible Reddit account, current local time, UTC, and stop time.
+4. Read live context. For posts, always recheck current subreddit rules, account age/Karma/Flair requirements, and recent posting eligibility before drafting.
+5. Execute and verify the first requested micro-slot in the current turn. A future Heartbeat never defers the first slot.
+6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.
+7. On each wake, complete one due slot or record a concrete `not_due`/no-action/recovery checkpoint; then keep or update the same timer.
+8. At explicit stop, deadline, or verified lane completion, remove only its own Heartbeat and report locally.
 
-- `SKILL.md`: context selection, end-to-end phases, hard gates, shared invariants, and the exact three-line report.
-- `default-operations-sop.md`: user-request parsing, planning envelopes, mission delta, and worker handoff payload only.
-- `coordinator-playbook.md`: `Reddit 主控台` lifecycle, same-turn acceptance, first-hour supervision, status/risk/completion aggregation.
-- `thread-supervision-runtime.md`: persistent task registry, create/reuse/send/read, task identity, pin/archive lifecycle.
-- `orchestration-core.md`: one worker's slot state machine, lane boundary, tab ownership, decision classes, execution and reconciliation.
-- `scheduler-and-heartbeats.md`: timer math, binding, time verification, update/reuse, and stop behavior.
-- lane playbooks: candidate/action rules for their lane only.
-- `runtime-and-setup.md`: Bootstrap role, immediate setup rename, preflight, same-task promotion, and direct-mission fast path.
+## Independence Gates
 
-When two references appear to cover the same decision, the owner above wins. Supporting references link to the owner instead of restating its procedure.
+- No coordinator task, coordinator registry, coordinator supervisor Heartbeat, callback contract, or centralized completion report.
+- A worker never reads or sends messages to another Reddit task. It never checks for task collisions.
+- A worker never changes another lane's tab, mission, timer, status, cadence, candidate history, or risk state.
+- A fault in one lane affects only that lane. Other tasks continue without awareness or permission.
+- A task may create a replacement only for its own stale task/timer state and must verify the replacement before retiring the old timer.
+- Temporary subagents may assist bounded read-only analysis but never own Chrome mutations, the lane, its Heartbeat, or user communication.
 
-## End-To-End Stage Contract
+## User Priority And Recovery
 
-Setup precedes the operational stages and has its own owner/proof:
+The latest explicit user command controls lane, duration, count, target pool, language, intensity, and style. Defaults and historical warnings are advisory only. Current live subreddit rules and current platform state still gate the exact action.
 
-| Setup stage | Owner/title | Required work | Exit proof |
-|-|-|-|-|
-| `B0_BOOTSTRAP_NAME` | current task / `Reddit 启动台` | immediately request the title change when a setup/install command arrives; do this before download, preflight, or explanation | title applied, or `rename_unavailable` recorded without blocking |
-| `B1_SETUP_PREFLIGHT` | `REDDIT_BOOTSTRAP` / `Reddit 启动台` | install/upgrade, validate, inspect Chrome control, Reddit login/account, task/Heartbeat capability, and local/UTC time; no Reddit mutation or worker creation | healthy handoff, or one allowlisted user-repair request while remaining Bootstrap |
-| `B2_PROMOTE` | same task ID | when setup is healthy, switch role to `REDDIT_COORDINATOR`, immediately rename `Reddit 主控台`, preserve history/pin/state, then present the operation handoff | same task ID plus coordinator title/role, or non-blocking rename backlog |
+Automatically recover stale tabs, dropped Chrome control, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, timed rate limits, candidate exhaustion, and route failures. Keep the lane's recurring Heartbeat active and retry on later wakes. Do not stop the mission because one candidate, subreddit, page, or wake failed.
 
-`REDDIT_BOOTSTRAP` has one objective: establish a validated operating environment and hand the same task to the coordinator role. It never operates Reddit, creates lane workers, starts a mission, or schedules mission Heartbeats. `REDDIT_COORDINATOR` begins only after `B2_PROMOTE` and owns all later user commands.
+Ask the user directly in the affected lane task only for a currently visible login/credential requirement, persistent CAPTCHA/challenge, account lock/suspension, required acknowledgement with no automatic path, or an exact user-required prohibited target with no authorized substitute. Do not return the issue to the launcher.
 
-Every stage has one owner and one exit proof. Do not advance on a plan, acknowledgement, task title, or automation card alone.
+Pending-review own posts are deleted/withdrawn immediately, that subreddit is retired for the current account, and the post worker retargets without confirmation. Historical removals are ledger context, not mission-wide blockers.
 
-| Stage | Owner | Input | Required work | Exit proof |
-|-|-|-|-|-|
-| `S0 INTAKE` | `Reddit 主控台` | latest user command | classify context; resolve lanes, duration/count, intensity, style, pool, language, stop time | normalized mission contract |
-| `S1 PREFLIGHT` | `Reddit 主控台` | mission contract | confirm Chrome control, account, task/heartbeat capability, local time and UTC; determine whether presence baseline is required | runtime record plus `presence_required` |
-| `S2 OWNER_READY` | `Reddit 主控台` | enabled lanes | resolve exact persistent owner candidates; if presence is required, dispatch only that lane first | candidate IDs resolved; presence owner live when required |
-| `S3 PRESENCE_BASELINE` | `Reddit 主页台` when required | profile/membership baseline mission | make one immediate best-effort truthful profile/Join/Flair attempt; otherwise return verified no-action/recovery state | presence checkpoint; only unresolved account identity/login can hold outward mutations |
-| `S4 FIRST_SLOT` | `Reddit 主控台` then enabled outward tasks | outward mission plus known account identity | main sends each outward handoff with `first_due=now`; each task executes one bounded slot independently in its own tab | one live task ID and action/no-action/recovery checkpoint per outward lane |
-| `S5 ACCEPT_AND_SCHEDULE` | `Reddit 主控台` | each lane's checkpoint independently | accept each lane as it returns; issue one execute-now correction to plan-only tasks; immediately create that lane's recurring timer for nonterminal work plus one supervisor timer | per-lane accepted/recovering set, verified bindings, first Chinese report |
-| `S6 RUN_SLOT` | each execution task on its own wake | current lane state and due slot | restore state, execute/verify one bounded slot, update local ledger | `slot_proof`, `not_due`, risk event, retirement event, or terminal event |
-| `S7 SUPERVISE` | read-only main supervisor | mission contract, task reports, timers | reconcile actual wakes, proof, cadence, bindings and slot counts; run one bounded repair per wake and continue recovery on later wakes | updated mission ledger or user-repair event |
-| `S8 CLOSE` | lane task then `Reddit 主控台` | lane terminal state | task returns one `MISSION_COMPLETE`; main removes its timer; after all enabled lanes finish, stop supervisor and reconcile totals | final mission report and `IDLE` |
+## Output
 
-Execution order:
-
-1. `INSTALL` runs `B0-B2` and stops after the promoted coordinator presents its handoff. An operational command in an already installed/healthy environment uses the direct-mission fast path: immediately rename the current user task `Reddit 主控台`, reuse healthy preflight state, and continue through `S0-S2` in the same turn.
-2. On a first-account bootstrap, start `S3` first, but treat profile/community decoration as best-effort. After one bounded presence checkpoint, start outward tasks immediately unless the exact logged-in account still cannot be established.
-3. Dispatch every enabled outward task in parallel at `S4`. Accept and schedule each lane independently as soon as it returns an action, browser-backed no-action, or recovery checkpoint; one slow/failed lane never delays healthy lanes.
-4. `S5` hands every nonterminal lane, including `lane_recovering`, to its own recurring Heartbeat. The main turn then ends after every requested lane has either an immediate checkpoint or a concrete owner/infrastructure record; workers never keep it alive waiting for another slot.
-5. Later missions reuse healthy owners and skip `S3` unless the user explicitly requests profile/community work. A presence-only mission runs `S3`, then acceptance/scheduling or close without entering `S4`; mixed presence plus outward work completes `S3` before `S4`.
-6. `STATUS`, `AUDIT`, pause, resume, and stop are control paths owned by `Reddit 主控台`; they do not create lane work unless the user explicitly amends the mission.
-7. Workers keep routine progress locally. Only decision-requiring risk/blocker, one `SUBREDDIT_RETIRED` event per subreddit, and one terminal `MISSION_COMPLETE` event return to the main task.
-
-## Single-Objective Task Contract
-
-Every persistent task has one outcome. Discovery, scoring, drafting, rules, pacing, verification, reporting, and heartbeat handling are supporting steps or constraints, not additional objectives.
-
-| Task | Single objective | Success evidence | Explicitly outside the objective |
-|-|-|-|-|
-| `Reddit 主控台` | Advance or stop the authorized Reddit operation through the correct workers and centralize every user decision. | Correct routing, same-turn acceptance, risk consolidation, and accurate status/audit. | Performing Reddit lane actions. |
-| `Reddit 评论台` | Publish only qualified new comments on existing Reddit discussions. | Verified comment permalink, or browser-backed no-action evidence after valid candidate gates. | Main posts, Notifications/replies, browsing quotas, sibling coordination. |
-| `Reddit 发帖台` | Publish only eligible native main posts after full live preflight. | Verified post permalink, or exact candidate/preflight rejection evidence. | Proactive comments, Notifications, general browsing/voting. |
-| `Reddit 跟进台` | Process actionable responses and account follow-up surfaces. | Verified reply/action, or a concrete Notifications plus own-activity sweep with no actionable item. | Unrelated discovery, proactive posts/comments, natural browsing. |
-| `Reddit 浏览台` | Complete qualified reading and independently gated vote decisions. | Qualified-read ledger plus verified vote/no-vote decisions for the slot. | Writing comments/posts/replies, profile/community changes. |
-| `Reddit 主页台` | Establish or repair truthful profile and community-presence state. | Verified profile/Join/Flair change, or exact inspected surfaces plus valid no-action evidence. | Comments, posts, replies, voting, sibling coordination, recurring general browsing. |
-
-One worker may process several items only when they all serve its single objective. A request spanning objectives is split across workers. An off-lane instruction is returned to `Reddit 主控台`; the worker never absorbs it.
-
-## Hard Gates
-
-- `Reddit 主控台` is the only user-facing command/decision surface and never executes comments, posts, replies, browsing, or votes.
-- On a setup/install command, task renaming is the first available presentation action: `Reddit 启动台` before setup work, then `Reddit 主控台` immediately after healthy promotion. Title/pin control is presentation-only; unavailability records `rename_unavailable`, never blocks setup or operations, and is retried at the next safe point.
-- Bootstrap and coordinator are mutually exclusive roles on the same persistent task ID. Never create a second task to become the main console, and never let `Reddit 启动台` create execution workers or perform Reddit actions.
-- Real lane owners are persistent tasks with exact IDs. Temporary subagents may assist bounded read-only analysis but never own Chrome mutations, an execution lane, Heartbeat, or risk decision.
-- An operation command executes in the current turn. The first heartbeat may continue the second slot, never defer the first.
-- A browser-backed no-action result is a valid started checkpoint when it records inspected surfaces/candidates and the exact gate. An empty/low-quality candidate set never terminates the mission; the lane schedules fresh discovery on a later wake.
-- Missing task create/read/send capability affects only that lane. Preserve known owners, let the supervisor retry capability/delivery on later wakes, and continue healthy lanes; the coordinator never silently performs lane work.
-- Delays over `5-10 min` use the lane's verified logical heartbeat timer. Reuse/update the same automation ID across hours; do not use Goal Mode, a terminal sleep, or a new timer per round.
-- Naming uses `<platform> <responsibility>台`. Pin only `Reddit 主控台`; keep active/idle workers unpinned and unarchived. Archive completed probes, diagnostics, and retired workers only after their heartbeat/tab state is released.
-
-## Zero-Account Defaults
-
-- Main model and every lane worker: `gpt-5.6-luna/high`.
-- Default operation: `3 hours` at `standard` intensity and `mixed` style, automatically decomposed across comments, posts, follow-up, and natural browsing.
-- Profile/community setup is owned by `Reddit 主页台` and enabled only when the visible account is incomplete or the user explicitly requests setup/repair. It normally completes in one bootstrap slot and receives no recurring timer after terminal proof.
-- Comment/post volumes come from the intensity envelope and account tier. After each verified comment, use a local `60-120 sec` pause; discovery, reading, drafting, and checks are additional.
-- Follow-up: inspect Notifications and recent own activity; reply only to actionable items.
-- Natural browsing: use the selected intensity's read budget and vote target. Standard defaults to `20-30` qualified reads and a target of `2` combined genuine votes per slot, with up to `4` when additional items independently pass. After a slot completes, the next browsing slot defaults to a freshly selected `20-40 min` delay. An explicit user read, vote, or interval setting, including `0` votes, overrides only that field; a below-target slot is valid when the read/time budget is exhausted without enough passing items.
-- The post lane is enabled during broad operation, but publishing still requires a fully eligible native candidate and live preflight; a verified no-post result is valid.
-- During the first post-install hour, the recurring coordinator supervisor adds permalink and content-quality checks; afterward it continues lower-cost schedule/slot reconciliation until mission end.
-
-## Shared Invariants
-
-- Operational precedence is strict: system/developer safety and the user's authorized scope first; a currently visible platform-impossibility state second; the user's latest explicit operation command third; Skill defaults, account-tier suggestions, historical incidents, recovery advice, and older mission fields last. Within the authorized scope, the latest explicit duration, intensity, count, lane, language, target, and style replace conflicting older/default values and execute without a second confirmation.
-- Historical or already-cleared removals, warnings, rate limits, locks, and login faults are ledger context only. They never create a recovery tier, cooldown, reduced envelope, approval prompt, or refusal for a new command. A current state may withhold only the exact action it makes impossible; after it clears, automatically resume the unchanged latest user command unless the user has since amended or stopped it.
-- Real account actions require the already logged-in Chrome Browser control. Never enter credentials and never substitute Computer Use, the in-app Browser, Playwright, or ordinary Web Search.
-- Each worker owns a dedicated Reddit tab and optional Tab Group. Workers do not inspect, wait for, compare, or modify other workers' tabs, targets, actions, or automations.
-- The coordinator creates, updates, verifies, and stops every mission Heartbeat. Lane Heartbeats explicitly target their worker tasks; the recurring coordinator supervisor Heartbeat explicitly targets `Reddit 主控台` and is read-only.
-- Create a lane Heartbeat only when that lane has verified nonterminal future work after its first slot. A terminal one-slot presence mission receives no recurring timer.
-- Workers never create, update, renew, replace, pause, or delete Heartbeats. They execute the bounded lane slot delivered by their recurring Heartbeat and report proof/state only.
-- Routine progress is pull-based. Three event returns are exceptions: a substantive risk/blocker, one non-blocking `SUBREDDIT_RETIRED` notice per newly retired subreddit, and one terminal `MISSION_COMPLETE` when the lane mission ends. A retirement notice never pauses unrelated work or asks for a decision.
-- Removal, filtering, lock, pending approval, parent deletion, or a subreddit ban is not account-wide evidence. Retire only the exact subreddit and continue at the same account tier/envelope. Only currently active, explicit account-level warning/rate-limit/captcha/lock/suspension/login evidence may pause the actions it prevents.
-- `Post is awaiting moderator approval`, `Waiting for approval`, or equivalent pending-review UI is an automatic cleanup command, not a decision point. The worker that observes it immediately deletes/withdraws the own post, confirms cleanup once, retires only that subreddit, and continues. Never ask the user, wait for approval, pause another lane, or preserve the post for later review.
-- Lane isolation is strict. A candidate, subreddit, route, tab, or lane failure affects only that exact scope. It never pauses, slows, deletes, or rewrites sibling work or sibling Heartbeats. Even the same browser error observed in several lanes is not account-wide evidence without an explicit Reddit account-level state.
-- Recoverable Chrome/control/network/client-block/route failures self-retry inside the affected lane. Use bounded attempts per wake, keep its recurring Heartbeat active, and re-probe on a later wake until recovery or mission deadline. Do not request confirmation for retryable technical failures; other lanes continue normally.
-- A mission Heartbeat is a recovery carrier, not a success-only timer. Candidate, subreddit, page, route, tab, Chrome, network, client-block, uncertain-mutation, lane, proof, or account-challenge failures never by themselves pause, delete, or deactivate a lane or supervisor Heartbeat. Keep repeat-on continuation active for later re-probes; withhold only the exact impossible or uncertain action.
-- Heartbeat removal is allowlisted: explicit user stop, `operation_stop_at`, verified lane/mission terminal completion, or a verified timer replacement. For a missing, stopped, malformed, duplicate, or misbound timer, update in place when possible; otherwise create and verify the corrected replacement before removing the old item. Never leave a continuation gap and never mutate a sibling lane's timer because another lane failed.
-- Progress-first fallback is mandatory: retry the exact read-only step once, reclaim a clean lane tab/native route, retarget another candidate/community, continue other safe work in the same lane, then defer only the exact unresolved step to the next Heartbeat. Exhausting one candidate pool or one wake is a checkpoint, not a blocker or terminal result.
-- Hard user-repair states are allowlisted and current-only: credentials are required; the expected account remains logged out/wrong after recovery; a CAPTCHA/challenge requires manual completion; Reddit explicitly locks/suspends the account or requires a user acknowledgement; or the only permitted Chrome control remains unavailable across three consecutive recovery wakes. Everything else self-recovers, retargets, or withholds only the exact action while the mission continues.
-- Main and worker deadlines use actual local time plus UTC. Read back the persisted next-run time when the runtime exposes it; absence of that field is not a blocker. Never schedule at or after `operation_stop_at` and never silently extend a deadline.
-- Goal Mode is not an operations scheduler. Do not keep an active turn alive while waiting for a future slot: delays over `5-10 min` use the lane's verified logical heartbeat timer, and the current turn ends after reporting that handoff.
-- A heartbeat is continuation-only. Never create it as the first operational outcome after a user command, and never use its future wakeup to defer the first requested Chrome micro-slot.
-- Heartbeat capability and heartbeat timing observability are separate. Successful create/update with an automation ID/card proves capability; missing `next_run_at` or hidden display time means `created_unreadable`, not failure. Continue current Reddit work, never ask the user to repair an unexposed field, and validate timing when the heartbeat actually fires.
-- The user's latest explicit duration, intensity, operation style/voice modifier, count, language, target community, and lane override defaults, tier suggestions, recovery recommendations, and older mission fields. Do not convert a warning into a permission gate or ask the user to select a safer preset after they already gave a concrete command. Counts remain candidate-, live-rule-, and current-affordance-gated.
-- Main posts require same-day rules, eligibility, flair, frequency, and moderation-state checks. Ordinary comments require target-context and obvious-risk checks.
-- Every verified comment/reply appends its measured character count, word count, sentence form, and length tier. Before drafting the next one, consult the latest `10` comment/reply entries and choose a context-appropriate length instead of defaulting to a repeated two-sentence shape.
-- Pool layers are gates: `B/B+` may enter action discovery when row rules fit; `A` is research-first; `A0/No-go` are read-only.
-- Never invent identity, experience, expertise, metrics, product use, testing, or affiliation. Votes must follow a qualified read and a specific quality reason; never force a vote to satisfy cadence, coordinate votes, spam, harass, doxx, or bypass subreddit rules.
-- For voting, one unique visible/enabled control plus a one-time click call that returns without exception is final `vote_accepted` evidence. Count it immediately. Never inspect selected state, score change, reload/reopen persistence, profile history, or another surface; never ask the user to confirm and never click again because state is hidden or ambiguous.
-
-## Recovery And User Abstraction
-
-Automatically repair stale Chrome control, lane-tab recovery, missing first-round evidence, scheduler encoding/readback, and worker prompt drift. On Chrome control/navigation/loading failure, load `chrome-network-recovery.md`, classify the exact returned code and scope, infer an evidence-based `可能原因`, and run bounded recovery before declaring a blocker. Transient recovery stays within the three-line report; persistent failure returns the code, possible cause, attempts, and user repair through `Reddit 主控台`. Keep task IDs, model fallback, tab IDs, UTC math, automation IDs, retries, scores, and technical logs internal.
-
-Ask the user only in `Reddit 主控台` for an allowlisted hard user-repair state or when the user explicitly required one exact unsafe/prohibited target and no substitute is authorized. A visible timed rate limit is automatic: preserve the original mission and Heartbeats, continue permitted read-only/independent work, re-probe at the displayed expiry or later wake, and resume without asking. Workers never ask the user directly; ordinary recovery and safer retargeting stay internal.
-
-## Compact Report
-
-Every ordinary worker result, including every heartbeat wake, uses exactly three Chinese lines. Keep links and no-action reasons inside the first line. Decision-requiring risks use the separate risk callback schema.
+Ordinary worker output uses three concise Chinese lines:
 
 ```text
-本轮完成：<动作、数量、r/subreddit 和 permalink；无动作则写明已检查什么及原因>
-下一轮心跳：<YYYY-MM-DD HH:mm:ss 时区（UTC 时间）；结束则写“无，任务已结束”>
-下轮计划：<下一轮准备完成的具体动作和目标数量；结束则写“无”>
+本轮完成：<动作/链接，或具体无动作/恢复结果>。
+下轮时间：<经验证的当地时间；终止则写“无”>。
+下轮计划：<该 lane 下一项工作；风险仅写该 lane 当前真实风险>。
 ```
 
-The heartbeat time must come from the timer's intended/read-back schedule, not a vague interval or an invented value. Do not expose intermediate worker reports or technical implementation details unless the user asks.
+The launcher returns only setup/dispatch status and the created lane titles. It never aggregates later worker results.

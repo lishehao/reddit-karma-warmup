@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Reddit Bootstrap-to-coordinator role contract."""
+"""Validate one-time launcher and autonomous lane ownership."""
 
 from pathlib import Path
 import sys
@@ -22,49 +22,41 @@ def forbid(path: Path, needles: list[str]) -> list[str]:
 def main() -> int:
     checks = {
         ROOT / "SKILL.md": [
-            "B0_BOOTSTRAP_NAME",
-            "REDDIT_BOOTSTRAP",
+            "REDDIT_LAUNCHER",
             "Reddit 启动台",
-            "REDDIT_COORDINATOR",
-            "ACCOUNT_BOOTSTRAP",
-            "Reddit 主控台",
-            "same task ID",
-            "direct-mission fast path",
-            "rename_unavailable",
-            "Never create a second task to become the main console",
+            "There is no persistent main coordinator",
+            "heartbeat_owner=self",
+            "launcher_callback=none",
+            "The user speaks directly to the relevant lane task after dispatch",
+            "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
         ],
-        ROOT / "references" / "runtime-and-setup.md": [
-            "The first available UI action",
-            "before downloading",
-            "remain Bootstrap",
-            "transition this same task in place",
-            "direct-mission fast path",
-            "Naming is presentation state, not a dependency or blocker",
-            "Do not create a second installer task or a second future coordinator",
-        ],
-        ROOT / "references" / "orchestration-core.md": [
-            "setup command immediately names the current task `Reddit 启动台`",
-            "Never create a second main task for the role transition",
-        ],
-        ROOT / "references" / "coordinator-playbook.md": [
-            "completed `B2_PROMOTE`",
-            "It never creates or replaces itself",
-            "do not create workers or mission Heartbeats",
+        ROOT / "references" / "launcher-playbook.md": [
+            "then becomes idle",
+            "It is not a coordinator",
+            "The launcher never creates timers for workers",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
-            "never create a second main/coordinator task",
-            "Worker discovery, task creation, and replacement rules below apply only to lane workers",
+            "not ongoing supervision",
+            "Workers never register with, callback, or send completion/risk events to the launcher",
+        ],
+        ROOT / "references" / "scheduler-and-heartbeats.md": [
+            "The worker is the only scheduler for its lane",
+            "There is no launcher/coordinator supervisor Heartbeat",
+            "targetThreadId=self_task_id",
+        ],
+        ROOT / "references" / "risk-escalation.md": [
+            "There is no callback or central risk surface",
+            "Never send this to `Reddit 启动台`",
         ],
     }
 
     if README.exists():
         checks[README] = [
-            "请先将当前任务重命名为“Reddit 启动台”",
-            "第一个可用的界面动作",
-            "早于下载、依赖检查、预检或方案解释",
-            "不得另建 installer 或第二个未来主控台",
-            "在同一个任务内切换为 `REDDIT_COORDINATOR`",
-            "立即把当前任务命名为 `Reddit 主控台` 并在同一轮开始执行",
+            "一次性启动台 + 相互独立的执行台",
+            "也不晋升为 `Reddit 主控台`",
+            "heartbeat_owner=self",
+            "启动台进入 idle",
+            "不读取、不 callback、不暂停、不修改其他执行台",
         ]
 
     errors: list[str] = []
@@ -74,32 +66,46 @@ def main() -> int:
             continue
         errors.extend(require(path, needles))
 
-    if README.exists():
-        errors.extend(
-            forbid(
-                README,
-                [
-                    "任一工作线没有 proof，就不能声称整项任务已启动",
-                    "用户回复 setup 后先完成预检，再重命名",
-                ],
-            )
-        )
+    obsolete = [
+        ROOT / "references" / "coordinator-playbook.md",
+        ROOT / "references" / "startup-health-check.md",
+        ROOT / "references" / "operations-audit.md",
+    ]
+    for path in obsolete:
+        if path.exists():
+            errors.append(f"obsolete file still present: {path.name}")
+
+    forbidden = {
+        ROOT / "references" / "scheduler-and-heartbeats.md": [
+            "The coordinator is the only scheduler",
+            "supervisor_heartbeat_id",
+            "Coordinator Creation Flow",
+        ],
+        ROOT / "references" / "thread-supervision-runtime.md": [
+            "recurring supervisor",
+            "callback target",
+        ],
+    }
+    for path, needles in forbidden.items():
+        errors.extend(forbid(path, needles))
 
     if errors:
-        print("ROLE_TRANSITION_CONTRACT=FAIL")
+        print("AUTONOMOUS_LANE_CONTRACT=FAIL")
         for error in errors:
             print(f"- {error}")
         return 1
 
     scenarios = {
-        "setup_command": "RENAME_BOOTSTRAP_FIRST",
-        "hard_repair": "REMAIN_BOOTSTRAP",
-        "healthy_handoff": "SAME_TASK_PROMOTE_RENAME_MAIN",
-        "direct_mission": "FAST_PATH_MAIN_AND_EXECUTE_NOW",
-        "rename_unavailable": "CONTINUE_AND_RETRY_PRESENTATION",
-        "duplicate_main": "FORBIDDEN",
+        "setup_command": "RENAME_LAUNCHER_FIRST",
+        "launcher_dispatch": "DELIVER_ONCE_THEN_IDLE",
+        "worker_first_slot": "EXECUTE_NOW",
+        "worker_continuation": "SELF_OWNED_HEARTBEAT",
+        "worker_risk": "HANDLE_OR_ASK_USER_LOCALLY",
+        "launcher_callback": "FORBIDDEN",
+        "coordinator_supervisor": "ABSENT",
+        "sibling_failure": "NO_INTERFERENCE",
     }
-    print("ROLE_TRANSITION_CONTRACT=PASS")
+    print("AUTONOMOUS_LANE_CONTRACT=PASS")
     for scenario, result in scenarios.items():
         print(f"{scenario}={result}")
     return 0

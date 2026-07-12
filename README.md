@@ -1,13 +1,13 @@
 # Reddit Karma Warmup
 
-通过用户已登录的 Chrome 会话执行授权的 Reddit 社区运营。架构是“一次性启动台 + 相互独立的执行台”，没有长期主控台。
+通过用户已登录的 Chrome 会话执行授权的 Reddit 社区运营。架构是“可重复使用的无状态启动台 + 相互独立的执行台”，没有长期主控台。
 
 ## 直接安装
 
 把下面一句发送给普通 Codex 任务：
 
 ```text
-请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检；健康后询问我初始运营范围，按我的回答创建独立执行台并完成一次性任务分配，然后启动台进入 idle。不要进入目标模式。
+请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检。此后把当前任务作为可重复使用的无状态启动台：每次我发运营指令，都创建全新的独立执行台并单向投递，然后回到 idle；执行台不返回启动台。不要进入目标模式。
 ```
 
 ## Codex 安装协议
@@ -20,11 +20,13 @@
 
 - 安装或升级 Skill；
 - 只读检查 Chrome、Reddit 登录、独立任务、Heartbeat 和真实时间；
-- 解析用户第一次运营范围；
-- 为本次 run 创建全新的对应执行台并投递初始任务；
+- 解析用户当前这一次运营指令；
+- 为每条新指令生成新 run，并创建全新的对应执行台；
 - 完成投递后进入 idle。
 
 启动台不操作 Reddit、不创建或管理运营 Heartbeat、不读取执行台后续状态、不接收 callback、不汇总风险或结果，也不晋升为 `Reddit 主控台`。
+
+用户以后可以随时回到同一个 `Reddit 启动台` 再发一条运营指令。启动台会再次创建全新执行任务并投递；执行线程始终不会返回启动台。用户也可以直接在某个执行台继续它当前的 run。
 
 ### 1. 下载与校验
 
@@ -67,9 +69,9 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 隐藏 `next_run_at` 只记录 `created_unreadable`，不阻断第一轮。若 Chrome 或登录需要用户修复，只返回一个具体动作；用户回复“继续”后仅重查缺失项。
 
-### 4. 首次分配
+### 4. 可重复的一键分配
 
-健康后在 `Reddit 启动台` 询问：
+首次健康后在 `Reddit 启动台` 询问；以后用户可以直接再次下达同类指令：
 
 ```text
 状态健康。当前账号：u/name。
@@ -77,7 +79,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 你希望怎么运营？可以指定评论、发帖、跟进、自然浏览、时长、强度和风格。暂时没想法就回复“开始”，我会创建独立的 Reddit 评论台、发帖台、跟进台和浏览台；它们之后各自运行，你直接去对应任务继续沟通。
 ```
 
-用户回复“开始”时，默认标准强度、混合探索、3 小时，并为本次 run 创建全新的：
+每次用户回复“开始”时，默认标准强度、混合探索、3 小时，并为该次新 run 创建全新的：
 
 - `Reddit 评论台`
 - `Reddit 发帖台`
@@ -85,7 +87,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - `Reddit 浏览台`
 - `Reddit 主页台`，仅在首次主页基础未完成或用户明确要求时
 
-启动台为每个任务发送完整 lane mission，设置 `first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`，验证消息投递成功后进入 idle。它不等待执行结果。
+启动台为每个新任务发送完整 lane mission，设置 `first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`，验证消息投递成功后进入 idle。它不等待执行结果。下一条用户命令会生成另一个新 run，不继承前一轮状态。
 
 启动台禁止搜索、读取、复用、反归档、唤醒、改名或向历史执行任务重新发 mission。即使旧任务同名、仍可读或仍在运行，也必须忽略。每个新 run 只认本次 `create_thread` 返回的新 Task ID；fresh task 创建失败时只报告本次失败，不得退回旧任务。
 

@@ -1,17 +1,17 @@
 ---
 name: reddit-karma-warmup
-description: Run authorized Reddit community operations through the user's logged-in Chrome session. Use for one-time setup and lane dispatch, proactive comments, native posts, follow-up replies, natural browsing and voting, profile/community presence, timed autonomous lane operation, or lane-local status and recovery.
+description: Run authorized Reddit community operations through the user's logged-in Chrome session. Use for reusable stateless fresh-task dispatch, setup, proactive comments, native posts, follow-up replies, natural browsing and voting, profile/community presence, timed autonomous lane operation, or lane-local status and recovery.
 ---
 
 # Reddit Karma Warmup
 
-Use a one-time launcher plus independent lane tasks. There is no persistent main coordinator.
+Use a reusable stateless launcher plus independent lane tasks. There is no persistent main coordinator.
 
 ## Roles
 
 | Role | Stable title | Owns | Never does |
 |-|-|-|-|
-| `REDDIT_LAUNCHER` | `Reddit 启动台` | install/upgrade, read-only preflight, parse the first request, create fresh requested lane tasks, deliver each initial mission, then idle | Reddit actions, old-task discovery/reuse, ongoing supervision, worker callbacks, Heartbeats, cross-lane status |
+| `REDDIT_LAUNCHER` | `Reddit 启动台` | install/upgrade, read-only preflight, accept any later user dispatch command, create fresh requested lane tasks, deliver each new mission, then idle | Reddit actions, old-task discovery/reuse, ongoing supervision, worker callbacks, Heartbeats, cross-lane status |
 | `COMMENTS_WORKER` | `Reddit 评论台` | proactive comment discovery, drafting, submission, verification, its own timer/recovery/report | posts, follow-up, voting, sibling inspection |
 | `POSTS_WORKER` | `Reddit 发帖台` | subreddit/rules preflight, native posts, verification, its own timer/recovery/report | comments, follow-up, voting, sibling inspection |
 | `FOLLOWUP_WORKER` | `Reddit 跟进台` | Notifications and replies to own activity, its own timer/recovery/report | proactive discovery, new posts, voting, sibling inspection |
@@ -25,7 +25,7 @@ Every task has one objective. Tasks do not callback, inspect, wait for, pause, a
 | Request | Action |
 |-|-|
 | install/setup/upgrade/explain | Immediately rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md` and `references/launcher-playbook.md`. |
-| generic `开始/运营` in the launcher | Load `references/default-operations-sop.md`, create fresh outward lane tasks, send each its mission, verify delivery, then idle. |
+| any new `开始/运营` or named publishing command in the launcher | Load `references/default-operations-sop.md`, create fresh requested lane tasks, send each its new mission, verify delivery, then idle. This route can be used repeatedly. |
 | one named lane in an ordinary task | Rename the current task to that lane title when possible, load its playbook plus the shared runtime references, execute now, and own later continuation locally. |
 | later instruction inside a lane task | Replace that lane's conflicting old mission fields, execute the first changed slot now, and update only that task's Heartbeat. |
 | lane status/pause/resume/stop | Read or change only the current lane task and its own Heartbeat. |
@@ -35,7 +35,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 ## Reference Ownership
 
 - `runtime-and-setup.md`: installation, preflight, immediate launcher naming, and launcher exit.
-- `launcher-playbook.md`: one-time lane allocation and delivery proof.
+- `launcher-playbook.md`: reusable stateless fresh allocation and delivery proof.
 - `thread-supervision-runtime.md`: create one fresh independent task per requested lane; never search or reuse old tasks.
 - `default-operations-sop.md`: normalize the first mission and lane-specific later mission.
 - `orchestration-core.md`: one lane's executable slot, dedicated Chrome tab, action verification, and local state.
@@ -55,9 +55,11 @@ When two references conflict, the owner above wins.
 | `L0_NAME` | First available presentation action: rename current task `Reddit 启动台`. | title applied or non-blocking `rename_unavailable` |
 | `L1_PREFLIGHT` | Install/upgrade and read-only check Chrome control, Reddit account, task creation, Heartbeat support, local time and UTC. | healthy runtime or one concrete user repair |
 | `L2_DISPATCH` | Resolve requested lanes; call task creation once per lane without listing/searching history; capture only the newly returned IDs; rename and unpin them; send each complete mission with `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`. | one newly created exact task ID and successful mission delivery per requested lane |
-| `L3_IDLE` | Return the lane titles the user should use next. | launcher performs no further reads, callbacks, scheduling, or aggregation |
+| `L3_IDLE` | Return the new lane titles. Wait only for another direct user command in this same launcher. | no background reads/callbacks/scheduling/aggregation; a later user dispatch returns to `L2_DISPATCH` with a new run ID |
 
 If setup needs login, CAPTCHA, Chrome, or another real user repair, remain `Reddit 启动台`. When healthy, dispatch; do not rename to `Reddit 主控台` and do not create one.
+
+After dispatch, the user may either continue the current run inside its execution task or return to `Reddit 启动台` and issue another command. Every launcher command creates another fresh run; no worker ever returns to the launcher.
 
 ## Worker Lifecycle
 

@@ -6,14 +6,14 @@ Load only for install, upgrade, dependency preflight, or initial lane allocation
 
 The first available presentation action after a setup/install command is to rename the current task `Reddit 启动台`. Do this before download, preflight, or explanation. Rename failure is presentation-only and never blocks setup.
 
-`Reddit 启动台` owns installation, read-only runtime checks, and one-time lane dispatch. It never becomes `Reddit 主控台`, never owns recurring Heartbeats, and never supervises or receives callbacks from workers.
+`Reddit 启动台` owns installation, read-only runtime checks, and repeated user-triggered fresh lane dispatch. It never becomes `Reddit 主控台`, never owns recurring Heartbeats, and never supervises or receives callbacks from workers. Between user commands it remains stateless and idle.
 
 ## Runtime Requirements
 
 - Codex Skill file access.
 - Chrome Browser control using the user's existing Chrome login state. Do not substitute Computer Use, in-app Browser, Playwright, or another browser for Reddit mutations.
 - The user is already logged in to the target Reddit account. Never handle credentials.
-- Persistent task create/read/send support for first dispatch.
+- Persistent task create/send support for every fresh dispatch.
 - Automation/Heartbeat support for multi-round work. Each lane worker creates and owns its own timer after its immediate first slot.
 - Local time, timezone, UTC offset, and UTC readback.
 

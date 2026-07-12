@@ -1,6 +1,6 @@
 # Fresh-Only Task Allocation
 
-Load only in `Reddit 启动台` while allocating the first requested lanes. This is one-way fresh task creation, not discovery, reuse, or ongoing supervision.
+Load only in `Reddit 启动台` for each direct user dispatch command. This is repeatable one-way fresh task creation, not discovery, reuse, or ongoing supervision.
 
 ## Canonical Titles
 
@@ -16,7 +16,7 @@ Titles are presentation labels only. Duplicate historical titles are expected an
 
 ## Fresh Creation Contract
 
-For every new Bootstrap/run:
+For every new launcher command/run:
 
 1. Resolve enabled lanes without listing old tasks.
 2. Call task creation exactly once for each enabled lane.
@@ -40,3 +40,5 @@ If fresh task creation fails, return `fresh_task_creation_failed` for that lane.
 - No cross-task pause, amendment, timer change, archive, or status inspection.
 
 The launcher never creates timers for workers and never reads the new workers again after delivery. Workers never register with, callback, or send completion/risk events to the launcher.
+
+After delivery the same launcher may accept another user command and repeat this section with a new run ID. It carries no worker state across commands.

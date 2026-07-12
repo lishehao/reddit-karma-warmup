@@ -1,10 +1,10 @@
-# One-Time Launcher Playbook
+# Reusable Stateless Launcher
 
-Load only in `Reddit 启动台`. The launcher installs, checks readiness, allocates requested lane tasks once, and then becomes idle. It is not a coordinator.
+Load only in `Reddit 启动台`. The launcher installs/checks readiness once, then may accept repeated direct user dispatch commands. For every command it creates fresh requested lane tasks, delivers the new missions, and returns to idle. It is not a coordinator.
 
 ## Single Objective
 
-Create one fresh independent lane task for every requested lane and deliver each complete mission successfully.
+For the current user command, create one fresh independent lane task for every requested lane and deliver each complete mission successfully.
 
 Out of scope:
 
@@ -16,13 +16,13 @@ Out of scope:
 
 ## Dispatch
 
-1. Normalize the first request through `default-operations-sop.md`.
+1. Normalize the current direct user request through `default-operations-sop.md` and generate a new run ID.
 2. Broad `开始/运营` enables comments, posts, follow-up, and browsing. Add presence only when the profile baseline is incomplete or explicitly requested. A named lane enables only that lane.
 3. Use `thread-supervision-runtime.md` to create one new persistent task per enabled lane. Do not list/search/read/reuse/unarchive/revive historical tasks.
 4. Capture only the exact IDs returned by this run's task-creation calls. Rename each new task to its canonical lane title and keep it unpinned.
 5. Send one complete handoff containing lane, objective, exclusions, account, duration/count, intensity, style, language, target pool, stop time, first due=`now`, required references, and `heartbeat_owner=self`.
 6. Verify only that the exact task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
-7. Return a compact mapping of lane titles, then enter `L3_IDLE`.
+7. Return a compact mapping of the newly created lane titles, then enter `L3_IDLE`.
 
 The launcher never creates timers for workers. Each worker creates and owns its self-targeted Heartbeat after executing its immediate first slot.
 
@@ -41,4 +41,4 @@ launcher_callback=none
 sibling_visibility=none
 ```
 
-The launcher task stays idle after delivery. Future user instructions belong in the relevant lane task.
+The launcher task stays stateless and idle after delivery. A worker never sends anything back. The user may continue that run in its lane task or send another direct command to this launcher; the next command repeats fresh creation with a new run ID and still does not inspect prior tasks.

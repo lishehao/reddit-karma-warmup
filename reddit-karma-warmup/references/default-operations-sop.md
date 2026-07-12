@@ -1,6 +1,6 @@
 # Operation Request Router
 
-Use in the one-time launcher to split a broad first request, and in a lane task to normalize only that lane's later request.
+Use in the reusable stateless launcher to split each direct dispatch request, and in a lane task to normalize only that lane's later request.
 
 ## Defaults
 
@@ -20,9 +20,9 @@ Planning targets are quality-gated:
 | standard | `4-6/hour` | one candidate/rules sweep every `2-3h` | `30-45m` | `20-30` qualified reads; vote target/cap `2/4` |
 | high | `6-10/hour` | one candidate/rules sweep every `60-90m` | `20-30m` | `30-45` qualified reads; vote target/cap `4/6` |
 
-## Launcher Split
+## Launcher Dispatch
 
-Build one independent mission per enabled lane:
+For every launcher command, generate a new run ID and build one independent mission per enabled lane:
 
 ```text
 mission_id

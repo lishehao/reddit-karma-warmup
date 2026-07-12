@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate one-time launcher and autonomous lane ownership."""
+"""Validate reusable stateless launcher and autonomous lane ownership."""
 
 from pathlib import Path
 import sys
@@ -24,18 +24,22 @@ def main() -> int:
         ROOT / "SKILL.md": [
             "REDDIT_LAUNCHER",
             "Reddit 启动台",
+            "reusable stateless launcher",
             "There is no persistent main coordinator",
             "heartbeat_owner=self",
             "launcher_callback=none",
             "The user speaks directly to the relevant lane task after dispatch",
             "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
             "never search or reuse old tasks",
+            "Every launcher command creates another fresh run",
         ],
         ROOT / "references" / "launcher-playbook.md": [
-            "then becomes idle",
+            "returns to idle",
             "It is not a coordinator",
             "The launcher never creates timers for workers",
             "Do not list/search/read/reuse/unarchive/revive historical tasks",
+            "repeated direct user dispatch commands",
+            "next command repeats fresh creation with a new run ID",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
             "not discovery, reuse, or ongoing supervision",
@@ -56,13 +60,15 @@ def main() -> int:
 
     if README.exists():
         checks[README] = [
-            "一次性启动台 + 相互独立的执行台",
+            "可重复使用的无状态启动台 + 相互独立的执行台",
             "也不晋升为 `Reddit 主控台`",
             "heartbeat_owner=self",
-            "启动台进入 idle",
+            "然后回到 idle",
             "不读取、不 callback、不暂停、不修改其他执行台",
             "必须忽略",
             "不得退回旧任务",
+            "执行线程始终不会返回启动台",
+            "每次用户回复“开始”",
         ]
 
     errors: list[str] = []
@@ -95,6 +101,8 @@ def main() -> int:
         ],
         ROOT / "references" / "launcher-playbook.md": [
             "Create or reuse the exact independent lane tasks",
+            "# One-Time Launcher Playbook",
+            "Future user instructions belong in the relevant lane task",
         ],
     }
     for path, needles in forbidden.items():
@@ -119,6 +127,9 @@ def main() -> int:
         "old_archived_task": "IGNORE_CREATE_FRESH",
         "old_live_run": "IGNORE_CREATE_FRESH",
         "fresh_create_failure": "REPORT_NO_OLD_TASK_FALLBACK",
+        "same_launcher_second_command": "NEW_RUN_FRESH_EXECUTORS",
+        "launcher_idle_reuse": "USER_TRIGGER_ONLY",
+        "worker_return_to_launcher": "FORBIDDEN",
     }
     print("AUTONOMOUS_LANE_CONTRACT=PASS")
     for scenario, result in scenarios.items():

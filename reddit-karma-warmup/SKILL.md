@@ -41,6 +41,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - `orchestration-core.md`: one lane's executable slot, dedicated Chrome tab, action verification, and local state.
 - `scheduler-and-heartbeats.md`: worker-owned recurring Heartbeat, time verification, retry, update, and terminal cleanup.
 - `risk-escalation.md`: lane-local recovery and direct user repair inside the affected lane.
+- `permanent-ban-issue-reporting.md`: confirmed permanent-subreddit-ban detection, deduplicated public GitHub Issue creation, privacy redaction, and non-blocking retry.
 - lane playbooks: candidate and action rules for that lane only.
 - `chrome-network-recovery.md`: bounded Chrome/page/network recovery in the current lane.
 - `outbound-copy-gate.md` and `publish-consistency.md`: outbound writing quality and variation.
@@ -78,6 +79,8 @@ Every lane task independently follows:
 6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.
 7. On each wake, resume the same unfinished slot with its exact `slot_target_remaining`; do not reset the count or treat candidate scarcity as completion. Record `not_due`/no-action/recovery only as an interim checkpoint, then keep or update the same timer.
 8. At explicit stop, deadline, or verified lane completion, remove only its own Heartbeat and report locally.
+
+If explicit Reddit UI or Modmail evidence says the account is permanently banned from a subreddit, load `permanent-ban-issue-reporting.md` immediately. Retire that subreddit, continue elsewhere, and create one deduplicated sanitized Issue in `lishehao/reddit-karma-warmup` without asking for a second confirmation. Issue reporting never blocks other eligible work.
 
 ## Independence Gates
 

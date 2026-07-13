@@ -18,7 +18,7 @@ Consistency means stable identity and facts, not repetitive wording. Never contr
 
 ## Eligible Community Order
 
-Use `loci-subreddit-pool-v1.md` as the default routing source when the user gives no exclusive pool.
+Use this precedence for every destination: `account-community-denylist.md` -> exact `community-action-routing-overrides.md` row -> historical `loci-subreddit-pool-v1.md` row -> current live rules/account state. A denylist match is terminal. An action override splits comment, main-post, and product-mention permission; never collapse them into one community tier.
 
 The archive is intentionally large. Read it progressively:
 
@@ -28,13 +28,13 @@ The archive is intentionally large. Read it progressively:
 
 Each row's `主要用户`, `痛点/反馈`, `版规/边界`, `可发内容`, `账号适配/备注`, and `近期信号/更新` are the routing evidence. Do not infer publish permission from pain relevance alone.
 
-1. Start with `B` or `B+` rows whose `版规/边界`, `可发内容`, and `账号适配/备注` support the intended action.
+1. Exclude permanent denylist entries, then apply any exact action override before selecting from `B` or `B+` rows whose `版规/边界`, `可发内容`, and `账号适配/备注` support the intended action.
 2. Prefer rows with ordinary native participation, no special build/link requirement, and low current moderation friction.
 3. Deprioritize rows requiring special flair/megathread, minimum karma/age, strict on-topic proof, official build links, or narrow self-promo exceptions unless the action exactly fits.
 4. Treat `A` as research-first. Use it only when the interaction is plainly natural, non-product, and no lower-restriction alternative serves the same purpose.
 5. Exclude `A0` and `No-go` from comments, posts, votes, joins, flair, and warm-up.
 
-The bundled row is historical evidence synced from the Feishu archive. Live Reddit state wins when it conflicts with the reference.
+The bundled row is historical evidence synced from the Feishu archive. Live Reddit state always tightens permission when stricter. A more permissive survivor or blank rules page does not loosen an override; loosening requires explicit current rule text plus a user-targeted decision.
 
 Classify the candidate before discovery:
 

@@ -95,6 +95,8 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 社区路由 Reference `loci-subreddit-pool-v1.md` 同步自飞书《Loci Reddit Subreddit 档案总表》，包含 144 个社区的主要用户、常见痛点、版规边界、可发内容、账号适配和近期信号。账号级永久禁入项单独保存在 `account-community-denylist.md`，必须在打开候选社区前先排除。社区总表按 subreddit 行或关键词候选集渐进读取，不应整表无条件加载；其中规则是历史证据，发帖前仍以 Reddit 当天规则和提交页为准。
 
+最新复核结论保存在 `community-action-routing-overrides.md`。它不再用一个等级同时代表全部动作，而是分别判断普通评论、主帖和产品提及；例如技术评论可用不代表 Loci 主帖可发。路由顺序是永久禁入表、动作级覆盖表、历史社区总表、当天版规与账号状态。
+
 ```text
 已启动：<本次创建的任务>。
 

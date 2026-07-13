@@ -11,6 +11,7 @@ There is no single American voice. Target broadly recognizable US-leaning casual
 3. Prefer `claim -> one reason/detail`. Add a second beat only when it changes the conclusion.
 4. Use at most one uncertainty marker unless uncertainty is the substance.
 5. End when the point lands. No conclusion sentence, offer to help, or customer-service close.
+6. Most comments should visibly compress like Reddit writing: a fragment, contraction, short-form connective, subreddit term, or locally observed abbreviation. Plain formal prose needs a local-style reason.
 
 | Weak/AI-shaped | Assertive Reddit shape |
 |-|-|
@@ -106,10 +107,11 @@ Before entering text, compare the micro, one-liner, and two-beat drafts:
 | specific | Does it reference the recorded `context_detail`? |
 | additive | Does it avoid `duplicate_to_avoid`? |
 | native | Does its syntax/slang density resemble `local_voice_sample`? |
+| marker | Does it use one locally supported native marker, or record why `plain_local_voice` is more natural here? |
 | compressed | Can any setup, hedge, adjective, or closing sentence be deleted? |
 | truthful | Is every fact and identity signal supportable? |
 
-Choose the shortest draft that passes all six. If none passes, skip or return to context reading.
+Choose the shortest draft that passes all seven. If none passes, skip or return to context reading.
 
 ## Refresh Rule
 

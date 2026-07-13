@@ -41,8 +41,6 @@ Never send this to `Reddit 分发台` and never inspect sibling state.
 
 If an own post is awaiting moderator approval, delete/withdraw it immediately without confirmation. If a post/comment is removed or a live rule prohibits the action, retire that subreddit for this account's relevant lane, record the permalink/reason, and retarget. Inform the user once in this task; do not stop the lane or other tasks.
 
-An explicit permanent subreddit ban is a separate event. Load `permanent-ban-issue-reporting.md`, retire the community immediately, and attempt the deduplicated sanitized GitHub Issue without another confirmation. The report attempt and any retry stay lane-local and never pause other eligible work.
-
 Historical removals, rate limits, warnings, or locks are context only. They do not prove a current blocker.
 
 ## Lane Isolation

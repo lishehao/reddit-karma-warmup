@@ -22,6 +22,8 @@ Use this precedence for every destination: `organization-community-denylist.md` 
 
 The expansion report `community-expansion-pending-review-2026-07-13.md` sits outside that permission chain. It may seed a future candidate name, but it cannot bypass or create an action override. Treat every expansion-only name as `closed_pending_live_review` until the current task independently verifies the full required live surface.
 
+The newer public audit `community-action-expansion-public-audit-2026-07-13.md` also sits outside the permission chain. Public rules can prioritize which destination to preflight first, but no logged-in Chrome verification means no comment, post, vote, Join, or product permission is created.
+
 The archive is intentionally large. Read it progressively:
 
 - known subreddit: use an anchored case-insensitive search for the exact row, such as `rg -ni '^\| r/Unity3D \|' loci-subreddit-pool-v1.md`, then read only that row plus the field header

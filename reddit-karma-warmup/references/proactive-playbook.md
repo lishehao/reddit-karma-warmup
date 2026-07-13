@@ -89,6 +89,8 @@ A community explicitly downgraded by the latest review is `research-only`: no pr
 
 `community-expansion-pending-review-2026-07-13.md` is a discovery backlog, not an eligible pool. Its 18 shortlist rows mean “re-run full live preflight after suspension,” and its 29 added names mean `pending_manual_review`. Neither group may enter comment/post scoring from the reference alone. Missing live rules, account status, local/community Karma, previous activity, approval, New/Hot, or submit evidence keeps the exact destination closed.
 
+`community-action-expansion-public-audit-2026-07-13.md` adds 30 action-level candidates from public evidence. Its 14 rule-confirmed rows improve preflight priority only; 3 weaker signals and 13 name-only rows remain lower-confidence. Because the audit used no logged-in Chrome account, every row is still `closed_pending_live_review` and cannot enter comment/post scoring from the reference alone.
+
 - `B`: eligible when the row and live context fit.
 - `B+`: ordinary comments and low-frequency feedback/demo contexts when row rules fit.
 - `A`: research-first; interact only for a clear ordinary non-product reason.

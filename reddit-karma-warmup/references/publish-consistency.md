@@ -65,11 +65,12 @@ Run after opening the candidate and before writing text.
 
 For comments/replies:
 
-1. Confirm pool layer and row restrictions permit interaction.
-2. Read the post, intended parent comment, and enough nearby replies to avoid duplication.
-3. Confirm the target is visible, unlocked, current enough, and not sensitive or hostile.
-4. Compare subreddit, cluster, angle, intended claim, and the last `10` measured comment/reply lengths with `history_ledger`.
-5. Confirm the account can contribute without fake experience, product mention, or unsupported factual claims.
+1. Perform a quick rule glance for this exact action. Re-read the relevant row restriction and either the visible subreddit rule summary or a live rule snapshot captured in this task within the last `60 min`; name the one rule most likely to affect this comment. Entering a new subreddit, a missing/uncertain snapshot, or a changed sidebar requires reopening its current rules once. This is a brief comment check, not the full post preflight.
+2. Read the full post/media, intended parent comment, and enough nearby replies to understand the actual point, local energy, and what has already been said. When available, inspect at least `3` nearby/top replies; when the thread is empty, sample recent native comments from the same subreddit.
+3. Record one `context_detail` that the reply will react to, one `duplicate_to_avoid`, and `2-4` short local voice patterns or Reddit-native expressions observed on the current surface. Do not copy another user's sentence.
+4. Confirm the target is visible, unlocked, current enough, and not sensitive or hostile.
+5. Compare subreddit, cluster, angle, intended claim, and the last `10` measured comment/reply lengths with `history_ledger`.
+6. Confirm the account can contribute without fake experience, product mention, or unsupported factual claims.
 
 For main posts, also verify live home/about/rules, pinned posts, recent survivor patterns, karma/age, flair/title/megathread, link/self-promo rules, submit controls, same-subreddit history, and moderator-approval state.
 
@@ -86,6 +87,7 @@ Run `outbound-copy-gate.md` after Check A.
 - Variation is a quality check, not a random schedule: do not pad, truncate, or cycle tiers merely to make the ledger look different.
 - Main-post length should follow recent native survivor posts and the amount of context the subreddit expects. Do not use one universal post length.
 - Topic, facts, and persona stay consistent even when length and phrasing vary.
+- Across a session, use Reddit-native shorthand, contractions, fragments, and discourse markers frequently when the sampled local style supports them. Never force slang into every reply or copy a fashionable phrase that changes the intended meaning.
 
 ## Double-Check B: Immediately Before Submit
 
@@ -94,7 +96,7 @@ Run after the final draft is entered and before clicking Reply/Post.
 1. Confirm the intended Reddit account, target subreddit/URL, and action type.
 2. Confirm the target is still visible/unlocked and no currently active warning, removal, captcha, or rate limit appeared.
 3. Re-read the final text against the exact parent/post and current subreddit context.
-4. Confirm truthfulness, on-topic fit, no prohibited promotion/link, and no contradiction with `history_ledger`.
+4. Confirm truthfulness, on-topic fit, no prohibited promotion/link, and no contradiction with `history_ledger`; for a comment/reply, verify the final text visibly uses the recorded `context_detail` and does not repeat `duplicate_to_avoid`.
 5. Compute the final draft's `char_count`, `word_count`, `sentence_form`, and `length_tier`; confirm its length, opening, rhythm, subreddit, cluster, and angle are not needlessly repeating recent actions.
 6. Confirm this exact action was not already submitted; after a Chrome reconnect, inspect profile/thread before any retry.
 7. For posts, confirm title, flair, body/link mode, megathread placement, eligibility, and no moderator-approval requirement one final time.
@@ -115,6 +117,7 @@ For every outward action, record:
 
 ```text
 double_check_a | double_check_b | history_comparison | restriction_level
+rule_glance | context_detail | duplicate_to_avoid | local_voice_sample
 char_count | word_count | sentence_form | length_tier | why_this_length
 subreddit/cluster diversity result | verified permalink
 ```

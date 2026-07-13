@@ -125,6 +125,8 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - 在自己的任务里汇报，用户后续直接和该任务沟通；
 - 不读取、不 callback、不暂停、不修改其他执行台。
 
+评论台和跟进台在每条评论前执行短检查：快速确认相关版规，读完整帖子/父评论及附近回复，记录一个具体细节、一个重复观点和当前社区的本地语气样本，再从 micro、one-liner、two-beat 三个内部版本中选择最短且有信息量的版本。评论应经常使用当前社区自然出现的缩写、碎句和 Reddit 口吻，但不得机械堆黑话或复制别人的表达。
+
 同一 Chrome profile 或同一 Reddit 账号不是冲突。某个执行台失败只影响它自己，其他任务继续运行。
 
 ## Requirements

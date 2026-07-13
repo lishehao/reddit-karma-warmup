@@ -16,6 +16,10 @@ Before drafting, decide and record:
 - `avoid_pattern`: what common/generic reply shape to avoid, especially default two-sentence replies
 - `length_mix_state`: the last `10` outward comment/reply measurements from `history_ledger`, including `char_count`, `word_count`, `sentence_form`, and `length_tier`
 - `comment_fun_score`: for comments/replies only, whether the text is actually worth saying instead of just safe
+- `rule_glance`: the one current community rule most relevant to this exact comment/reply
+- `context_detail`: one concrete post/media/parent detail the final text will touch
+- `duplicate_to_avoid`: the already-dominant answer, joke, or praise frame not to repeat
+- `local_voice_sample`: `2-4` short syntax/slang patterns observed in nearby current replies; patterns are evidence, not text to copy
 
 Measurement rules:
 
@@ -52,8 +56,8 @@ Before publishing a comment/reply, score `comment_fun_score`:
 |-|-:|-|
 | Specific visible detail | 0-25 | reacts to a concrete thing in the post/comment, not a generic vibe |
 | Small insight or useful distinction | 0-25 | adds one crisp idea, contrast, question, or nit |
-| Local style fit | 0-20 | matches nearby reply length, slang level, and energy |
-| Brevity/compression | 0-20 | says only what it needs; no setup sentence if unnecessary |
+| Reddit-native local voice | 0-25 | matches nearby length, slang density, contractions, fragments, and energy without imitation |
+| Brevity/compression | 0-15 | says only what it needs; no setup sentence if unnecessary |
 | Rhythm variation | 0-10 | differs from the last few comments in length/opening/syntax |
 
 Decision:
@@ -72,6 +76,25 @@ Short-first rewrite rules:
 - Compact paragraphs require `comment_fun_score >=85` and an explicit reason: OP asked for feedback, technical advice is useful, or the parent comment needs nuance.
 - Long comments require explicit user request, OP request, or a high-value feedback context; otherwise cut to compact paragraph or shorter.
 
+### Reddit-native voice
+
+Use current nearby replies as the primary language source. Across a session, comments should often contain natural Reddit/internet speech, but each individual reply uses only what fits its meaning and subreddit.
+
+- contractions and compression: `it's`, `that's`, `I'd`, `doesn't`, `can't`, dropped subjects, sentence fragments
+- stance markers: `tbh`, `ngl`, `imo/imho`, `fwiw`, `idk`, `honestly`, `fair`, `yeah`, `nah`
+- conversational texture: `kinda`, `pretty`, `lowkey`, `legit`, `wild`, `solid`, `yep`, `lol/lmao` when the thread actually carries that energy
+- Reddit references: `OP`, `+1`, `this`, `same`, `username checks out` only when literally relevant
+- subreddit-native vocabulary observed in the current thread takes priority over this generic list
+
+Density guidance:
+
+- `micro/fragment`: usually `0-1` marker
+- `one-liner`: usually `1-2` markers or one fragment/contraction pattern
+- `two-beat`: usually `1-3` markers across the whole reply
+- paragraphs: use slang more sparsely so the advice remains readable
+
+Do not stack abbreviations, force `lol/lmao`, imitate AAVE, invent typos, or use stale canned Reddit lines such as `take my upvote`, `this is the way`, or `sir, this is a Wendy's` unless the current thread itself makes the phrase specifically relevant. The target is native compression, not cosplay.
+
 Rules:
 
 - Read the last `10` measured comment/reply entries before choosing a tier. If the last `3` share the same tier or the rolling set is dominated by one sentence form, explicitly reassess whether the next target naturally supports another shape.
@@ -80,6 +103,8 @@ Rules:
 - Do not default to two sentences. Two-beat replies must earn their length.
 - If the only draft is generic praise, filler, a summary of the post, or a safe-sounding two-sentence template, skip or rewrite.
 - If you cannot state the `interesting_hook` in one line before posting, do not post yet.
+- If `rule_glance`, `context_detail`, `duplicate_to_avoid`, or `local_voice_sample` is missing, do not draft or enter text yet.
+- Before entering the draft, produce three internal alternatives: `micro`, `one-liner`, and `two-beat`. Score them for specificity, fun, local voice, and compression; enter only the shortest option that preserves the useful point.
 - Prefer shorter than the model's first instinct unless the thread asks for depth.
 - For long or medium replies, add natural compression and internet phrasing where appropriate; avoid polished essay cadence.
 - After verification, append the measured counts and form to `history_ledger` before discovering the next candidate.

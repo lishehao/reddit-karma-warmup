@@ -124,14 +124,15 @@ The comment target is the slot's primary completion condition. A qualified candi
 
 ## Comment Execution
 
-1. Open and read the post plus enough comments to understand local context.
-2. Score the candidate, compare history, and run Double-Check A.
-3. Load `outbound-copy-gate.md`; read the last `10` measured comment/reply lengths, then choose length from target context, nearby native style, and recent mix.
-4. Prefer one specific observation, distinction, useful question, or precise praise.
-5. Enter the draft and run Double-Check B.
-6. Reselect this lane's dedicated Reddit tab, verify account/target, wait `18-70 sec`, submit, and verify permalink/profile visibility.
-7. Measure the exact published text and append `char_count`, `word_count`, `sentence_form`, `length_tier`, and `why_this_length` to history and follow-up state. After a verified proactive comment, use a local `60-120 sec` pause before the next publish; first follow-up is normally `20-40 min` later.
-8. During a new start, use the selected intensity envelope. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill the target.
+1. Open the exact post and run the quick rule glance required by `publish-consistency.md`; do not reuse a stale or uncertain rule assumption.
+2. Read the full post/media, intended parent, and enough nearby replies to record `context_detail`, `duplicate_to_avoid`, and `local_voice_sample`.
+3. Score the candidate, compare history, and run Double-Check A. Missing rule/context/voice evidence is `Watch`, not permission to draft.
+4. Load `outbound-copy-gate.md`; read the last `10` measured comment/reply lengths, then generate internal micro/one-liner/two-beat alternatives from the same specific hook.
+5. Prefer one specific observation, distinction, useful question, or precise praise. Choose the shortest passing alternative and use context-native Reddit shorthand/fragments where they genuinely fit.
+6. Enter the draft only after the evidence and copy gates pass, then run Double-Check B.
+7. Reselect this lane's dedicated Reddit tab, verify account/target, wait `18-70 sec`, submit, and verify permalink/profile visibility.
+8. Measure the exact published text and append `char_count`, `word_count`, `sentence_form`, `length_tier`, `why_this_length`, and the four pre-draft evidence fields to history and follow-up state. After a verified proactive comment, use a local `60-120 sec` pause before the next publish; first follow-up is normally `20-40 min` later.
+9. During a new start, use the selected intensity envelope. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill the target.
 
 Before drafting, independently score the already qualified-read post or parent through the incidental mode in `browse-vote-playbook.md`. A passing natural vote may be cast once, but there is no vote target and submitting a comment never requires a vote. Comment score never becomes vote score; do not read extra items or delay the comment to hunt for votes.
 

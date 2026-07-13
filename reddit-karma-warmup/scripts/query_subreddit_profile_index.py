@@ -55,7 +55,7 @@ def main() -> int:
     candidates = []
     with INDEX.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
-            if row["launcher_state"] != "candidate":
+            if row["launcher_state"] not in {"candidate", "research_only"}:
                 continue
             visitors = int(row["weekly_visitors"] or 0)
             traffic_state = row["traffic_state"]
@@ -69,6 +69,8 @@ def main() -> int:
             direct = query_tags & topic
             audience_match = query_tags & audience
             need_match = query_tags & needs
+            if not (direct or audience_match or need_match):
+                continue
             score = 5 * len(direct) + 3 * len(audience_match) + 2 * len(need_match)
             score += 3 if row["tier"] == "B" else 2 if row["tier"] == "B+" else 0
             score += 2 if row["comment_route"] == "default" else 1 if row["comment_route"] == "conditional" else 0
@@ -84,6 +86,7 @@ def main() -> int:
                     "tier": row["tier"],
                     "comment_route": row["comment_route"],
                     "post_route": row["post_route"],
+                    "launcher_state": row["launcher_state"],
                     "traffic_state": traffic_state,
                     "weekly_visitors": visitors or None,
                     "next_gate": "live_traffic_check" if traffic_state in {"unknown", "stale"} else "exact_rule_and_account_preflight",
@@ -91,14 +94,18 @@ def main() -> int:
             )
 
     candidates.sort(key=lambda item: (item["score"], item["weekly_visitors"] or 0), reverse=True)
-    passed = [item for item in candidates if item["traffic_state"] == "pass"]
-    probes = [item for item in candidates if item["traffic_state"] in {"unknown", "stale"}]
+    action_candidates = [item for item in candidates if item["launcher_state"] == "candidate"]
+    research_candidates = [item for item in candidates if item["launcher_state"] == "research_only"]
+    passed = [item for item in action_candidates if item["traffic_state"] == "pass"]
+    probes = [item for item in action_candidates if item["traffic_state"] in {"unknown", "stale"}]
+    research_matches = [item for item in research_candidates if item["traffic_state"] == "pass"]
     result = {
         "direction": args.direction,
         "query_tags": sorted(query_tags),
         "minimum_weekly_visitors": args.min_weekly_visitors,
         "operating_shortlist": select_diverse(passed, args.limit),
         "traffic_probe_queue": select_diverse(probes, args.limit) if args.include_traffic_probes else [],
+        "research_matches": select_diverse(research_matches, args.limit),
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0

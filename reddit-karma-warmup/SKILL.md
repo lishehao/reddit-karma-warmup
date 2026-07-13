@@ -37,6 +37,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - `runtime-and-setup.md`: installation, preflight, immediate launcher naming, and launcher exit.
 - `account-direction.md`: one broad truthful account interest portfolio, onboarding resolution, and the boundary between durable direction and per-run style.
 - `subreddit-catalog-taxonomy.md` and `subreddit-profile-index.csv`: lightweight profile/tag/traffic discovery index. Query it after direction resolution; catalog matches never grant publishing permission.
+- `subreddit-catalog-expansion-2026-07-14.csv` and `reddit-community-search-snapshot-2026-07-14.json`: curated `>=5K` traffic expansion plus its read-only Reddit search evidence. Load only filtered rows needed for account-direction discovery; every added row stays `research_only` until a separate action audit changes its route.
 - `launcher-playbook.md`: reusable stateless fresh allocation and delivery proof.
 - `thread-supervision-runtime.md`: create one fresh independent task per requested lane; never search or reuse old tasks.
 - `default-operations-sop.md`: normalize the first mission, exact action targets/caps, target-driven scan loop, incidental voting, and lane-specific later mission.

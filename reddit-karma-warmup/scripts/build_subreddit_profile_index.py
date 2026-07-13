@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import re
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +15,8 @@ POOL = ROOT / "references" / "loci-subreddit-pool-v1.md"
 OVERRIDES = ROOT / "references" / "community-action-routing-overrides.md"
 DENYLIST = ROOT / "references" / "organization-community-denylist.md"
 PUBLIC_AUDIT = ROOT / "references" / "community-action-expansion-public-audit-2026-07-13.md"
+TRAFFIC_SNAPSHOT = ROOT / "references" / "reddit-community-search-snapshot-2026-07-14.json"
+CATALOG_EXPANSION = ROOT / "references" / "subreddit-catalog-expansion-2026-07-14.csv"
 OUTPUT = ROOT / "references" / "subreddit-profile-index.csv"
 
 TAG_RULES = {
@@ -192,6 +195,11 @@ EXACT_TAG_OVERRIDES = {
     "r/zepetosuggestions": {"topic_tags": ["gaming", "social_relationship", "virtual_world"], "audience_tags": ["gamer", "world_builder"]},
 }
 
+EXACT_TAG_REMOVALS = {
+    "r/indiehackers": {"topic_tags": ["gaming"]},
+    "r/iosappsmarketing": {"topic_tags": ["gaming"]},
+}
+
 
 def split_md_row(line: str) -> list[str]:
     raw = line.strip().strip("|")
@@ -250,6 +258,33 @@ def traffic_from_text(text: str) -> tuple[str, str, str]:
     return str(visitors or ""), str(contributions or ""), state
 
 
+def load_traffic_snapshot() -> dict[str, tuple[str, str, str, str]]:
+    rows = json.loads(TRAFFIC_SNAPSHOT.read_text(encoding="utf-8"))
+    result = {}
+    for row in rows:
+        visitors = parse_number(row["weekly_visitors"])
+        contributions = parse_number(row["weekly_contributions"])
+        state = "pass" if visitors >= 5_000 else "below_floor"
+        result[row["subreddit"].lower()] = (
+            str(visitors),
+            str(contributions),
+            "2026-07-14",
+            state,
+        )
+    return result
+
+
+def merge_traffic(
+    key: str,
+    visitors: str,
+    contributions: str,
+    checked_at: str,
+    traffic_state: str,
+    snapshot: dict[str, tuple[str, str, str, str]],
+) -> tuple[str, str, str, str]:
+    return snapshot.get(key, (visitors, contributions, checked_at, traffic_state))
+
+
 def load_overrides() -> dict[str, tuple[str, str, str]]:
     result = {}
     for row in table_rows(OVERRIDES, "| Subreddit | Ordinary comment"):
@@ -303,12 +338,14 @@ def evidence_level(text: str, key: str, denylist: set[str]) -> str:
 
 def merge_exact_tags(key: str, field: str, generated: list[str]) -> list[str]:
     additions = EXACT_TAG_OVERRIDES.get(key, {}).get(field, [])
-    return sorted(set(generated) | set(additions))
+    removals = EXACT_TAG_REMOVALS.get(key, {}).get(field, [])
+    return sorted((set(generated) | set(additions)) - set(removals))
 
 
 def main() -> int:
     overrides = load_overrides()
     denylist = load_denylist()
+    traffic_snapshot = load_traffic_snapshot()
     output_rows = []
     seen = set()
     for row in table_rows(POOL, "| Subreddit | 层级"):
@@ -322,6 +359,10 @@ def main() -> int:
         semantic_text = " ".join([row[0], row[2], row[3], row[4]])
         routes = overrides.get(key, default_routes(tier))
         visitors, contributions, traffic_state = traffic_from_text(text)
+        checked_at = "2026-07-13" if visitors else ""
+        visitors, contributions, checked_at, traffic_state = merge_traffic(
+            key, visitors, contributions, checked_at, traffic_state, traffic_snapshot
+        )
         output_rows.append(
             {
                 "subreddit": subreddit,
@@ -338,7 +379,7 @@ def main() -> int:
                 "launcher_state": launcher_state(key, tier, routes, denylist),
                 "weekly_visitors": visitors,
                 "weekly_contributions": contributions,
-                "traffic_checked_at": "2026-07-13" if visitors else "",
+                "traffic_checked_at": checked_at,
                 "traffic_state": traffic_state,
                 "evidence_level": evidence_level(text, key, denylist),
                 "source": "loci-subreddit-pool-v1.md",
@@ -359,6 +400,9 @@ def main() -> int:
         public_routes = tuple(normalize_route(value) for value in row[2:5])
         routes = overrides.get(key, public_routes)
         evidence = "public_rules" if "public-rule-confirmed" in row[7] else "catalog_only"
+        visitors, contributions, checked_at, traffic_state = merge_traffic(
+            key, "", "", "", "unknown", traffic_snapshot
+        )
         output_rows.append(
             {
                 "subreddit": subreddit,
@@ -373,18 +417,48 @@ def main() -> int:
                 "post_route": routes[1],
                 "product_route": routes[2],
                 "launcher_state": launcher_state(key, "catalog", routes, denylist),
-                "weekly_visitors": "",
-                "weekly_contributions": "",
-                "traffic_checked_at": "",
-                "traffic_state": "unknown",
+                "weekly_visitors": visitors,
+                "weekly_contributions": contributions,
+                "traffic_checked_at": checked_at,
+                "traffic_state": traffic_state,
                 "evidence_level": evidence,
                 "source": "community-action-expansion-public-audit-2026-07-13.md",
             }
         )
 
+    with CATALOG_EXPANSION.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle):
+            subreddit = row["subreddit"]
+            key = subreddit.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            output_rows.append(
+                {
+                    "subreddit": subreddit,
+                    "tier": "catalog",
+                    "community_type": row["community_type"],
+                    "topic_tags": row["topic_tags"],
+                    "audience_tags": row["audience_tags"],
+                    "need_tags": row["need_tags"],
+                    "format_tags": row["format_tags"],
+                    "risk_tags": row["risk_tags"],
+                    "comment_route": row["comment_route"],
+                    "post_route": row["post_route"],
+                    "product_route": row["product_route"],
+                    "launcher_state": row["launcher_state"],
+                    "weekly_visitors": row["weekly_visitors"],
+                    "weekly_contributions": row["weekly_contributions"],
+                    "traffic_checked_at": row["traffic_checked_at"],
+                    "traffic_state": row["traffic_state"],
+                    "evidence_level": row["evidence_level"],
+                    "source": "subreddit-catalog-expansion-2026-07-14.csv",
+                }
+            )
+
     fieldnames = list(output_rows[0])
     with OUTPUT.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(sorted(output_rows, key=lambda item: item["subreddit"].lower()))
     print(f"SUBREDDIT_PROFILE_INDEX=BUILT rows={len(output_rows)} output={OUTPUT}")

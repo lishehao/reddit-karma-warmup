@@ -118,6 +118,8 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 启动时会把已确认的账号方向映射到 `subreddit-profile-index.csv` 的主题、受众、需求、内容形态和风险标签，先生成最多 12 个候选。只有已缓存且不少于 5,000 weekly visitors 的社区可进入 operating shortlist；流量未知或过期的匹配只进入待复核队列。画像匹配和流量达标都不是发布许可，执行台仍需读取动作级覆盖和当天版规。
 
+2026-07-14 的扩展把标签索引从 174 个增加到 254 个社区：80 个新增社区覆盖年轻人/轻社交、泛游戏、电影电视、动漫、音乐、摄影、艺术设计、旅行地点、效率工具、AI 陪伴、移动产品和空间 3D；38 个既有社区补齐了实时周流量。原始只读搜索快照保存在 `reddit-community-search-snapshot-2026-07-14.json`，筛选结果保存在 `subreddit-catalog-expansion-2026-07-14.csv`。新增行全部保持 `research_only`，不能因为达到 5K 流量门槛而直接评论、发帖或提及产品。
+
 最新复核结论保存在 `community-action-routing-overrides.md`。它不再用一个等级同时代表全部动作，而是分别判断普通评论、主帖和产品提及；例如技术评论可用不代表 Loci 主帖可发。路由顺序是永久禁入表、动作级覆盖表、历史社区总表、当天版规与账号状态。
 
 `community-live-audit-30-2026-07-13.md` 保存本轮 30 个社区的 Chrome 只读 live 证据和关键门槛；对应动作已同步进覆盖表。该证据表只用于解释和当天复核，不能把可见提交页或存活帖子当作发布许可。

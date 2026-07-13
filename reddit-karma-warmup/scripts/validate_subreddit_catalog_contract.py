@@ -12,6 +12,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "references" / "subreddit-profile-index.csv"
+EXPANSION = ROOT / "references" / "subreddit-catalog-expansion-2026-07-14.csv"
+SNAPSHOT = ROOT / "references" / "reddit-community-search-snapshot-2026-07-14.json"
 QUERY = ROOT / "scripts" / "query_subreddit_profile_index.py"
 
 
@@ -44,6 +46,8 @@ def main() -> int:
             "Two-Layer Model",
             "The default discovery floor is `5,000` weekly visitors",
             "Catalog-only expansion does not require a full rule audit",
+            "subreddit-catalog-expansion-2026-07-14.csv",
+            "traffic_verified",
         ],
     }
     for path, needles in checks.items():
@@ -55,7 +59,7 @@ def main() -> int:
     with INDEX.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
     keys = [row["subreddit"].lower() for row in rows]
-    if len(rows) < 174:
+    if len(rows) < 254:
         errors.append(f"catalog too small: {len(rows)}")
     if len(keys) != len(set(keys)):
         errors.append("duplicate subreddit keys")
@@ -68,6 +72,22 @@ def main() -> int:
             errors.append(f"bad below-floor state: {row['subreddit']}")
         if row["traffic_state"] == "pass" and int(row["weekly_visitors"] or 0) < 5_000:
             errors.append(f"bad pass state: {row['subreddit']}")
+
+    with EXPANSION.open(encoding="utf-8", newline="") as handle:
+        expansion_rows = list(csv.DictReader(handle))
+    if len(expansion_rows) != 80:
+        errors.append(f"unexpected 2026-07-14 expansion size: {len(expansion_rows)}")
+    for row in expansion_rows:
+        if int(row["weekly_visitors"] or 0) < 5_000:
+            errors.append(f"expansion below traffic floor: {row['subreddit']}")
+        if row["launcher_state"] != "research_only" or row["comment_route"] != "research-only":
+            errors.append(f"expansion improperly action-enabled: {row['subreddit']}")
+        if row["post_route"] != "closed" or row["product_route"] != "closed":
+            errors.append(f"expansion publishing route open: {row['subreddit']}")
+
+    snapshot_rows = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+    if len(snapshot_rows) != 141:
+        errors.append(f"unexpected traffic snapshot size: {len(snapshot_rows)}")
 
     query = subprocess.run(
         [
@@ -87,13 +107,18 @@ def main() -> int:
         errors.append(f"query failed: {query.stderr.strip()}")
     else:
         payload = json.loads(query.stdout)
-        if "operating_shortlist" not in payload or "traffic_probe_queue" not in payload:
+        if not {"operating_shortlist", "traffic_probe_queue", "research_matches"} <= payload.keys():
             errors.append("query output missing shortlist buckets")
         for row in payload.get("operating_shortlist", []):
             if (row["weekly_visitors"] or 0) < 5_000:
                 errors.append(f"shortlist below floor: {row['subreddit']}")
         if len(payload.get("traffic_probe_queue", [])) > 12:
             errors.append("traffic probe queue exceeds limit")
+        for row in payload.get("research_matches", []):
+            if row["launcher_state"] != "research_only":
+                errors.append(f"research bucket contains action candidate: {row['subreddit']}")
+            if row["comment_route"] != "research-only" or row["post_route"] != "closed":
+                errors.append(f"research bucket contains open action route: {row['subreddit']}")
 
     if errors:
         print("SUBREDDIT_CATALOG_CONTRACT=FAIL")
@@ -106,6 +131,7 @@ def main() -> int:
     print(f"launcher_candidates={sum(row['launcher_state'] == 'candidate' for row in rows)}")
     print(f"traffic_pass={sum(row['traffic_state'] == 'pass' for row in rows)}")
     print(f"traffic_unknown={sum(row['traffic_state'] == 'unknown' for row in rows)}")
+    print(f"traffic_expansion={len(expansion_rows)}_RESEARCH_ONLY")
     print("traffic_floor=5000_WEEKLY_VISITORS")
     return 0
 

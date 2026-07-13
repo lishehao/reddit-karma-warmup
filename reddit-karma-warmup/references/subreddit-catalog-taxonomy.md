@@ -5,7 +5,8 @@ Use this reference when resolving an account direction, expanding the community 
 ## Two-Layer Model
 
 1. `subreddit-profile-index.csv`: lightweight discovery metadata for hundreds of communities. It owns tags, traffic snapshots, broad fit, and evidence status.
-2. `loci-subreddit-pool-v1.md` plus `community-action-routing-overrides.md`: detailed pain/rules evidence and action routing. Current live Reddit rules and account state remain final.
+2. `subreddit-catalog-expansion-2026-07-14.csv` plus `reddit-community-search-snapshot-2026-07-14.json`: curated traffic-qualified discovery rows and the read-only Reddit search snapshot that produced them. These rows are `research_only` by default.
+3. `loci-subreddit-pool-v1.md` plus `community-action-routing-overrides.md`: detailed pain/rules evidence and action routing. Current live Reddit rules and account state remain final.
 
 Never promote a catalog-only row directly into comment or post scoring. A match only identifies which exact rule rows and live pages to inspect next.
 
@@ -27,7 +28,7 @@ Never promote a catalog-only row directly into comment or post scoring. A match 
 | `weekly_contributions` | Reddit's visible weekly post/comment contribution metric when captured. |
 | `traffic_checked_at` | Timestamp for the activity snapshot. |
 | `traffic_state` | `pass`, `below_floor`, `unknown`, or `stale`. |
-| `evidence_level` | `catalog_only`, `historical_pool`, `public_rules`, `live_rules`, `action_verified`, `retired`, or `deny`. |
+| `evidence_level` | `catalog_only`, `traffic_verified`, `historical_pool`, `public_rules`, `live_rules`, `action_verified`, `retired`, or `deny`. |
 
 ## Traffic Gate
 
@@ -75,3 +76,5 @@ Every admitted row needs:
 - duplicate, redirect, private, quarantined, and organization-deny checks.
 
 Catalog-only expansion does not require a full rule audit. Run detailed public/live rule audits only for high-fit rows selected repeatedly by account-direction queries. This keeps a `400-500` discovery catalog maintainable without pretending all rows are publication-ready.
+
+The 2026-07-14 batch adds broad youth/social, gaming, film/TV, anime, music, photography, art/design, travel/place, productivity, AI-companion, mobile-app, and spatial/3D coverage. Keyword false positives, communities below `5,000` weekly visitors, and obviously inactive or irrelevant matches were excluded before merge. Passing this batch means only that traffic and broad relevance were observed; it does not mean the community permits comments, posts, product mention, or coordinated account activity.

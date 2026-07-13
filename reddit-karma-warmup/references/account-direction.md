@@ -64,10 +64,11 @@ This breadth supports several adjacent communities without turning the account i
 - A bare `开始` during first-time setup is not direction confirmation. Ask the one-time direction question. After a matching direction file exists, `开始` uses it immediately without another confirmation.
 - If the setup command requests operations but has no explicit direction and no matching direction file, complete preflight, ask the one-time direction question, and dispatch immediately after the answer rather than asking a second operation question.
 
-After direction confirmation, run `scripts/query_subreddit_profile_index.py --direction <resolved pillars> --limit 12 --include-traffic-probes`. This is local catalog retrieval, not Reddit browsing. Keep only its `operating_shortlist` and `traffic_probe_queue` for the current dispatch:
+After direction confirmation, run `scripts/query_subreddit_profile_index.py --direction <resolved pillars> --limit 12 --include-traffic-probes`. This is local catalog retrieval, not Reddit browsing. Use `research_matches` only to summarize account-direction coverage; keep only `operating_shortlist` and `traffic_probe_queue` for the current dispatch:
 
 - `operating_shortlist`: cached traffic is at least `5,000` weekly visitors; exact action rules still require live preflight.
 - `traffic_probe_queue`: tag-fit candidate with missing/stale traffic; a worker must confirm current weekly visitors before it can act.
+- `research_matches`: traffic-qualified catalog matches that remain `research_only`; they may shape the displayed interest cluster or future audit queue, but never enter a worker handoff or action target.
 - a cached row below `5,000` never enters either list.
 
 If the index or query script is unavailable, do not block setup. Preserve the confirmed direction, report `社区索引暂不可用`, and let each worker use the existing exact rule references without an indexed shortlist.

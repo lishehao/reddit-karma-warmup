@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT / "references" / "loci-subreddit-pool-v1.md"
-DENYLIST = ROOT / "references" / "account-community-denylist.md"
+DENYLIST = ROOT / "references" / "organization-community-denylist.md"
 
 
 def main() -> int:
@@ -41,7 +41,7 @@ def main() -> int:
             errors.append(f"denylist_contract_missing:{needle}")
 
     contracts = {
-        ROOT / "SKILL.md": "Load `account-community-denylist.md` and exclude matches before any subreddit visit",
+        ROOT / "SKILL.md": "Load `organization-community-denylist.md` and exclude matches before any subreddit visit",
         ROOT / "references" / "publish-consistency.md": "never read the complete archive into context",
         ROOT / "references" / "proactive-playbook.md": "do not load the entire archive",
     }
@@ -59,7 +59,7 @@ def main() -> int:
     print("revision=763")
     print("subreddit_rows=144")
     print("duplicates=0")
-    print("account_denylist=r/gamedev,r/CozyGamers")
+    print("organization_denylist=r/gamedev,r/CozyGamers")
     print("cozygamers_pool=A0")
     print("retrieval=PROGRESSIVE_EXACT_OR_FILTERED")
     return 0

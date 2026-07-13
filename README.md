@@ -93,9 +93,11 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 默认发帖采用保守的 `beginner-common-mistake` 角度：在有真实技能门槛和经验分享文化的社区，提出一个多数成员经历过、但具有该社区具体对象和后果的新手常见坑。发帖前必须搜索近期重复内容和 FAQ；不能伪造新手身份、使用经历或错误，也不能把同一模板只替换社区名后批量发送。不适合该角度的社区改用具体工作流摩擦、工具取舍或原生观察题。
 
-社区路由 Reference `loci-subreddit-pool-v1.md` 同步自飞书《Loci Reddit Subreddit 档案总表》，包含 144 个社区的主要用户、常见痛点、版规边界、可发内容、账号适配和近期信号。账号级永久禁入项单独保存在 `account-community-denylist.md`，必须在打开候选社区前先排除。社区总表按 subreddit 行或关键词候选集渐进读取，不应整表无条件加载；其中规则是历史证据，发帖前仍以 Reddit 当天规则和提交页为准。
+社区路由 Reference `loci-subreddit-pool-v1.md` 同步自飞书《Loci Reddit Subreddit 档案总表》，包含 144 个社区的主要用户、常见痛点、版规边界、可发内容、账号适配和近期信号。Loci 全组织永久禁入项单独保存在 `organization-community-denylist.md`，必须在打开候选社区前先排除；它约束自有、员工、代理和其他协调账号。社区总表按 subreddit 行或关键词候选集渐进读取，不应整表无条件加载；其中规则是历史证据，发帖前仍以 Reddit 当天规则和提交页为准。
 
 最新复核结论保存在 `community-action-routing-overrides.md`。它不再用一个等级同时代表全部动作，而是分别判断普通评论、主帖和产品提及；例如技术评论可用不代表 Loci 主帖可发。路由顺序是永久禁入表、动作级覆盖表、历史社区总表、当天版规与账号状态。
+
+凡最新复核明确“降级”的社区一律进入 `research-only`：后续不发表评论、不发主帖、不回复、不投票，也不做产品提及。只有未降级但按动作受限的社区，才保留技术评论可用、主帖关闭等拆分权限。
 
 ```text
 已启动：<本次创建的任务>。

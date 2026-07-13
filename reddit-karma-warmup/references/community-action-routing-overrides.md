@@ -1,6 +1,6 @@
 # Community Action Routing Overrides
 
-Snapshot: 2026-07-13 secondary review of 78 candidate communities. Load only the exact subreddit row needed. This file overrides the coarse tier in the historical pool, but never overrides `account-community-denylist.md` or stricter current live rules.
+Snapshot: 2026-07-13 secondary review of 78 candidate communities. Load only the exact subreddit row needed. This file overrides the coarse tier in the historical pool, but never overrides `organization-community-denylist.md` or stricter current live rules.
 
 The reviewed account surface showed about two years of account age, `119` post karma, and `510` comment karma. Those values are evidence from that snapshot, not permanent account identity. Recheck the visible account every run. Unknown local/community Karma, previous-activity requirements, moderator approval, or current suspension remain separate gates; do not label the account `new` merely because one of those is unknown.
 
@@ -13,14 +13,14 @@ States:
 
 | Subreddit | Ordinary comment | Main post | Product/Loci mention | Required boundary |
 |-|-|-|-|-|
-| `r/apps` | conditional | conditional | closed | Ordinary app-experience comments only. A main post must be a no-brand experience retrospective; no dedicated advertising account, giveaway without approval, or low-information promotion. |
-| `r/betatesters` | conditional | conditional | conditional | Only a real beta with a concrete testing task after current permission is confirmed. A blank rules page or historical survivor is not permission. |
-| `r/StartupSoloFounder` | conditional | closed | closed | Natural founder discussion only; current formal publishing permission remains unconfirmed. |
-| `r/gamedesign` | conditional | closed | closed | Comment only on actual game-design mechanics. No general development, Loci outward, or product framing; showcase content belongs in the designated weekly surface. |
-| `r/LEGOfortnite` | conditional | closed | closed | Exact game-native comments only; otherwise research-only. |
-| `r/gmod` | conditional | closed | closed | Exact GMod-native comments only; no external product narrative. |
-| `r/StableDiffusion` | conditional | closed | closed | Technical/non-promotional comments only when directly relevant; no Loci or unrelated AI positioning. |
-| `r/collegeadvice` | conditional | closed | closed | Genuine non-product advice only; no product, recruiting, or soft promotion. |
+| `r/apps` | research-only | closed | closed | Downgraded. No comments, posts, votes, or product mention. Rules prohibit dedicated advertising accounts and leave low-quality judgment to moderators. |
+| `r/betatesters` | research-only | closed | closed | Downgraded. No comments or posts until a future explicit review reopens it; blank rules and historical survivors are not permission. |
+| `r/StartupSoloFounder` | research-only | closed | closed | Downgraded. Current formal publishing permission remains unconfirmed. |
+| `r/gamedesign` | research-only | closed | closed | Downgraded. Strong topic-purity and weekly-showcase routing make all Loci outward closed. |
+| `r/LEGOfortnite` | research-only | closed | closed | Downgraded. Theme and anti-AI/advertising boundaries do not fit Loci outward. |
+| `r/gmod` | research-only | closed | closed | Downgraded. No comments, posts, votes, or external product narrative. |
+| `r/StableDiffusion` | research-only | closed | closed | Downgraded. Local/open-source AI workflow focus does not fit Loci outward. |
+| `r/collegeadvice` | research-only | closed | closed | Downgraded. Anti-advertising/AI sensitivity and student context make outward action closed. |
 | `r/AppIdeas` | default | conditional | closed | Main post only for no-link idea/concept validation. No completed project, App Store, mailing list, waitlist, or advertising. |
 | `r/SideProject` | default | conditional | conditional | Real project, self-contained text, one specific question, no copied cross-post, waitlist-only pitch, pure link, or AI-first packaging. Product context must be transparent and non-CTA. |
 | `r/roastmystartup` | default | conditional | conditional | Real project plus a specific critique request; no Product Hunt/Vercel-only link or AI slop. |
@@ -47,14 +47,16 @@ States:
 
 ## Permanent Deny Boundary
 
-Only `r/gamedev` and `r/CozyGamers` are permanent account-level denylist entries at this snapshot. Do not infer a permanent ban merely because another community shares strict topicality, contribution-first culture, anti-spam/self-promo rules, AI restrictions, local reputation, weekly placement, or moderator approval.
+Only `r/gamedev` and `r/CozyGamers` are permanent Loci organization-wide denylist entries at this snapshot. Do not infer a permanent ban merely because another community shares strict topicality, contribution-first culture, anti-spam/self-promo rules, AI restrictions, local reputation, weekly placement, or moderator approval. Explicitly downgraded communities are outward-closed but remain distinct from the no-visit organization denylist.
 
 ## Decision Rule
 
-1. Denylist match: no visit or action.
+1. Organization denylist match: no visit or action by any Loci-owned, employee, agency, or coordinated account.
 2. Current sitewide/account blocker: withhold the impossible mutation and follow lane recovery.
 3. Exact action override: gate comment, main post, and product mention separately.
 4. Historical pool: use only for audience/pain/background and rows not covered here.
 5. Current rules/account controls: tighten when stricter; never loosen from survivor content alone.
 
 When a row says `conditional`, missing evidence means skip/retarget, not permission. A valid technical comment remains technical: do not smuggle product positioning into an otherwise allowed reply.
+
+When a row says `research-only` or is identified as downgraded, no outward action exists: no comment, reply, post, vote, Join, flair, or product mention.

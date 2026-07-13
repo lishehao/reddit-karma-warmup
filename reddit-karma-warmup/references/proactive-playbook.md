@@ -81,9 +81,11 @@ Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, s
 
 User-provided targets override the bundled pool, but not the account denylist, current live rules, or an action marked `closed`. Otherwise query `loci-subreddit-pool-v1.md` through the progressive retrieval protocol in `publish-consistency.md`; do not load the entire archive. Use `operation-style-profiles.md` to rank direction fit and `publish-consistency.md` to build the eligible pool.
 
-Before opening any candidate subreddit, load `account-community-denylist.md`. A matching entry is a hard destination veto even when the user supplies a broad topic or the archive ranks it highly. Do not open, read, vote, join, comment, post, test access, or revalidate that subreddit unless the user explicitly removes the denylist entry.
+Before opening any candidate subreddit, load `organization-community-denylist.md`. A matching entry is a hard destination veto even when the user supplies a broad topic or the archive ranks it highly. Do not open, read, vote, join, comment, post, test access, or revalidate that subreddit unless the user explicitly removes the denylist entry.
 
 For every non-denylisted candidate, read its exact row in `community-action-routing-overrides.md` when one exists. Gate the requested action independently: comment permission never implies main-post permission, and either permission never implies product mention. Apply the override before the historical archive. Live rules may tighten the result immediately; a survivor post, missing rule text, or apparently looser surface never auto-upgrades it.
+
+A community explicitly downgraded by the latest review is `research-only`: no proactive comment, follow-up reply, main post, vote, Join, flair, or product mention. Do not preserve a conditional-comment exception for a downgraded row. Research-only observation must be separately requested and remains read-only.
 
 - `B`: eligible when the row and live context fit.
 - `B+`: ordinary comments and low-frequency feedback/demo contexts when row rules fit.

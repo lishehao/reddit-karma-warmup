@@ -26,6 +26,14 @@ def main() -> int:
         errors.append("missing_rows:" + ",".join(missing))
     if len(rows) != len(set(name.casefold() for name in rows)):
         errors.append("duplicate_rows")
+    downgraded = {
+        "apps", "betatesters", "StartupSoloFounder", "gamedesign",
+        "LEGOfortnite", "gmod", "StableDiffusion", "collegeadvice",
+    }
+    for subreddit in downgraded:
+        pattern = rf"^\| `r/{re.escape(subreddit)}` \| research-only \| closed \| closed \|"
+        if not re.search(pattern, body, flags=re.MULTILINE | re.IGNORECASE):
+            errors.append(f"downgrade_not_closed:{subreddit}")
     for needle in (
         "comment, main post, and product mention separately",
         "Only `r/gamedev` and `r/CozyGamers`",
@@ -53,7 +61,8 @@ def main() -> int:
     print("ACTION_ROUTING_OVERRIDES=PASS")
     print(f"override_rows={len(rows)}")
     print("routing=COMMENT_POST_PRODUCT_SPLIT")
-    print("permanent_deny=r/gamedev,r/CozyGamers")
+    print("organization_permanent_deny=r/gamedev,r/CozyGamers")
+    print("downgraded=RESEARCH_ONLY_NO_OUTWARD")
     return 0
 
 

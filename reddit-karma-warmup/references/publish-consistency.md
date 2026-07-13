@@ -18,7 +18,7 @@ Consistency means stable identity and facts, not repetitive wording. Never contr
 
 ## Eligible Community Order
 
-Use this precedence for every destination: `account-community-denylist.md` -> exact `community-action-routing-overrides.md` row -> historical `loci-subreddit-pool-v1.md` row -> current live rules/account state. A denylist match is terminal. An action override splits comment, main-post, and product-mention permission; never collapse them into one community tier.
+Use this precedence for every destination: `organization-community-denylist.md` -> exact `community-action-routing-overrides.md` row -> historical `loci-subreddit-pool-v1.md` row -> current live rules/account state. A denylist match is terminal. An action override splits comment, main-post, and product-mention permission; never collapse them into one community tier. A downgraded or `research-only` override is closed for all outward interaction.
 
 The archive is intentionally large. Read it progressively:
 

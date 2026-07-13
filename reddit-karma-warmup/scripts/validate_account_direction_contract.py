@@ -15,11 +15,16 @@ required = {
         "It is not a fictional persona",
         "disclose affiliation when material",
         "Do not disguise Loci promotion",
-        "without another confirmation",
+        "account-directions/<normalized-reddit-username>.json",
+        "确认并开始",
+        "A bare `开始` during first-time setup is not direction confirmation",
+        "Never reuse another account's file",
     ],
     "references/runtime-and-setup.md": [
-        "Present one broad truthful account direction",
-        "The direction prompt is non-blocking",
+        "account-directions/",
+        "remain `Reddit 启动台`",
+        "Persist atomically outside the managed Skill tree",
+        "确认并开始",
     ],
     "references/launcher-playbook.md": ["account_direction", "direction_source"],
     "references/default-operations-sop.md": ["account_direction + direction_source"],
@@ -42,6 +47,8 @@ if errors:
 print(json.dumps({
     "status": "PASS",
     "direction": "BROAD_TRUTHFUL_3_TO_5_PILLARS",
+    "confirmation": "ONCE_PER_VISIBLE_ACCOUNT",
+    "storage": "USER_OWNED_OUTSIDE_MANAGED_SKILL",
     "style": "NARROW_PER_RUN_SUBSET",
     "promotion": "TRANSPARENT_RULE_GATED",
 }, ensure_ascii=False, sort_keys=True))

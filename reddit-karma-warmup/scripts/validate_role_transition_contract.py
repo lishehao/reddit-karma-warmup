@@ -34,6 +34,7 @@ def main() -> int:
             "never search or reuse old tasks",
             "Every distribution command creates another fresh run",
             "自然浏览/投票：随以上执行台读取内容时完成",
+            "L1_DIRECTION",
             "L2_READY",
             "pinned=true",
             "never list/search by title to find the task to pin",
@@ -84,6 +85,8 @@ def main() -> int:
             "当前任务已切换为 Reddit 分发台",
             "分发台已置顶；后续新一轮运营都从这里分配",
             "执行台保持不置顶",
+            "首次安装时只回复 `开始` 不等于确认方向",
+            "确认并开始",
         ]
 
     errors: list[str] = []
@@ -132,6 +135,8 @@ def main() -> int:
     scenarios = {
         "setup_command": "RENAME_LAUNCHER_FIRST",
         "setup_health_passed": "RENAME_DISTRIBUTOR",
+        "first_account_direction": "CONFIRM_ONCE_THEN_PERSIST",
+        "known_account_direction": "REUSE_WITHOUT_REPROMPT",
         "setup_health_pin": "PIN_EXACT_DISTRIBUTOR_ID",
         "launcher_dispatch": "DELIVER_ONCE_THEN_IDLE",
         "worker_first_slot": "EXECUTE_NOW",

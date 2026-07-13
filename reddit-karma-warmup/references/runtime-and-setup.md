@@ -34,16 +34,31 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 
 If a required item needs user repair, remain `Reddit 启动台` and request only that repair. On `继续`, recheck only missing items.
 
-When healthy, rename the same task `Reddit 分发台`, pin that exact task, then load `account-direction.md`. Present one broad truthful account direction together with the operation question. The direction prompt is non-blocking: if the user replies `开始`, accept the default direction plus standard intensity, mixed style, and three hours, then dispatch immediately. If the setup command already includes an operation, resolve an explicit or default direction, report it briefly, and dispatch without asking again. Rename or pin failure is presentation-only and does not block dispatch; report the missing presentation action once without searching for another task.
+When healthy, load `account-direction.md` before switching to the distributor. Resolve the exact visible Reddit account's user-owned direction file under `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/`.
+
+- Matching valid file: reuse it without confirmation.
+- Missing/malformed/mismatched file: remain `Reddit 启动台`, show the one-time default direction prompt, and wait for `确认`, a modification, or `确认并开始`.
+- Explicit direction in the setup command: treat it as confirmation, normalize and persist it without a redundant question.
+- Persist atomically outside the managed Skill tree. Never store credentials or copy one account's direction to another account automatically.
+
+After direction resolution, rename the same task `Reddit 分发台`, pin that exact task, and ask for the operation only when the user's confirmation did not already include `开始` and the setup command did not already specify one. `确认并开始` dispatches standard intensity, mixed style, and three hours immediately. Rename or pin failure is presentation-only and does not block dispatch; report the missing presentation action once without searching for another task.
+
+```text
+建议账号方向：移动产品、3D/AR、游戏与 UGC、摄影与地点体验、创作工具。它是宽口径兴趣范围，不是虚构身份；单轮运营只需从中选一个重点。
+
+请回复“确认”，或直接告诉我需要增加/删除的方向；回复“确认并开始”会保存后立即按默认 3 小时运营。
+```
+
+After confirmation and distributor transition, use:
 
 ```text
 状态健康。当前账号：u/name。
+
+账号方向已确认：<3-5 个兴趣支柱>。
 
 当前任务已切换为 Reddit 分发台。
 
 分发台已置顶；后续新一轮运营都从这里分配。
 
-建议账号方向：移动产品、3D/AR、游戏与 UGC、摄影与地点体验、创作工具。它是宽口径兴趣范围，不是虚构身份；单轮运营只需从中选一个重点。
-
-你可以直接修改这个方向，也可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格。暂时没想法就回复“开始”，我会按默认方向创建独立的评论台、发帖台和跟进台；它们会在本来就读到的内容上自然判断是否投票。纯浏览台仅在你明确要求时创建。
+你可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格；暂时没想法就回复“开始”。
 ```

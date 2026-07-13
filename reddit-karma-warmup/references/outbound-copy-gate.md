@@ -80,6 +80,8 @@ Short-first rewrite rules:
 
 Use current nearby replies as the primary language source. Across a session, comments should often contain natural Reddit/internet speech, but each individual reply uses only what fits its meaning and subreddit.
 
+Load `reddit-us-voice-patterns.md` after sampling nearby replies. Use it as a fallback pattern table and stale-phrase filter, never as a phrase quota. The current thread and subreddit vocabulary always win.
+
 - contractions and compression: `it's`, `that's`, `I'd`, `doesn't`, `can't`, dropped subjects, sentence fragments
 - stance markers: `tbh`, `ngl`, `imo/imho`, `fwiw`, `idk`, `honestly`, `fair`, `yeah`, `nah`
 - conversational texture: `kinda`, `pretty`, `lowkey`, `legit`, `wild`, `solid`, `yep`, `lol/lmao` when the thread actually carries that energy

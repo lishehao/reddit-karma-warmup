@@ -118,6 +118,8 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 最新复核结论保存在 `community-action-routing-overrides.md`。它不再用一个等级同时代表全部动作，而是分别判断普通评论、主帖和产品提及；例如技术评论可用不代表 Loci 主帖可发。路由顺序是永久禁入表、动作级覆盖表、历史社区总表、当天版规与账号状态。
 
+`community-live-audit-30-2026-07-13.md` 保存本轮 30 个社区的 Chrome 只读 live 证据和关键门槛；对应动作已同步进覆盖表。该证据表只用于解释和当天复核，不能把可见提交页或存活帖子当作发布许可。
+
 凡最新复核明确“降级”的社区一律进入 `research-only`：后续不发表评论、不发主帖、不回复、不投票，也不做产品提及。只有未降级但按动作受限的社区，才保留技术评论可用、主帖关闭等拆分权限。
 
 扩展研究 `community-expansion-pending-review-2026-07-13.md` 也随 Skill 打包，包含 18 个 suspension 后需要重新 preflight 的候选和 29 个新增名称级候选。它只用于候选发现：没有当天 live 版规、账号资格、New/Hot 和提交页证据时，不能据此评论、发帖、投票或 Join。

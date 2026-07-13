@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT / "references" / "community-action-routing-overrides.md"
+LIVE_AUDIT = ROOT / "references" / "community-live-audit-30-2026-07-13.md"
 
 
 def main() -> int:
@@ -19,6 +20,13 @@ def main() -> int:
         "webdev", "web_design", "playtesters", "Notion", "ObsidianMD",
         "Entrepreneur", "iosapps", "CollegeRant", "SaaS", "startups",
         "GradSchool", "worldbuilding", "vibecoding",
+        "photography", "photographs", "graphic_design", "animation",
+        "VideoEditing", "AfterEffects", "Filmmakers", "ArtistLounge",
+        "learnart", "photocritique", "ArtCrit", "videography",
+        "urbanexploration", "solotravel", "travel", "AndroidApps",
+        "droidappshowcase", "ShowMeYourApps", "InternetIsBeautiful",
+        "Android", "ios", "OpenSource", "BoardGames", "Anime", "movies",
+        "music", "television", "GenZ", "AskGenZ", "musicians",
     }
     errors = []
     missing = sorted(required_rows - set(rows), key=str.casefold)
@@ -34,6 +42,11 @@ def main() -> int:
         pattern = rf"^\| `r/{re.escape(subreddit)}` \| research-only \| closed \| closed \|"
         if not re.search(pattern, body, flags=re.MULTILINE | re.IGNORECASE):
             errors.append(f"downgrade_not_closed:{subreddit}")
+    a0_rows = {"ArtistLounge", "urbanexploration", "GenZ", "AskGenZ"}
+    for subreddit in a0_rows:
+        pattern = rf"^\| `r/{re.escape(subreddit)}` \| research-only \| closed \| closed \|"
+        if not re.search(pattern, body, flags=re.MULTILINE | re.IGNORECASE):
+            errors.append(f"a0_not_closed:{subreddit}")
     for needle in (
         "comment, main post, and product mention separately",
         "Only `r/gamedev` and `r/CozyGamers`",
@@ -43,12 +56,27 @@ def main() -> int:
         if needle not in body:
             errors.append(f"missing_contract:{needle}")
 
-    links = {
-        ROOT / "SKILL.md": "community-action-routing-overrides.md",
-        ROOT / "references" / "proactive-playbook.md": "Gate the requested action independently",
-        ROOT / "references" / "publish-consistency.md": "never collapse them into one community tier",
-    }
-    for path, needle in links.items():
+    live_body = LIVE_AUDIT.read_text(encoding="utf-8")
+    live_rows = re.findall(r"^\| `r/([^`]+)` \| live_checked(?:_manual|_private)? \|", live_body, flags=re.MULTILINE)
+    if len(live_rows) != 30:
+        errors.append(f"live_audit_row_count:{len(live_rows)}")
+    if len(live_rows) != len(set(name.casefold() for name in live_rows)):
+        errors.append("live_audit_duplicate_rows")
+    for needle in (
+        "B=4, B+=6, A=16, A0=4, No-go=0",
+        "A visible submit composer is not posting permission",
+        "r/gamedev` and `r/CozyGamers` were not visited",
+    ):
+        if needle not in live_body:
+            errors.append(f"missing_live_audit_contract:{needle}")
+
+    links = [
+        (ROOT / "SKILL.md", "community-action-routing-overrides.md"),
+        (ROOT / "SKILL.md", "community-live-audit-30-2026-07-13.md"),
+        (ROOT / "references" / "proactive-playbook.md", "Gate the requested action independently"),
+        (ROOT / "references" / "publish-consistency.md", "never collapse them into one community tier"),
+    ]
+    for path, needle in links:
         if needle not in path.read_text(encoding="utf-8"):
             errors.append(f"missing_link:{path.name}:{needle}")
 

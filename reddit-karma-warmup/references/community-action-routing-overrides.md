@@ -1,6 +1,6 @@
 # Community Action Routing Overrides
 
-Snapshot: 2026-07-13 secondary review of 78 candidate communities. Load only the exact subreddit row needed. This file overrides the coarse tier in the historical pool, but never overrides `organization-community-denylist.md` or stricter current live rules.
+Snapshot: 2026-07-13 secondary review plus the 30-community Chrome live audit. Load only the exact subreddit row needed. This file overrides the coarse tier in the historical pool, but never overrides `organization-community-denylist.md` or stricter current live rules. Evidence for the live-audited rows is in `community-live-audit-30-2026-07-13.md`.
 
 The reviewed account surface showed about two years of account age, `119` post karma, and `510` comment karma. Those values are evidence from that snapshot, not permanent account identity. Recheck the visible account every run. Unknown local/community Karma, previous-activity requirements, moderator approval, or current suspension remain separate gates; do not label the account `new` merely because one of those is unknown.
 
@@ -44,6 +44,36 @@ States:
 | `r/GradSchool` | research-only | closed | closed | Default no Loci outward. |
 | `r/worldbuilding` | research-only | closed | closed | Default no Loci outward; AI and world-context boundaries are high risk. |
 | `r/vibecoding` | research-only | closed | closed | Default no Loci outward. |
+| `r/photography` | conditional | conditional | closed | Specific photography discussion only. Main posts need standalone context and a same-day rules/account check; no Loci or self-promotion. |
+| `r/photographs` | conditional | conditional | closed | Original single-image work only, objective title, maximum three images per 24 hours; critique only under the matching feedback flair. |
+| `r/graphic_design` | conditional | conditional | closed | Specific design critique only. Sharing Work requires purpose, audience, and design-decision context; no survey, AI work, or self-promotion. |
+| `r/animation` | conditional | conditional | closed | Animation-specific only. Main posts require the account gate to pass; under 30 days, under 15 total Karma, or negative comment Karma can trigger manual review. No GenAI content. |
+| `r/VideoEditing` | conditional | conditional | closed | Technical editing discussion only. Feedback/show-off uses current monthly threads; no advertising or service promotion. |
+| `r/AfterEffects` | conditional | conditional | closed | After Effects-specific technical context and correct flair only; no product/service framing. |
+| `r/Filmmakers` | conditional | conditional | closed | Film-production context only. Owned film/trailer/clip posts need Film flair and the current submission-statement requirement. |
+| `r/ArtistLounge` | research-only | closed | closed | A0. No comments, posts, votes, or product mention; selling, promotion, surveys, Discord solicitation, and sensitive-topic rules are strict. |
+| `r/learnart` | conditional | conditional | closed | Learning or critique context only; no just-sharing, promotional speedpaint/timelapse, or product framing. |
+| `r/photocritique` | conditional | conditional | closed | Specific critique comments only. Main posts are high friction and require the current three-sentence top-level intent/context/feedback comment. |
+| `r/ArtCrit` | conditional | conditional | closed | Original work and specific critique only; no AI, compliment fishing, personal details, or self-promotion. |
+| `r/videography` | conditional | conditional | closed | Technical videography context only. Buying advice uses the monthly thread; missing user flair can trigger manual review; no advertising/self-promotion. |
+| `r/urbanexploration` | research-only | closed | closed | A0 due incomplete rule text plus exact-location, trespass, safety, privacy, and identifiable-place risks. No outward action. |
+| `r/solotravel` | conditional | conditional | closed | Real solo-travel context with specific itinerary details. No pure media, polls, standalone links, or meetup requests outside the current weekly route. |
+| `r/travel` | conditional | conditional | closed | Genuine travel discussion only. Self-promotion, surveys, side projects, vlogs/blogs, and meetup requests are prohibited. |
+| `r/AndroidApps` | conditional | closed | closed | Independent Android app discussion only. Product feedback, tester requests, new app ideas, self-promotion, and Loci posting remain closed. |
+| `r/droidappshowcase` | conditional | conditional | closed | Android-only app discussion. A main post requires a real Android build plus current app-link, account-age/Karma, verified-email, format, and frequency gates. |
+| `r/ShowMeYourApps` | conditional | conditional | closed | Authentic mobile-app discussion only. No AI content; full self-promotion/link/frequency permission must be visible before any main post. |
+| `r/InternetIsBeautiful` | conditional | conditional | closed | Genuine discussion of the current qualifying site only. Main posts must satisfy the current link-only curation rules; no AI or self-promotion account behavior. |
+| `r/Android` | conditional | conditional | closed | Non-product Android discussion only. Main posts are filtered and require current topical, title, format, and account checks. |
+| `r/ios` | conditional | conditional | closed | Genuine iOS support/experience discussion only. Main posts follow current support/weekly routing; developer promotion requires separate explicit authorization. |
+| `r/OpenSource` | conditional | conditional | closed | Genuine open-source technical/governance context only. No drive-by posting, Karma farming, link aggregation, sensational title, or Loci framing. |
+| `r/BoardGames` | conditional | conditional | closed | Genuine board-game participation only. Main posts must satisfy current participation, format, IP, AI, flair, and Monthly Bazaar rules. |
+| `r/Anime` | conditional | conditional | closed | Specific anime discussion only with strict spoiler/source rules. Main posts require correct flair and current media constraints; no Loci. |
+| `r/movies` | conditional | conditional | closed | Specific film discussion only. Text posts need the current minimum length and must avoid images/memes, clickbait, and self-promotion. |
+| `r/music` | conditional | conditional | closed | Genuine music discussion only. Main posts require current Artist - Song [Genre]/channel formatting; no playlist, solicitation, or Loci framing. |
+| `r/television` | conditional | conditional | closed | Specific television discussion only with show name, title accuracy, and spoiler controls; no Loci. |
+| `r/GenZ` | research-only | closed | closed | A0 identity-sensitive community. No comments, posts, votes, surveys, product mention, or persona simulation. |
+| `r/AskGenZ` | research-only | closed | closed | A0 private community. Do not request access or perform outward action. |
+| `r/musicians` | conditional | conditional | closed | Genuine music-making discussion only; no sales, self-promotion, AI-generated music, or Loci framing. |
 
 ## Permanent Deny Boundary
 

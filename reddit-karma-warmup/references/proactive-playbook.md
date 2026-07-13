@@ -140,7 +140,7 @@ The comment target is the slot's primary completion condition. A qualified candi
 6. Enter the draft only after the evidence and copy gates pass, then run Double-Check B.
 7. Reselect this lane's dedicated Reddit tab, verify account/target, wait `18-70 sec`, submit, and verify permalink/profile visibility.
 8. Measure the exact published text and append `char_count`, `word_count`, `sentence_form`, `length_tier`, `why_this_length`, and the four pre-draft evidence fields to history and follow-up state. After a verified proactive comment, use a local `60-120 sec` pause before the next publish; first follow-up is normally `20-40 min` later.
-9. During a new start, use the selected intensity envelope. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill the target.
+9. During a new start, use the selected intensity envelope and the `clustered_windows` schedule from `scheduler-and-heartbeats.md`. Respect subreddit/cluster diversity and do not lower the candidate threshold to fill either the batch target or the overall target.
 
 Before drafting, independently score the already qualified-read post or parent through the incidental mode in `browse-vote-playbook.md`. A passing natural vote may be cast once, but there is no vote target and submitting a comment never requires a vote. Comment score never becomes vote score; do not read extra items or delay the comment to hunt for votes.
 

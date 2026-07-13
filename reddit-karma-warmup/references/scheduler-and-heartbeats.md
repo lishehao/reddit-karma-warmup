@@ -21,13 +21,26 @@ Translate the current lane mission into a bounded next slot. Defaults remain adv
 
 | Lane | Standard cadence |
 |-|-|
-| comments | `4-6/hour`, with at least the lane's configured minimum spacing |
+| comments | resolve the requested hourly average into `clustered_windows`; do not schedule one evenly spaced comment at a time |
 | posts | one candidate/rules sweep every `2-3h`; publish only when eligible |
 | follow-up | every `30-45m` |
 | browsing | every `20-40m`; normally `20-30` qualified reads |
 | presence | terminal after one slot unless the user explicitly requests ongoing presence work |
 
 Use short in-turn sleep only for human-scale submit pauses below roughly five minutes. Use the recurring Heartbeat for longer waits.
+
+## Clustered Comment Windows
+
+For comments, plan operational batches instead of a uniform per-comment clock:
+
+1. Compute `effective_hourly_rate` from the latest controlling target and remaining time.
+2. For roughly `6-10 comments/hour`, normally create `2-3` batch windows per hour. Vary the gap from actual completion time, usually `20-35m`, instead of repeating an exact interval.
+3. Give each due window an exact `batch_target`, normally `2-4` verified comments, and an active work envelope of about `4-8m`. Candidate quality, rules, and the mission cap still gate every action.
+4. Inside a window, keep the existing pre-submit pause and `60-120 sec` pause after each verified proactive comment. Use local sleep for these sub-five-minute waits; use the lane Heartbeat between windows.
+5. Preserve `batch_target_remaining` and `slot_target_remaining`. A thin batch carries its remainder forward; it never lowers thresholds and never creates a catch-up burst.
+6. Recompute later windows from actual verified count and remaining time. Do not precompute a mechanically identical all-day schedule.
+
+Example: `80 comments / 10h` resolves to `8/hour`, not `10/hour`. A representative hour may use three windows such as `3 + 2 + 3`, with each window starting after a varied `20-35m` gap. The exact distribution changes with qualified candidates and actual completion time; it is not a promise to publish weak comments.
 
 ## Wake Flow
 
@@ -38,7 +51,7 @@ On every wake:
 3. Reconnect Chrome or reclaim only this task's tab.
 4. If the slot is due, resume its preserved `slot_target_remaining` and continue discovery/action toward zero. A runtime boundary may yield an interim checkpoint, but does not complete or reset the slot.
 5. If not due, record `not_due`; do not manufacture activity.
-6. Recompute the next due time from the exact remaining duration/count and live conditions; unfinished action targets receive the next permissible continuation rather than a fresh slot.
+6. Recompute the next due time from the exact remaining duration/count, current batch remainder, and live conditions; unfinished action targets receive the next permissible continuation rather than a fresh slot.
 7. Update only this task's timer when mission fields, cadence, or cutoff changed.
 
 ## Survival And Repair

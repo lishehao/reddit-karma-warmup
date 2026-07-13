@@ -8,12 +8,15 @@ Use in the reusable stateless launcher to split each direct dispatch request, an
 - missing intensity: `standard`
 - missing style: `mixed`
 - missing account direction: resolve the broad default in `account-direction.md`
+- missing comment pacing: `clustered_windows`
 - missing post angle: `beginner-common-mistake`
 - broad `开始/运营`: comments + posts + follow-up
 - browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
 - presence: only when explicitly requested or the first profile baseline is incomplete
 
 Resolve style through `operation-style-profiles.md`. Explicit user counts, duration, language, pool, style, or lane replace defaults without another confirmation.
+
+When total comment count and hourly rate conflict, the latest explicit user quantity controls. If both appear in the same instruction, treat the total count plus duration as authoritative, compute `effective_hourly_rate = total / hours`, and report the mismatch once without blocking. Example: `80 comments / 10h = 8/hour`; `10/hour for 10h = 100 comments`.
 
 Planning targets are quality-gated. Resolve every range to one exact `action_target` and one `action_cap` before the first slot. The action target is the primary completion condition inside the authorized window; the cap is the most that lane may publish or cast without a new user instruction. A candidate-read floor is a discovery-depth checkpoint, never a substitute for the action target and never a reason to stop early.
 
@@ -61,6 +64,7 @@ out_of_scope
 account
 account_direction + direction_source
 duration/count/intensity/style/language
+pacing_mode=clustered_windows
 post_default_angle=beginner-common-mistake
 target_pool_or_urls
 start_local + start_utc

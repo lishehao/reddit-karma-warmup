@@ -44,7 +44,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - `risk-escalation.md`: lane-local recovery and direct user repair inside the affected lane.
 - lane playbooks: candidate and action rules for that lane only.
 - `chrome-network-recovery.md`: bounded Chrome/page/network recovery in the current lane.
-- `outbound-copy-gate.md` and `publish-consistency.md`: hard outbound quality gates. Comments default to `80-90%` micro/fragment/one-liner and use the locally evidenced native-marker gate; posts retain their own longer context rules.
+- `outbound-copy-gate.md` and `publish-consistency.md`: hard outbound quality gates. Comments default to `80-90%` micro/fragment/one-liner; slang and abbreviation frequency is selected by output surface and distributed across outputs, not stacked in one item. Posts retain their own longer context rules.
 - `reddit-us-voice-patterns.md`: progressive fallback table for concise, assertive, US-leaning Reddit voice. Nearby current replies always outrank the static table.
 - `organization-community-denylist.md`: permanent Loci-wide exclusions across owned, employee, agency, and otherwise coordinated accounts. Check it before the bundled pool or any live subreddit visit.
 - `community-action-routing-overrides.md`: latest action-level routing for comments, main posts, and product mention. Apply after the denylist and before the historical pool.

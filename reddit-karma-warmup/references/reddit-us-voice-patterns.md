@@ -58,6 +58,10 @@ These are broadly usable when they match the nearby thread.
 
 Contractions are the default: `it's`, `that's`, `I'd`, `doesn't`, `can't`, `won't`, `you're`. Fragments are allowed: `Way cleaner.` `Not worth the tradeoff.` `Honestly, same.` Lowercase openings may fit casual threads, but never force lowercase across every reply.
 
+Frequency is distributed across outputs, not stacked inside one output. Use `outbound-copy-gate.md` as the authority for surface-specific bands. In ordinary proactive comments, social shorthand should appear often enough to feel native but usually only once per comment. Follow-ups use less; technical and sensitive replies use substantially less; Chinese user reports use none.
+
+Do not let one favorite marker become a signature. Across the rolling last `10` outputs, vary among contractions, fragments, subreddit terms, stance markers, and abbreviations; do not repeat the same social shorthand more than twice unless the context literally requires it.
+
 ## Context-Only Slang
 
 Use only when the current subreddit/thread already carries similar energy.

@@ -23,6 +23,13 @@ def main() -> int:
             "native compression, not cosplay",
             "native_marker_plan",
             "native_marker_used",
+            "output_surface",
+            "voice_band",
+            "slang_or_abbrev_used",
+            "proactive comment, ordinary",
+            "creative/gaming/casual comment",
+            "Chinese user-facing operation report",
+            "Never reuse the same social marker more than `2` times",
             "`80-90%` should be `micro`, `fragment`, or `one-liner`",
             "target `60-75%` of published comments",
             "plain_local_voice",
@@ -33,6 +40,12 @@ def main() -> int:
             "Choose the shortest passing alternative",
             "ordinary sessions target `80-90%`",
             "`60-75%` of all comments",
+            "classify `output_surface`",
+            "slang_or_abbrev_used",
+        ],
+        ROOT / "references" / "followup-playbook.md": [
+            "ordinary follow-up, technical, sensitive/support, or mod acknowledgement",
+            "slang_or_abbrev_used",
         ],
     }
     errors = []
@@ -56,6 +69,8 @@ def main() -> int:
     print("selection=SHORTEST_PASSING")
     print("short_bias=80_TO_90_PERCENT")
     print("native_marker_target=60_TO_75_PERCENT")
+    print("frequency=OUTPUT_SURFACE_SPECIFIC")
+    print("distribution=ACROSS_OUTPUTS_NOT_STACKED")
     return 0
 
 

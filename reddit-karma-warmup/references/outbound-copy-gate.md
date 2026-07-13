@@ -22,6 +22,10 @@ Before drafting, decide and record:
 - `local_voice_sample`: `2-4` short syntax/slang patterns observed in nearby current replies; patterns are evidence, not text to copy
 - `native_marker_plan`: the one locally supported compression marker planned for this draft, or `plain_local_voice` with a concrete reason the nearby thread does not support slang
 - `native_marker_used`: the exact contraction, fragment, abbreviation, subreddit term, or casual marker present in the final text; `none` requires the recorded `plain_local_voice` reason
+- `output_surface`: proactive_comment / followup_reply / technical_reply / sensitive_reply / post_title / post_body / mod_ack / user_report
+- `voice_band`: the frequency band selected from the table below
+- `slang_or_abbrev_used`: the exact social shorthand or Redditism used, separate from ordinary contractions, fragments, and domain terminology
+- `marker_mix_state`: rolling last `10` outputs on the same surface, including marker-bearing rate, slang/abbreviation rate, and repeated-marker count
 
 Measurement rules:
 
@@ -106,6 +110,31 @@ Native-marker gate:
 - A final draft passes with no marker only when nearby replies are predominantly formal/technical, the topic is sensitive, or the marker would distort the author's voice. Record that reason as `plain_local_voice`.
 - Do not satisfy this gate with a random `lol`, `tbh`, or abbreviation. The marker must match the exact thread energy and meaning.
 
+### Output-specific frequency bands
+
+These are rolling-session targets, not per-item quotas. Local current replies may lower the band; they never justify random marker insertion.
+
+| Output surface | Native compression marker rate | Social slang / Reddit abbreviation rate | Per-item density |
+|-|-:|-:|-|
+| proactive comment, ordinary | `70-85%` | `35-55%` | usually `1`; maximum `2` only in a natural two-beat reply |
+| creative/gaming/casual comment | `75-90%` | `45-65%` | usually `1`; maximum `2` |
+| follow-up reply | `60-75%` | `25-45%` | usually `0-1`; maximum `2` |
+| technical reply | `55-70%` | `15-30%` | domain shorthand may be natural; maximum `1` social marker |
+| sensitive/support reply | `30-50%` | `0-15%` | normally `0`; never playful slang unless the parent clearly uses it safely |
+| main-post title | follow current survivor style | `5-20%` | maximum `1`; no slang merely to attract clicks |
+| main-post body | `25-45%` | `10-25%` | maximum `1` per short paragraph |
+| mod/Automod acknowledgement | `0-20%` | `0-5%` | plain and literal; no playful Redditism |
+| Chinese user-facing operation report | not applicable | `0%` | keep only necessary Reddit/Codex technical terms |
+
+Rate calculation:
+
+- `native compression marker` includes a contraction, fragment, compressed connective, locally used subreddit term, or social shorthand.
+- `social slang / Reddit abbreviation` is narrower: `tbh`, `ngl`, `imo`, `fwiw`, `afaik`, `iirc`, `idk`, `rn`, `tho`, `bc`, `ppl`, `OP`, `YMMV`, `lol/lmao`, or an observed subreddit-specific Redditism.
+- Choose the band from `output_surface` and context before drafting. When two bands apply, use the lower/safer band.
+- Never reuse the same social marker more than `2` times in the rolling last `10` outputs unless it is an unavoidable subreddit term such as `OP`.
+- Do not open more than `2` of the last `10` comments with the same marker or phrase family.
+- Meet frequency across the batch, not by stacking markers inside one sentence. If a candidate cannot support the planned marker naturally, use another passing candidate or record `plain_local_voice`.
+
 Do not stack abbreviations, force `lol/lmao`, imitate AAVE, invent typos, or use stale canned Reddit lines such as `take my upvote`, `this is the way`, or `sir, this is a Wendy's` unless the current thread itself makes the phrase specifically relevant. The target is native compression, not cosplay.
 
 Rules:
@@ -116,15 +145,16 @@ Rules:
 - Do not default to two sentences. Two-beat replies must earn their length.
 - If the only draft is generic praise, filler, a summary of the post, or a safe-sounding two-sentence template, skip or rewrite.
 - If you cannot state the `interesting_hook` in one line before posting, do not post yet.
-- If `rule_glance`, `context_detail`, `duplicate_to_avoid`, `local_voice_sample`, or `native_marker_plan` is missing, do not draft or enter text yet.
+- If `rule_glance`, `context_detail`, `duplicate_to_avoid`, `local_voice_sample`, `output_surface`, `voice_band`, or `native_marker_plan` is missing, do not draft or enter text yet.
 - Before entering the draft, produce three internal alternatives: `micro`, `one-liner`, and `two-beat`. Score them for specificity, fun, local voice, and compression; enter only the shortest option that preserves the useful point.
 - Prefer shorter than the model's first instinct unless the thread asks for depth.
 - For long or medium replies, add natural compression and internet phrasing where appropriate; avoid polished essay cadence.
-- After verification, append the measured counts, form, `native_marker_used`, and any `plain_local_voice` reason to `history_ledger` before discovering the next candidate.
+- After verification, append the measured counts, form, `native_marker_used`, `slang_or_abbrev_used`, selected `voice_band`, and any `plain_local_voice` reason to `history_ledger` before discovering the next candidate.
 
 ## Main Post Copy Shape
 
 - Sample recent surviving native posts in the target subreddit before choosing length and structure.
+- Select `post_title` and `post_body` frequency bands separately. A casual body never grants a slang-heavy title.
 - Use the shortest body that supplies the context the community expects; do not force comment-length brevity onto a post.
 - Compare recent account posts for title pattern, opening, angle, paragraph shape, and length. Avoid repeating all of them together.
 - Preserve factual/persona consistency even when the post format changes.

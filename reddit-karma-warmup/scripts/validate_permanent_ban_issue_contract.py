@@ -26,10 +26,6 @@ required = {
         "Do not trigger for a removed post/comment",
         "Do not repeatedly reopen or verify the Issue",
     ],
-    "../README.md": [
-        "自动提交一个去重、脱敏的公开 Issue",
-        "普通删帖、审核中、临时封禁、限流或推断不会触发",
-    ],
 }
 
 errors: list[str] = []

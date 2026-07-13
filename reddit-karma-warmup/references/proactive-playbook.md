@@ -16,6 +16,12 @@ These are internal defaults, not Reddit platform limits, safety guarantees, quot
 
 Use `new-account-bootstrap.md` when `K0` is in `fresh_bootstrap`. Passing its checkpoints changes the substate to `active_new` but does not create another tier. Promote to `K1/K2` only when both the karma band and account-level health signals pass. Community removals retire only their exact subreddits; they do not demote the account tier or create a generic slowdown.
 
+### Fresh-account default
+
+When the user asks only to start operating and the account is `K0 fresh_bootstrap`, default to the low envelope: target `3` and cap `4` proactive comments in the first hour, no more than `12` proactive comments in the first `24h`, and `0-1` main post that day. Prefer at least `3` low-restriction communities with clear ordinary participation paths. Do not use `A`, `A0`, `No-go`, account-denylisted, approval-gated, megathread-only, local-Karma-gated, or tightly formatted communities for bootstrap publishing.
+
+This conservative default is not a no-action state. Start the first eligible comment slot immediately. A user's explicit count, intensity, duration, or target still overrides the default after one concise caution when materially riskier; live rules and the account denylist continue to veto the exact destination.
+
 After every verified proactive comment, use a local `60-120 sec` pause before the next publish; discovery, reading, drafting, and verification time are additional. Main posts are heavier: default to at most one main post per subreddit per `24h`. The first eligible main post of the day has no skill-level `6h` waiting gate. Only a second same-day post requires a different community and audience/angle cluster, at least `6h` separation from the first, and a clean visibility check on the earlier post.
 
 ## Explicit Daily 60 Comment Mode
@@ -75,12 +81,24 @@ Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, s
 
 User-provided targets override the bundled pool. Otherwise query `loci-subreddit-pool-v1.md` through the progressive retrieval protocol in `publish-consistency.md`; do not load the entire archive. Use `operation-style-profiles.md` to rank direction fit and `publish-consistency.md` to build the eligible pool.
 
+Before opening any candidate subreddit, load `account-community-denylist.md`. A matching entry is a hard destination veto even when the user supplies a broad topic or the archive ranks it highly. Do not open, read, vote, join, comment, post, test access, or revalidate that subreddit unless the user explicitly removes the denylist entry.
+
 - `B`: eligible when the row and live context fit.
 - `B+`: ordinary comments and low-frequency feedback/demo contexts when row rules fit.
 - `A`: research-first; interact only for a clear ordinary non-product reason.
 - `A0` and `No-go`: read-only; no post, comment, vote, join, flair, or warm-up action.
 
+For `K0 fresh_bootstrap`, narrow this further: use only `B/B+` rows whose live rules show an ordinary participation path without special approval, local/community Karma, mandatory megathread placement, or unusually rigid formatting. Treat stricter rows as unavailable for bootstrap rather than spending the slot probing them.
+
 Within `B/B+`, start from communities with the clearest ordinary participation path, lowest row restriction, and strongest resolved-style fit. A retired subreddit is closed for future outward actions. Retirements in other communities carry no account-tier, pacing, or candidate-score penalty.
+
+Treat rule friction as a routing cost:
+
+- low friction: clear on-topic/civility rules and ordinary comments or native posts; use first
+- medium friction: required flair/title/format or narrow topical fit, but an ordinary participation path remains; use sparingly after low-friction options
+- high friction: moderator approval, local/community Karma, mandatory megathread, infrequent developer/self-promo windows, subjective anti-promotion/showcase enforcement, or multiple special placement rules; do not proactively visit in default operations
+
+An `A` row is not a default operating destination. Open it only when the user explicitly targets it or when low/medium-friction `B/B+` options are exhausted and the stored row already shows a clear ordinary non-product participation path. Never visit `A0`, `No-go`, retired, or account-denylisted communities merely to see whether access or rules changed.
 
 Prefer `New` and `Rising` for early comment opportunities. Use `Hot` and `Top` to learn community language and survivor patterns.
 

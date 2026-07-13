@@ -44,6 +44,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - lane playbooks: candidate and action rules for that lane only.
 - `chrome-network-recovery.md`: bounded Chrome/page/network recovery in the current lane.
 - `outbound-copy-gate.md` and `publish-consistency.md`: outbound writing quality and variation.
+- `account-community-denylist.md`: account-specific permanent exclusions. Check it before the bundled pool or any live subreddit visit.
 - `operation-style-profiles.md` and `loci-subreddit-pool-v1.md`: optional style and the large default community archive. Never load the whole archive by default; retrieve only exact subreddit rows or a small keyword-filtered candidate set.
 
 When two references conflict, the owner above wins.
@@ -69,7 +70,7 @@ Every lane task independently follows:
 1. Apply the latest user mission and confirm its own exact lane.
 2. Discover/reconnect Chrome and create or reclaim only its own tab.
 3. Confirm the visible Reddit account, current local time, UTC, and stop time.
-4. Read live context. For posts, always recheck current subreddit rules, account age/Karma/Flair requirements, and recent posting eligibility before drafting.
+4. Load `account-community-denylist.md` and exclude matches before any subreddit visit. Then read live context. For posts, always recheck current subreddit rules, account age/Karma/Flair requirements, and recent posting eligibility before drafting.
 5. Resolve the slot's exact target/cap/read floor, then execute immediately. For comments and posts, verified action count is the primary completion condition; reading is discovery evidence, not completion. Continue live discovery until the target is met or the current runtime must yield.
 6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.
 7. On each wake, resume the same unfinished slot with its exact `slot_target_remaining`; do not reset the count or treat candidate scarcity as completion. Record `not_due`/no-action/recovery only as an interim checkpoint, then keep or update the same timer.

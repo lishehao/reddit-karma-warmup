@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT / "references" / "loci-subreddit-pool-v1.md"
+DENYLIST = ROOT / "references" / "account-community-denylist.md"
 
 
 def main() -> int:
@@ -28,9 +29,19 @@ def main() -> int:
         errors.append(f"row_count:{len(rows)}")
     if len(normalized) != len(set(normalized)):
         errors.append("duplicate_subreddit")
+    if not re.search(r"^\| r/CozyGamers \| A0 \|", body, flags=re.MULTILINE):
+        errors.append("cozygamers_not_a0")
+
+    denylist = DENYLIST.read_text(encoding="utf-8")
+    for subreddit in ("r/gamedev", "r/CozyGamers"):
+        if subreddit not in denylist:
+            errors.append(f"denylist_missing:{subreddit}")
+    for needle in ("permanent deny", "do not open", "explicit user instruction"):
+        if needle not in denylist:
+            errors.append(f"denylist_contract_missing:{needle}")
 
     contracts = {
-        ROOT / "SKILL.md": "Never load the whole archive by default",
+        ROOT / "SKILL.md": "Load `account-community-denylist.md` and exclude matches before any subreddit visit",
         ROOT / "references" / "publish-consistency.md": "never read the complete archive into context",
         ROOT / "references" / "proactive-playbook.md": "do not load the entire archive",
     }
@@ -48,6 +59,8 @@ def main() -> int:
     print("revision=763")
     print("subreddit_rows=144")
     print("duplicates=0")
+    print("account_denylist=r/gamedev,r/CozyGamers")
+    print("cozygamers_pool=A0")
     print("retrieval=PROGRESSIVE_EXACT_OR_FILTERED")
     return 0
 

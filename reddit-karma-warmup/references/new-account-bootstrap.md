@@ -10,7 +10,7 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 2. **Establish a truthful presence baseline.** `Reddit 分发台` may allocate `Reddit 主页台`; that task loads `community-presence-playbook.md`, makes one immediate best-effort display/about/avatar/banner checkpoint, and owns any requested retry without holding outward tasks.
 3. **Join a few high-fit communities.** `Reddit 主页台` runs the membership gate and prefers `1-3` in the first slot. Profile/Join/Flair incompleteness never blocks outward lanes once account identity is known.
 4. **Read before and alongside publishing.** Comment, post, and follow-up tasks independently assess natural incidental votes on external content they already open. These votes have no quota and never cause extra browsing. Create a separate intensity-sized browse slot only when the user explicitly requests pure browsing/voting.
-5. **Run the first-hour launch.** Immediately execute comments, post preflight, and follow-up using the selected intensity. Comments remain micro/fragment/one-liner first and span lower-restriction communities. Add pure browsing only when explicitly requested.
+5. **Run the first-hour launch.** If the user did not specify intensity/count, use the fresh-account low default: comment target/cap `3/4`, first-day proactive-comment cap `12`, and main-post cap `1`. Immediately execute comments, post preflight, and follow-up. Comments remain micro/fragment/one-liner first and span at least three lower-restriction communities. Add pure browsing only when explicitly requested.
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
 7. **Verify locally.** Record and verify the first permalink in the comment task while its mission continues. Any removal retires only its exact subreddit; continue in unaffected communities. Timed rate limits auto-resume; allowlisted account repair states withhold only impossible mutations while this task's Heartbeat and permitted work continue. A pending delayed check or historical event is not a reason to wait.
 8. **Continue after the first hour.** Continue the user's selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A currently active blocker uses its minimum recovery condition, then resumes the same latest command. Historical or cleared failures never select a recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
@@ -33,9 +33,9 @@ For internal Loci accounts without another supplied persona:
 - joins: prefer `1-3`, max `5`
 - incidental voting: comments/posts/follow-up score only already-read external content, with no quota or extra discovery
 - explicit browsing: when requested, one intensity-sized slot at launch; standard starts at `20` qualified reads, vote target `2`, cap `4`
-- proactive comments: use the selected intensity; `60/day` requires explicit high-volume mode, at least `6h`, and enough passing candidates
+- proactive comments: unspecified operation defaults to target/cap `3/4` in the first hour and no more than `12` in the first `24h`; `60/day` requires explicit high-volume mode, at least `6h`, and enough passing candidates
 - startup checkpoint: the comment task verifies its first permalink immediately; delayed visibility may be checked on its next wake without pausing work
-- main posts: `0-2/day`; never more than one per subreddit per `24h`
+- main posts: unspecified operation defaults to `0-1/day`; explicit higher intensity may use `0-2/day`; never more than one per subreddit per `24h`
 - first main post: no skill-level `6h` wait; publish only after full live eligibility/preflight passes
 - first-hour comments: low target/cap `3/4`, standard `5/6`, high `8/10`, with `60-120 sec` local pause after every verified submission
 - second post checkpoint: first post remains visible after `30-60 min`, no account/community warning, different community and angle, `>=6h` later

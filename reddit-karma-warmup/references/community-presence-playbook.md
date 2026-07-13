@@ -46,7 +46,7 @@ Do not join and immediately publish a main post unless the user explicitly asks 
 
 ## Profile And Flair
 
-For internal Loci accounts with no user-specified persona, use a broad truthful interest profile: AR/VR/XR, 3D tools, spatial social, location-based play, indie apps, game development, photography, and creative tech.
+Resolve `account-direction.md` before profile or membership changes. For internal Loci accounts with no user-specified direction, use its broad truthful default rather than inventing a narrow persona.
 
 Keep the profile legible rather than promotional. Do not claim founder, employer, expertise, location, age, metrics, testing history, or product usage unless true and explicitly provided. Avoid product links, waitlists, Discord, and sales copy.
 

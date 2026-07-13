@@ -16,11 +16,11 @@ Out of scope:
 
 ## Dispatch
 
-1. Normalize the current direct user request through `default-operations-sop.md` and generate a new run ID.
+1. Resolve one `account_direction` through `account-direction.md`, normalize the current direct user request through `default-operations-sop.md`, and generate a new run ID.
 2. Broad `开始/运营` enables comments, posts, and follow-up. Add presence only when the profile baseline is incomplete or explicitly requested. Create browsing only for an explicit pure-browse/vote request. A named lane enables only that lane.
 3. Use `thread-supervision-runtime.md` to create one new persistent task per enabled lane. Do not list/search/read/reuse/unarchive/revive historical tasks.
 4. Capture only the exact IDs returned by this run's task-creation calls. Rename each new task to its canonical lane title and keep it unpinned. Never unpin the distribution task.
-5. Send one complete handoff containing lane, objective, exclusions, account, duration/count, intensity, style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `incidental_voting=already_read_content_only` for comments/posts/follow-up, required references, and `heartbeat_owner=self`.
+5. Send one complete handoff containing lane, objective, exclusions, account, `account_direction`, `direction_source`, duration/count, intensity, per-run style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `incidental_voting=already_read_content_only` for comments/posts/follow-up, required references, and `heartbeat_owner=self`.
 6. Verify only that the exact task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
 7. Return the created titles plus the routing instruction below, using only the tasks created in this dispatch, then enter `L4_IDLE`.
 

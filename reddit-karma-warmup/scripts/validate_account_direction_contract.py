@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Validate broad truthful account direction and per-run style separation."""
+
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+required = {
+    "SKILL.md": ["account-direction.md", "Resolve the account direction"],
+    "references/account-direction.md": [
+        "3-5",
+        "direction_source=default_loci_broad",
+        "It is not a fictional persona",
+        "disclose affiliation when material",
+        "Do not disguise Loci promotion",
+        "without another confirmation",
+    ],
+    "references/runtime-and-setup.md": [
+        "Present one broad truthful account direction",
+        "The direction prompt is non-blocking",
+    ],
+    "references/launcher-playbook.md": ["account_direction", "direction_source"],
+    "references/default-operations-sop.md": ["account_direction + direction_source"],
+    "references/operation-style-profiles.md": [
+        "per-run focus inside the broader durable `account_direction`",
+    ],
+    "references/community-presence-playbook.md": ["Resolve `account-direction.md`"],
+}
+
+errors: list[str] = []
+for relative, needles in required.items():
+    body = (ROOT / relative).read_text(encoding="utf-8")
+    for needle in needles:
+        if needle not in body:
+            errors.append(f"missing:{relative}:{needle}")
+
+if errors:
+    raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))
+
+print(json.dumps({
+    "status": "PASS",
+    "direction": "BROAD_TRUTHFUL_3_TO_5_PILLARS",
+    "style": "NARROW_PER_RUN_SUBSET",
+    "promotion": "TRANSPARENT_RULE_GATED",
+}, ensure_ascii=False, sort_keys=True))

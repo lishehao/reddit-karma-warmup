@@ -34,7 +34,7 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 
 If a required item needs user repair, remain `Reddit 启动台` and request only that repair. On `继续`, recheck only missing items.
 
-When healthy, rename the same task `Reddit 分发台`, pin that exact task, then ask how to operate. If the setup command already includes an operation, do not ask again: complete rename/pin and dispatch immediately. If the user replies `开始`, default to standard intensity, mixed style, and three hours; dispatch the independent lane tasks immediately. Rename or pin failure is presentation-only and does not block dispatch; report the missing presentation action once without searching for another task.
+When healthy, rename the same task `Reddit 分发台`, pin that exact task, then load `account-direction.md`. Present one broad truthful account direction together with the operation question. The direction prompt is non-blocking: if the user replies `开始`, accept the default direction plus standard intensity, mixed style, and three hours, then dispatch immediately. If the setup command already includes an operation, resolve an explicit or default direction, report it briefly, and dispatch without asking again. Rename or pin failure is presentation-only and does not block dispatch; report the missing presentation action once without searching for another task.
 
 ```text
 状态健康。当前账号：u/name。
@@ -43,5 +43,7 @@ When healthy, rename the same task `Reddit 分发台`, pin that exact task, then
 
 分发台已置顶；后续新一轮运营都从这里分配。
 
-你希望怎么运营？可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格。暂时没想法就回复“开始”，我会创建独立的评论台、发帖台和跟进台；它们会在本来就读到的内容上自然判断是否投票。纯浏览台仅在你明确要求时创建。
+建议账号方向：移动产品、3D/AR、游戏与 UGC、摄影与地点体验、创作工具。它是宽口径兴趣范围，不是虚构身份；单轮运营只需从中选一个重点。
+
+你可以直接修改这个方向，也可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格。暂时没想法就回复“开始”，我会按默认方向创建独立的评论台、发帖台和跟进台；它们会在本来就读到的内容上自然判断是否投票。纯浏览台仅在你明确要求时创建。
 ```

@@ -35,6 +35,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 ## Reference Ownership
 
 - `runtime-and-setup.md`: installation, preflight, immediate launcher naming, and launcher exit.
+- `account-direction.md`: one broad truthful account interest portfolio, onboarding resolution, and the boundary between durable direction and per-run style.
 - `launcher-playbook.md`: reusable stateless fresh allocation and delivery proof.
 - `thread-supervision-runtime.md`: create one fresh independent task per requested lane; never search or reuse old tasks.
 - `default-operations-sop.md`: normalize the first mission, exact action targets/caps, target-driven scan loop, incidental voting, and lane-specific later mission.
@@ -74,7 +75,7 @@ Every lane task independently follows:
 2. Discover/reconnect Chrome and create or reclaim only its own tab.
 3. Confirm the visible Reddit account, current local time, UTC, and stop time.
 4. Load `organization-community-denylist.md` and exclude matches before any subreddit visit. Then load the exact row from `community-action-routing-overrides.md` when present before consulting the historical pool. Any `research-only` or downgraded row forbids comments, posts, and votes. Use `community-expansion-pending-review-2026-07-13.md` only to discover future preflight candidates; every listed candidate remains closed until its required live review passes. Read live context only for remaining eligible destinations. For posts, always recheck current subreddit rules, account age/Karma/Flair requirements, and recent posting eligibility before drafting.
-5. Resolve the slot's exact target/cap/read floor, then execute immediately. For comments and posts, verified action count is the primary completion condition; reading is discovery evidence, not completion. Continue live discovery until the target is met or the current runtime must yield.
+5. Resolve the account direction and the narrower per-run operation style, then resolve the slot's exact target/cap/read floor and execute immediately. For comments and posts, verified action count is the primary completion condition; reading is discovery evidence, not completion. Continue live discovery until the target is met or the current runtime must yield.
 6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.
 7. On each wake, resume the same unfinished slot with its exact `slot_target_remaining`; do not reset the count or treat candidate scarcity as completion. Record `not_due`/no-action/recovery only as an interim checkpoint, then keep or update the same timer.
 8. At explicit stop, deadline, or verified lane completion, remove only its own Heartbeat and report locally.

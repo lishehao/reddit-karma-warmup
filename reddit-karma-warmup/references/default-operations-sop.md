@@ -7,6 +7,7 @@ Use in the reusable stateless launcher to split each direct dispatch request, an
 - missing duration: `3h`
 - missing intensity: `standard`
 - missing style: `mixed`
+- missing account direction: resolve the broad default in `account-direction.md`
 - missing post angle: `beginner-common-mistake`
 - broad `开始/运营`: comments + posts + follow-up
 - browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
@@ -58,6 +59,7 @@ lane
 single_objective
 out_of_scope
 account
+account_direction + direction_source
 duration/count/intensity/style/language
 post_default_angle=beginner-common-mistake
 target_pool_or_urls
@@ -71,7 +73,7 @@ incidental_voting=already_read_content_only
 action_target + action_cap + qualified_read_floor
 ```
 
-The missions share only user-provided scope and account identity. They do not share runtime state, Heartbeats, risk, completion, cadence, history, or control.
+The missions share only user-provided scope, account identity, and the resolved broad account direction. They do not share runtime state, Heartbeats, risk, completion, cadence, history, or control.
 
 ## Later Lane Mission
 

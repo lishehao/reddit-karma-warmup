@@ -2,6 +2,8 @@
 
 Load for `ACCOUNT_BOOTSTRAP` or `MISSION` when target discovery, community selection, browsing preference, or writing posture depends on the requested operation style.
 
+`operation_style` is a per-run focus inside the broader durable `account_direction` defined in `account-direction.md`. It may narrow the current run but must not invent a new identity or push the account outside its truthful interest portfolio.
+
 ## Selector
 
 Use one resolved `operation_style`:

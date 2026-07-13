@@ -163,6 +163,16 @@ reddit-karma-warmup/
 
 仅操作用户明确授权的账号和浏览器会话。实时 subreddit 规则约束具体动作。登录/CAPTCHA/账号锁只暂停受影响执行台；定时 rate limit 自动复查；明确社区禁止则换社区；网络和页面故障由当前执行台及其 Heartbeat继续恢复。
 
+## 反馈与贡献
+
+这是公开仓库，但公开不代表任何人都能直接修改 `main`。未获得仓库写权限的用户可以：
+
+- 提交 [Issue](https://github.com/lishehao/reddit-karma-warmup/issues) 报告问题或提出建议；
+- 在已有 Issue 或 Pull Request 下评论；
+- fork 仓库、修改后提交 Pull Request，等待维护者审阅和合并。
+
+只有仓库所有者或被授予写权限的协作者可以直接推送。完整要求见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
 ## License
 
 MIT

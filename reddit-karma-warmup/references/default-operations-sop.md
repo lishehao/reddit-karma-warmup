@@ -9,6 +9,7 @@ Use in the reusable stateless launcher to split each direct dispatch request, an
 - missing style: `mixed`
 - missing account direction: resolve the broad default in `account-direction.md`
 - missing comment pacing: `clustered_windows`
+- comment cluster completion floor: `minimum_completed_cluster_size=2`
 - missing post angle: `beginner-common-mistake`
 - broad `开始/运营`: comments + posts + follow-up
 - browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
@@ -27,6 +28,8 @@ Planning targets are quality-gated. Resolve every range to one exact `action_tar
 | high | `8/10 per hour`; `24` | `1/1 every 60-90m`; `4` subreddit-angle candidates with `5` survivor samples each | full sweep every `20-30m` | `30`; `4/6` |
 
 An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
+
+For proactive comments, decompose every target of `2+` into windows whose planned sizes are all at least `2`. Examples: `3 -> 3`, `5 -> 2+3`, `8 -> 3+2+3`. `single_comment_cluster=forbidden`: after the first verified comment in a window, continue discovery and publishing until at least the second verified comment before yielding, reporting a completed window, or scheduling the next Heartbeat. A user instruction explicitly requesting exactly `1` total comment is a single-action mission, not a cluster, and is the only count-based exception. User stop, deadline, or a current hard blocker may interrupt a window after one action, but it remains `cluster_incomplete` with its remainder preserved; never relabel it completed.
 
 ## Target-Driven Scan Loop
 
@@ -65,6 +68,8 @@ account
 account_direction + direction_source
 duration/count/intensity/style/language
 pacing_mode=clustered_windows
+minimum_completed_cluster_size=2
+single_comment_cluster=forbidden
 post_default_angle=beginner-common-mistake
 target_pool_or_urls
 start_local + start_utc

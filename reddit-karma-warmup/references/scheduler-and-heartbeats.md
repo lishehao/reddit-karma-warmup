@@ -35,12 +35,14 @@ For comments, plan operational batches instead of a uniform per-comment clock:
 
 1. Compute `effective_hourly_rate` from the latest controlling target and remaining time.
 2. For roughly `6-10 comments/hour`, normally create `2-3` batch windows per hour. Vary the gap from actual completion time, usually `20-35m`, instead of repeating an exact interval.
-3. Give each due window an exact `batch_target`, normally `2-4` verified comments, and an active work envelope of about `4-8m`. Candidate quality, rules, and the mission cap still gate every action.
+3. Give each due window an exact `batch_target` of at least `2`, normally `2-4` verified comments, and an active work envelope of about `4-8m`. `minimum_completed_cluster_size=2` and `single_comment_cluster=forbidden`. Candidate quality, rules, and the mission cap still gate every action.
 4. Inside a window, keep the existing pre-submit pause and `60-120 sec` pause after each verified proactive comment. Use local sleep for these sub-five-minute waits; use the lane Heartbeat between windows.
-5. Preserve `batch_target_remaining` and `slot_target_remaining`. A thin batch carries its remainder forward; it never lowers thresholds and never creates a catch-up burst.
+5. Preserve `batch_target_remaining` and `slot_target_remaining`. After one verified proactive comment, the current wake stays active and continues discovery until the second passes; do not yield, schedule the next Heartbeat, or report a completed window after only one. A user-requested exact-one total is a single-action mission rather than a cluster. A user stop, deadline, or current hard blocker may produce `cluster_incomplete`, which carries its exact remainder forward without lowering thresholds or creating a catch-up burst.
 6. Recompute later windows from actual verified count and remaining time. Do not precompute a mechanically identical all-day schedule.
 
 Example: `80 comments / 10h` resolves to `8/hour`, not `10/hour`. A representative hour may use three windows such as `3 + 2 + 3`, with each window starting after a varied `20-35m` gap. The exact distribution changes with qualified candidates and actual completion time; it is not a promise to publish weak comments.
+
+Before creating or updating the inter-window Heartbeat, assert `verified_comments_in_current_window >= 2` or `explicit_exact_one_mission=true`. If neither is true, keep working in the current wake. Recoverable browser/network failure does not satisfy the assertion; preserve the incomplete cluster and retry locally or on the same lane's continuation without calling it a completed window.
 
 ## Wake Flow
 

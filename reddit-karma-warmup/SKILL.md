@@ -36,6 +36,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 
 - `runtime-and-setup.md`: installation, preflight, immediate launcher naming, and launcher exit.
 - `account-direction.md`: one broad truthful account interest portfolio, onboarding resolution, and the boundary between durable direction and per-run style.
+- `subreddit-catalog-taxonomy.md` and `subreddit-profile-index.csv`: lightweight profile/tag/traffic discovery index. Query it after direction resolution; catalog matches never grant publishing permission.
 - `launcher-playbook.md`: reusable stateless fresh allocation and delivery proof.
 - `thread-supervision-runtime.md`: create one fresh independent task per requested lane; never search or reuse old tasks.
 - `default-operations-sop.md`: normalize the first mission, exact action targets/caps, target-driven scan loop, incidental voting, and lane-specific later mission.
@@ -79,6 +80,8 @@ Every lane task independently follows:
 3. Confirm the visible Reddit account, current local time, UTC, and stop time.
 4. Load `organization-community-denylist.md` and exclude matches before any subreddit visit. Then load the exact row from `community-action-routing-overrides.md` when present before consulting the historical pool. Any `research-only` or downgraded row forbids comments, posts, and votes. For the 30 live-audited communities, consult the exact row in `community-live-audit-30-2026-07-13.md` only when evidence or a gate needs explanation; the action override remains authoritative. Use `community-expansion-pending-review-2026-07-13.md` and `community-action-expansion-public-audit-2026-07-13.md` only to discover and rank future preflight candidates; every listed candidate remains closed until its required live review passes. Read live context only for remaining eligible destinations. For posts, always recheck current subreddit rules, account age/Karma/Flair requirements, and recent posting eligibility before drafting.
 5. Resolve the account direction and the narrower per-run operation style, then resolve the slot's exact target/cap/read floor and execute immediately. Before every comment/reply, run the short-first and native-marker requirements in `outbound-copy-gate.md`; missing local voice evidence is `Watch`, not permission to draft. For comments and posts, verified action count is the primary completion condition; reading is discovery evidence, not completion. Continue live discovery until the target is met or the current runtime must yield.
+
+The launcher maps the resolved account direction to the tagged subreddit index before dispatch. Attach only cached `>=5K` weekly-visitor matches plus a bounded `traffic_probe_queue`; a probe must pass a live traffic check before any worker treats it as an action candidate.
 
 Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf and must not be routed through `loci-prepare-reddit-post`. Draft them directly from current subreddit context, then apply the live rules, truthfulness, account-history, copy-shape, and final-submit checks in this Skill. Use an external rewriting service only when the user explicitly requests it for that exact post.
 6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.

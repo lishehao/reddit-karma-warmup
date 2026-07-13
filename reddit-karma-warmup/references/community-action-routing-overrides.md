@@ -20,6 +20,7 @@ States:
 | `r/LEGOfortnite` | research-only | closed | closed | Downgraded. Theme and anti-AI/advertising boundaries do not fit Loci outward. |
 | `r/gmod` | research-only | closed | closed | Downgraded. No comments, posts, votes, or external product narrative. |
 | `r/StableDiffusion` | research-only | closed | closed | Downgraded. Local/open-source AI workflow focus does not fit Loci outward. |
+| `r/college` | research-only | closed | closed | Downgraded. Student-context sensitivity and unresolved participation boundaries make all outward action closed by default. |
 | `r/collegeadvice` | research-only | closed | closed | Downgraded. Anti-advertising/AI sensitivity and student context make outward action closed. |
 | `r/AppIdeas` | default | conditional | closed | Main post only for no-link idea/concept validation. No completed project, App Store, mailing list, waitlist, or advertising. |
 | `r/SideProject` | default | conditional | conditional | Real project, self-contained text, one specific question, no copied cross-post, waitlist-only pitch, pure link, or AI-first packaging. Product context must be transparent and non-CTA. |

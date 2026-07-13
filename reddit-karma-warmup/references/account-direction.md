@@ -16,9 +16,10 @@ Minimum schema:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "reddit_account": "u/name",
   "account_direction": ["..."],
+  "direction_tags": ["..."],
   "direction_source": "default_loci_broad",
   "confirmed_at": "ISO-8601 with timezone"
 }
@@ -58,9 +59,18 @@ This breadth supports several adjacent communities without turning the account i
 - `确认` atomically writes the default and then asks what operation to start. `确认并开始` writes the default and immediately dispatches the standard three-hour operation. A concrete modification is normalized, written, and treated as confirmed.
 - If the initial setup command already supplies an explicit truthful direction, that explicit direction counts as confirmation: normalize and persist it without asking a redundant question.
 - If the user supplies a direction, normalize it to `3-5` truthful adjacent pillars and set `direction_source=user`.
+- Map the confirmed pillars to canonical `direction_tags` from `subreddit-catalog-taxonomy.md`. Persist those tags with the direction so later launcher runs do not have to reinterpret the same wording.
 - If the user supplies only one narrow topic, preserve it as the primary pillar and add only clearly adjacent support pillars; briefly show the resolved direction.
 - A bare `开始` during first-time setup is not direction confirmation. Ask the one-time direction question. After a matching direction file exists, `开始` uses it immediately without another confirmation.
 - If the setup command requests operations but has no explicit direction and no matching direction file, complete preflight, ask the one-time direction question, and dispatch immediately after the answer rather than asking a second operation question.
+
+After direction confirmation, run `scripts/query_subreddit_profile_index.py --direction <resolved pillars> --limit 12 --include-traffic-probes`. This is local catalog retrieval, not Reddit browsing. Keep only its `operating_shortlist` and `traffic_probe_queue` for the current dispatch:
+
+- `operating_shortlist`: cached traffic is at least `5,000` weekly visitors; exact action rules still require live preflight.
+- `traffic_probe_queue`: tag-fit candidate with missing/stale traffic; a worker must confirm current weekly visitors before it can act.
+- a cached row below `5,000` never enters either list.
+
+If the index or query script is unavailable, do not block setup. Preserve the confirmed direction, report `社区索引暂不可用`, and let each worker use the existing exact rule references without an indexed shortlist.
 
 Use this one-time confirmation:
 
@@ -74,6 +84,7 @@ Use this concise setup line:
 
 ```text
 账号方向：<3-5 个兴趣支柱>。本轮重点：<operation_style>。
+候选社区簇：<最多 3 个标签簇；具体社区随执行台做流量和版规复核>。
 ```
 
 ## Lane Application

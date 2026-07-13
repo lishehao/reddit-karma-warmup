@@ -38,6 +38,13 @@ def main() -> int:
             "L2_READY",
             "pinned=true",
             "never list/search by title to find the task to pin",
+            "Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf",
+            "must not be routed through `loci-prepare-reddit-post`",
+        ],
+        ROOT / "references" / "proactive-playbook.md": [
+            "This lane owns ordinary native posts end to end",
+            "does not call GPT Inf or `loci-prepare-reddit-post`",
+            "GPT Inf is not a readiness gate, a blocker, or a report field for ordinary posts",
         ],
         ROOT / "references" / "launcher-playbook.md": [
             "returns to pinned idle",
@@ -153,6 +160,7 @@ def main() -> int:
         "launcher_idle_reuse": "USER_TRIGGER_ONLY",
         "launcher_idle_presentation": "PINNED",
         "worker_return_to_launcher": "FORBIDDEN",
+        "ordinary_post_gpt_inf": "NOT_REQUIRED",
     }
     print("AUTONOMOUS_LANE_CONTRACT=PASS")
     for scenario, result in scenarios.items():

@@ -176,6 +176,8 @@ Weak forms: `I'm new, any tips?`, `What mistakes should I avoid?`, or the same t
 
 ## Main Post Gate
 
+This lane owns ordinary native posts end to end. It drafts directly from live subreddit context and does not call GPT Inf or `loci-prepare-reddit-post`. GPT Inf is not a readiness gate, a blocker, or a report field for ordinary posts. Only an explicit user request for that exact post may add an external rewriting pass; the normal live rules, truthfulness, history, copy, and submit gates still apply.
+
 Choose subreddit + audience + angle after history comparison and before drafting. Treat this live same-day preflight as the post-specific part of Double-Check A:
 
 After live eligibility is known, score the exact subreddit + audience + angle:

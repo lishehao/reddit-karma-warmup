@@ -44,7 +44,7 @@ This lane has no artificial reply quota. Its completion target is one full requi
 
 1. Read the parent and nearby chain, not only the notification preview.
 2. Load `publish-consistency.md`, compare history, and run Double-Check A.
-3. Load `outbound-copy-gate.md`; classify the reply as ordinary follow-up, technical, sensitive/support, or mod acknowledgement, then apply that surface's length and slang/abbreviation band against the rolling last `10` outputs.
+3. Load `outbound-copy-gate.md`; classify the reply as ordinary follow-up, technical, sensitive/support, or mod acknowledgement, then apply that surface's length and slang/abbreviation band against the rolling last `10` outputs. An ordinary follow-up normally needs one locally supported colloquial marker or abbreviation; technical, sensitive, and moderator contexts retain the lower exception bands.
 4. Add one useful thing: acknowledgement, clarification, precise thanks, compact answer, or one question.
 5. Enter the reply and run Double-Check B.
 6. Reselect this lane's dedicated Reddit tab, verify account/target, wait `18-70 sec`, submit, and verify.

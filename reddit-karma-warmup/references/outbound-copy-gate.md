@@ -86,7 +86,7 @@ Short-first rewrite rules:
 
 ### Reddit-native voice
 
-Use current nearby replies as the primary language source. Across a session, comments should often contain natural Reddit/internet speech, but each individual reply uses only what fits its meaning and subreddit.
+Use current nearby replies as the primary language source. Ordinary comments should almost always contain one visible piece of natural Reddit/internet speech, but each individual reply uses only what fits its meaning and subreddit.
 
 Load `reddit-us-voice-patterns.md` after sampling nearby replies. Use it as a fallback pattern table and stale-phrase filter, never as a phrase quota. The current thread and subreddit vocabulary always win.
 
@@ -98,16 +98,16 @@ Load `reddit-us-voice-patterns.md` after sampling nearby replies. Use it as a fa
 
 Density guidance:
 
-- `micro/fragment`: usually `0-1` marker
-- `one-liner`: usually `1-2` markers or one fragment/contraction pattern
-- `two-beat`: usually `1-3` markers across the whole reply
+- `micro/fragment`: usually `1` marker
+- `one-liner`: usually `1`, maximum `2` markers
+- `two-beat`: usually `1-2` markers across the whole reply
 - paragraphs: use slang more sparsely so the advice remains readable
 
 Native-marker gate:
 
-- For ordinary non-sensitive sessions, target `60-75%` of published comments with at least one locally supported native marker: a contraction, fragment, abbreviation, subreddit term, compressed connective, or casual stance marker.
-- Every `one-liner` or `two-beat` draft must test at least one marker from `local_voice_sample`. Use it only if the meaning stays natural.
-- A final draft passes with no marker only when nearby replies are predominantly formal/technical, the topic is sensitive, or the marker would distort the author's voice. Record that reason as `plain_local_voice`.
+- For ordinary non-sensitive sessions, target `90-98%` of published comments with at least one locally supported **strong marker**: a social abbreviation, Redditism, casual stance marker, locally used colloquial fragment, subreddit term, or compressed connective. A routine contraction alone does not satisfy this stronger target.
+- Every ordinary `micro`, `fragment`, `one-liner`, or `two-beat` draft must test at least one strong marker from `local_voice_sample`. Use it only if the meaning stays natural.
+- A final ordinary draft passes with no strong marker only when nearby replies are predominantly formal/technical, the topic is sensitive, or the marker would distort the author's voice. Record that reason as `plain_local_voice`; ordinary sessions should produce no more than `1` such exception in the rolling last `20` comments.
 - Do not satisfy this gate with a random `lol`, `tbh`, or abbreviation. The marker must match the exact thread energy and meaning.
 
 ### Output-specific frequency bands
@@ -116,10 +116,10 @@ These are rolling-session targets, not per-item quotas. Local current replies ma
 
 | Output surface | Native compression marker rate | Social slang / Reddit abbreviation rate | Per-item density |
 |-|-:|-:|-|
-| proactive comment, ordinary | `70-85%` | `35-55%` | usually `1`; maximum `2` only in a natural two-beat reply |
-| creative/gaming/casual comment | `75-90%` | `45-65%` | usually `1`; maximum `2` |
-| follow-up reply | `60-75%` | `25-45%` | usually `0-1`; maximum `2` |
-| technical reply | `55-70%` | `15-30%` | domain shorthand may be natural; maximum `1` social marker |
+| proactive comment, ordinary | `90-98%` | `85-95%` | normally exactly `1`; maximum `2` only in a natural two-beat reply |
+| creative/gaming/casual comment | `95-100%` | `90-100%` | normally exactly `1`; maximum `2` |
+| follow-up reply | `85-95%` | `60-80%` | usually `1`; maximum `2` |
+| technical reply | `65-80%` | `25-45%` | domain shorthand may be natural; maximum `1` social marker |
 | sensitive/support reply | `30-50%` | `0-15%` | normally `0`; never playful slang unless the parent clearly uses it safely |
 | main-post title | follow current survivor style | `5-20%` | maximum `1`; no slang merely to attract clicks |
 | main-post body | `25-45%` | `10-25%` | maximum `1` per short paragraph |
@@ -128,12 +128,12 @@ These are rolling-session targets, not per-item quotas. Local current replies ma
 
 Rate calculation:
 
-- `native compression marker` includes a contraction, fragment, compressed connective, locally used subreddit term, or social shorthand.
+- `native compression marker` includes a contraction, fragment, compressed connective, locally used subreddit term, or social shorthand. For the ordinary-comment strong-marker requirement, a routine contraction by itself is insufficient.
 - `social slang / Reddit abbreviation` is narrower: `tbh`, `ngl`, `imo`, `fwiw`, `afaik`, `iirc`, `idk`, `rn`, `tho`, `bc`, `ppl`, `OP`, `YMMV`, `lol/lmao`, or an observed subreddit-specific Redditism.
 - Choose the band from `output_surface` and context before drafting. When two bands apply, use the lower/safer band.
 - Never reuse the same social marker more than `2` times in the rolling last `10` outputs unless it is an unavoidable subreddit term such as `OP`.
 - Do not open more than `2` of the last `10` comments with the same marker or phrase family.
-- Meet frequency across the batch, not by stacking markers inside one sentence. If a candidate cannot support the planned marker naturally, use another passing candidate or record `plain_local_voice`.
+- Meet frequency across the batch, not by stacking markers inside one sentence. If an ordinary candidate cannot support one strong marker naturally, prefer another passing candidate; use `plain_local_voice` only for the narrow formal, technical, or sensitive exceptions above.
 
 Do not stack abbreviations, force `lol/lmao`, imitate AAVE, invent typos, or use stale canned Reddit lines such as `take my upvote`, `this is the way`, or `sir, this is a Wendy's` unless the current thread itself makes the phrase specifically relevant. The target is native compression, not cosplay.
 

@@ -31,7 +31,9 @@ def main() -> int:
             "Chinese user-facing operation report",
             "Never reuse the same social marker more than `2` times",
             "`80-90%` should be `micro`, `fragment`, or `one-liner`",
-            "target `60-75%` of published comments",
+            "target `90-98%` of published comments",
+            "routine contraction alone does not satisfy",
+            "no more than `1` such exception in the rolling last `20` comments",
             "plain_local_voice",
         ],
         ROOT / "references" / "proactive-playbook.md": [
@@ -39,7 +41,8 @@ def main() -> int:
             "micro/one-liner/two-beat alternatives",
             "Choose the shortest passing alternative",
             "ordinary sessions target `80-90%`",
-            "`60-75%` of all comments",
+            "`90-98%` with one locally supported strong native marker",
+            "`85-95%` with an actual social slang/Reddit abbreviation",
             "classify `output_surface`",
             "slang_or_abbrev_used",
         ],
@@ -68,7 +71,8 @@ def main() -> int:
     print("drafts=MICRO_ONE_LINER_TWO_BEAT")
     print("selection=SHORTEST_PASSING")
     print("short_bias=80_TO_90_PERCENT")
-    print("native_marker_target=60_TO_75_PERCENT")
+    print("native_marker_target=90_TO_98_PERCENT")
+    print("social_slang_target=85_TO_95_PERCENT")
     print("frequency=OUTPUT_SURFACE_SPECIFIC")
     print("distribution=ACROSS_OUTPUTS_NOT_STACKED")
     return 0

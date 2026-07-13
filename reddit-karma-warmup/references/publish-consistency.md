@@ -20,6 +20,8 @@ Consistency means stable identity and facts, not repetitive wording. Never contr
 
 Use this precedence for every destination: `organization-community-denylist.md` -> exact `community-action-routing-overrides.md` row -> historical `loci-subreddit-pool-v1.md` row -> current live rules/account state. A denylist match is terminal. An action override splits comment, main-post, and product-mention permission; never collapse them into one community tier. A downgraded or `research-only` override is closed for all outward interaction.
 
+The expansion report `community-expansion-pending-review-2026-07-13.md` sits outside that permission chain. It may seed a future candidate name, but it cannot bypass or create an action override. Treat every expansion-only name as `closed_pending_live_review` until the current task independently verifies the full required live surface.
+
 The archive is intentionally large. Read it progressively:
 
 - known subreddit: use an anchored case-insensitive search for the exact row, such as `rg -ni '^\| r/Unity3D \|' loci-subreddit-pool-v1.md`, then read only that row plus the field header

@@ -87,6 +87,8 @@ For every non-denylisted candidate, read its exact row in `community-action-rout
 
 A community explicitly downgraded by the latest review is `research-only`: no proactive comment, follow-up reply, main post, vote, Join, flair, or product mention. Do not preserve a conditional-comment exception for a downgraded row. Research-only observation must be separately requested and remains read-only.
 
+`community-expansion-pending-review-2026-07-13.md` is a discovery backlog, not an eligible pool. Its 18 shortlist rows mean “re-run full live preflight after suspension,” and its 29 added names mean `pending_manual_review`. Neither group may enter comment/post scoring from the reference alone. Missing live rules, account status, local/community Karma, previous activity, approval, New/Hot, or submit evidence keeps the exact destination closed.
+
 - `B`: eligible when the row and live context fit.
 - `B+`: ordinary comments and low-frequency feedback/demo contexts when row rules fit.
 - `A`: research-first; interact only for a clear ordinary non-product reason.

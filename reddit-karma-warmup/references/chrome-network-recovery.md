@@ -47,7 +47,7 @@ When several causes remain possible, give at most the two strongest based on the
 | `transient_network` | `ERR_NETWORK_CHANGED`, `ERR_CONNECTION_TIMED_OUT`, `ERR_TIMED_OUT`, `ERR_CONNECTION_RESET`, `ERR_CONNECTION_CLOSED`, `ERR_EMPTY_RESPONSE` | unstable network, VPN/proxy transition, busy/down site, or middlebox | Bounded retry and scope probes; do not infer account enforcement. |
 | `proxy_or_tls` | `ERR_PROXY_CONNECTION_FAILED`, `ERR_TUNNEL_CONNECTION_FAILED`, `ERR_CERT_*`, `ERR_SSL_*` | proxy/VPN/TLS path problem | Never bypass a certificate warning or change proxy/VPN settings. Probe scope, then escalate if persistent. |
 | `site_or_http` | HTTP `500-599`, persistent `403`, `ERR_CONNECTION_REFUSED` | site/server/WAF/route issue; `403` is not automatically an account ban | Probe Reddit home and another route. Retry only when mutation state is safe. |
-| `rate_or_account` | current HTTP `429`, Reddit rate-limit/captcha/challenge/login/lock/warning UI | possible platform/account enforcement | Pause impossible mutations. For a displayed timed limit, preserve the mission and re-probe automatically at expiry; escalate only a state that needs user repair. Do not use network retries to bypass it. |
+| `rate_or_account` | current HTTP `429`, Reddit `Too Many Requests`, or rate-limit/captcha/challenge/login/lock/warning UI | possible platform/account enforcement | An explicit `429` enters `429_ROUND_PAUSE` below. Other displayed timed limits preserve the mission and re-probe automatically at expiry; escalate only a state that needs user repair. Do not use network retries to bypass either state. |
 | `client_block` | `ERR_BLOCKED_BY_CLIENT` | route blocked by client/extension/filter; not proof of Reddit restriction | Reconnect only if control also dropped; otherwise use a clean lane tab and native Reddit entry route. Skip one persistently blocked deep route. |
 | `form_replay` | `ERR_CACHE_MISS`, resubmit warning, submit result unknown | replay could duplicate an action | Never reload/resubmit blindly. Inspect target thread/profile/history first. |
 | `page_runtime` | `Aw, Snap!`, blank/white page, endless loading, script/selector failure without network code | renderer, memory, page script, stale DOM, or unknown loading fault | One reload, then one fresh lane tab; scope before classifying. |
@@ -73,13 +73,25 @@ Do not inspect cookies/local storage, clear browsing data, disable extensions, r
 
 ## Bounded Recovery State Machine
 
+### Explicit 429 Round Pause
+
+When the current Chrome surface or response explicitly shows HTTP `429`, `Too Many Requests`, or an equivalent server rate-limit response:
+
+1. Record the exact code/message, URL, local/UTC time, lane, mission ID, remaining target, and any exposed `Retry-After` or expiry.
+2. End the current wake immediately. Perform no more Reddit navigation, reload, comment, reply, post, vote, Join, profile edit, or submit attempt in this round.
+3. Preserve the mission, remaining target, draft state, and the lane's existing Heartbeat. Never delete, deactivate, or mark the mission complete.
+4. Set `next_due` to the later of this lane's next normal round and any explicit `Retry-After`/displayed expiry. If no normal next round exists, use `30m` as the one-round fallback.
+5. On that wake, probe one read-only Reddit surface once. If healthy, reconfirm account/context and resume normally without catch-up. If `429` remains, repeat one round pause.
+
+`429_ROUND_PAUSE` is lane-local because tasks do not share runtime state. Another lane pauses only if it independently receives the same explicit response. Do not create cross-task locks, callbacks, or pause messages.
+
 `attempt 0` is the original failure.
 
-1. `attempt 1`: preserve mutation state, apply the class-specific immediate recovery, then probe current domain plus scope.
+1. `attempt 1`: preserve mutation state, apply the class-specific immediate recovery, then probe current domain plus scope. Explicit `429` bypasses this same-wake retry and uses `429_ROUND_PAUSE`.
 2. If still failing and no user-repair state exists, keep this lane's recurring Heartbeat active and request a recovery checkpoint `5-10 min` later. End the turn with the normal three-line report; `下轮计划` names the exact probe and withheld mutation. Do not pause or edit sibling lanes.
 3. `attempt 2` at the Heartbeat wake: rerun the scope probes once. If healthy, reconfirm account/context and resume from the last safe state. If still technical/retryable, record `lane_recovering`, choose another native route/safe candidate when possible, and re-probe on later wakes until recovery or mission deadline. Chrome-control failure becomes user-repair eligible only after three consecutive recovery wakes; ordinary network/route/client-block failure never does by itself.
 
-Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The worker relies on its own recurring Heartbeat for later recovery and may update that timer when the recovery time changes. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision.
+Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The worker relies on its own recurring Heartbeat for later recovery and may update that timer when the recovery time changes. For explicit `429`, do not retry, probe, or continue Reddit work again in the same wake. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision.
 
 Never delete, deactivate, or pause this lane's Heartbeat because a Chrome, network, page, route, client-block, or recovery attempt failed. Multiple unsuccessful recovery wakes remain `lane_recovering` and continue on the existing timer until the deadline, explicit user stop, terminal proof, or verified timer replacement. An explicit account blocker may withhold the mutations it prevents, but this task's Heartbeat stays active for timed re-probe unless the user stops the operation. `submit_uncertain` withholds only that exact mutation; it does not stop other safe work in this task.
 
@@ -102,13 +114,13 @@ attempts
 mutation_state
 recovery_action
 account_reconfirmed
-result = recovered | skipped_route | heartbeat_recheck | lane_recovering | escalated
+result = recovered | skipped_route | heartbeat_recheck | round_paused_429 | lane_recovering | escalated
 ```
 
-A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. A persistent retryable lane fault stays `lane_recovering` with its Heartbeat active and does not request a user decision. Only an allowlisted hard user-repair state is shown directly to the user in this task. Ordinary Heartbeat output still uses only:
+A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. Explicit `429` reports `round_paused_429`, the verified next-round time, and no same-wake retry. A persistent retryable lane fault stays `lane_recovering` with its Heartbeat active and does not request a user decision. Only an allowlisted hard user-repair state is shown directly to the user in this task. Ordinary Heartbeat output still uses only:
 
 ```text
-本轮完成：<exact code；可能原因；已自动重试/恢复结果；action result>
+本轮完成：<exact code；可能原因；已自动重试/恢复结果，或 429 已暂停本轮；action result>
 下一轮心跳：<exact local time/timezone and UTC, or none>
 下轮计划：<exact recovery probe or resumed lane target>
 ```

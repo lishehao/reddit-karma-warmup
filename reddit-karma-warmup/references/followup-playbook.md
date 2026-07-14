@@ -61,7 +61,7 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 - If the cleanup route is temporarily blocked, record the exact permalink in this lane's cleanup queue, run `chrome-network-recovery.md`, and retry on the next due follow-up wake. The post and subreddit remain closed for engagement immediately; the follow-up lane continues other items, and every sibling lane remains unchanged.
 - If the author deletes/locks the parent of an active own comment or reply, retire that subreddit and send the same non-blocking notice. A random old/removed item discovered during scanning is only `Skip` and does not retire a community.
 - If a mod requests an edit, summarize it and act only when the current authorization clearly covers that edit.
-- Currently active account warnings, captcha, rate limit, or login mismatch pause the actions they prevent. A timed rate limit automatically resumes at expiry; historical/cleared states do not stop follow-up.
+- Currently active account warnings, captcha, rate limit, or login mismatch pause the actions they prevent. Explicit HTTP `429` ends the whole current follow-up wake and resumes on the next normal round or later displayed expiry; another timed rate limit resumes at expiry. Historical/cleared states do not stop follow-up.
 
 ## Next Sweep
 

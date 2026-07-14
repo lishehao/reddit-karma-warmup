@@ -64,8 +64,8 @@ Trigger: removals/filters/locks/bans have retired at least two communities. This
 
 Trigger: the current Chrome/Reddit surface explicitly shows an active captcha, sitewide rate limit, lock/suspension, account-wide warning, login mismatch, credential request, or spam/automation-abuse restriction. A past or already-cleared event never triggers `R3`.
 
-- Pause only the actions the active state makes impossible and preserve the user's latest mission unchanged.
-- For a visible timed rate limit, wait until the displayed expiry using the current turn or the lane's existing Heartbeat as appropriate, re-probe once, and automatically resume the original mission. Do not ask for confirmation.
+- Pause only the actions the active state makes impossible and preserve the user's latest mission unchanged. For explicit HTTP `429`, treat every Reddit action in the current wake as paused.
+- For explicit HTTP `429`/`Too Many Requests`, end the wake, retain the existing Heartbeat, and retry at the later of the next normal round or displayed expiry. For another visible timed limit, wait until the displayed expiry using the current turn or Heartbeat as appropriate. Re-probe once and automatically resume the original mission without confirmation or catch-up.
 - For captcha, credentials, login mismatch, or a persistent lock/warning that requires user repair, ask for the exact repair directly in this task; after the state clears, automatically resume the latest mission unless the user changed or stopped it.
 - Do not impose a `24h/72h` recovery tier, lower comment/post envelope, or recovery preset after resumption. Defaults remain advisory and the user's explicit command remains controlling.
 - A dropped Chrome connection alone is not `R3`; reconnect and verify whether the prior action posted before retrying.
@@ -228,7 +228,7 @@ Decision:
 - `pass`: eligibility and format are clear, similar native content survives, angle fits.
 - `skip_candidate`: eligibility is unclear, required format cannot be met, same-subreddit window is used, angle is repetitive, or submit surface says moderator approval is required.
 - `retire_subreddit`: an own item is removed/filtered/locked, the account is banned from that subreddit, the parent post is deleted/locked in a way that invalidates the action, or a submitted post becomes `awaiting moderator approval`.
-- `recover_lane`: a sitewide timed rate limit or temporary technical/account state prevents submission now; preserve the mission/Heartbeat, continue permitted work, and re-probe automatically.
+- `recover_lane`: a sitewide timed rate limit or temporary technical/account state prevents submission now. Preserve the mission/Heartbeat and re-probe automatically. Explicit HTTP `429` additionally ends all Reddit work for the current wake; other temporary states may continue permitted work.
 - `hard_user_repair`: only credentials, persistent login/account mismatch, manual CAPTCHA/challenge, explicit lock/suspension/required acknowledgement, or Chrome control unavailable across three recovery wakes. Unsafe/deceptive content is abandoned or rewritten; it never blocks the mission. Past/cleared evidence is never sufficient.
 
 On `retire_subreddit`, a pending-review own post must be deleted/withdrawn immediately without confirmation. Confirm the native deletion dialog when shown, accept one visible deleted/missing result as cleanup proof, never repost there, send the non-blocking retirement notice, and continue the same lane in another eligible community. If the cleanup route fails, queue only that exact permalink for automatic recovery/retry while post discovery continues elsewhere; do not ask the user or pause this lane or any sibling lane.

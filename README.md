@@ -187,7 +187,7 @@ reddit-karma-warmup/
 
 ## Boundaries
 
-仅操作用户明确授权的账号和浏览器会话。实时 subreddit 规则约束具体动作。登录/CAPTCHA/账号锁只暂停受影响执行台；定时 rate limit 自动复查；明确社区禁止则换社区；网络和页面故障由当前执行台及其 Heartbeat继续恢复。
+仅操作用户明确授权的账号和浏览器会话。实时 subreddit 规则约束具体动作。登录/CAPTCHA/账号锁只暂停受影响执行台；明确 HTTP `429`/`Too Many Requests` 会立刻结束该执行台的当前轮次，保留任务与 Heartbeat，并在下一正常轮次或更晚的服务端指定时间自动复查，不会取消长期运营或集中补发；明确社区禁止则换社区；网络和页面故障由当前执行台及其 Heartbeat 继续恢复。
 
 ## 反馈与贡献
 

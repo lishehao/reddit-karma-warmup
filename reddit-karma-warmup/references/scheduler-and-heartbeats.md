@@ -94,6 +94,8 @@ On every wake:
 
 Technical failure is not timer termination. Candidate scarcity is also not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake. Resume the same remaining target after recovery. If every current expansion route is genuinely exhausted, yield an interim checkpoint and retry fresh surfaces on the next wake rather than declaring the action target complete.
 
+Explicit HTTP `429`/`Too Many Requests` is a round boundary, not a terminal condition: stop all Reddit work in the current wake, preserve the exact remaining target, and schedule the later of the next normal lane round or the server-displayed retry time. Do not delete or pause the Heartbeat, and do not create a catch-up burst after recovery.
+
 For a malformed or missing timer whose target identity is already verified as this task, repair in place when possible; otherwise create and verify one corrected self-targeted replacement before removing the old timer. For a target mismatch on this task's recorded `own_heartbeat_id`, perform no Reddit action, delete that known misbound timer first so it cannot wake another task, then create and post-bind-verify one corrected self-targeted timer. If the mismatched automation ID is not this task's recorded `own_heartbeat_id`, never inspect further, pause, repair, or delete it. Never inspect, pause, repair, or delete another task's timer.
 
 ## Terminal Reasons

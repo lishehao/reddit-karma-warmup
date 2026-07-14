@@ -61,6 +61,7 @@ For every distributor command, generate a new mission ID and build one independe
 
 ```text
 mission_id
+worker_task_id=<exact destination task ID>
 lane
 single_objective
 out_of_scope
@@ -79,6 +80,7 @@ start_local + start_utc
 operation_stop_at
 first_due=now
 heartbeat_owner=self
+heartbeat_target=worker_task_id
 launcher_callback=none
 sibling_visibility=none
 incidental_voting=already_read_content_only

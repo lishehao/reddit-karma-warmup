@@ -7,14 +7,14 @@ Canonical owner of one lane task's executable slot. It covers local mission stat
 Maintain only this lane's state:
 
 ```text
-self_task_id + lane + title
+self_task_id + worker_task_id + lane + title
 account + tier/substate
 mission_id + latest user request + duration/count/intensity/style/language
 operation_stop_at + remaining_target
 action_target + slot_target_remaining + action_cap + qualified_read_floor + incidental_vote_count
 own_tab_id + optional group_id + current URL
 own_history_ledger
-own_heartbeat_id + next_due_local + next_due_utc
+own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc
 mission_target_remaining + mission_terminal_reason + heartbeat_retirement_proof
 last_action/no_action/recovery proof
 ```
@@ -25,7 +25,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 
 | State | Required action | Exit |
 |-|-|-|
-| `SCOPE` | Apply the latest instruction for this lane; replace conflicting old fields/defaults; resolve exact target/cap/read floor and voting mode. | local mission clear |
+| `SCOPE` | Apply the latest instruction for this lane; resolve `self_task_id` from exact current-task context; require it equals the delivered `worker_task_id`; replace conflicting old fields/defaults; resolve exact target/cap/read floor and voting mode. | local mission and worker identity clear |
 | `PROBE` | Discover/reconnect Chrome, confirm account, local time and UTC. | environment recorded |
 | `TAB` | Create/reclaim only this task's dedicated tab or Tab Group. | tab/account/URL confirmed |
 | `HISTORY` | Restore this lane's recent actions, openings, lengths, targets, and permalinks. | local history ready |
@@ -35,7 +35,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 | `CHECK_B` | Recheck account, page, copy/direction, target, and duplicate state. | act/rewrite/retarget/recover |
 | `ACT` | Perform at most the selected action and verify immediate result. | proof recorded |
 | `RECONCILE` | Subtract only verified actions from `slot_target_remaining`; preserve unfinished count and compute the next due time from actual conditions. | unfinished -> `SCHEDULE`; terminal -> `RETIRE` |
-| `SCHEDULE` | For nonterminal work only, create/update/retain this task's own Heartbeat. | timer state recorded |
+| `SCHEDULE` | For nonterminal work only, run the scheduler's pre-bind, explicit-bind, and post-bind transaction for this task's own Heartbeat. | exact target binding verified and timer state recorded |
 | `RETIRE` | For explicit stop, deadline, or verified mission-target completion, delete this task's own Heartbeat and clear its timer state before reporting. | deletion success or timer already absent |
 | `REPORT` | Return the three-line local result. | turn ends |
 

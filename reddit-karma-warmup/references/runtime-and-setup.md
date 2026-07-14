@@ -15,7 +15,7 @@ The first available presentation action after a setup/install command is to rena
 - The user is already logged in to the target Reddit account. Never handle credentials.
 - Persistent task list/read/send/create plus archive-state support for lane reuse and replacement.
 - Current-task exact ID plus rename/pin support for the persistent distribution entrypoint. Do not search by title to recover self identity.
-- Automation/Heartbeat support for multi-round work. Each lane worker creates and owns its own timer after its immediate first slot.
+- Automation/Heartbeat support for multi-round work, including explicit `targetThreadId` and exact-automation target readback. Each lane worker creates and owns its own timer after its immediate first slot.
 - Local time, timezone, UTC offset, and UTC readback.
 
 Python, Node.js, Git, GitHub CLI, package managers, macOS Screen Recording, System Audio Recording, Accessibility, databases, API keys, and external CLIs are not runtime dependencies. Release validators under `scripts/` are optional install helpers.
@@ -29,7 +29,7 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 1. Connect/reconnect Chrome control.
 2. Open Reddit read-only and confirm the visible account.
 3. Confirm persistent task list/read/send/create, rename, and archive/unarchive capability without creating operation tasks yet.
-4. Confirm recurring Heartbeat create/update/read/delete capability. Hidden `next_run_at` is `created_unreadable`, not failure.
+4. Confirm recurring Heartbeat create/update/read/delete capability, explicit `targetThreadId`, and exact-automation target readback. Hidden `next_run_at` is `created_unreadable`, not failure; an unreadable target binding is not verified and cannot schedule continuation.
 5. Read real local time/timezone and UTC.
 
 If a required item needs user repair, remain `Reddit 启动台` and request only that repair. On `继续`, recheck only missing items.

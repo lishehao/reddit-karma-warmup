@@ -31,6 +31,7 @@ def main() -> int:
             "bounded one-time legacy adoption",
             "new mission IDs",
             "heartbeat_owner=self",
+            "worker_task_id=<exact destination task ID>",
             "launcher_callback=none",
             "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
             "自然浏览/投票：随以上执行台读取内容时完成",
@@ -52,6 +53,7 @@ def main() -> int:
             "Broad `开始/运营` enables comments, posts, and follow-up",
             "Create browsing only for an explicit pure-browse/vote request",
             "Keep the distributor pinned and every execution task unpinned",
+            "worker_task_id=<the exact selected destination task ID>",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
             "Reusable Lane Task Routing",
@@ -64,6 +66,7 @@ def main() -> int:
             "Do not create a duplicate when a healthy registered task accepted delivery",
             "incoming `mission_id` is new and supersedes prior mission fields",
             "delivery_uncertain",
+            "worker_task_id=<that same exact destination task ID>",
             "No ongoing task reads between direct user commands",
         ],
         ROOT / "references" / "runtime-and-setup.md": [
@@ -75,6 +78,7 @@ def main() -> int:
             "The worker is the only scheduler for its lane",
             "There is no launcher/coordinator supervisor Heartbeat",
             "targetThreadId=self_task_id",
+            "target_binding_proof=verified",
         ],
         ROOT / "references" / "risk-escalation.md": [
             "There is no callback or central risk surface",

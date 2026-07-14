@@ -61,12 +61,12 @@ Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是运行依
 1. Chrome Browser control 可连接并能在掉线后重连。
 2. 通过 Chrome 确认 Reddit 已登录和准确账号；不处理密码。
 3. Codex 能列出、读取、创建、反归档并向独立用户任务发送指令。
-4. Automation/Heartbeat 支持 repeat-on 和显式 `targetThreadId`。
+4. Automation/Heartbeat 支持 repeat-on、显式 `targetThreadId`，并能按返回的 automation ID 读回目标任务 ID。
 5. 能读取真实当地时间、时区、UTC offset 和 UTC。
 
 Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browser、Playwright 和普通 Web Search 不能替代。屏幕录制、系统音频录制和辅助功能权限不是本 Skill 依赖。
 
-隐藏 `next_run_at` 只记录 `created_unreadable`，不阻断第一轮。若 Chrome 或登录需要用户修复，只返回一个具体动作；用户回复“继续”后仅重查缺失项。
+隐藏 `next_run_at` 只记录 `created_unreadable`，不阻断第一轮；目标任务 ID 隐藏或不匹配则不能算绑定成功。若 Chrome 或登录需要用户修复，只返回一个具体动作；用户回复“继续”后仅重查缺失项。
 
 ### 4. 可重复的一键分配
 
@@ -111,7 +111,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - `Reddit 浏览台`，仅在用户明确要求纯浏览/投票时
 - `Reddit 主页台`，仅在首次主页基础未完成或用户明确要求时
 
-分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置明确动作目标/上限/最低有效阅读量、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`。评论、发帖和跟进只对各自主流程已经读到的外部内容做独立附带投票判断；没有投票额度，也不会为投票额外刷内容。新 mission 替换该 lane 的旧任务字段，但不会复活上一轮已经删除的 Heartbeat。
+分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置 `worker_task_id=<精确目标任务 ID>`、明确动作目标/上限/最低有效阅读量、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`。评论、发帖和跟进只对各自主流程已经读到的外部内容做独立附带投票判断；没有投票额度，也不会为投票额外刷内容。新 mission 替换该 lane 的旧任务字段，但不会复活上一轮已经删除的 Heartbeat。
 
 评论或发帖 mission 下发前，分发台会结合已确认账号方向和本轮重点，从本地 subreddit Reference 中评估最多 100 个匹配社区，优先选择流量达标、动作路由开放且版规摩擦较低的候选。评论台和发帖台各收到最多 20 个已过基础门槛的候选；不足时按真实数量下发，不会用 research-only 或高风险社区凑数。若目标是必须完成 1 篇主帖，发帖台可先用 20–30 分钟做选址，并用 Chrome 深查排名前 8–15 个社区的当天版规、账号门槛、近期存活内容和提交页；100 条 Reference 扫描用于广度，不等于在 30 分钟内机械打开 100 个 Reddit 页面。
 
@@ -158,7 +158,7 @@ lane registry 位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-regis
 - 每个候选独立评分，达到门槛才动作；增加阅读量不能降低评论、发帖或投票阈值；
 - 评论、发帖和跟进对已经读到的外部内容做一次独立投票判断；投票前若任一方向已明确选中则记录 `existing_vote` 并不点击，状态不清则 `no_vote`，成功点击后不重复验证；
 - 使用独立 Chrome tab/Tab Group；
-- 自己创建、验证、更新和结束指向自身任务的 recurring Heartbeat；
+- 只从当前任务上下文读取自己的精确 Task ID；定时前核对 mission 的 `worker_task_id`，创建/更新时显式绑定自身，创建后按 automation ID 读回目标并再次核对；每次唤醒还会复核一次；
 - 自己处理网络恢复、规则复核、重试、候选替换和用户修复；
 - 在自己的任务里汇报，用户后续直接和该任务沟通；
 - 不读取、不 callback、不暂停、不修改其他执行台。
@@ -178,7 +178,7 @@ lane registry 位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-regis
 - Codex 本地 Skill 支持
 - ChatGPT Chrome Extension 提供的 Chrome Browser control
 - 用户已在同一 Chrome profile 登录 Reddit
-- 多轮任务需要 repeat-on Heartbeat 和显式 `targetThreadId`
+- 多轮任务需要 repeat-on Heartbeat、显式 `targetThreadId` 和按 automation ID 读回目标任务的能力
 - 首次分配需要独立任务创建及向本次新任务发送指令的能力
 - GitHub HTTPS archive 可访问
 

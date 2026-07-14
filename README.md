@@ -7,7 +7,7 @@
 把下面一句发送给普通 Codex 任务：
 
 ```text
-请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检。预检健康后立即把同一任务重命名为“Reddit 分发台”并置顶：首轮创建并登记评论台、发帖台和跟进台；后续运营指令优先沿用同一 Reddit 账号已经登记的原执行台，只在缺失或不可用时新建替代台。投递后回到 pinned idle；执行台不返回分发台。不要进入目标模式。
+请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检。预检成功后把同一任务重命名为“Reddit 分发台”并置顶；如果我还没有给出方向和时长，只返回 README 规定的“运营方向 + 运营时长”提问，不显示版本、校验器、账号、预检清单、NOOP、改名置顶或无操作报告，也不要创建测试 Heartbeat。后续首轮创建并登记评论台、发帖台和跟进台，后续运营指令优先沿用同一 Reddit 账号已经登记的原执行台，只在缺失或不可用时新建替代台。投递后回到 pinned idle；执行台不返回分发台。不要进入目标模式。
 ```
 
 ## Codex 安装协议
@@ -61,7 +61,7 @@ Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是运行依
 1. Chrome Browser control 可连接并能在掉线后重连。
 2. 通过 Chrome 确认 Reddit 已登录和准确账号；不处理密码。
 3. Codex 能列出、读取、创建、反归档并向独立用户任务发送指令。
-4. Automation/Heartbeat 支持 repeat-on、显式 `targetThreadId`，并能按返回的 automation ID 读回目标任务 ID。
+4. Automation/Heartbeat 工具 schema 支持 repeat-on、显式 `targetThreadId`，并能按返回的 automation ID 读回目标任务 ID。Bootstrap 不创建测试 Heartbeat；第一个真实执行台负责首次创建和读回验证。
 5. 能读取真实当地时间、时区、UTC offset 和 UTC。
 
 Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browser、Playwright 和普通 Web Search 不能替代。屏幕录制、系统音频录制和辅助功能权限不是本 Skill 依赖。
@@ -70,38 +70,27 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 ### 4. 可重复的一键分配
 
-首次健康后，先按当前 Reddit 用户名读取 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/<username>.json`。这是 Skill 目录之外的用户配置，升级不得覆盖，也不得把一个账号的配置自动套给另一个账号。
+首次健康后，先按当前 Reddit 用户名静默读取 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/<username>.json`。这是 Skill 目录之外的用户配置，升级不得覆盖，也不得把一个账号的配置自动套给另一个账号。
 
-- 已有匹配配置：直接复用，不重复询问。
-- 首次账号：保持 `Reddit 启动台`，展示建议方向并确认一次。
-- 用户明确提供方向：视为已确认，规范成 3–5 个相邻、真实兴趣后保存。
-- 用户回复 `确认`：保存默认方向，再询问本轮怎么运营。
-- 用户回复 `确认并开始`：保存默认方向并立即启动标准强度、混合探索、3 小时运营。
-- 首次安装时只回复 `开始` 不等于确认方向；先完成这一次确认。以后同一账号回复 `开始` 不再重复确认。
+- 已有匹配配置：作为默认方向静默复用，仍在成功 Bootstrap 提问里询问本轮方向和时长。
+- 首次账号：准备默认方向，不单独要求确认；用户对成功 Bootstrap 提问的回答同时完成方向确认和本轮启动。
+- 用户明确提供方向和时长：规范并保存方向，立即启动。
+- 只给方向：默认 `3 小时`；只给时长：使用已有方向或默认方向。
+- 回复 `开始`、`默认` 或 `没想法`：使用已有方向或默认方向，直接运行 `3 小时`。
 
-首次账号使用：
-
-```text
-状态健康。当前账号：u/name。
-
-建议账号方向：移动产品、3D/AR、游戏与 UGC、摄影与地点体验、创作工具。它是宽口径兴趣范围，不是虚构身份；每轮只需选择其中一个重点。
-
-请回复“确认”，或直接告诉我需要增加/删除的方向；回复“确认并开始”会保存后立即按默认 3 小时运营。
-```
-
-确认后把同一任务改名为 `Reddit 分发台` 并置顶。以后用户可以直接再次下达同类指令：
+首次 Bootstrap 成功时只返回：
 
 ```text
-状态健康。当前账号：u/name。
+你希望这个 Reddit 账号往什么方向运营，先运营多久？
 
-账号方向已确认：<3-5 个兴趣支柱>。
+- 方向：指账号接下来主要参与的主题范围，例如移动产品、3D/AR、游戏与 UGC、摄影与地点体验。可以给 1–3 个相邻方向；没有想法就使用默认方向。
+- 时长：指本轮自动运营持续多久。期间电脑需要保持开机且不要休眠，Chrome 保持登录，网络尽量稳定；关机、休眠、关闭 Chrome 或断网会影响后续轮次。
 
-当前任务已切换为 Reddit 分发台。
-
-分发台已置顶；后续新一轮运营都从这里分配。
-
-你可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格；暂时没想法就回复“开始”。
+请直接回复，例如：`3D/AR、地点体验，先运营 3 小时。`
+没有特别要求也可以回复：`默认方向，先运营 3 小时。`
 ```
+
+成功时不要在这段提问前后追加版本、安装/NOOP、validator、账号、预检、schema、改名/置顶、未执行动作、来源链接或 probe 信息。只有真实失败时才返回一个最小修复动作。
 
 每次用户回复“开始”时，默认标准强度、混合探索、3 小时。首轮创建并登记以下执行台；后续新 mission 优先沿用同一 Reddit 账号原有的执行台：
 

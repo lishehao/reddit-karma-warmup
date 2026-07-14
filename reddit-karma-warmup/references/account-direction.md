@@ -54,15 +54,14 @@ This breadth supports several adjacent communities without turning the account i
 ## Setup Resolution
 
 - After Chrome confirms the exact visible Reddit account, read only that account's direction file. Never reuse another account's file.
-- If a valid matching file exists, reuse it without asking again and show one short `账号方向：...` line.
-- If the file is missing, malformed, or names a different account, show the broad default and ask once for confirmation before dispatch. Accepted replies are `确认`, a concrete modification, or `确认并开始`.
-- `确认` atomically writes the default and then asks what operation to start. `确认并开始` writes the default and immediately dispatches the standard three-hour operation. A concrete modification is normalized, written, and treated as confirmed.
-- If the initial setup command already supplies an explicit truthful direction, that explicit direction counts as confirmation: normalize and persist it without asking a redundant question.
+- If a valid matching file exists, reuse it silently as the durable fallback. The first successful Bootstrap still asks once for this run's direction and duration; it does not print a separate account-direction status line.
+- If the file is missing, malformed, or names a different account, prepare the broad default silently. The combined direction-and-duration answer confirms and persists the normalized direction.
+- If the initial setup command already supplies an explicit truthful direction and duration, normalize/persist it and dispatch immediately without a redundant question.
 - If the user supplies a direction, normalize it to `3-5` truthful adjacent pillars and set `direction_source=user`.
 - Map the confirmed pillars to canonical `direction_tags` from `subreddit-catalog-taxonomy.md`. Persist those tags with the direction so later launcher runs do not have to reinterpret the same wording.
 - If the user supplies only one narrow topic, preserve it as the primary pillar and add only clearly adjacent support pillars; briefly show the resolved direction.
-- A bare `开始` during first-time setup is not direction confirmation. Ask the one-time direction question. After a matching direction file exists, `开始` uses it immediately without another confirmation.
-- If the setup command requests operations but has no explicit direction and no matching direction file, complete preflight, ask the one-time direction question, and dispatch immediately after the answer rather than asking a second operation question.
+- `开始`, `默认`, or `没想法` during first-time setup accepts the broad default and starts `3h`. When a matching direction file exists, the same reply uses that saved direction for `3h`.
+- A direction-only answer defaults to `3h`; a duration-only answer uses the matching saved direction or broad default. Dispatch immediately after this one answer rather than asking a second confirmation or operation question.
 
 After direction confirmation, select one or two truthful pillars as `mission_identity_focus` and load `community-selection-funnel.md`. For each enabled proactive lane, run lane-specific retrieval. This is local catalog retrieval, not Reddit browsing:
 
@@ -82,19 +81,14 @@ Use `research_matches` only to summarize account-direction coverage. Keep only t
 
 If the index or query script is unavailable, do not block setup. Preserve the confirmed direction, report `社区索引暂不可用`, and let each worker use the existing exact rule references without an indexed shortlist.
 
-Use this one-time confirmation:
+Use the Bootstrap Success Prompt from `runtime-and-setup.md`; do not emit another direction confirmation block from this reference. Its direction explanation is intentionally user-facing while the durable `3-5` pillar normalization remains internal.
 
-```text
-建议账号方向：移动产品与实用 App UX、3D/AR 与空间交互、游戏/UGC 与虚拟世界、摄影与地点体验、创作工具与轻量共创。
+Legacy clients may still send `确认` or `确认并开始`; accept them as default direction plus `3h`, but never advertise those commands in the successful Bootstrap output.
 
-这是长期兴趣范围，不是虚构身份。请回复“确认”，或直接告诉我需要增加/删除的方向；回复“确认并开始”会保存后立即按默认 3 小时运营。
-```
-
-Use this concise setup line:
+For non-Bootstrap diagnostics only, the internal resolved state may be summarized as:
 
 ```text
 账号方向：<3-5 个兴趣支柱>。本轮重点：<operation_style>。
-候选社区簇：<最多 3 个标签簇；具体社区随执行台做流量和版规复核>。
 ```
 
 ## Lane Application

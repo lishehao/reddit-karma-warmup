@@ -15,7 +15,7 @@ The first available presentation action after a setup/install command is to rena
 - The user is already logged in to the target Reddit account. Never handle credentials.
 - Persistent task list/read/send/create plus archive-state support for lane reuse and replacement.
 - Current-task exact ID plus rename/pin support for the persistent distribution entrypoint. Do not search by title to recover self identity.
-- Automation/Heartbeat support for multi-round work, including explicit `targetThreadId` and exact-automation target readback. Each lane worker creates and owns its own timer after its immediate first slot.
+- Automation/Heartbeat tool capability for multi-round work, including explicit `targetThreadId` and exact-automation target readback. Bootstrap checks the callable schema only; each lane worker performs the first real create/readback for its own mission after its immediate first slot.
 - Local time, timezone, UTC offset, and UTC readback.
 
 Python, Node.js, Git, GitHub CLI, package managers, macOS Screen Recording, System Audio Recording, Accessibility, databases, API keys, and external CLIs are not runtime dependencies. Release validators under `scripts/` are optional install helpers.
@@ -29,38 +29,36 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 1. Connect/reconnect Chrome control.
 2. Open Reddit read-only and confirm the visible account.
 3. Confirm persistent task list/read/send/create, rename, and archive/unarchive capability without creating operation tasks yet.
-4. Confirm recurring Heartbeat create/update/read/delete capability, explicit `targetThreadId`, and exact-automation target readback. Hidden `next_run_at` is `created_unreadable`, not failure; an unreadable target binding is not verified and cannot schedule continuation.
+4. Confirm from the available automation tool/schema that recurring Heartbeat create/update/read/delete, explicit `targetThreadId`, and exact-automation target readback are callable. Do not create, update, or delete a bootstrap test Heartbeat or smoke-probe automation. Hidden `next_run_at` is handled by the first real worker timer as `created_unreadable`; an unreadable target binding is not verified and cannot schedule continuation.
 5. Read real local time/timezone and UTC.
 
 If a required item needs user repair, remain `Reddit 启动台` and request only that repair. On `继续`, recheck only missing items.
 
-When healthy, load `account-direction.md` before switching to the distributor. Resolve the exact visible Reddit account's user-owned direction file under `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/`.
+When healthy, load `account-direction.md` before switching to the distributor. Resolve the exact visible Reddit account's user-owned direction file under `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/`, but keep this preflight state internal.
 
-- Matching valid file: reuse it without confirmation.
-- Missing/malformed/mismatched file: remain `Reddit 启动台`, show the one-time default direction prompt, and wait for `确认`, a modification, or `确认并开始`.
-- Explicit direction in the setup command: treat it as confirmation, normalize and persist it without a redundant question.
+- Matching valid file: reuse it silently as the fallback account portfolio; the bootstrap question still asks for this run's direction and duration.
+- Missing/malformed/mismatched file: prepare the broad default silently. Persist the user's answer, or the default when the user explicitly chooses it.
+- Explicit direction and duration in the setup command: normalize/persist the direction and dispatch immediately without a redundant question.
 - Persist atomically outside the managed Skill tree. Never store credentials or copy one account's direction to another account automatically.
 
-After direction resolution, rename the same task `Reddit 分发台`, pin that exact task, and ask for the operation only when the user's confirmation did not already include `开始` and the setup command did not already specify one. `确认并开始` dispatches standard intensity, mixed style, and three hours immediately. Rename or pin failure is presentation-only and does not block dispatch; report the missing presentation action once without searching for another task.
+After successful preflight, rename the same task `Reddit 分发台` and pin that exact task. If the setup command did not already provide both direction and duration, emit only the Bootstrap Success Prompt below and wait for one answer. Do not prepend or append version, install/NOOP, validator, account, schema, preflight, rename/pin, no-action, source-link, or probe details. Those remain internal unless one concrete failure requires user repair. Rename or pin failure is presentation degradation; report only that concrete issue instead of a success prompt.
+
+The answer starts dispatch immediately. Direction-only answers use `3h`; duration-only answers use the matching saved direction or the broad default. `开始`, `默认`, or `没想法` means default direction plus `3h`. Never ask a second confirmation or a second operation question.
 
 Keep the account-keyed lane registry outside the managed Skill tree at `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json`. Upgrades preserve it. It contains only canonical lane names, exact task IDs, titles, and last successful delivery metadata; never credentials, Reddit content, Heartbeat IDs, or worker status.
 
-```text
-建议账号方向：移动产品、3D/AR、游戏与 UGC、摄影与地点体验、创作工具。它是宽口径兴趣范围，不是虚构身份；单轮运营只需从中选一个重点。
+## Bootstrap Success Prompt
 
-请回复“确认”，或直接告诉我需要增加/删除的方向；回复“确认并开始”会保存后立即按默认 3 小时运营。
-```
-
-After confirmation and distributor transition, use:
+Use exactly this user-facing shape after a successful first Bootstrap:
 
 ```text
-状态健康。当前账号：u/name。
+你希望这个 Reddit 账号往什么方向运营，先运营多久？
 
-账号方向已确认：<3-5 个兴趣支柱>。
+- 方向：指账号接下来主要参与的主题范围，例如移动产品、3D/AR、游戏与 UGC、摄影与地点体验。可以给 1–3 个相邻方向；没有想法就使用默认方向。
+- 时长：指本轮自动运营持续多久。期间电脑需要保持开机且不要休眠，Chrome 保持登录，网络尽量稳定；关机、休眠、关闭 Chrome 或断网会影响后续轮次。
 
-当前任务已切换为 Reddit 分发台。
-
-分发台已置顶；后续新一轮运营都从这里分配。
-
-你可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格；暂时没想法就回复“开始”。
+请直接回复，例如：`3D/AR、地点体验，先运营 3 小时。`
+没有特别要求也可以回复：`默认方向，先运营 3 小时。`
 ```
+
+`BOOTSTRAP_SUCCESS_OUTPUT_EXACT=true`. Successful Bootstrap output contains this prompt only. Internal proofs stay in local state and are available only when the user later asks for diagnostics.

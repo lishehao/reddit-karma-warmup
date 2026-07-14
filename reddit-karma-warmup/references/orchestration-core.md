@@ -15,6 +15,7 @@ action_target + slot_target_remaining + action_cap + qualified_read_floor + inci
 own_tab_id + optional group_id + current URL
 own_history_ledger
 own_heartbeat_id + next_due_local + next_due_utc
+mission_target_remaining + mission_terminal_reason + heartbeat_retirement_proof
 last_action/no_action/recovery proof
 ```
 
@@ -33,8 +34,9 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 | `DRAFT` | Text lanes choose varied length and write target-specific copy; browsing chooses a vote/no-vote decision. | final candidate ready |
 | `CHECK_B` | Recheck account, page, copy/direction, target, and duplicate state. | act/rewrite/retarget/recover |
 | `ACT` | Perform at most the selected action and verify immediate result. | proof recorded |
-| `RECONCILE` | Subtract only verified actions from `slot_target_remaining`; preserve unfinished count and compute the next due time from actual conditions. | next state known |
-| `SCHEDULE` | Create/update/retain only this task's own Heartbeat. | timer state recorded |
+| `RECONCILE` | Subtract only verified actions from `slot_target_remaining`; preserve unfinished count and compute the next due time from actual conditions. | unfinished -> `SCHEDULE`; terminal -> `RETIRE` |
+| `SCHEDULE` | For nonterminal work only, create/update/retain this task's own Heartbeat. | timer state recorded |
+| `RETIRE` | For explicit stop, deadline, or verified mission-target completion, delete this task's own Heartbeat and clear its timer state before reporting. | deletion success or timer already absent |
 | `REPORT` | Return the three-line local result. | turn ends |
 
 The first user command reaches `ACT` or a browser-backed no-action/recovery checkpoint in the current turn. Task creation, planning, or a future Heartbeat is not execution.
@@ -71,6 +73,8 @@ Load `chrome-network-recovery.md` for failures. Retry only this task's action an
 - `terminal`: explicit stop, deadline, or verified lane completion.
 
 One candidate rejection, an empty scan batch/pool page, completed read floor, route error, or failed wake is never terminal while the action target and authorized time remain.
+
+The terminal stage is the complete objective carried by the current Heartbeat: the latest user-authorized lane mission target across its operation window. A comment cluster, hourly pacing bucket, individual follow-up sweep, candidate-read floor, or intermediate slot is not that terminal stage unless the user explicitly made it the whole mission. Once `mission_target_remaining == 0`, unused duration does not justify another wake.
 
 ## Action Verification
 

@@ -71,7 +71,21 @@ Retire this lane's Heartbeat only after:
 - verified completion of this lane's requested count/objective; or
 - verified no-gap replacement by a corrected timer.
 
-At termination, release only this task's Chrome tab and report in this task. Do not notify the launcher or any sibling.
+The stage governed by this Heartbeat is the full current user-authorized lane mission, not one comment cluster, hourly pacing bucket, read floor, or intermediate slot. If that full mission target is verified complete, remaining wall-clock authorization is not unfinished work.
+
+## Completion Cleanup Transaction
+
+At a terminal condition, cleanup is ordered and mandatory:
+
+1. Stop creating or updating future wakes.
+2. Delete this task's exact `own_heartbeat_id`; a successful delete response or an already-absent timer is sufficient proof.
+3. Clear `own_heartbeat_id`, `next_due_local`, and `next_due_utc`; record `heartbeat_retirement_proof`.
+4. Release only this task's Chrome tab.
+5. Only then emit the terminal three-line receipt with `下轮时间：无` and no continuation plan.
+
+Do not report the mission complete while its Heartbeat remains active. A transient deletion-tool failure gets bounded retry and a `cleanup_pending` checkpoint, not another Reddit-action wake and not a false completion receipt. This cleanup rule does not apply to recoverable browser/network failures, candidate scarcity, one rejected subreddit, or an incomplete comment cluster; those keep the mission and its Heartbeat alive.
+
+At termination, do not notify the launcher or any sibling.
 
 ## Three-Line Receipt
 

@@ -87,7 +87,7 @@ The launcher maps the resolved account direction to the tagged subreddit index b
 Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf and must not be routed through `loci-prepare-reddit-post`. Draft them directly from current subreddit context, then apply the live rules, truthfulness, account-history, copy-shape, and final-submit checks in this Skill. Use an external rewriting service only when the user explicitly requests it for that exact post.
 6. If nonterminal work remains, create or update one recurring Heartbeat targeting this same task. The task owns that Heartbeat for its mission lifetime.
 7. On each wake, resume the same unfinished slot with its exact `slot_target_remaining`; do not reset the count or treat candidate scarcity as completion. Record `not_due`/no-action/recovery only as an interim checkpoint, then keep or update the same timer.
-8. At explicit stop, deadline, or verified lane completion, remove only its own Heartbeat and report locally.
+8. At explicit stop, deadline, or verified completion of the current Heartbeat-carried mission target, run mandatory terminal cleanup before reporting: delete only its own Heartbeat, clear `own_heartbeat_id` and every `next_due` field, and set the receipt's next time to `无`. A completed mission may not retain an idle Heartbeat merely because unused authorized time remains. Do not issue the terminal receipt until deletion succeeds or the timer is already absent.
 
 ## Independence Gates
 

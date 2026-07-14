@@ -64,10 +64,19 @@ This breadth supports several adjacent communities without turning the account i
 - A bare `开始` during first-time setup is not direction confirmation. Ask the one-time direction question. After a matching direction file exists, `开始` uses it immediately without another confirmation.
 - If the setup command requests operations but has no explicit direction and no matching direction file, complete preflight, ask the one-time direction question, and dispatch immediately after the answer rather than asking a second operation question.
 
-After direction confirmation, run `scripts/query_subreddit_profile_index.py --direction <resolved pillars> --limit 12 --include-traffic-probes`. This is local catalog retrieval, not Reddit browsing. Use `research_matches` only to summarize account-direction coverage; keep only `operating_shortlist` and `traffic_probe_queue` for the current dispatch:
+After direction confirmation, select one or two truthful pillars as `mission_identity_focus` and load `community-selection-funnel.md`. For each enabled proactive lane, run lane-specific retrieval. This is local catalog retrieval, not Reddit browsing:
+
+```text
+scripts/query_subreddit_profile_index.py --direction <resolved pillars + mission focus> --lane comments --reference-sweep-limit 100 --limit 20 --include-traffic-probes
+scripts/query_subreddit_profile_index.py --direction <resolved pillars + mission focus> --lane posts --reference-sweep-limit 100 --limit 20 --include-traffic-probes
+```
+
+Use `research_matches` only to summarize account-direction coverage. Keep only the relevant `comment_shortlist` or `post_reference_shortlist` plus `traffic_probe_queue` for worker dispatch:
 
 - `operating_shortlist`: cached traffic is at least `5,000` weekly visitors; exact action rules still require live preflight.
 - `traffic_probe_queue`: tag-fit candidate with missing/stale traffic; a worker must confirm current weekly visitors before it can act.
+- `comment_shortlist`: comment-route candidates ordered by direction fit and stored rule friendliness; the comment worker still scores the exact live post.
+- `post_reference_shortlist`: post-route candidates ordered by direction fit and stored rule friendliness; the post worker still performs deep live rules/account preflight.
 - `research_matches`: traffic-qualified catalog matches that remain `research_only`; they may shape the displayed interest cluster or future audit queue, but never enter a worker handoff or action target.
 - a cached row below `5,000` never enters either list.
 
@@ -90,7 +99,7 @@ Use this concise setup line:
 
 ## Lane Application
 
-- Comments: prioritize threads where one direction pillar naturally contributes; never force a pillar into unrelated context.
-- Posts: select a community-native question, observation, artifact, or transparent project discussion. Current rules decide whether product affiliation is allowed.
+- Comments: begin with the supplied low-friction `comment_shortlist`, then prioritize threads where one direction pillar naturally contributes; never force a pillar into unrelated context.
+- Posts: begin with `post_reference_shortlist`, run the broad-to-deep destination funnel, then select a community-native question, observation, artifact, or transparent project discussion. Current rules decide whether product affiliation is allowed.
 - Follow-up: answer the actual inbound message first; direction only supplies background context.
 - Browsing/presence: maintain a coherent mix across pillars over time without treating every pillar as a quota.

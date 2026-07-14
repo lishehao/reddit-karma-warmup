@@ -1,6 +1,6 @@
 # Proactive Playbook
 
-Shared proactive policy for two distinct owners. `Reddit 评论台` loads the shared account/removal/pool rules plus `Comment Candidate Gate`, `Comment Execution`, and the comment report path; it must skip all main-post sections. `Reddit 发帖台` loads the shared rules plus `Main Post Gate`, `Post Diversity`, `Beginner-Trap Angle`, and the post report path; it must skip all comment-candidate/execution sections. Neither task may absorb the other lane. Each task may apply `browse-vote-playbook.md` in incidental mode only to external content already opened for its primary work. Lifecycle, target-driven scanning, risk, and reporting come from `default-operations-sop.md` and `orchestration-core.md`.
+Shared proactive policy for two distinct owners. Both lanes load their section of `community-selection-funnel.md`. `Reddit 评论台` loads the shared account/removal/pool rules plus `Comment Candidate Gate`, `Comment Execution`, and the comment report path; it must skip all main-post sections. `Reddit 发帖台` loads the shared rules plus `Main Post Gate`, `Post Diversity`, `Beginner-Trap Angle`, and the post report path; it must skip all comment-candidate/execution sections. Neither task may absorb the other lane. Each task may apply `browse-vote-playbook.md` in incidental mode only to external content already opened for its primary work. Lifecycle, target-driven scanning, risk, and reporting come from `default-operations-sop.md` and `orchestration-core.md`.
 
 ## Account Bands
 
@@ -178,17 +178,7 @@ Weak forms: `I'm new, any tips?`, `What mistakes should I avoid?`, or the same t
 
 This lane owns ordinary native posts end to end. It drafts directly from live subreddit context and does not call GPT Inf or `loci-prepare-reddit-post`. GPT Inf is not a readiness gate, a blocker, or a report field for ordinary posts. Only an explicit user request for that exact post may add an external rewriting pass; the normal live rules, truthfulness, history, copy, and submit gates still apply.
 
-Choose subreddit + audience + angle after history comparison and before drafting. Treat this live same-day preflight as the post-specific part of Double-Check A:
-
-After live eligibility is known, score the exact subreddit + audience + angle:
-
-| Factor | Points | Simple question |
-|-|-:|-|
-| Live rules and eligibility | 0-25 | Are age/Karma, flair, format, placement, and promotion rules clearly satisfied? |
-| Audience and pain fit | 0-25 | Does this community actually care about the post's problem or experience? |
-| Current demand and timing | 0-20 | Do recent live posts/comments show current interest in this angle? |
-| Native format fit | 0-15 | Does the shape match recent surviving posts without copying them? |
-| Originality and account coherence | 0-15 | Is it distinct from recent history and truthful for this account? |
+Choose subreddit + audience + angle after history comparison and before drafting. When the mission requires one verified post and no exact destination is supplied, run Stage C from `community-selection-funnel.md`: allow `20-30m` for the initial selection pass, assess up to `100` reference rows for breadth, then deep-preflight the best `8-15` communities in Chrome. Treat this live same-day preflight as the post-specific part of Double-Check A. Use the funnel's authoritative six-factor live finalist score for `post_candidate_score`; do not draft before a finalist passes.
 
 `pass` requires `post_candidate_score >=82`, at least `20/25` on live rules and eligibility, and no mandatory-rule conflict. `watch` is `70-81`: continue research or retarget. `skip_candidate` is `<70` or any live eligibility blocker. A high total never overrides a failed mandatory rule.
 
@@ -214,7 +204,7 @@ Decision:
 
 On `retire_subreddit`, a pending-review own post must be deleted/withdrawn immediately without confirmation. Confirm the native deletion dialog when shown, accept one visible deleted/missing result as cleanup proof, never repost there, send the non-blocking retirement notice, and continue the same lane in another eligible community. If the cleanup route fails, queue only that exact permalink for automatic recovery/retry while post discovery continues elsewhere; do not ask the user or pause this lane or any sibling lane.
 
-The post target is an execution objective. A failed candidate causes immediate retargeting and continued live scanning while the slot and authorized window remain. Do not treat one subreddit preflight, one pending-review deletion, or one weak angle as completion. Finish below target only after the target-driven expansion stages are exhausted by the deadline or a current concrete post-lane blocker remains.
+The post target is an execution objective. A failed candidate causes immediate retargeting and continued live scanning while the slot and authorized window remain. Do not treat one subreddit preflight, one pending-review deletion, one weak angle, the 20-30 minute selection timebox, 100 reference rows, or 15 deep preflights as completion. For a one-post mission, verified publication is normal completion. Finish below target only after the target-driven expansion stages are exhausted by the deadline or a current concrete post-lane blocker remains.
 
 Recent external posts already opened during research receive one independent incidental vote assessment through `browse-vote-playbook.md`. Never vote on the account's own post, affiliated content, moderator/Automod content, or merely because a source inspired the draft. There is no vote target and no extra browsing for votes.
 

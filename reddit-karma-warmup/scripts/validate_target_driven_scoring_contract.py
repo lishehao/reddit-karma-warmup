@@ -45,6 +45,18 @@ required = {
         "community-memory prompt",
         "never pretend to have used a tool",
         "search the subreddit for the exact topic and close variants",
+        "assess up to `100` reference rows",
+        "deep-preflight the best `8-15` communities",
+        "For a one-post mission, verified publication is normal completion",
+    ],
+    "references/community-selection-funnel.md": [
+        "Stage A: Distributor Reference Sweep",
+        "Stage C: Post Lane Deep Search",
+        "post_selection_timebox=20-30m",
+        "reference_rows_assessed_target=up_to_100",
+        "live_deep_preflight_target=8-15",
+        "Prefer the highest passing candidate",
+        "Do not report the mission complete because 20-30 minutes elapsed",
     ],
     "references/browse-vote-playbook.md": [
         "Initial qualified-read floor",

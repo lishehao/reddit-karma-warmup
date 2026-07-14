@@ -38,7 +38,9 @@ def main() -> int:
             "below `5,000` never enters either list",
         ],
         ROOT / "references" / "launcher-playbook.md": [
-            "subreddit_shortlist",
+            "comment_shortlist",
+            "post_reference_shortlist",
+            "reference_rows_assessed",
             "traffic_probe_queue",
             "at least `5,000` weekly visitors",
         ],
@@ -89,36 +91,65 @@ def main() -> int:
     if len(snapshot_rows) != 141:
         errors.append(f"unexpected traffic snapshot size: {len(snapshot_rows)}")
 
-    query = subprocess.run(
-        [
-            sys.executable,
-            str(QUERY),
-            "--direction",
-            "年轻人 泛娱乐 轻社交 3D AR 游戏 地点体验",
-            "--limit",
-            "12",
-            "--include-traffic-probes",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if query.returncode:
-        errors.append(f"query failed: {query.stderr.strip()}")
-    else:
+    lane_payloads = {}
+    for lane, alias in (("comments", "comment_shortlist"), ("posts", "post_reference_shortlist")):
+        query = subprocess.run(
+            [
+                sys.executable,
+                str(QUERY),
+                "--direction",
+                "年轻人 泛娱乐 轻社交 3D AR 游戏 地点体验",
+                "--lane",
+                lane,
+                "--reference-sweep-limit",
+                "100",
+                "--limit",
+                "20",
+                "--include-traffic-probes",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if query.returncode:
+            errors.append(f"{lane} query failed: {query.stderr.strip()}")
+            continue
         payload = json.loads(query.stdout)
-        if not {"operating_shortlist", "traffic_probe_queue", "research_matches"} <= payload.keys():
-            errors.append("query output missing shortlist buckets")
+        lane_payloads[lane] = payload
+        required_keys = {
+            "operating_shortlist",
+            alias,
+            "reference_sweep",
+            "catalog_rows_scanned",
+            "catalog_matches_assessed",
+            "traffic_probe_queue",
+            "research_matches",
+        }
+        if not required_keys <= payload.keys():
+            errors.append(f"{lane} query output missing shortlist buckets")
+        if len(payload.get("reference_sweep", [])) > 100:
+            errors.append(f"{lane} reference sweep exceeds 100")
+        if payload.get("catalog_rows_scanned") != len(rows):
+            errors.append(f"{lane} catalog scan did not cover all indexed rows")
+        for row in payload.get("reference_sweep", []):
+            if row["launcher_state"] != "candidate":
+                errors.append(f"{lane} reference sweep contains non-candidate: {row['subreddit']}")
+            if not {"rule_friction_score", "rule_friction_band", "rule_friction_reasons"} <= row.keys():
+                errors.append(f"{lane} reference row missing friction fields: {row['subreddit']}")
         for row in payload.get("operating_shortlist", []):
             if (row["weekly_visitors"] or 0) < 5_000:
-                errors.append(f"shortlist below floor: {row['subreddit']}")
-        if len(payload.get("traffic_probe_queue", [])) > 12:
-            errors.append("traffic probe queue exceeds limit")
+                errors.append(f"{lane} shortlist below floor: {row['subreddit']}")
+            if lane == "comments" and row["comment_route"] not in {"default", "conditional"}:
+                errors.append(f"comment shortlist route closed: {row['subreddit']}")
+            if lane == "posts" and row["post_route"] != "conditional":
+                errors.append(f"post shortlist route closed: {row['subreddit']}")
+        if len(payload.get("traffic_probe_queue", [])) > 20:
+            errors.append(f"{lane} traffic probe queue exceeds limit")
         for row in payload.get("research_matches", []):
             if row["launcher_state"] != "research_only":
-                errors.append(f"research bucket contains action candidate: {row['subreddit']}")
+                errors.append(f"{lane} research bucket contains action candidate: {row['subreddit']}")
             if row["comment_route"] != "research-only" or row["post_route"] != "closed":
-                errors.append(f"research bucket contains open action route: {row['subreddit']}")
+                errors.append(f"{lane} research bucket contains open action route: {row['subreddit']}")
 
     if errors:
         print("SUBREDDIT_CATALOG_CONTRACT=FAIL")
@@ -133,6 +164,9 @@ def main() -> int:
     print(f"traffic_unknown={sum(row['traffic_state'] == 'unknown' for row in rows)}")
     print(f"traffic_expansion={len(expansion_rows)}_RESEARCH_ONLY")
     print("traffic_floor=5000_WEEKLY_VISITORS")
+    if lane_payloads:
+        print("lane_prefilter=COMMENTS_AND_POSTS")
+        print("reference_sweep_cap=100")
     return 0
 
 

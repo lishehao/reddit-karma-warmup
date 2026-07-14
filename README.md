@@ -113,6 +113,8 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置明确动作目标/上限/最低有效阅读量、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`。评论、发帖和跟进只对各自主流程已经读到的外部内容做独立附带投票判断；没有投票额度，也不会为投票额外刷内容。新 mission 替换该 lane 的旧任务字段，但不会复活上一轮已经删除的 Heartbeat。
 
+评论或发帖 mission 下发前，分发台会结合已确认账号方向和本轮重点，从本地 subreddit Reference 中评估最多 100 个匹配社区，优先选择流量达标、动作路由开放且版规摩擦较低的候选。评论台和发帖台各收到最多 20 个已过基础门槛的候选；不足时按真实数量下发，不会用 research-only 或高风险社区凑数。若目标是必须完成 1 篇主帖，发帖台可先用 20–30 分钟做选址，并用 Chrome 深查排名前 8–15 个社区的当天版规、账号门槛、近期存活内容和提交页；100 条 Reference 扫描用于广度，不等于在 30 分钟内机械打开 100 个 Reddit 页面。
+
 默认发帖采用保守的 `beginner-common-mistake` 角度：在有真实技能门槛和经验分享文化的社区，提出一个多数成员经历过、但具有该社区具体对象和后果的新手常见坑。发帖前必须搜索近期重复内容和 FAQ；不能伪造新手身份、使用经历或错误，也不能把同一模板只替换社区名后批量发送。不适合该角度的社区改用具体工作流摩擦、工具取舍或原生观察题。
 
 社区路由 Reference `loci-subreddit-pool-v1.md` 同步自飞书《Loci Reddit Subreddit 档案总表》，包含 144 个社区的主要用户、常见痛点、版规边界、可发内容、账号适配和近期信号。Loci 全组织永久禁入项单独保存在 `organization-community-denylist.md`，必须在打开候选社区前先排除；它约束自有、员工、代理和其他协调账号。社区总表按 subreddit 行或关键词候选集渐进读取，不应整表无条件加载；其中规则是历史证据，发帖前仍以 Reddit 当天规则和提交页为准。

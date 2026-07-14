@@ -41,7 +41,9 @@ def select_diverse(items: list[dict], limit: int) -> list[dict]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--direction", required=True, help="Account direction or profile pillars")
+    parser.add_argument("--lane", choices=("all", "comments", "posts"), default="all")
     parser.add_argument("--limit", type=int, default=12)
+    parser.add_argument("--reference-sweep-limit", type=int, default=100)
     parser.add_argument("--min-weekly-visitors", type=int, default=5_000)
     parser.add_argument("--include-traffic-probes", action="store_true")
     args = parser.parse_args()
@@ -53,9 +55,15 @@ def main() -> int:
         raise SystemExit("No canonical profile tags matched the supplied direction")
 
     candidates = []
+    catalog_rows_scanned = 0
     with INDEX.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
+            catalog_rows_scanned += 1
             if row["launcher_state"] not in {"candidate", "research_only"}:
+                continue
+            if args.lane == "comments" and row["comment_route"] not in {"default", "conditional"}:
+                continue
+            if args.lane == "posts" and row["post_route"] != "conditional":
                 continue
             visitors = int(row["weekly_visitors"] or 0)
             traffic_state = row["traffic_state"]
@@ -73,8 +81,24 @@ def main() -> int:
                 continue
             score = 5 * len(direct) + 3 * len(audience_match) + 2 * len(need_match)
             score += 3 if row["tier"] == "B" else 2 if row["tier"] == "B+" else 0
-            score += 2 if row["comment_route"] == "default" else 1 if row["comment_route"] == "conditional" else 0
-            if not score:
+            if args.lane in {"all", "comments"}:
+                score += 4 if row["comment_route"] == "default" else 2 if row["comment_route"] == "conditional" else 0
+            if args.lane == "posts":
+                score += 3 if row["post_route"] == "conditional" else 0
+
+            risk_tags = tag_set(row["risk_tags"])
+            friction_penalties = {
+                "approval_gate": 8,
+                "megathread_gate": 6,
+                "account_gate": 4,
+                "topic_purity": 3,
+                "promotion_restricted": 2,
+            }
+            friction_penalty = sum(friction_penalties.get(tag, 0) for tag in risk_tags)
+            score -= friction_penalty
+            rule_friction_score = max(0, 20 - friction_penalty)
+            rule_friction_band = "low" if friction_penalty <= 3 else "medium" if friction_penalty <= 8 else "high"
+            if score <= 0:
                 continue
             match_type = "direct" if len(direct) >= 2 else "adjacent" if direct else "exploration"
             candidates.append(
@@ -86,6 +110,9 @@ def main() -> int:
                     "tier": row["tier"],
                     "comment_route": row["comment_route"],
                     "post_route": row["post_route"],
+                    "rule_friction_score": rule_friction_score,
+                    "rule_friction_band": rule_friction_band,
+                    "rule_friction_reasons": sorted(tag for tag in risk_tags if tag in friction_penalties),
                     "launcher_state": row["launcher_state"],
                     "traffic_state": traffic_state,
                     "weekly_visitors": visitors or None,
@@ -93,20 +120,32 @@ def main() -> int:
                 }
             )
 
-    candidates.sort(key=lambda item: (item["score"], item["weekly_visitors"] or 0), reverse=True)
+    candidates.sort(
+        key=lambda item: (item["score"], item["rule_friction_score"], item["weekly_visitors"] or 0),
+        reverse=True,
+    )
     action_candidates = [item for item in candidates if item["launcher_state"] == "candidate"]
     research_candidates = [item for item in candidates if item["launcher_state"] == "research_only"]
     passed = [item for item in action_candidates if item["traffic_state"] == "pass"]
     probes = [item for item in action_candidates if item["traffic_state"] in {"unknown", "stale"}]
     research_matches = [item for item in research_candidates if item["traffic_state"] == "pass"]
+    operating_shortlist = select_diverse(passed, args.limit)
     result = {
         "direction": args.direction,
+        "lane": args.lane,
         "query_tags": sorted(query_tags),
         "minimum_weekly_visitors": args.min_weekly_visitors,
-        "operating_shortlist": select_diverse(passed, args.limit),
+        "catalog_rows_scanned": catalog_rows_scanned,
+        "catalog_matches_assessed": len(candidates),
+        "reference_sweep": action_candidates[: max(0, min(args.reference_sweep_limit, 100))],
+        "operating_shortlist": operating_shortlist,
         "traffic_probe_queue": select_diverse(probes, args.limit) if args.include_traffic_probes else [],
         "research_matches": select_diverse(research_matches, args.limit),
     }
+    if args.lane == "comments":
+        result["comment_shortlist"] = operating_shortlist
+    elif args.lane == "posts":
+        result["post_reference_shortlist"] = operating_shortlist
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 

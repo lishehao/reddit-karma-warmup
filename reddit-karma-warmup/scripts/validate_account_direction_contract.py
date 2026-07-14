@@ -19,6 +19,9 @@ required = {
         "确认并开始",
         "A bare `开始` during first-time setup is not direction confirmation",
         "Never reuse another account's file",
+        "mission_identity_focus",
+        "comment_shortlist",
+        "post_reference_shortlist",
     ],
     "references/runtime-and-setup.md": [
         "account-directions/",
@@ -26,7 +29,13 @@ required = {
         "Persist atomically outside the managed Skill tree",
         "确认并开始",
     ],
-    "references/launcher-playbook.md": ["account_direction", "direction_source"],
+    "references/launcher-playbook.md": [
+        "account_direction",
+        "direction_source",
+        "mission_identity_focus",
+        "comment_shortlist",
+        "post_reference_shortlist",
+    ],
     "references/default-operations-sop.md": ["account_direction + direction_source"],
     "references/operation-style-profiles.md": [
         "per-run focus inside the broader durable `account_direction`",

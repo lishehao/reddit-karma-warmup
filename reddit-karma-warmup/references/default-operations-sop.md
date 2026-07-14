@@ -23,9 +23,9 @@ Planning targets are quality-gated. Resolve every range to one exact `action_tar
 
 | Intensity | Comment target/cap; candidate-read floor | Post target/cap; research floor | Follow-up | Browse floor; vote target/cap |
 |-|-|-|-|-|
-| low | `3/4 per hour`; `9` | `1/1 per session`; `3` subreddit-angle candidates with `5` survivor samples each | full sweep every `45-60m` | `12`; `2/2` |
-| standard | `5/6 per hour`; `15` | `1/1 every 2-3h`; `3` subreddit-angle candidates with `5` survivor samples each | full sweep every `30-45m` | `20`; `2/4` |
-| high | `8/10 per hour`; `24` | `1/1 every 60-90m`; `4` subreddit-angle candidates with `5` survivor samples each | full sweep every `20-30m` | `30`; `4/6` |
+| low | `3/4 per hour`; `9` | `1/1 per session`; reference sweep up to `50`, live deep preflight `5-8` | full sweep every `45-60m` | `12`; `2/2` |
+| standard | `5/6 per hour`; `15` | `1/1 every 2-3h`; reference sweep up to `100`, live deep preflight `8-12` | full sweep every `30-45m` | `20`; `2/4` |
+| high | `8/10 per hour`; `24` | `1/1 every 60-90m`; reference sweep up to `100`, live deep preflight `10-15` | full sweep every `20-30m` | `30`; `4/6` |
 
 An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
 
@@ -72,6 +72,9 @@ minimum_completed_cluster_size=2
 single_comment_cluster=forbidden
 post_default_angle=beginner-common-mistake
 target_pool_or_urls
+mission_identity_focus
+reference_rows_assessed
+comment_shortlist_or_post_reference_shortlist
 start_local + start_utc
 operation_stop_at
 first_due=now

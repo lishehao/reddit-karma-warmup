@@ -16,11 +16,11 @@ Out of scope:
 
 ## Dispatch
 
-1. Resolve the exact visible Reddit account, its durable `account_direction`, and cached catalog retrieval through `account-direction.md`; normalize the command through `default-operations-sop.md`; generate a new `mission_id`.
+1. Resolve the exact visible Reddit account, its durable `account_direction`, and one or two truthful `mission_identity_focus` pillars; normalize the command through `default-operations-sop.md`; generate a new `mission_id`.
 2. Broad `开始/运营` enables comments, posts, and follow-up. Add presence only when the profile baseline is incomplete or explicitly requested. Create browsing only for an explicit pure-browse/vote request. A named lane enables only that lane.
-3. Use `thread-supervision-runtime.md` to resolve each lane: registered reuse first, bounded one-time legacy adoption only when unregistered, then create/replace only when no exact reusable task exists.
+3. For comments/posts, load `community-selection-funnel.md`, assess up to 100 matching reference rows, and produce a lane-specific low-friction shortlist before task delivery. Then use `thread-supervision-runtime.md` to resolve each lane: registered reuse first, bounded one-time legacy adoption only when unregistered, then create/replace only when no exact reusable task exists.
 4. Keep the distributor pinned and every execution task unpinned. Canonical titles are stable; exact task IDs and the account-keyed registry determine ownership.
-5. Send one complete handoff containing lane, objective, exclusions, account, `account_direction`, `direction_tags`, `direction_source`, `subreddit_shortlist`, `traffic_probe_queue`, duration/count, intensity, per-run style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `incidental_voting=already_read_content_only` for comments/posts/follow-up, required references, and `heartbeat_owner=self`. A traffic-probe row is not an action target until the worker confirms at least `5,000` weekly visitors and passes the exact rule/account gate.
+5. Send one complete handoff containing lane, objective, exclusions, account, `account_direction`, `mission_identity_focus`, `direction_tags`, `direction_source`, `comment_shortlist` or `post_reference_shortlist`, `reference_rows_assessed`, `traffic_probe_queue`, duration/count, intensity, per-run style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `incidental_voting=already_read_content_only` for comments/posts/follow-up, required references, and `heartbeat_owner=self`. A traffic-probe row is not an action target until the worker confirms at least `5,000` weekly visitors and passes the exact rule/account gate.
 6. Verify only that the exact selected task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
 7. Persist the exact lane ID and `reused|adopted|created|replaced` state, return the routed titles, then enter `L4_IDLE`.
 
@@ -41,7 +41,9 @@ first_due=now
 heartbeat_owner=self
 launcher_callback=none
 sibling_visibility=none
-subreddit_shortlist=<cached >=5K matches>
+mission_identity_focus=<one or two truthful direction pillars>
+comment_shortlist_or_post_reference_shortlist=<lane-specific cached >=5K matches>
+reference_rows_assessed=<up to 100>
 traffic_probe_queue=<fit matches needing live traffic check>
 ```
 

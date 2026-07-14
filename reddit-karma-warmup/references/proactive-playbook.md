@@ -146,33 +146,62 @@ Before drafting, independently score the already qualified-read post or parent t
 
 Comments are short by default: ordinary sessions target `80-90%` micro/fragment/one-liner, `90-98%` with one locally supported strong native marker, and `85-95%` with an actual social slang/Reddit abbreviation. Inside a routine proactive cluster, each item defaults to `<=25` English words; allow at most one `26-45` word two-beat exception when the exact target earns it, and no routine compact paragraph. Longer replies remain available only when the target genuinely needs explanation. Do not default to two polished sentences, mechanically rotate lengths, stack slang, add filler, summarize the post, repeat top comments, or mention Loci/product links unless the user explicitly requests it and rules permit it.
 
-## Default Conservative Post Tendency
+## Default Discussion-First Post Tendency
 
-Unless the user supplies another angle, start with `beginner-common-mistake`: one narrow question about a mistake, misleading assumption, premature optimization, or setup choice that many members personally encountered and can answer from experience. This is a community-memory prompt, not a generic request for tips.
+Unless the user supplies another angle, start with `beginner-common-mistake`: a beginner-readable community-memory question about a mistake, misleading assumption, premature optimization, or setup choice that many members personally encountered and can answer from experience. This remains a community-memory prompt, not generic beginner help. The wording may be simple or naive, but it must not impersonate a novice, invent confusion, or claim a personal mistake that did not happen.
+
+For most eligible native question posts, prefer a prompt with low reply cost and high experience recall: a member can answer in one line, but experienced members can add a story, disagreement, or caveat. This is not a fixed quota; current rules and survivor patterns still decide whether questions are welcome.
 
 Priority order:
 
 1. common beginner mistake with a delayed consequence
-2. workflow friction that appears after the first simple success
-3. a concrete tool/setup tradeoff with two plausible choices
-4. a specific observation or artifact question when beginner prompts do not fit
+2. common advice that experienced members stopped following
+3. a concrete tool/setup tradeoff with two defensible choices
+4. workflow friction that appears after the first simple success
+5. a specific observation or artifact question when beginner prompts do not fit
 
 Use this default only when the subreddit has a real skill threshold and recent native advice/discussion posts survive. Before drafting:
 
 - search the subreddit for the exact topic and close variants; skip if it is an FAQ, pinned topic, recurring low-effort question, or substantially duplicated in the recent active window
 - identify the community-specific object, decision, and consequence; reject a question that could be pasted unchanged into another subreddit
 - prefer questions that invite short personal stories or contrasting lessons, not one canonical factual answer
+- make the response cost low: one clear object, one tension, one ask; no multi-part questionnaire
+- require answer plurality: at least two reasonable answers or experiences should be possible without anyone being obviously wrong
+- prefer delayed-consequence phrasing such as “looks harmless at first, hurts later” over vague “any tips” framing
 - never pretend to have used a tool, shipped a project, made a mistake, or be a beginner when that is untrue; ask directly or frame it as an observation
 - never use helplessness, deliberate factual errors, fake urgency, or obvious bait to manufacture corrections
 - keep the title self-contained and the body to zero or a short context line plus one clear ask when live survivor patterns support it
+
+### Discussion-potential gate
+
+Before drafting, sample at least `10` recent native question/discussion posts across `New`, `Hot`, and `Top Month` when available. Record `discussion_survivor_sample`, the local median comment count for comparable recent posts, and which prompt shapes currently receive substantive replies. Do not copy titles or treat controversy alone as quality.
+
+Score `discussion_potential_score` independently from subreddit eligibility and final copy quality:
+
+| Factor | Points | Passing signal |
+|-|-:|-|
+| Recognition density | 0-25 | many members likely encountered the exact mistake, advice, or choice |
+| Answer plurality | 0-20 | at least two defensible answers or experiences exist |
+| Story affordance | 0-20 | invites a concrete “what happened later” example |
+| Low reply cost | 0-15 | can be answered meaningfully in one or two sentences |
+| Current native evidence | 0-10 | comparable recent local prompts receive above-median substantive replies |
+| Novelty vs FAQ/recent posts | 0-10 | not answered by rules, wiki, FAQ, or a near-duplicate active thread |
+
+- `pass_to_draft`: `>=80`, with recognition, plurality, and live native evidence all nonzero.
+- `rewrite_angle`: `68-79`; narrow the object, add a real tradeoff or delayed consequence, and rescore once.
+- `retarget`: `<68`, one factual answer, obvious FAQ, generic beginner help, or dependence on fake identity/confusion.
+
+This score predicts discussion potential; it does not guarantee replies and never overrides live rules or account eligibility.
 
 Strong forms:
 
 - `What's the Unity mistake that feels harmless in a prototype but hurts once you try to ship?`
 - `What do new Blender users usually optimize way too early?`
 - `Which Quest performance "fix" tends to create a worse problem later?`
+- `What's the “best practice” you followed as a beginner and later stopped using?`
+- `Which setup choice looks like a shortcut but creates more work after the first real project?`
 
-Weak forms: `I'm new, any tips?`, `What mistakes should I avoid?`, or the same template with only the subreddit noun replaced.
+Weak forms: `I'm new, any tips?`, `What mistakes should I avoid?`, `Is X good?`, an easily searchable factual question, or the same template with only the subreddit noun replaced.
 
 ## Main Post Gate
 
@@ -233,6 +262,7 @@ This gate specializes the default tendency. Use beginner-trap questions only whe
 - no product, waitlist, or fake expertise needed
 - no invented novice identity or fabricated personal mistake
 - no recent duplicate or FAQ answer that makes the post redundant
+- `discussion_potential_score >=80` with at least `10` local survivor samples when the subreddit exposes enough recent posts
 
 Strong: `What's the Unity beginner trap that only shows up once you try to ship?`
 

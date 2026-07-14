@@ -77,7 +77,7 @@ For comments/replies:
 5. Compare subreddit, cluster, angle, intended claim, and the last `10` measured comment/reply lengths with `history_ledger`.
 6. Confirm the account can contribute without fake experience, product mention, or unsupported factual claims.
 
-For main posts, also verify live home/about/rules, pinned posts, recent survivor patterns, karma/age, flair/title/megathread, link/self-promo rules, submit controls, same-subreddit history, and moderator-approval state.
+For main posts, also verify live home/about/rules, pinned posts, recent survivor patterns, karma/age, flair/title/megathread, link/self-promo rules, submit controls, same-subreddit history, and moderator-approval state. For a question/discussion angle, require the local `discussion_survivor_sample` and `discussion_potential_score`; never use a fabricated novice identity as the hook.
 
 Decision: `pass_to_draft`, `retarget`, `recover_lane`, or `hard_user_repair`.
 

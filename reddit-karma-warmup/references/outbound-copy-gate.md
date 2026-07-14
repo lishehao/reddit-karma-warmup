@@ -169,6 +169,7 @@ Rules:
 ## Main Post Copy Shape
 
 - Sample recent surviving native posts in the target subreddit before choosing length and structure.
+- For question/discussion posts, load the discussion-potential gate in `proactive-playbook.md`; `post_copy_score` evaluates writing quality but cannot rescue a weak or generic discussion premise.
 - Select `post_title` and `post_body` frequency bands separately. A casual body never grants a slang-heavy title.
 - Use the shortest body that supplies the context the community expects; do not force comment-length brevity onto a post.
 - Compare recent account posts for title pattern, opening, angle, paragraph shape, and length. Avoid repeating all of them together.

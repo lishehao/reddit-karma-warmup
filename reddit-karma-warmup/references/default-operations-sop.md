@@ -10,7 +10,7 @@ Use in the reusable distributor to split each direct dispatch request, and in a 
 - missing account direction: resolve the broad default in `account-direction.md`
 - missing comment pacing: `clustered_windows`
 - comment cluster completion floor: `minimum_completed_cluster_size=2`
-- missing post angle: `beginner-common-mistake`
+- missing post angle: `beginner-common-mistake`, implemented as a truthful beginner-readable community-memory question with `discussion_potential_score >=80`
 - broad `开始/运营`: comments + posts + follow-up
 - healthy first-Bootstrap `继续`: comments + posts + follow-up using the matching saved direction or broad default for `3h`; repair-state `继续` only rechecks the failed dependency
 - browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
@@ -78,6 +78,8 @@ per_item_copy_gate=required
 cluster_copy_batching=forbidden
 routine_comment_word_cap=25
 post_default_angle=beginner-common-mistake
+post_discussion_gate=required_for_question_posts
+post_discussion_score_min=80
 target_pool_or_urls
 mission_identity_focus
 reference_rows_assessed

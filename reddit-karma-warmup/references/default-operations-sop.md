@@ -92,6 +92,10 @@ comment_shortlist_or_post_reference_shortlist
 start_local + start_utc
 operation_stop_at
 first_due=now
+mutation_phase_index=<0..n-1>
+initial_mutation_not_before=<start + 10m * phase index>
+phase_jitter_minutes=2-4
+missed_phase_policy=next_own_window
 heartbeat_owner=self
 heartbeat_target=worker_task_id
 launcher_callback=none
@@ -100,7 +104,7 @@ incidental_voting=already_read_content_only
 action_target + action_cap + qualified_read_floor
 ```
 
-The missions share only user-provided scope, account identity, and the resolved broad account direction. They do not share runtime state, Heartbeats, risk, completion, cadence, history, or control.
+The missions share only user-provided scope, account identity, the resolved broad account direction, and their static launch-time phase assignments. `first_due=now` starts read-only work immediately; it does not authorize every lane to mutate at once. Missions do not share runtime state, Heartbeats, risk, completion, history, or control.
 
 ## Later Lane Mission
 
@@ -109,7 +113,7 @@ When the user speaks inside a lane task:
 1. Accept only instructions for that lane.
 2. Replace conflicting old mission fields with the latest command.
 3. Preserve this lane's verified account, tab, history, and own Heartbeat when still valid.
-4. Execute the first changed slot now.
+4. Execute the first changed slot now. Keep the lane's current phase when still applicable; an explicit user cadence replaces it.
 5. Update only this task's Heartbeat for remaining work.
 
 If the request belongs to another lane, answer briefly with the correct task title. Do not message, create, inspect, or amend that task.

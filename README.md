@@ -102,7 +102,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 K0 新号（combined Karma 少于 50）仍会收到发帖台，但该台只做选址和只读预检，主帖目标/上限固定为 `0/0`。只有账号进入 K1：至少 50 combined Karma、账号满 7 天、至少 10 条可见评论分布在 3 个合格社区、当前状态干净，并且候选 subreddit 的门槛审计与当天 Chrome 复核都通过后，才开始解锁首帖。K1 解锁后仍最多每 24 小时 1 篇。50 Karma 是本 Skill 的最低内部门槛，不是 Reddit 全站发帖许可，也不会覆盖目标社区更高、local/community Karma 或隐藏的要求。
 
-分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置 `worker_task_id=<精确目标任务 ID>`、明确动作目标/上限/最低有效阅读量、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`。评论、发帖和跟进只对各自主流程已经读到的外部内容做独立附带投票判断；没有投票额度，也不会为投票额外刷内容。新 mission 替换该 lane 的旧任务字段，但不会复活上一轮已经删除的 Heartbeat。
+分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置 `worker_task_id=<精确目标任务 ID>`、明确动作目标/上限/最低有效阅读量、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`。同一账号同时启用多个执行台时，按评论、跟进、发帖、浏览、主页的顺序，把首次写入依次错开约 `0/10/20/30...` 分钟；所有执行台仍会立刻读帖和准备，后续保持相对相位并允许 `2-4` 分钟浮动，错过窗口就顺延而不补发突刺。这里没有共享锁或跨线程账本。评论簇中相邻两条发布再额外保留变化的 `3-5` 分钟间隔。评论、发帖和跟进只对各自主流程已经读到的外部内容做独立附带投票判断；没有投票额度，也不会为投票额外刷内容。新 mission 替换该 lane 的旧任务字段，但不会复活上一轮已经删除的 Heartbeat。
 
 评论或发帖 mission 下发前，分发台会结合已确认账号方向和本轮重点，从本地 subreddit Reference 中评估最多 100 个匹配社区，优先选择流量达标、动作路由开放且版规摩擦较低的候选。评论台和发帖台各收到最多 20 个已过基础门槛的候选；不足时按真实数量下发，不会用 research-only 或高风险社区凑数。若目标是必须完成 1 篇主帖，发帖台可先用 20–30 分钟做选址，并用 Chrome 深查排名前 8–15 个社区的当天版规、账号门槛、近期存活内容和提交页；100 条 Reference 扫描用于广度，不等于在 30 分钟内机械打开 100 个 Reddit 页面。
 

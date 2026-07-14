@@ -11,6 +11,7 @@ self_task_id + worker_task_id + lane + title
 account + tier/substate
 mission_id + latest user request + duration/count/intensity/style/language
 operation_stop_at + remaining_target
+mutation_phase_index + initial_mutation_not_before + phase_jitter_minutes + missed_phase_policy
 action_target + slot_target_remaining + action_cap + qualified_read_floor + incidental_vote_count
 own_tab_id + optional group_id + current URL
 own_history_ledger
@@ -39,7 +40,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 | `RETIRE` | For explicit stop, deadline, or verified mission-target completion, delete this task's own Heartbeat and clear its timer state before reporting. | deletion success or timer already absent |
 | `REPORT` | Return the three-line local result. | turn ends |
 
-The first user command reaches `ACT` or a browser-backed no-action/recovery checkpoint in the current turn. Task creation, planning, or a future Heartbeat is not execution.
+The first user command reaches `ACT` when its mutation phase is open. Otherwise it reaches browser-backed discovery/checking/drafting plus a recorded `phase_wait` checkpoint in the current turn; task creation, planning alone, or deferring all work to a future Heartbeat is not execution.
 
 For proactive comments, the state machine runs once per individual comment, not once per cluster. After one verified `ACT`, write the measured log, return to `DISCOVER`, assign a new `per_comment_gate_id`, and rerun `CHECK_A`, `DRAFT`, and `CHECK_B` for the next item. A prewritten batch or shared cluster-level copy decision is invalid.
 

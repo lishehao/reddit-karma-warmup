@@ -25,7 +25,7 @@ required = {
         "do not yield, schedule the next Heartbeat, or report a completed window after only one",
         "verified_comments_in_current_window >= 2",
         "CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log",
-        "4-8m",
+        "6-15m",
         "batch_target_remaining",
         "without lowering thresholds or creating a catch-up burst",
         "3 + 2 + 3",

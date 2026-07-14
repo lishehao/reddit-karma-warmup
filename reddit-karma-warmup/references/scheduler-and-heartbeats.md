@@ -30,7 +30,7 @@ Before creating a new timer, read the recorded `own_heartbeat_id` when one exist
 
 ## Start Rule
 
-1. Execute the first requested slot immediately in the current user turn.
+1. Start the first requested slot immediately in the current user turn. Reading, discovery, eligibility checks, and drafting begin now. A mutation waits only when the mission carries a later `initial_mutation_not_before` phase.
 2. If nonterminal work remains, run the Self-Binding Transaction and create or update one repeat-on Heartbeat with `targetThreadId=self_task_id`, a finite cutoff or explicit `operation_stop_at`, and the current mission fields.
 3. Read back the exact automation ID, target task ID, repeat state, recurrence, next local time, UTC time, and deadline when exposed. Store the ID only after the create/update response identifies it as this task's timer.
 4. Require `target_binding_proof=verified` before treating the Heartbeat as active. If only next-run fields are hidden, record `created_unreadable` and continue without asking the user to repair an unexposed time field.
@@ -51,14 +51,26 @@ Translate the current lane mission into a bounded next slot. Defaults remain adv
 
 Use short in-turn sleep only for human-scale submit pauses below roughly five minutes. Use the recurring Heartbeat for longer waits.
 
+## Cross-Lane Phase Stagger
+
+This is a lightweight best-effort stagger, not a shared scheduler or platform-safety guarantee.
+
+1. The distributor orders enabled mutation-capable lanes as `comments -> follow-up -> posts -> browsing -> presence` and assigns `mutation_phase_index=0..n-1`.
+2. `initial_mutation_not_before = start + (10 minutes * mutation_phase_index)`. All lanes may read and prepare immediately; only the first mutation is offset. The first comments lane therefore starts at phase `0` instead of waiting for a later round.
+3. Later Heartbeats keep roughly the same relative phase and add only `2-4m` of bounded jitter. They do not read sibling state or negotiate a slot.
+4. If browser recovery, candidate discovery, or another delay makes a lane miss its intended write window, keep useful read-only work and move the mutation to that lane's next normal window. Do not compress missed work into a catch-up burst.
+5. An explicit user cadence replaces these defaults. Record the override once and continue without adding a second confirmation.
+
+No shared ledger, account lock, claim/complete protocol, or cross-task collision check is allowed. The phase fields are static mission inputs only.
+
 ## Clustered Comment Windows
 
 For comments, plan operational batches instead of a uniform per-comment clock:
 
 1. Compute `effective_hourly_rate` from the latest controlling target and remaining time.
 2. For roughly `6-10 comments/hour`, normally create `2-3` batch windows per hour. Vary the gap from actual completion time, usually `20-35m`, instead of repeating an exact interval.
-3. Give each due window an exact `batch_target` of at least `2`, normally `2-4` verified comments, and an active work envelope of about `4-8m`. `minimum_completed_cluster_size=2`, `single_comment_cluster=forbidden`, and `cluster_copy_batching=forbidden`. Candidate quality, rules, and the mission cap still gate every action.
-4. Inside a window, each comment independently loops through `CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log` with a new `per_comment_gate_id`; do not prewrite the remaining cluster or reuse another item's context, length tier, or slang choice. Keep the existing pre-submit pause and `60-120 sec` pause after each verified proactive comment. Use local sleep for these sub-five-minute waits; use the lane Heartbeat between windows.
+3. Give each due window an exact `batch_target` of at least `2`, normally `2-4` verified comments, and an active work envelope of about `6-15m`. `minimum_completed_cluster_size=2`, `single_comment_cluster=forbidden`, and `cluster_copy_batching=forbidden`. Candidate quality, rules, and the mission cap still gate every action.
+4. Inside a window, each comment independently loops through `CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log` with a new `per_comment_gate_id`; do not prewrite the remaining cluster or reuse another item's context, length tier, or slang choice. Keep the existing pre-submit pause and a varied `3-5m` pause after each verified proactive comment before another comment is submitted. Use local sleep for these at-most-five-minute waits; use the lane Heartbeat between windows.
 5. Preserve `batch_target_remaining` and `slot_target_remaining`. After one verified proactive comment, the current wake stays active and continues discovery until the second passes; do not yield, schedule the next Heartbeat, or report a completed window after only one. A user-requested exact-one total is a single-action mission rather than a cluster. A user stop, deadline, or current hard blocker may produce `cluster_incomplete`, which carries its exact remainder forward without lowering thresholds or creating a catch-up burst.
 6. Recompute later windows from actual verified count and remaining time. Do not precompute a mechanically identical all-day schedule.
 

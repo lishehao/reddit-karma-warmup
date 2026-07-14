@@ -40,22 +40,25 @@ if dict(counts) != expected:
     errors.append(f"audit_status_counts:{dict(counts)}!={expected}")
 
 require(ROOT / "references" / "new-account-bootstrap.md", [
-    "main-post target/cap `0/0` until `fresh_post_unlock` passes",
-    "at most one no-link, specific, native post per rolling `24h`",
-    "## Fresh Post Unlock",
+    "main-post target/cap `0/0` while the account remains K0",
+    "Every K0 account publishes no main post",
+    "## Main Post Unlock",
+    "combined sitewide Karma is at least `50`",
+    "account age is at least `7d`",
     "at least `10` comments remain visible across at least `3` eligible communities",
     "`unknown`, `blocked`, and `organization_deny` are closed for K0 main posts",
 ], errors)
 
 require(ROOT / "references" / "proactive-playbook.md", [
-    "locked at `0` before `fresh_post_unlock`; then max `1/24h`",
-    "require `fresh_post_unlock=passed` before drafting or submitting",
+    "| locked at `0` |",
+    "require `main_post_unlock=passed`",
     "never publish a second main post inside the same rolling `24h`",
 ], errors)
 
 require(ROOT / "references" / "default-operations-sop.md", [
+    "K0 always uses post action target/cap `0/0`",
     "post_action_mode=research_preflight_only",
-    "Unknown audit rows never enter a K0 post shortlist",
+    "Unknown audit rows never enter a K0/K1 post shortlist",
 ], errors)
 
 require(ROOT / "references" / "posting-account-gates-audit-status.md", [
@@ -65,14 +68,16 @@ require(ROOT / "references" / "posting-account-gates-audit-status.md", [
 ], errors)
 
 require(ROOT / "SKILL.md", [
-    "unknown is closed for K0 publishing",
-    "before `fresh_post_unlock` the lane is research-only with target/cap `0/0`",
+    "unknown is closed for K1 publishing while K0 never publishes",
+    "K0 is always research-only with target/cap `0/0`",
+    "at least `50` combined Karma",
 ], errors)
 
 if README.exists():
     require(README, [
-        "主帖目标/上限为 `0/0`",
-        "K0 解锁后仍最多每 24 小时 1 篇",
+        "主帖目标/上限固定为 `0/0`",
+        "至少 50 combined Karma",
+        "K1 解锁后仍最多每 24 小时 1 篇",
         "普通社区仅 22 个完成了本轮门槛判断",
         "这项审计尚未完成",
     ], errors)
@@ -86,6 +91,8 @@ print(json.dumps({
     "completed_ordinary": 22,
     "ordinary_total": 252,
     "completion_pct": 8.73,
-    "fresh_k0_post_target_cap": "0/0",
-    "unlocked_k0_post_cap": "1/24h",
+    "k0_post_target_cap": "0/0",
+    "unlock_min_combined_karma": 50,
+    "unlock_min_account_age_days": 7,
+    "unlocked_k1_post_cap": "1/24h",
 }, ensure_ascii=False, sort_keys=True))

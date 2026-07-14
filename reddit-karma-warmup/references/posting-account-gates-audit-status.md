@@ -40,15 +40,15 @@ The audit is not complete. The CSV is authoritative for row-level status.
 
 No completed row currently exposes a standalone post-karma minimum or a generic community-karma minimum. Blank fields mean not publicly confirmed, not zero.
 
-## K0 Routing Rule
+## K0/K1 Routing Rule
 
-For a K0 main-post shortlist:
+For a K0/K1 main-post shortlist:
 
-1. require `fresh_post_unlock=passed`;
+1. require at least K1 plus `main_post_unlock=passed` (`>=50` combined Karma, `>=7d` account age, and the required visible participation/health evidence);
 2. look up the exact CSV row;
 3. exclude `unknown`, `blocked`, and `organization_deny`;
 4. satisfy every captured numeric and qualitative gate;
 5. rerun same-day Chrome rules, pinned, feeds, submit, and account-control checks;
-6. publish at most once per rolling `24h` while K0.
+6. publish at most once per rolling `24h` while K1; K0 never publishes.
 
 A completed row ranks a destination for live preflight. It never grants publication by itself.

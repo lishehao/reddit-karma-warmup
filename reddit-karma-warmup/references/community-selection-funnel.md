@@ -26,7 +26,7 @@ Without Python, perform the equivalent CSV/reference filter. Apply this order:
 3. Prefer cached `>=5,000` weekly visitors; unknown/stale traffic remains a probe, never an action destination.
 4. Apply exact `community-action-routing-overrides.md` rows before historical pool evidence.
 5. Rank lower rule friction first: ordinary participation paths outrank approval, megathread, account/local-Karma, tight-format, topic-purity, and promotion gates.
-6. For K0 post missions, join the exact subreddit row from `posting-account-gates-audit-2026-07-14.csv`. With Python, call `scripts/query_posting_account_gate.py --subreddit <name>`; otherwise perform an exact case-insensitive CSV lookup. Exclude `unknown`, `blocked`, and `organization_deny`; attach the remaining gate fields to the post shortlist. This audit filter is K0-specific and does not replace the action-route or live-rule gates.
+6. For K0/K1 post missions, join the exact subreddit row from `posting-account-gates-audit-2026-07-14.csv`. With Python, call `scripts/query_posting_account_gate.py --subreddit <name>`; otherwise perform an exact case-insensitive CSV lookup. Exclude `unknown`, `blocked`, and `organization_deny`; attach the remaining gate fields to the post shortlist. This audit filter does not replace the action-route or live-rule gates. K0 remains research-only even when a row is complete.
 
 Score the reference row out of `100`:
 
@@ -62,7 +62,7 @@ When the post mission requires one verified main post, set `post_selection_timeb
 
 Do not try to open 100 live subreddit pages in 30 minutes. Use the reference sweep for breadth, then use Chrome for depth:
 
-1. Take the highest-ranked `12-20` post reference candidates. For K0, first remove every candidate without a completed account-gate audit row.
+1. Take the highest-ranked `12-20` post reference candidates. For K0/K1, first remove every candidate without a completed account-gate audit row.
 2. Deep-preflight the best `8-15` with current subreddit home/About/rules, pinned mod posts, `New`, `Hot`, `Top Month`, submit fields, account/Karma/flair requirements, posting placement, and recent same-angle repetition. A `no_public_gate_found` audit row still needs this same-day check because hidden AutoModerator gates remain possible.
 3. Search the exact proposed topic and close variants in each finalist.
 4. Draft only after one subreddit + audience + angle passes the live post gate.

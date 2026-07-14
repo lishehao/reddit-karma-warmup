@@ -24,7 +24,7 @@ The expansion report `community-expansion-pending-review-2026-07-13.md` sits out
 
 The newer public audit `community-action-expansion-public-audit-2026-07-13.md` also sits outside the permission chain. Public rules can prioritize which destination to preflight first, but no logged-in Chrome verification means no comment, post, vote, Join, or product permission is created.
 
-`posting-account-gates-audit-2026-07-14.csv` is the account-age/Karma/participation-gate index for main-post routing. It is incomplete: use its exact status rather than assuming a blank number means no gate. For K0 main posts, `unknown`, `blocked`, and `organization_deny` are closed. `verified_numeric`, `verified_qualitative`, and `no_public_gate_found` only allow same-day live preflight; they never grant publication by themselves.
+`posting-account-gates-audit-2026-07-14.csv` is the account-age/Karma/participation-gate index for main-post routing. It is incomplete: use its exact status rather than assuming a blank number means no gate. K0 never publishes. For K1 main posts, `unknown`, `blocked`, and `organization_deny` are closed. `verified_numeric`, `verified_qualitative`, and `no_public_gate_found` only allow same-day live preflight; they never grant publication by themselves.
 
 The archive is intentionally large. Read it progressively:
 

@@ -7,7 +7,7 @@
 把下面一句发送给普通 Codex 任务：
 
 ```text
-请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检。预检成功后把同一任务重命名为“Reddit 分发台”并置顶；如果我还没有给出方向和时长，只返回 README 规定的“运营方向 + 运营时长”提问，不显示版本、校验器、账号、预检清单、NOOP、改名置顶或无操作报告，也不要创建测试 Heartbeat。后续首轮创建并登记评论台、发帖台和跟进台，后续运营指令优先沿用同一 Reddit 账号已经登记的原执行台，只在缺失或不可用时新建替代台。投递后回到 pinned idle；执行台不返回分发台。不要进入目标模式。
+请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检。预检成功后把同一任务重命名为“Reddit 分发台”并置顶；如果我还没有给出方向和时长，只返回 README 规定的“运营方向 + 运营时长”提问，不显示版本、校验器、账号、预检清单、NOOP、改名置顶或无操作报告，也不要创建测试 Heartbeat。健康提问后我回复“继续”时，立即把默认 3 小时首轮 mission 投递给评论台、发帖台和跟进台；只有精确投递被接受后才回报已分发，并提醒后续所有 Reddit 运营任务仍可在这个分发台下达。后续运营指令优先沿用同一 Reddit 账号已经登记的原执行台，只在缺失或不可用时新建替代台。投递后回到 pinned idle；执行台不返回分发台。不要进入目标模式。
 ```
 
 ## Codex 安装协议
@@ -66,7 +66,7 @@ Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是运行依
 
 Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browser、Playwright 和普通 Web Search 不能替代。屏幕录制、系统音频录制和辅助功能权限不是本 Skill 依赖。
 
-隐藏 `next_run_at` 只记录 `created_unreadable`，不阻断第一轮；目标任务 ID 隐藏或不匹配则不能算绑定成功。若 Chrome 或登录需要用户修复，只返回一个具体动作；用户回复“继续”后仅重查缺失项。
+隐藏 `next_run_at` 只记录 `created_unreadable`，不阻断第一轮；目标任务 ID 隐藏或不匹配则不能算绑定成功。若 Chrome 或登录需要用户修复，记录 `BOOTSTRAP_REPAIR_REQUIRED` 并只返回一个具体动作；此状态下用户回复“继续”仅重查缺失项，不启动运营。
 
 ### 4. 可重复的一键分配
 
@@ -76,7 +76,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - 首次账号：准备默认方向，不单独要求确认；用户对成功 Bootstrap 提问的回答同时完成方向确认和本轮启动。
 - 用户明确提供方向和时长：规范并保存方向，立即启动。
 - 只给方向：默认 `3 小时`；只给时长：使用已有方向或默认方向。
-- 回复 `开始`、`默认` 或 `没想法`：使用已有方向或默认方向，直接运行 `3 小时`。
+- 健康提问后的回复 `继续`、`开始`、`默认` 或 `没想法`：使用已有方向或默认方向，直接运行 `3 小时`；故障提示后的 `继续` 只复检故障。
 
 首次 Bootstrap 成功时只返回：
 
@@ -87,12 +87,12 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - 时长：指本轮自动运营持续多久。期间电脑需要保持开机且不要休眠，Chrome 保持登录，网络尽量稳定；关机、休眠、关闭 Chrome 或断网会影响后续轮次。
 
 请直接回复，例如：`3D/AR、地点体验，先运营 3 小时。`
-没有特别要求也可以回复：`默认方向，先运营 3 小时。`
+没有特别要求也可以回复：`继续`（按已有或默认方向运营 3 小时）。
 ```
 
 成功时不要在这段提问前后追加版本、安装/NOOP、validator、账号、预检、schema、改名/置顶、未执行动作、来源链接或 probe 信息。只有真实失败时才返回一个最小修复动作。
 
-每次用户回复“开始”时，默认标准强度、混合探索、3 小时。首轮创建并登记以下执行台；后续新 mission 优先沿用同一 Reddit 账号原有的执行台：
+健康 Bootstrap 提问后，用户回复“继续”即默认标准强度、混合探索、3 小时，并立即把首轮 mission 投递给评论台、发帖台和跟进台。只有三条精确任务消息都被对应执行台接受后，才能说“第一轮已分发”；部分失败时必须写“本轮部分分发”并点名未确认 lane。后续新 mission 优先沿用同一 Reddit 账号原有的执行台：
 
 - `Reddit 评论台`
 - `Reddit 发帖台`
@@ -123,17 +123,14 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 公开动作审计 `community-action-expansion-public-audit-2026-07-13.md` 进一步记录 30 个候选，其中 14 个有当前或近期公开规则证据、3 个只有较弱信号、13 个仍是名称级。它只能决定 suspension 结束后的 live preflight 顺序，不会直接扩大可执行社区池。
 
 ```text
-已分发：<任务标题 + 沿用/收编/新建/替换>。
+第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。
 
-后续请直接到对应任务操作：
-- 评论、候选帖子互动：Reddit 评论台
-- 主帖、版规和发帖候选：Reddit 发帖台
-- Notifications、回复和后续互动：Reddit 跟进台
-- 自然浏览/投票：随以上执行台读取内容时完成；纯浏览任务才单独创建 Reddit 浏览台
-- 新开一轮或重新分配任务：回到 Reddit 分发台；默认继续沿用以上执行台
+后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达；告诉我方向、时长或具体动作即可，我会优先沿用已有执行台。
+
+进行中的评论、发帖或跟进，请直接到对应执行台查看或调整。
 ```
 
-路由卡只列本次实际投递的执行台并标记 `沿用/收编/新建/替换`，同时保留自然浏览说明和分发台入口。若明确使用了浏览台，则对应行直接写 `纯浏览/投票：Reddit 浏览台`。
+后续完整分发把第一行改成 `本轮已分发：<实际接受任务的执行台>已收到任务。`；部分分发写 `本轮部分分发：<已接受执行台>已收到任务；<未确认 lane>未确认投递。`。不要把“已解析任务”或“已准备消息”写成“已分发”。
 
 lane registry 位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json`，按 Reddit 账号隔离并在升级时保留。后续分发优先读取登记的精确 Task ID；若旧版没有登记，可仅在第一次做一次有限查找，最多检查三个最新同名候选，并且只有 lane 与当前 Reddit 账号都明确匹配时才收编。不能仅凭标题猜测。登记任务永久不可用或投递失败后才新建替代台并覆盖该 lane 的登记。
 

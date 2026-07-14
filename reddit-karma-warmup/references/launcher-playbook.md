@@ -21,8 +21,8 @@ Out of scope:
 3. For comments/posts, load `community-selection-funnel.md`, assess up to 100 matching reference rows, and produce a lane-specific low-friction shortlist before task delivery. Then use `thread-supervision-runtime.md` to resolve each lane: registered reuse first, bounded one-time legacy adoption only when unregistered, then create/replace only when no exact reusable task exists.
 4. Keep the distributor pinned and every execution task unpinned. Canonical titles are stable; exact task IDs and the account-keyed registry determine ownership.
 5. Send one complete handoff containing `worker_task_id=<the exact selected destination task ID>`, lane, objective, exclusions, account, `account_direction`, `mission_identity_focus`, `direction_tags`, `direction_source`, `comment_shortlist` or `post_reference_shortlist`, `reference_rows_assessed`, `traffic_probe_queue`, duration/count, intensity, per-run style, language, target pool, stop time, first due=`now`, exact action target/cap/read floor, `incidental_voting=already_read_content_only` for comments/posts/follow-up, required references, and `heartbeat_owner=self`. A traffic-probe row is not an action target until the worker confirms at least `5,000` weekly visitors and passes the exact rule/account gate.
-6. Verify only that the exact selected task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor.
-7. Persist the exact lane ID and `reused|adopted|created|replaced` state, return the routed titles, then enter `L4_IDLE`.
+6. Verify only that the exact selected task accepted the mission message. Do not wait for its Chrome result and do not create a supervisor. A first default dispatch is complete only after comments, posts, and follow-up all accept their messages.
+7. Persist the exact lane ID and `reused|adopted|created|replaced` state. Return the accepted titles; if any requested lane is unresolved or uncertain, use the partial-dispatch receipt and name it. Then enter `L4_IDLE`.
 
 The distributor never creates timers for workers. Each worker executes immediately, then creates and owns its self-targeted Heartbeat only for unfinished mission work.
 
@@ -50,17 +50,16 @@ traffic_probe_queue=<fit matches needing live traffic check>
 
 ## Post-Dispatch Instruction
 
-```text
-已分发：<title + 沿用/收编/新建/替换>。
+For the first healthy default dispatch, after all three mission messages are accepted, use:
 
-后续请直接到对应任务操作：
-- 评论、候选帖子互动：Reddit 评论台
-- 主帖、版规和发帖候选：Reddit 发帖台
-- Notifications、回复和后续互动：Reddit 跟进台
-- 自然浏览/投票：随以上执行台读取内容时完成；纯浏览任务才单独使用 Reddit 浏览台
-- 新一轮或重新分配任务：回到 Reddit 分发台；默认继续沿用以上执行台
+```text
+第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。
+
+后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达；告诉我方向、时长或具体动作即可，我会优先沿用已有执行台。
+
+进行中的评论、发帖或跟进，请直接到对应执行台查看或调整。
 ```
 
-Include only routes selected in this dispatch. Always retain the natural-browsing explanation and final distributor route. If browsing was explicitly selected, use `纯浏览/投票：Reddit 浏览台`.
+For later complete dispatches, replace the first line with `本轮已分发：<actual accepted task titles>已收到任务。`. For a partial dispatch, use `本轮部分分发：<accepted task titles>已收到任务；<failed or uncertain lane>未确认投递。`. Keep the final two paragraphs unchanged. Never say `已分发` merely because tasks were resolved or messages were prepared.
 
 The distributor keeps only the account-keyed lane registry and remains pinned/idle after delivery. A worker never sends anything back. The user may continue inside a lane task or issue another command in the distributor; the next command generates new mission IDs but normally reuses the registered lane tasks.

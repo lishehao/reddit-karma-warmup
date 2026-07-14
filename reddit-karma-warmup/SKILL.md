@@ -25,7 +25,7 @@ Every task has one objective. Tasks do not callback, inspect, wait for, pause, a
 | Request | Action |
 |-|-|
 | install/setup/upgrade/explain | Immediately rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md`. After preflight passes, rename the exact same task `Reddit 分发台`, pin it, and load `references/launcher-playbook.md`. |
-| any new `开始/运营` or named publishing command in `Reddit 分发台` | Load `references/default-operations-sop.md`, resolve each requested lane through the account-keyed registry, reuse its healthy existing task or create a replacement only when needed, send the new mission, verify delivery, then idle. This route can be used repeatedly. |
+| healthy Bootstrap answer, any new `开始/运营`, or named publishing command in `Reddit 分发台` | Load `references/default-operations-sop.md`, resolve each requested lane through the account-keyed registry, reuse its healthy existing task or create a replacement only when needed, send the new mission, verify delivery, then idle. In `BOOTSTRAP_AWAITING_OPERATION`, bare `继续` means saved/default direction + `3h` and immediately dispatches comments, posts, and follow-up. In `BOOTSTRAP_REPAIR_REQUIRED`, it only rechecks the missing dependency. |
 | one named lane in an ordinary task | Rename the current task to that lane title when possible, load its playbook plus the shared runtime references, execute now, and own later continuation locally. |
 | later instruction inside a lane task | Replace that lane's conflicting old mission fields, execute the first changed slot now, and update only that task's Heartbeat. |
 | lane status/pause/resume/stop | Read or change only the current lane task and its own Heartbeat. |
@@ -63,11 +63,11 @@ When two references conflict, the owner above wins.
 | Stage | Required work | Exit proof |
 |-|-|-|
 | `L0_NAME` | First available presentation action: rename current task `Reddit 启动台`. | temporary setup title applied or non-blocking `rename_unavailable` |
-| `L1_PREFLIGHT` | Install/upgrade and internally check Chrome control, Reddit login, task operations, automation schema, local time and UTC. Never create a bootstrap probe Heartbeat. | healthy runtime or one concrete user repair |
+| `L1_PREFLIGHT` | Install/upgrade and internally check Chrome control, Reddit login, task operations, automation schema, local time and UTC. Never create a bootstrap probe Heartbeat. Persist `BOOTSTRAP_REPAIR_REQUIRED` for a real repair or continue healthy setup. | healthy runtime or one concrete user repair |
 | `L1_DIRECTION` | Load `account-direction.md`. For the exact visible Reddit account, silently read its user-owned direction file or prepare the broad default. Do not emit technical or direction-status narration. | account-keyed fallback resolved internally |
-| `L2_READY` | After every required preflight item passes, rename this same task `Reddit 分发台`, then call the host thread-pin tool with the exact current task ID and `pinned=true`. If direction and duration were not already supplied, emit only the Bootstrap Success Prompt from `runtime-and-setup.md`. | exact prompt only, or immediate dispatch when both inputs already exist |
+| `L2_READY` | After every required preflight item passes, rename this same task `Reddit 分发台`, then call the host thread-pin tool with the exact current task ID and `pinned=true`. If direction and duration were not already supplied, persist `BOOTSTRAP_AWAITING_OPERATION` and emit only the Bootstrap Success Prompt from `runtime-and-setup.md`. | exact prompt only, or immediate dispatch when both inputs already exist |
 | `L3_DISPATCH` | Resolve requested lanes for the visible Reddit account; load its exact lane registry; reuse each healthy registered task, perform bounded one-time legacy adoption only when the lane is unregistered, or create and register a replacement when no exact reusable task exists. Send each complete mission with `worker_task_id=<exact destination task ID>`, `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`. | one exact reused/adopted/created task ID and successful mission delivery per requested lane; registry persisted |
-| `L4_IDLE` | Keep this distribution task pinned, return the routed titles plus reuse/create status and the fixed task-routing instruction card, and wait for another direct user command here. | pinned state retained or `pin_unavailable`; no background reads/callbacks/scheduling/aggregation; a later user dispatch returns to `L3_DISPATCH` with a new mission ID |
+| `L4_IDLE` | Keep this distribution task pinned, return the concise complete/partial dispatch receipt plus the reminder that all future Reddit operation distribution can be requested here, and wait for another direct user command. | pinned state retained or `pin_unavailable`; no background reads/callbacks/scheduling/aggregation; a later explicit user dispatch returns to `L3_DISPATCH` with a new mission ID |
 
 If setup needs login, CAPTCHA, Chrome, or another real user repair, remain `Reddit 启动台` and report only that repair. When healthy, rename to and pin `Reddit 分发台`; do not rename to `Reddit 主控台` and do not create one. Resolve self identity from the host's exact current-thread context only; never list/search by title to find the task to pin. On success, do not expose version, validator count, NOOP/install state, account name, preflight checklist, schema migration, rename/pin result, no-action narration, source links, or probe artifacts.
 
@@ -119,17 +119,14 @@ Ordinary worker output uses three concise Chinese lines:
 下轮计划：<该 lane 下一项工作；风险仅写该 lane 当前真实风险>。
 ```
 
-The launcher returns only setup/dispatch status, routed lane titles with `沿用/收编/新建/替换` state, and this routing instruction using the exact tasks selected in that dispatch:
+After all three first default mission messages are accepted, the launcher returns:
 
 ```text
-已分发：<title + 沿用/收编/新建/替换>。
+第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。
 
-后续请直接到对应任务操作：
-- 评论、候选帖子互动：Reddit 评论台
-- 主帖、版规和发帖候选：Reddit 发帖台
-- Notifications、回复和后续互动：Reddit 跟进台
-- 自然浏览/投票：随以上执行台读取内容时完成；纯浏览任务才单独创建 Reddit 浏览台
-- 新开一轮或重新分配任务：回到 Reddit 分发台；默认继续沿用以上执行台
+后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达；告诉我方向、时长或具体动作即可，我会优先沿用已有执行台。
+
+进行中的评论、发帖或跟进，请直接到对应执行台查看或调整。
 ```
 
-Omit any execution route that did not receive the current mission. Always retain the natural-browsing explanation and final launcher route. The launcher never aggregates later worker results.
+For later dispatches, use `本轮已分发：<actual accepted task titles>已收到任务。`. If any requested lane failed or is uncertain, use `本轮部分分发` and name the missing lane. The launcher never claims full dispatch before exact message acceptance and never aggregates later worker results.

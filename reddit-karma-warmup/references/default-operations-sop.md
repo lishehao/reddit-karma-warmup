@@ -12,10 +12,13 @@ Use in the reusable distributor to split each direct dispatch request, and in a 
 - comment cluster completion floor: `minimum_completed_cluster_size=2`
 - missing post angle: `beginner-common-mistake`
 - broad `开始/运营`: comments + posts + follow-up
+- healthy first-Bootstrap `继续`: comments + posts + follow-up using the matching saved direction or broad default for `3h`; repair-state `继续` only rechecks the failed dependency
 - browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
 - presence: only when explicitly requested or the first profile baseline is incomplete
 
 Resolve style through `operation-style-profiles.md`. Explicit user counts, duration, language, pool, style, or lane replace defaults without another confirmation.
+
+The bare `继续` shortcut is state-scoped. It starts the first default dispatch only from `BOOTSTRAP_AWAITING_OPERATION`. Once the distributor is idle after a completed or partial dispatch, do not silently resend the previous mission; wait for a new direction, duration, lane, count, or other explicit pending dispatch instruction.
 
 When total comment count and hourly rate conflict, the latest explicit user quantity controls. If both appear in the same instruction, treat the total count plus duration as authoritative, compute `effective_hourly_rate = total / hours`, and report the mismatch once without blocking. Example: `80 comments / 10h = 8/hour`; `10/hour for 10h = 100 comments`.
 

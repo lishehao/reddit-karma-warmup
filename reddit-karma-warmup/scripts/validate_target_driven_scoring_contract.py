@@ -17,7 +17,7 @@ required = {
         "exact target/cap/read floor",
         "incidental voting on already-read candidates",
         "explicit pure-browse missions",
-        "自然浏览/投票：随以上执行台读取内容时完成",
+        "The launcher never claims full dispatch before exact message acceptance",
     ],
     "references/default-operations-sop.md": [
         "Target-Driven Scan Loop",

@@ -39,8 +39,9 @@ Do not create a duplicate when a healthy registered task accepted delivery. Do n
 1. Generate a new `mission_id` for the current user command even when the task is reused.
 2. Send the complete mission to the resolved exact task ID with `worker_task_id=<that same exact destination task ID>`, `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`.
 3. The worker reads its exact current-task ID from host context and accepts the mission only when it equals `worker_task_id`. It then applies its latest-command rule, executes the first slot immediately, and creates/updates only its own explicitly bound and post-read-verified Heartbeat for unfinished work. If its previous mission finished, the retired old Heartbeat stays retired; the new mission creates a new lifecycle.
-4. Successful message acceptance is delivery proof. Persist `last_mission_id`, timestamp, and `reused|adopted|created|replaced`.
-5. Return the exact title and routing state, then release launcher ownership.
+4. Successful message acceptance by the exact selected task is delivery proof. Persist `last_mission_id`, timestamp, and `reused|adopted|created|replaced` only for accepted lanes.
+5. Call a requested first dispatch complete only when comments, posts, and follow-up each accepted their exact mission. If any lane is unavailable or `delivery_uncertain`, call it a partial dispatch, name that lane, and never claim that all first-round missions were sent.
+6. Return the exact accepted titles and any failed lane, then release launcher ownership.
 
 If delivery certainty is unknown, do not send the same mission to a second task because that could duplicate Reddit actions. Report that lane as `delivery_uncertain`; other lanes continue.
 

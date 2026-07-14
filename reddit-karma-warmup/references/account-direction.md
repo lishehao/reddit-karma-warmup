@@ -60,7 +60,7 @@ This breadth supports several adjacent communities without turning the account i
 - If the user supplies a direction, normalize it to `3-5` truthful adjacent pillars and set `direction_source=user`.
 - Map the confirmed pillars to canonical `direction_tags` from `subreddit-catalog-taxonomy.md`. Persist those tags with the direction so later launcher runs do not have to reinterpret the same wording.
 - If the user supplies only one narrow topic, preserve it as the primary pillar and add only clearly adjacent support pillars; briefly show the resolved direction.
-- `开始`, `默认`, or `没想法` during first-time setup accepts the broad default and starts `3h`. When a matching direction file exists, the same reply uses that saved direction for `3h`.
+- Only after a healthy Bootstrap has emitted its direction-and-duration prompt, `继续`, `开始`, `默认`, or `没想法` accepts the matching saved direction or broad default and starts `3h`. A repair-state `继续` never reaches direction resolution or dispatch.
 - A direction-only answer defaults to `3h`; a duration-only answer uses the matching saved direction or broad default. Dispatch immediately after this one answer rather than asking a second confirmation or operation question.
 
 After direction confirmation, select one or two truthful pillars as `mission_identity_focus` and load `community-selection-funnel.md`. For each enabled proactive lane, run lane-specific retrieval. This is local catalog retrieval, not Reddit browsing:

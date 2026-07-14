@@ -34,7 +34,7 @@ def main() -> int:
             "worker_task_id=<exact destination task ID>",
             "launcher_callback=none",
             "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
-            "自然浏览/投票：随以上执行台读取内容时完成",
+            "后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达",
             "L1_DIRECTION",
             "L2_READY",
             "pinned=true",
@@ -51,9 +51,12 @@ def main() -> int:
             "The distributor never creates timers for workers",
             "next command generates new mission IDs but normally reuses the registered lane tasks",
             "Broad `开始/运营` enables comments, posts, and follow-up",
+            "first default dispatch is complete only after comments, posts, and follow-up all accept",
             "Create browsing only for an explicit pure-browse/vote request",
             "Keep the distributor pinned and every execution task unpinned",
             "worker_task_id=<the exact selected destination task ID>",
+            "第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。",
+            "本轮部分分发",
         ],
         ROOT / "references" / "thread-supervision-runtime.md": [
             "Reusable Lane Task Routing",
@@ -94,12 +97,13 @@ def main() -> int:
     if README.exists():
         checks[README] = [
             "按账号长期沿用的独立执行台",
-            "首轮创建并登记评论台、发帖台和跟进台",
+            "立即把首轮 mission 投递给评论台、发帖台和跟进台",
             "后续运营指令优先沿用",
             "lane registry",
             "最多检查三个最新同名候选",
             "不能仅凭标题猜测",
-            "已分发：<任务标题 + 沿用/收编/新建/替换>",
+            "第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。",
+            "后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达",
             "首次 Bootstrap 成功时只返回",
             "电脑需要保持开机且不要休眠",
         ]

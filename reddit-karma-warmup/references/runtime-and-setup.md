@@ -32,7 +32,7 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 4. Confirm from the available automation tool/schema that recurring Heartbeat create/update/read/delete, explicit `targetThreadId`, and exact-automation target readback are callable. Do not create, update, or delete a bootstrap test Heartbeat or smoke-probe automation. Hidden `next_run_at` is handled by the first real worker timer as `created_unreadable`; an unreadable target binding is not verified and cannot schedule continuation.
 5. Read real local time/timezone and UTC.
 
-If a required item needs user repair, remain `Reddit 启动台` and request only that repair. On `继续`, recheck only missing items.
+If a required item needs user repair, remain `Reddit 启动台`, persist `bootstrap_state=BOOTSTRAP_REPAIR_REQUIRED`, and request only that repair. In this state, `继续` rechecks only the missing items and never dispatches an operation mission.
 
 When healthy, load `account-direction.md` before switching to the distributor. Resolve the exact visible Reddit account's user-owned direction file under `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/`, but keep this preflight state internal.
 
@@ -41,9 +41,9 @@ When healthy, load `account-direction.md` before switching to the distributor. R
 - Explicit direction and duration in the setup command: normalize/persist the direction and dispatch immediately without a redundant question.
 - Persist atomically outside the managed Skill tree. Never store credentials or copy one account's direction to another account automatically.
 
-After successful preflight, rename the same task `Reddit 分发台` and pin that exact task. If the setup command did not already provide both direction and duration, emit only the Bootstrap Success Prompt below and wait for one answer. Do not prepend or append version, install/NOOP, validator, account, schema, preflight, rename/pin, no-action, source-link, or probe details. Those remain internal unless one concrete failure requires user repair. Rename or pin failure is presentation degradation; report only that concrete issue instead of a success prompt.
+After successful preflight, rename the same task `Reddit 分发台` and pin that exact task. If the setup command did not already provide both direction and duration, persist `bootstrap_state=BOOTSTRAP_AWAITING_OPERATION`, emit only the Bootstrap Success Prompt below, and wait for one answer. Do not prepend or append version, install/NOOP, validator, account, schema, preflight, rename/pin, no-action, source-link, or probe details. Those remain internal unless one concrete failure requires user repair. Rename or pin failure is presentation degradation; report only that concrete issue instead of a success prompt.
 
-The answer starts dispatch immediately. Direction-only answers use `3h`; duration-only answers use the matching saved direction or the broad default. `开始`, `默认`, or `没想法` means default direction plus `3h`. Never ask a second confirmation or a second operation question.
+The answer starts dispatch immediately. Direction-only answers use `3h`; duration-only answers use the matching saved direction or the broad default. Only while `bootstrap_state=BOOTSTRAP_AWAITING_OPERATION`, `继续`, `开始`, `默认`, or `没想法` means matching saved direction or broad default plus `3h`, and immediately dispatches the first comments + posts + follow-up missions. Never ask a second confirmation or a second operation question. Clear the Bootstrap state only after dispatch is attempted; a later bare `继续` in pinned idle must not duplicate the previous mission without a new pending request.
 
 Keep the account-keyed lane registry outside the managed Skill tree at `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json`. Upgrades preserve it. It contains only canonical lane names, exact task IDs, titles, and last successful delivery metadata; never credentials, Reddit content, Heartbeat IDs, or worker status.
 
@@ -58,7 +58,7 @@ Use exactly this user-facing shape after a successful first Bootstrap:
 - 时长：指本轮自动运营持续多久。期间电脑需要保持开机且不要休眠，Chrome 保持登录，网络尽量稳定；关机、休眠、关闭 Chrome 或断网会影响后续轮次。
 
 请直接回复，例如：`3D/AR、地点体验，先运营 3 小时。`
-没有特别要求也可以回复：`默认方向，先运营 3 小时。`
+没有特别要求也可以回复：`继续`（按已有或默认方向运营 3 小时）。
 ```
 
 `BOOTSTRAP_SUCCESS_OUTPUT_EXACT=true`. Successful Bootstrap output contains this prompt only. Internal proofs stay in local state and are available only when the user later asks for diagnostics.

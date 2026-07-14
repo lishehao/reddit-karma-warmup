@@ -34,12 +34,19 @@ require(ROOT / "references" / "runtime-and-setup.md", [
     "Chrome 保持登录",
     "网络尽量稳定",
     "Direction-only answers use `3h`",
+    "bootstrap_state=BOOTSTRAP_REPAIR_REQUIRED",
+    "bootstrap_state=BOOTSTRAP_AWAITING_OPERATION",
+    "`继续`, `开始`, `默认`, or `没想法`",
+    "immediately dispatches the first comments + posts + follow-up missions",
+    "later bare `继续` in pinned idle must not duplicate the previous mission",
     "Never ask a second confirmation or a second operation question",
 ], errors)
 
 require(ROOT / "references" / "account-direction.md", [
     "first successful Bootstrap still asks once for this run's direction and duration",
     "direction-only answer defaults to `3h`",
+    "Only after a healthy Bootstrap",
+    "A repair-state `继续` never reaches direction resolution or dispatch",
     "Legacy clients may still send `确认` or `确认并开始`",
 ], errors)
 
@@ -49,6 +56,8 @@ if README.exists():
         "Bootstrap 不创建测试 Heartbeat",
         "首次 Bootstrap 成功时只返回",
         "关机、休眠、关闭 Chrome 或断网会影响后续轮次",
+        "健康 Bootstrap 提问后，用户回复“继续”",
+        "只有三条精确任务消息都被对应执行台接受后",
         "只有真实失败时才返回一个最小修复动作",
     ], errors)
 
@@ -64,4 +73,6 @@ print(json.dumps({
     "missing_duration": "DEFAULT_3H",
     "uptime_explanation": "REQUIRED",
     "failure_output": "ONE_CONCRETE_REPAIR",
+    "healthy_continue": "DISPATCH_DEFAULT_3H_THREE_LANES_NOW",
+    "repair_continue": "RECHECK_ONLY",
 }, ensure_ascii=False, sort_keys=True))

@@ -7,6 +7,18 @@ description: Run authorized Reddit community operations through the user's logge
 
 Use a reusable distributor plus independent account-scoped lane tasks. There is no persistent main coordinator.
 
+## Five-Step Default Flow
+
+| Step | Owner | Result |
+|-|-|-|
+| `1 SETUP` | current task as temporary `Reddit 启动台` | install/upgrade, read-only preflight, exact current-task identity |
+| `2 READY` | same task renamed and pinned as `Reddit 分发台` | ask once for direction + duration, or immediately normalize supplied inputs |
+| `3 DISPATCH` | `Reddit 分发台` | resolve exact account+lane task IDs, reuse healthy tasks, create only missing/unusable tasks, deliver complete missions |
+| `4 EXECUTE` | independent lane tasks | start browser-backed work now, own only their tab/state/Heartbeat, and report locally |
+| `5 RETIRE OR REUSE` | each lane task | delete its own Heartbeat on mission completion; keep the task available for a later new mission ID |
+
+The generic `thread-supervisor` Skill is optional. When available, use its current tool/identity semantics; this Skill's `thread-supervision-runtime.md` remains the authority for Reddit's no-callback, independent-lane topology.
+
 ## Roles
 
 | Role | Stable title | Owns | Never does |
@@ -41,7 +53,7 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - `posting-account-gates-audit-status.md` and `posting-account-gates-audit-2026-07-14.csv`: current coverage summary plus exact public account-age/Karma/participation-gate rows. Load the status for audit questions and exact rows for every K0/K1 post shortlist; unknown is closed for K1 publishing while K0 never publishes.
 - `subreddit-catalog-expansion-2026-07-14.csv` and `reddit-community-search-snapshot-2026-07-14.json`: curated `>=5K` traffic expansion plus its read-only Reddit search evidence. Load only filtered rows needed for account-direction discovery; every added row stays `research_only` until a separate action audit changes its route.
 - `launcher-playbook.md`: reusable account-scoped lane routing and delivery proof.
-- `thread-supervision-runtime.md`: exact-ID lane registry, bounded legacy adoption, reuse, and replacement rules.
+- `thread-supervision-runtime.md`: exact task ID + host identity, returned-identifier readiness, account-keyed registry, bounded legacy adoption, reuse, and replacement rules aligned with the generic Thread Supervisor contract.
 - `default-operations-sop.md`: normalize the first mission, exact action targets/caps, target-driven scan loop, incidental voting, and lane-specific later mission.
 - `orchestration-core.md`: one lane's executable slot, dedicated Chrome tab, action verification, and local state.
 - `scheduler-and-heartbeats.md`: worker-owned recurring Heartbeat, lightweight cross-lane first-write phase staggering, time verification, retry, update, and terminal cleanup.
@@ -67,7 +79,7 @@ When two references conflict, the owner above wins.
 | `L1_PREFLIGHT` | Install/upgrade and internally check Chrome control, Reddit login, task operations, automation schema, local time and UTC. Never create a bootstrap probe Heartbeat. Persist `BOOTSTRAP_REPAIR_REQUIRED` for a real repair or continue healthy setup. | healthy runtime or one concrete user repair |
 | `L1_DIRECTION` | Load `account-direction.md`. For the exact visible Reddit account, silently read its user-owned direction file or prepare the broad default. Do not emit technical or direction-status narration. | account-keyed fallback resolved internally |
 | `L2_READY` | After every required preflight item passes, rename this same task `Reddit 分发台`, then call the host thread-pin tool with the exact current task ID and `pinned=true`. If direction and duration were not already supplied, persist `BOOTSTRAP_AWAITING_OPERATION` and emit only the Bootstrap Success Prompt from `runtime-and-setup.md`. | exact prompt only, or immediate dispatch when both inputs already exist |
-| `L3_DISPATCH` | Resolve requested lanes for the visible Reddit account; load its exact lane registry; reuse each healthy registered task, perform bounded one-time legacy adoption only when the lane is unregistered, or create and register a replacement when no exact reusable task exists. Send each complete mission with `worker_task_id=<exact destination task ID>`, `first_due=now`, a static `0/10/20/30...m` first-write phase, `heartbeat_owner=self`, and `launcher_callback=none`. | one exact reused/adopted/created task ID and successful mission delivery per requested lane; registry persisted |
+| `L3_DISPATCH` | Resolve requested lanes for the visible Reddit account; load its exact lane registry; reuse each healthy registered task only when its exact task ID is ready, passing host ID when applicable; perform bounded one-time legacy adoption only when the lane is unregistered, or create and register a replacement when no exact reusable task exists. A queued `clientThreadId` is not ready. Send each complete mission with `worker_task_id=<exact destination task ID>`, `first_due=now`, a static `0/10/20/30...m` first-write phase, `heartbeat_owner=self`, and `launcher_callback=none`. | one exact ready reused/adopted/created task ID and successful mission delivery per requested lane; registry persisted |
 | `L4_IDLE` | Keep this distribution task pinned, return the concise complete/partial dispatch receipt plus the reminder that all future Reddit operation distribution can be requested here, and wait for another direct user command. | pinned state retained or `pin_unavailable`; no background reads/callbacks/scheduling/aggregation; a later explicit user dispatch returns to `L3_DISPATCH` with a new mission ID |
 
 If setup needs login, CAPTCHA, Chrome, or another real user repair, remain `Reddit 启动台` and report only that repair. When healthy, rename to and pin `Reddit 分发台`; do not rename to `Reddit 主控台` and do not create one. Resolve self identity from the host's exact current-thread context only; never list/search by title to find the task to pin. On success, do not expose version, validator count, NOOP/install state, account name, preflight checklist, schema migration, rename/pin result, no-action narration, source links, or probe artifacts.

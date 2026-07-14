@@ -1,13 +1,13 @@
 # Reddit Karma Warmup
 
-通过用户已登录的 Chrome 会话执行授权的 Reddit 社区运营。架构是“临时启动台 -> 可重复使用的无状态分发台 + 相互独立的执行台”，没有长期主控台。
+通过用户已登录的 Chrome 会话执行授权的 Reddit 社区运营。架构是“临时启动台 -> 可重复使用的分发台 + 按账号长期沿用的独立执行台”，没有长期主控台。
 
 ## 直接安装
 
 把下面一句发送给普通 Codex 任务：
 
 ```text
-请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检。预检健康后立即把同一任务重命名为“Reddit 分发台”并置顶：每次我发运营指令，都创建全新的独立执行台并单向投递，然后回到 pinned idle；执行台不返回分发台。不要进入目标模式。
+请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检。预检健康后立即把同一任务重命名为“Reddit 分发台”并置顶：首轮创建并登记评论台、发帖台和跟进台；后续运营指令优先沿用同一 Reddit 账号已经登记的原执行台，只在缺失或不可用时新建替代台。投递后回到 pinned idle；执行台不返回分发台。不要进入目标模式。
 ```
 
 ## Codex 安装协议
@@ -19,12 +19,13 @@
 收到 setup/安装命令后，第一个可用展示动作是把当前任务临时命名为 `Reddit 启动台`，早于下载、预检或解释。启动台只负责安装和只读预检。全部必要预检通过后，立即把同一任务重命名为 `Reddit 分发台`，并使用当前任务的精确 ID 将其置顶。分发台负责：
 
 - 解析用户当前这一次运营指令；
-- 为每条新指令生成新 run，并创建全新的对应执行台；
+- 为每条新指令生成新 mission，优先沿用该 Reddit 账号已登记的对应执行台；
+- 只为尚未登记、无法确认或永久不可用的 lane 新建替代执行台；
 - 完成投递后进入 idle。
 
-启动台和分发台都不操作 Reddit、不创建或管理运营 Heartbeat、不读取执行台后续状态、不接收 callback、不汇总风险或结果，也不晋升为 `Reddit 主控台`。
+启动台和分发台都不操作 Reddit、不创建或管理运营 Heartbeat、不接收 callback、不汇总风险或结果，也不晋升为 `Reddit 主控台`。分发台只在用户直接下达分发命令时读取登记执行台的身份和可用性；两次命令之间不读取执行台状态。
 
-用户以后可以随时从置顶区回到同一个 `Reddit 分发台` 再发一条运营指令。分发台会再次创建全新执行任务并投递；执行任务始终不会返回分发台。用户也可以直接在某个执行台继续它当前的 run。执行台保持不置顶。
+用户以后可以随时从置顶区回到同一个 `Reddit 分发台` 再发一条运营指令。分发台会优先把新 mission 投递给原有的评论台、发帖台和跟进台；只有对应执行台缺失或不可用时才新建并更新登记。执行任务始终不会返回分发台。用户也可以直接在某个执行台继续当前 mission。执行台保持不置顶。
 
 ### 1. 下载与校验
 
@@ -59,7 +60,7 @@ Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是运行依
 
 1. Chrome Browser control 可连接并能在掉线后重连。
 2. 通过 Chrome 确认 Reddit 已登录和准确账号；不处理密码。
-3. Codex 能创建、读取并向独立用户任务发送初始指令。
+3. Codex 能列出、读取、创建、反归档并向独立用户任务发送指令。
 4. Automation/Heartbeat 支持 repeat-on 和显式 `targetThreadId`。
 5. 能读取真实当地时间、时区、UTC offset 和 UTC。
 
@@ -102,7 +103,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 你可以指定评论、发帖、跟进、纯浏览/投票、时长、强度和风格；暂时没想法就回复“开始”。
 ```
 
-每次用户回复“开始”时，默认标准强度、混合探索、3 小时，并为该次新 run 创建全新的：
+每次用户回复“开始”时，默认标准强度、混合探索、3 小时。首轮创建并登记以下执行台；后续新 mission 优先沿用同一 Reddit 账号原有的执行台：
 
 - `Reddit 评论台`
 - `Reddit 发帖台`
@@ -110,7 +111,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 - `Reddit 浏览台`，仅在用户明确要求纯浏览/投票时
 - `Reddit 主页台`，仅在首次主页基础未完成或用户明确要求时
 
-分发台为每个新任务发送完整 lane mission，设置明确动作目标/上限/最低有效阅读量、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`，验证消息投递成功后返回任务路由卡并进入 idle。评论、发帖和跟进只对各自主流程已经读到的外部内容做独立附带投票判断；没有投票额度，也不会为投票额外刷内容。下一条用户命令会生成另一个新 run，不继承前一轮状态。
+分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置明确动作目标/上限/最低有效阅读量、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none`。评论、发帖和跟进只对各自主流程已经读到的外部内容做独立附带投票判断；没有投票额度，也不会为投票额外刷内容。新 mission 替换该 lane 的旧任务字段，但不会复活上一轮已经删除的 Heartbeat。
 
 默认发帖采用保守的 `beginner-common-mistake` 角度：在有真实技能门槛和经验分享文化的社区，提出一个多数成员经历过、但具有该社区具体对象和后果的新手常见坑。发帖前必须搜索近期重复内容和 FAQ；不能伪造新手身份、使用经历或错误，也不能把同一模板只替换社区名后批量发送。不适合该角度的社区改用具体工作流摩擦、工具取舍或原生观察题。
 
@@ -131,19 +132,19 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 公开动作审计 `community-action-expansion-public-audit-2026-07-13.md` 进一步记录 30 个候选，其中 14 个有当前或近期公开规则证据、3 个只有较弱信号、13 个仍是名称级。它只能决定 suspension 结束后的 live preflight 顺序，不会直接扩大可执行社区池。
 
 ```text
-已启动：<本次创建的任务>。
+已分发：<任务标题 + 沿用/收编/新建/替换>。
 
 后续请直接到对应任务操作：
 - 评论、候选帖子互动：Reddit 评论台
 - 主帖、版规和发帖候选：Reddit 发帖台
 - Notifications、回复和后续互动：Reddit 跟进台
 - 自然浏览/投票：随以上执行台读取内容时完成；纯浏览任务才单独创建 Reddit 浏览台
-- 新开一轮或重新分配任务：回到 Reddit 分发台
+- 新开一轮或重新分配任务：回到 Reddit 分发台；默认继续沿用以上执行台
 ```
 
-路由卡只列本次实际创建的执行台，但始终保留自然浏览说明和分发台入口。若明确创建了浏览台，则对应行直接写 `纯浏览/投票：Reddit 浏览台`。
+路由卡只列本次实际投递的执行台并标记 `沿用/收编/新建/替换`，同时保留自然浏览说明和分发台入口。若明确使用了浏览台，则对应行直接写 `纯浏览/投票：Reddit 浏览台`。
 
-分发台禁止搜索、读取、复用、反归档、唤醒、改名或向历史执行任务重新发 mission。即使旧任务同名、仍可读或仍在运行，也必须忽略。每个新 run 只认本次 `create_thread` 返回的新 Task ID；fresh task 创建失败时只报告本次失败，不得退回旧任务。
+lane registry 位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json`，按 Reddit 账号隔离并在升级时保留。后续分发优先读取登记的精确 Task ID；若旧版没有登记，可仅在第一次做一次有限查找，最多检查三个最新同名候选，并且只有 lane 与当前 Reddit 账号都明确匹配时才收编。不能仅凭标题猜测。登记任务永久不可用或投递失败后才新建替代台并覆盖该 lane 的登记。
 
 ### 5. 执行台自治
 

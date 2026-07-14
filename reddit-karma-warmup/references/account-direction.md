@@ -1,6 +1,6 @@
 # Account Direction
 
-Use during initial setup, presence work, and every fresh launcher dispatch. Account direction is a durable, broad, truthful interest portfolio. It is not a fictional persona and not a technique for hiding promotion.
+Use during initial setup, presence work, and every distributor dispatch. Account direction is a durable, broad, truthful interest portfolio. It is not a fictional persona and not a technique for hiding promotion.
 
 ## Account-Keyed Storage
 

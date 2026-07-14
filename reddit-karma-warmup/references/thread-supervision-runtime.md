@@ -1,6 +1,6 @@
-# Fresh-Only Task Allocation
+# Reusable Lane Task Routing
 
-Load only in `Reddit 分发台` for each direct user dispatch command. This is repeatable one-way fresh task creation, not discovery, reuse, or ongoing supervision.
+Load only in `Reddit 分发台` for a direct user dispatch command. It resolves one exact task per requested account+lane, sends the new mission, persists routing, and returns idle. It is not ongoing supervision.
 
 ## Canonical Titles
 
@@ -12,33 +12,45 @@ Load only in `Reddit 分发台` for each direct user dispatch command. This is r
 | browsing | `Reddit 浏览台` |
 | presence | `Reddit 主页台` |
 
-Titles are presentation labels only. Duplicate historical titles are expected and never used for ownership selection.
+Titles are presentation labels. Exact task IDs plus the visible Reddit account are the routing identity.
 
-## Fresh Creation Contract
+## Account-Keyed Registry
 
-For every new launcher command/run:
+Persist one user-owned registry outside the managed Skill tree:
 
-1. Resolve enabled lanes without listing old tasks.
-2. Call task creation exactly once for each enabled lane.
-3. Capture the new task ID returned by that exact creation call and bind it to a new `run_id` plus lane.
-4. Rename only that newly created task to the canonical lane title and keep it unpinned. The already-pinned distribution task is outside this worker presentation step and must remain pinned.
-5. Send the actual current mission to that new ID. Successful delivery is the only handoff proof.
-6. Record only this run's new IDs for the dispatch receipt, then release launcher ownership and enter idle.
+```text
+${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json
+```
 
-The launcher must not call task list/search/read to find historical workers. It must not reuse, unarchive, revive, replace, inspect, rename, archive, or send a mission to an old task, regardless of title, status, age, readability, or whether an old run is still active.
+Store `registry_version`, exact Reddit username, and per lane: `task_id`, canonical title, `last_mission_id`, `last_delivery_at`, and `last_delivery_state`. Never store credentials, Reddit content, Heartbeat IDs, worker runtime state, or sibling state. Write atomically and never reuse another Reddit account's registry.
 
-If fresh task creation fails, return `fresh_task_creation_failed` for that lane. Do not retry by selecting an old task. One bounded retry of the create operation itself is allowed only for a transient task-tool failure when it cannot have created a task; if creation certainty is unknown, report it and do not create a possible duplicate.
+## Resolve One Lane
+
+For every requested lane, use this order:
+
+1. **Registered reuse:** read the exact registered task ID once. If it exists, is the same canonical lane, belongs to the current Reddit account, and can accept a message, reuse it. Unarchive that exact registered task when needed, restore its canonical title if it drifted, keep it unpinned, and send the new mission.
+2. **One-time legacy adoption:** only when the lane has no registry entry, perform one bounded lookup for the exact canonical title. Inspect at most the three newest candidates. Adopt only the newest task whose lane identity and visible Reddit account both match and whose history does not show a conflicting role. Persist its exact ID. If evidence is ambiguous, adopt none.
+3. **Create or replace:** when no exact reusable task exists, create one new persistent task, capture the returned ID, rename it to the canonical title, keep it unpinned, send the mission, and atomically register it. If a registered task is permanently unavailable or rejects delivery after one bounded transient retry, create one replacement and overwrite only that lane's registry entry.
+
+Do not create a duplicate when a healthy registered task accepted delivery. Do not select by title alone. Do not adopt a task from another Reddit account. Do not revive a completed mission or old Heartbeat: task reuse carries only the durable task surface and its lane history; the incoming `mission_id` is new and supersedes prior mission fields.
+
+## Delivery Contract
+
+1. Generate a new `mission_id` for the current user command even when the task is reused.
+2. Send the complete mission to the resolved exact task ID with `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`.
+3. The worker applies its latest-command rule, executes the first slot immediately, and creates/updates only its own Heartbeat for unfinished work. If its previous mission finished, the retired old Heartbeat stays retired; the new mission creates a new lifecycle.
+4. Successful message acceptance is delivery proof. Persist `last_mission_id`, timestamp, and `reused|adopted|created|replaced`.
+5. Return the exact title and routing state, then release launcher ownership.
+
+If delivery certainty is unknown, do not send the same mission to a second task because that could duplicate Reddit actions. Report that lane as `delivery_uncertain`; other lanes continue.
 
 ## Independence
 
-- No combined worker.
-- No invisible subagent as lane owner.
-- No launcher registry after delivery.
-- No historical task discovery or fallback.
-- No sibling task discovery from a worker.
+- No combined worker or invisible subagent as lane owner.
+- No launcher Heartbeat and no worker callback.
+- No ongoing task reads between direct user commands.
+- No sibling discovery from a worker.
 - No shared-tab or account collision checks.
-- No cross-task pause, amendment, timer change, archive, or status inspection.
+- No cross-task pause, timer change, status aggregation, archive, or completion monitoring.
 
-The launcher never creates timers for workers and never reads the new workers again after delivery. Workers never register with, callback, or send completion/risk events to the launcher.
-
-After delivery the same launcher may accept another user command and repeat this section with a new run ID. It carries no worker state across commands.
+The distributor may read/reuse/adopt/replace tasks only during a direct dispatch command. After successful delivery it returns to pinned idle. Workers never register with, callback, or send completion/risk events to the distributor.

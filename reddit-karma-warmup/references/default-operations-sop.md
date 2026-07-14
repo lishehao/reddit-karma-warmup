@@ -1,6 +1,6 @@
 # Operation Request Router
 
-Use in the reusable stateless launcher to split each direct dispatch request, and in a lane task to normalize only that lane's later request.
+Use in the reusable distributor to split each direct dispatch request, and in a lane task to normalize only that lane's later request.
 
 ## Defaults
 
@@ -57,7 +57,7 @@ Every vote uses the independent score in `browse-vote-playbook.md`; comment, pos
 
 ## Launcher Dispatch
 
-For every launcher command, generate a new run ID and build one independent mission per enabled lane:
+For every distributor command, generate a new mission ID and build one independent mission per enabled lane. The mission ID is new even when delivery reuses the existing account+lane task:
 
 ```text
 mission_id

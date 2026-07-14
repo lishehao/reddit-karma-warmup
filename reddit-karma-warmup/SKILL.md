@@ -1,17 +1,17 @@
 ---
 name: reddit-karma-warmup
-description: Run authorized Reddit community operations through the user's logged-in Chrome session. Use for reusable stateless fresh-task dispatch, setup, proactive comments, native posts, follow-up replies, natural browsing and voting, profile/community presence, timed autonomous lane operation, or lane-local status and recovery.
+description: Run authorized Reddit community operations through the user's logged-in Chrome session. Use for reusable account-scoped lane dispatch, setup, proactive comments, native posts, follow-up replies, natural browsing and voting, profile/community presence, timed autonomous lane operation, or lane-local status and recovery.
 ---
 
 # Reddit Karma Warmup
 
-Use a reusable stateless launcher plus independent lane tasks. There is no persistent main coordinator.
+Use a reusable distributor plus independent account-scoped lane tasks. There is no persistent main coordinator.
 
 ## Roles
 
 | Role | Stable title | Owns | Never does |
 |-|-|-|-|
-| `REDDIT_LAUNCHER` | pinned `Reddit 分发台` after temporary `Reddit 启动台` setup | install/upgrade, read-only preflight, rename and pin the exact current task after health passes, accept later dispatch commands, create fresh requested lane tasks, deliver each mission, then idle | Reddit actions, old-task discovery/reuse, ongoing supervision, worker callbacks, Heartbeats, cross-lane status |
+| `REDDIT_LAUNCHER` | pinned `Reddit 分发台` after temporary `Reddit 启动台` setup | install/upgrade, read-only preflight, rename and pin the exact current task after health passes, accept later dispatch commands, reuse the exact registered account+lane tasks when healthy, create only missing/unusable lanes, deliver each mission, then idle | Reddit actions, ongoing supervision between commands, worker callbacks, worker Heartbeats, cross-lane status |
 | `COMMENTS_WORKER` | `Reddit 评论台` | proactive comment discovery, drafting, submission, verification, its own timer/recovery/report; incidental voting on already-read candidates | posts, follow-up, vote hunting, sibling inspection |
 | `POSTS_WORKER` | `Reddit 发帖台` | subreddit/rules preflight, native posts, verification, its own timer/recovery/report; incidental voting on already-read external research samples | comments, follow-up, vote hunting, sibling inspection |
 | `FOLLOWUP_WORKER` | `Reddit 跟进台` | Notifications and replies to own activity, incidental voting on already-read inbound replies, its own timer/recovery/report | proactive discovery, new posts, vote hunting, sibling inspection |
@@ -25,7 +25,7 @@ Every task has one objective. Tasks do not callback, inspect, wait for, pause, a
 | Request | Action |
 |-|-|
 | install/setup/upgrade/explain | Immediately rename the current task `Reddit 启动台`; load `references/runtime-and-setup.md`. After preflight passes, rename the exact same task `Reddit 分发台`, pin it, and load `references/launcher-playbook.md`. |
-| any new `开始/运营` or named publishing command in `Reddit 分发台` | Load `references/default-operations-sop.md`, create fresh requested lane tasks, send each its new mission, verify delivery, then idle. This route can be used repeatedly. |
+| any new `开始/运营` or named publishing command in `Reddit 分发台` | Load `references/default-operations-sop.md`, resolve each requested lane through the account-keyed registry, reuse its healthy existing task or create a replacement only when needed, send the new mission, verify delivery, then idle. This route can be used repeatedly. |
 | one named lane in an ordinary task | Rename the current task to that lane title when possible, load its playbook plus the shared runtime references, execute now, and own later continuation locally. |
 | later instruction inside a lane task | Replace that lane's conflicting old mission fields, execute the first changed slot now, and update only that task's Heartbeat. |
 | lane status/pause/resume/stop | Read or change only the current lane task and its own Heartbeat. |
@@ -38,8 +38,8 @@ Do not redirect a later lane request to the launcher. The user speaks directly t
 - `account-direction.md`: one broad truthful account interest portfolio, onboarding resolution, and the boundary between durable direction and per-run style.
 - `subreddit-catalog-taxonomy.md` and `subreddit-profile-index.csv`: lightweight profile/tag/traffic discovery index. Query it after direction resolution; catalog matches never grant publishing permission.
 - `subreddit-catalog-expansion-2026-07-14.csv` and `reddit-community-search-snapshot-2026-07-14.json`: curated `>=5K` traffic expansion plus its read-only Reddit search evidence. Load only filtered rows needed for account-direction discovery; every added row stays `research_only` until a separate action audit changes its route.
-- `launcher-playbook.md`: reusable stateless fresh allocation and delivery proof.
-- `thread-supervision-runtime.md`: create one fresh independent task per requested lane; never search or reuse old tasks.
+- `launcher-playbook.md`: reusable account-scoped lane routing and delivery proof.
+- `thread-supervision-runtime.md`: exact-ID lane registry, bounded legacy adoption, reuse, and replacement rules.
 - `default-operations-sop.md`: normalize the first mission, exact action targets/caps, target-driven scan loop, incidental voting, and lane-specific later mission.
 - `orchestration-core.md`: one lane's executable slot, dedicated Chrome tab, action verification, and local state.
 - `scheduler-and-heartbeats.md`: worker-owned recurring Heartbeat, time verification, retry, update, and terminal cleanup.
@@ -65,12 +65,12 @@ When two references conflict, the owner above wins.
 | `L1_PREFLIGHT` | Install/upgrade and read-only check Chrome control, Reddit account, task creation, Heartbeat support, local time and UTC. | healthy runtime or one concrete user repair |
 | `L1_DIRECTION` | Load `account-direction.md`. For the exact visible Reddit account, read its user-owned direction file. If absent, show the broad truthful default and wait once for `确认`, a modification, or `确认并开始`; then atomically persist the confirmed direction outside the managed Skill tree. | account-keyed direction exists and matches the visible Reddit account |
 | `L2_READY` | After every required preflight item passes, rename this same task `Reddit 分发台`, then call the host thread-pin tool with the exact current task ID and `pinned=true`; then ask for the first operation or accept the operation already present in the setup command. | distribution title attempted; exact self ID reports pinned or non-blocking `pin_unavailable`; no second user turn when operation was already requested |
-| `L3_DISPATCH` | Resolve requested lanes; call task creation once per lane without listing/searching history; capture only the newly returned IDs; rename and unpin them; send each complete mission with `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`. | one newly created exact task ID and successful mission delivery per requested lane |
-| `L4_IDLE` | Keep this distribution task pinned, return the created titles plus the fixed task-routing instruction card, and wait for another direct user command here. | pinned state retained or `pin_unavailable`; no background reads/callbacks/scheduling/aggregation; a later user dispatch returns to `L3_DISPATCH` with a new run ID |
+| `L3_DISPATCH` | Resolve requested lanes for the visible Reddit account; load its exact lane registry; reuse each healthy registered task, perform bounded one-time legacy adoption only when the lane is unregistered, or create and register a replacement when no exact reusable task exists. Send each complete mission with `first_due=now`, `heartbeat_owner=self`, and `launcher_callback=none`. | one exact reused/adopted/created task ID and successful mission delivery per requested lane; registry persisted |
+| `L4_IDLE` | Keep this distribution task pinned, return the routed titles plus reuse/create status and the fixed task-routing instruction card, and wait for another direct user command here. | pinned state retained or `pin_unavailable`; no background reads/callbacks/scheduling/aggregation; a later user dispatch returns to `L3_DISPATCH` with a new mission ID |
 
 If setup needs login, CAPTCHA, Chrome, or another real user repair, remain `Reddit 启动台`. When healthy, rename to and pin `Reddit 分发台`; do not rename to `Reddit 主控台` and do not create one. Resolve self identity from the host's exact current-thread context only; never list/search by title to find the task to pin. Pin/rename failure is presentation degradation and never blocks dispatch.
 
-After dispatch, the user may either continue the current run inside its execution task or return to `Reddit 分发台` and issue another command. Every distribution command creates another fresh run; no worker ever returns to the launcher.
+After dispatch, the user may either continue the current mission inside its execution task or return to `Reddit 分发台` and issue another command. Later commands normally reuse the same registered lane tasks for that Reddit account while issuing new mission IDs; no worker ever returns to the launcher.
 
 ## Worker Lifecycle
 
@@ -95,7 +95,7 @@ Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf and must not 
 - A worker never reads or sends messages to another Reddit task. It never checks for task collisions.
 - A worker never changes another lane's tab, mission, timer, status, cadence, candidate history, or risk state.
 - A fault in one lane affects only that lane. Other tasks continue without awareness or permission.
-- A task may replace only its own malformed/misbound Heartbeat and must verify the replacement before retiring the old timer. It never replaces or revives a historical task.
+- A task may replace only its own malformed/misbound Heartbeat and must verify the replacement before retiring the old timer. Reusing a lane task never revives a completed mission or its retired Heartbeat; the new mission starts immediately and owns its own timer lifecycle.
 - Temporary subagents may assist bounded read-only analysis but never own Chrome mutations, the lane, its Heartbeat, or user communication.
 
 ## User Priority And Recovery
@@ -118,17 +118,17 @@ Ordinary worker output uses three concise Chinese lines:
 下轮计划：<该 lane 下一项工作；风险仅写该 lane 当前真实风险>。
 ```
 
-The launcher returns only setup/dispatch status, created lane titles, and this routing instruction using only tasks created in that dispatch:
+The launcher returns only setup/dispatch status, routed lane titles with `沿用/收编/新建/替换` state, and this routing instruction using the exact tasks selected in that dispatch:
 
 ```text
-已启动：<created titles>。
+已分发：<title + 沿用/收编/新建/替换>。
 
 后续请直接到对应任务操作：
 - 评论、候选帖子互动：Reddit 评论台
 - 主帖、版规和发帖候选：Reddit 发帖台
 - Notifications、回复和后续互动：Reddit 跟进台
 - 自然浏览/投票：随以上执行台读取内容时完成；纯浏览任务才单独创建 Reddit 浏览台
-- 新开一轮或重新分配任务：回到 Reddit 分发台
+- 新开一轮或重新分配任务：回到 Reddit 分发台；默认继续沿用以上执行台
 ```
 
-Omit any execution route whose task was not created. Always retain the natural-browsing explanation and final launcher route. The launcher never aggregates later worker results.
+Omit any execution route that did not receive the current mission. Always retain the natural-browsing explanation and final launcher route. The launcher never aggregates later worker results.

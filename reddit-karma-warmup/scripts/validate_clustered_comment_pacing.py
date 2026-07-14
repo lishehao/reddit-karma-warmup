@@ -12,6 +12,8 @@ required = {
         "missing comment pacing: `clustered_windows`",
         "minimum_completed_cluster_size=2",
         "single_comment_cluster=forbidden",
+        "cluster_copy_batching=forbidden",
+        "per_comment_gate_id",
         "80 comments / 10h = 8/hour",
         "pacing_mode=clustered_windows",
     ],
@@ -22,6 +24,7 @@ required = {
         "2-4` verified comments",
         "do not yield, schedule the next Heartbeat, or report a completed window after only one",
         "verified_comments_in_current_window >= 2",
+        "CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log",
         "4-8m",
         "batch_target_remaining",
         "without lowering thresholds or creating a catch-up burst",
@@ -34,6 +37,7 @@ required = {
     "references/proactive-playbook.md": [
         "`clustered_windows` schedule",
         "at least `2` verified proactive comments",
+        "never draft the cluster in bulk",
     ],
 }
 
@@ -54,4 +58,5 @@ print(json.dumps({
     "single_comment_cluster": "FORBIDDEN_EXCEPT_EXPLICIT_EXACT_ONE_MISSION",
     "uniform_per_comment_clock": "FORBIDDEN",
     "underfill": "CARRY_FORWARD_NO_CATCHUP_FLOOD",
+    "copy_gate": "EACH_COMMENT_INDEPENDENT",
 }, ensure_ascii=False, sort_keys=True))

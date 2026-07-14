@@ -35,6 +35,12 @@ def main() -> int:
             "routine contraction alone does not satisfy",
             "no more than `1` such exception in the rolling last `20` comments",
             "plain_local_voice",
+            "PER_ITEM_COPY_GATE_REQUIRED=true",
+            "cluster_copy_batching=forbidden",
+            "per_comment_gate_id=<mission_id>:<cluster_id>:<item_index>",
+            "default to `<=25` English words",
+            "at most one `26-45` word two-beat exception",
+            "Routine proactive clusters do not use compact paragraphs",
         ],
         ROOT / "references" / "proactive-playbook.md": [
             "Missing rule/context/voice evidence is `Watch`",
@@ -45,6 +51,18 @@ def main() -> int:
             "`85-95%` with an actual social slang/Reddit abbreviation",
             "classify `output_surface`",
             "slang_or_abbrev_used",
+            "return to step 1 and rerun the entire context, length, shortening, local-marker, and submit gate",
+            "never draft the cluster in bulk",
+        ],
+        ROOT / "references" / "default-operations-sop.md": [
+            "per_item_copy_gate=required",
+            "cluster_copy_batching=forbidden",
+            "routine_comment_word_cap=25",
+        ],
+        ROOT / "references" / "launcher-playbook.md": [
+            "Every comments handoff also carries `per_item_copy_gate=required`",
+            "`cluster_copy_batching=forbidden`",
+            "`routine_comment_word_cap=25`",
         ],
         ROOT / "references" / "followup-playbook.md": [
             "ordinary follow-up, technical, sensitive/support, or mod acknowledgement",
@@ -75,6 +93,8 @@ def main() -> int:
     print("social_slang_target=85_TO_95_PERCENT")
     print("frequency=OUTPUT_SURFACE_SPECIFIC")
     print("distribution=ACROSS_OUTPUTS_NOT_STACKED")
+    print("cluster_copy=PER_ITEM_GATE_NO_BATCH_DRAFT")
+    print("routine_cluster_length=DEFAULT_MAX_25_WORDS")
     return 0
 
 

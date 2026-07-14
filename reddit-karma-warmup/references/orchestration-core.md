@@ -41,6 +41,8 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 
 The first user command reaches `ACT` or a browser-backed no-action/recovery checkpoint in the current turn. Task creation, planning, or a future Heartbeat is not execution.
 
+For proactive comments, the state machine runs once per individual comment, not once per cluster. After one verified `ACT`, write the measured log, return to `DISCOVER`, assign a new `per_comment_gate_id`, and rerun `CHECK_A`, `DRAFT`, and `CHECK_B` for the next item. A prewritten batch or shared cluster-level copy decision is invalid.
+
 ## Lane Boundaries
 
 | Lane | Owns | Excludes |

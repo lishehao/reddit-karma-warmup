@@ -58,6 +58,21 @@ Hard default length bias for ordinary comment sessions:
 
 This is a batch-level hard bias, not a mechanical rotation. If the rolling last `10` comments contain fewer than `8` short-tier comments, the next passing candidate defaults to `micro`, `fragment`, or `one-liner` unless the target explicitly needs depth. Do not lengthen a comment to improve variety.
 
+### Per-item gate inside a cluster
+
+`PER_ITEM_COPY_GATE_REQUIRED=true` and `cluster_copy_batching=forbidden`. A `2-4` comment cluster is only a timing/count envelope; it is never one drafting unit.
+
+For every individual cluster item, before any text is entered:
+
+1. Assign `per_comment_gate_id=<mission_id>:<cluster_id>:<item_index>` and reopen the exact target context.
+2. Recompute `rule_glance`, `context_detail`, `duplicate_to_avoid`, `local_voice_sample`, `length_tier`, `why_this_length`, `native_marker_plan`, and the rolling length/marker history. Never carry these fields forward from another comment merely because it is in the same cluster.
+3. Produce fresh `micro`, `one-liner`, and `two-beat` internal alternatives for this target, run the shortening pass, and select the shortest passing version.
+4. Ordinary proactive cluster comments default to `<=25` English words and `fragment` or `one_sentence`. A cluster may contain at most one `26-45` word two-beat exception, only when the exact target needs a contrast, caveat, or useful question and `comment_fun_score >=85`. Routine proactive clusters do not use compact paragraphs or long comments.
+5. Test one locally supported strong abbreviation, Redditism, colloquial fragment, or compressed connective. Use normally exactly one and never more than two; high marker coverage belongs across the cluster, not as stacked slang inside one comment.
+6. After submission, measure and append the exact final text before discovering or drafting the next cluster item. A missing per-item gate or measured log means that item is not complete.
+
+The shortening pass removes greeting/setup sentences, repeated context, hedges, generic praise, and a second advice point. It may use locally evidenced shorthand such as `tbh`, `ngl`, `imo`, `fwiw`, `idk`, `rn`, `tho`, `bc`, `ppl`, `OP`, `YMMV`, or a subreddit-specific term, but it must not invent slang or change the claim.
+
 Before publishing a comment/reply, score `comment_fun_score`:
 
 | Factor | Points | Good signal |

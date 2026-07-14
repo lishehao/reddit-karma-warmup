@@ -69,6 +69,7 @@ Run after opening the candidate and before writing text.
 
 For comments/replies:
 
+0. For every individual item in a proactive cluster, assign a new `per_comment_gate_id`; do not reuse another item's Check A, context, voice sample, intended length, or final draft.
 1. Perform a quick rule glance for this exact action. Re-read the relevant row restriction and either the visible subreddit rule summary or a live rule snapshot captured in this task within the last `60 min`; name the one rule most likely to affect this comment. Entering a new subreddit, a missing/uncertain snapshot, or a changed sidebar requires reopening its current rules once. This is a brief comment check, not the full post preflight.
 2. Read the full post/media, intended parent comment, and enough nearby replies to understand the actual point, local energy, and what has already been said. When available, inspect at least `3` nearby/top replies; when the thread is empty, sample recent native comments from the same subreddit.
 3. Record one `context_detail` that the reply will react to, one `duplicate_to_avoid`, and `2-4` short local voice patterns or Reddit-native expressions observed on the current surface. Do not copy another user's sentence.
@@ -102,6 +103,7 @@ Run after the final draft is entered and before clicking Reply/Post.
 3. Re-read the final text against the exact parent/post and current subreddit context.
 4. Confirm truthfulness, on-topic fit, no prohibited promotion/link, and no contradiction with `history_ledger`; for a comment/reply, verify the final text visibly uses the recorded `context_detail` and does not repeat `duplicate_to_avoid`.
 5. Compute the final draft's `char_count`, `word_count`, `sentence_form`, and `length_tier`; confirm its length, opening, rhythm, subreddit, cluster, and angle are not needlessly repeating recent actions.
+   For an ordinary proactive cluster item, default to `<=25` English words. A `26-45` word two-beat reply requires the recorded depth exception and no other item in that cluster may consume another such exception; compact paragraphs are invalid for routine proactive clusters.
 6. Confirm this exact action was not already submitted; after a Chrome reconnect, inspect profile/thread before any retry.
 7. For posts, confirm title, flair, body/link mode, megathread placement, eligibility, and no moderator-approval requirement one final time.
 
@@ -121,6 +123,7 @@ For every outward action, record:
 
 ```text
 double_check_a | double_check_b | history_comparison | restriction_level
+per_comment_gate_id | cluster_id | item_index | shortening_pass
 rule_glance | context_detail | duplicate_to_avoid | local_voice_sample
 char_count | word_count | sentence_form | length_tier | why_this_length
 subreddit/cluster diversity result | verified permalink

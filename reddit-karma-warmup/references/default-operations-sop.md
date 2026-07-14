@@ -32,7 +32,7 @@ Planning targets are quality-gated. Resolve every range to one exact `action_tar
 
 An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
 
-For proactive comments, decompose every target of `2+` into windows whose planned sizes are all at least `2`. Examples: `3 -> 3`, `5 -> 2+3`, `8 -> 3+2+3`. `single_comment_cluster=forbidden`: after the first verified comment in a window, continue discovery and publishing until at least the second verified comment before yielding, reporting a completed window, or scheduling the next Heartbeat. A user instruction explicitly requesting exactly `1` total comment is a single-action mission, not a cluster, and is the only count-based exception. User stop, deadline, or a current hard blocker may interrupt a window after one action, but it remains `cluster_incomplete` with its remainder preserved; never relabel it completed.
+For proactive comments, decompose every target of `2+` into windows whose planned sizes are all at least `2`. Examples: `3 -> 3`, `5 -> 2+3`, `8 -> 3+2+3`. `single_comment_cluster=forbidden`: after the first verified comment in a window, continue discovery and publishing until at least the second verified comment before yielding, reporting a completed window, or scheduling the next Heartbeat. `cluster_copy_batching=forbidden`: every item gets a new `per_comment_gate_id` and independently reruns context, length, shortening, local-marker, and submit checks. A user instruction explicitly requesting exactly `1` total comment is a single-action mission, not a cluster, and is the only count-based exception. User stop, deadline, or a current hard blocker may interrupt a window after one action, but it remains `cluster_incomplete` with its remainder preserved; never relabel it completed.
 
 ## Target-Driven Scan Loop
 
@@ -74,6 +74,9 @@ duration/count/intensity/style/language
 pacing_mode=clustered_windows
 minimum_completed_cluster_size=2
 single_comment_cluster=forbidden
+per_item_copy_gate=required
+cluster_copy_batching=forbidden
+routine_comment_word_cap=25
 post_default_angle=beginner-common-mistake
 target_pool_or_urls
 mission_identity_focus

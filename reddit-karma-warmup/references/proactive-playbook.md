@@ -8,7 +8,7 @@ Reddit does not publish a global safe comments-per-hour or posts-per-day limit. 
 
 | Tier | Observable operating state | Maximum comment envelope | Maximum daily envelope | Main-post window |
 |-|-|-:|-:|-:|
-| `K0 New` | `<50` karma; use `fresh_bootstrap` when `<48h`, blank/no-history, unverified/unknown, or visibility is uncertain | up to `10/hour` | up to `60/day` only in explicit high-volume mode | `0-2/day` |
+| `K0 New` | `<50` karma; use `fresh_bootstrap` when `<48h`, blank/no-history, unverified/unknown, or visibility is uncertain | up to `10/hour` | up to `60/day` only in explicit high-volume mode | locked at `0` before `fresh_post_unlock`; then max `1/24h` |
 | `K1 Growing` | `50-199` karma plus `>=7d` clean recent state | up to `16/hour` after explicit override | up to `60/day` | `0-3/day` |
 | `K2 Established` | `>=200` karma plus `>=14d` clean recent state | up to `20/hour` after explicit override | up to `60/day` | `0-3/day` |
 
@@ -18,11 +18,11 @@ Use `new-account-bootstrap.md` when `K0` is in `fresh_bootstrap`. Passing its ch
 
 ### Fresh-account default
 
-When the user asks only to start operating and the account is `K0 fresh_bootstrap`, default to the low envelope: target `3` and cap `4` proactive comments in the first hour, no more than `12` proactive comments in the first `24h`, and `0-1` main post that day. Prefer at least `3` low-restriction communities with clear ordinary participation paths. Do not use `A`, `A0`, `No-go`, account-denylisted, approval-gated, megathread-only, local-Karma-gated, or tightly formatted communities for bootstrap publishing.
+When the user asks only to start operating and the account is `K0 fresh_bootstrap`, default to the low envelope: target `3` and cap `4` proactive comments in the first hour, no more than `12` proactive comments in the first `24h`, and `0` main posts until `fresh_post_unlock` passes. Prefer at least `3` low-restriction communities with clear ordinary participation paths. Do not use `A`, `A0`, `No-go`, account-denylisted, approval-gated, megathread-only, local-Karma-gated, or tightly formatted communities for bootstrap publishing.
 
-This conservative default is not a no-action state. Start the first eligible comment slot immediately. A user's explicit count, intensity, duration, or target still overrides the default after one concise caution when materially riskier; live rules and the account denylist continue to veto the exact destination.
+This conservative default is not a no-action state. Start the first eligible comment slot immediately and let the post lane research candidates without submitting. A user's explicit count, intensity, duration, or target still controls comments and research after one concise caution when materially riskier; it does not bypass `fresh_post_unlock`, live rules, or the account denylist for a K0 main post.
 
-After every verified proactive comment, use a local `60-120 sec` pause before the next publish; discovery, reading, drafting, and verification time are additional. Main posts are heavier: default to at most one main post per subreddit per `24h`. The first eligible main post of the day has no skill-level `6h` waiting gate. Only a second same-day post requires a different community and audience/angle cluster, at least `6h` separation from the first, and a clean visibility check on the earlier post.
+After every verified proactive comment, use a local `60-120 sec` pause before the next publish; discovery, reading, drafting, and verification time are additional. Main posts are heavier: K0 stays at zero until unlocked, then at most one main post across the account per rolling `24h`. K1/K2 retain the per-subreddit `24h` diversity gate and their own envelopes.
 
 ## Explicit Daily 60 Comment Mode
 
@@ -211,7 +211,7 @@ Choose subreddit + audience + angle after history comparison and before drafting
 
 `pass` requires `post_candidate_score >=82`, at least `20/25` on live rules and eligibility, and no mandatory-rule conflict. `watch` is `70-81`: continue research or retarget. `skip_candidate` is `<70` or any live eligibility blocker. A high total never overrides a failed mandatory rule.
 
-Do not reject a first daily post merely because the account is `K0` or because six hours have not elapsed. `6h` is only the spacing gate between the first and second same-day posts. The first post still requires all live subreddit eligibility, account-age/Karma, format, history, and moderation checks below.
+For `K0`, load `new-account-bootstrap.md` and require `fresh_post_unlock=passed` before drafting or submitting. Then read the exact row in `posting-account-gates-audit-2026-07-14.csv`. `unknown`, `blocked`, and `organization_deny` are closed for K0 main posts; a completed row still requires every recorded gate plus the same-day live checks below. While K0, never publish a second main post inside the same rolling `24h`.
 
 1. home/about/sidebar/rules
 2. pinned moderator posts

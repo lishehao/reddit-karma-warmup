@@ -11,8 +11,8 @@ Use in the reusable distributor to split each direct dispatch request, and in a 
 - missing comment pacing: `clustered_windows`
 - comment cluster completion floor: `minimum_completed_cluster_size=2`
 - missing post angle: `beginner-common-mistake`, implemented as a truthful beginner-readable community-memory question with `discussion_potential_score >=80`
-- broad `开始/运营`: comments + posts + follow-up
-- healthy first-Bootstrap `继续`: comments + posts + follow-up using the matching saved direction or broad default for `3h`; repair-state `继续` only rechecks the failed dependency
+- broad `开始/运营`: comments + posts + follow-up; for locked `K0 fresh_bootstrap`, the post mission is read-only research/preflight with action target/cap `0/0`
+- healthy first-Bootstrap `继续`: comments + posts + follow-up using the matching saved direction or broad default for `3h`; a locked K0 post lane researches only, while repair-state `继续` only rechecks the failed dependency
 - browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
 - presence: only when explicitly requested or the first profile baseline is incomplete
 
@@ -31,6 +31,8 @@ Planning targets are quality-gated. Resolve every range to one exact `action_tar
 | high | `8/10 per hour`; `24` | `1/1 every 60-90m`; reference sweep up to `100`, live deep preflight `10-15` | full sweep every `20-30m` | `30`; `4/6` |
 
 An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
+
+Before resolving a K0 post target, load `new-account-bootstrap.md` and the exact candidate rows from `posting-account-gates-audit-2026-07-14.csv`. Before `fresh_post_unlock`, replace every default or requested post action target/cap with `0/0` and set `post_action_mode=research_preflight_only`. After unlock, clamp K0 to `1/1` per rolling `24h`. Unknown audit rows never enter a K0 post shortlist.
 
 For proactive comments, decompose every target of `2+` into windows whose planned sizes are all at least `2`. Examples: `3 -> 3`, `5 -> 2+3`, `8 -> 3+2+3`. `single_comment_cluster=forbidden`: after the first verified comment in a window, continue discovery and publishing until at least the second verified comment before yielding, reporting a completed window, or scheduling the next Heartbeat. `cluster_copy_batching=forbidden`: every item gets a new `per_comment_gate_id` and independently reruns context, length, shortening, local-marker, and submit checks. A user instruction explicitly requesting exactly `1` total comment is a single-action mission, not a cluster, and is the only count-based exception. User stop, deadline, or a current hard blocker may interrupt a window after one action, but it remains `cluster_incomplete` with its remainder preserved; never relabel it completed.
 
@@ -80,6 +82,9 @@ routine_comment_word_cap=25
 post_default_angle=beginner-common-mistake
 post_discussion_gate=required_for_question_posts
 post_discussion_score_min=80
+fresh_post_unlock=<locked|passed>
+post_action_mode=<research_preflight_only|publish>
+posting_gate_audit_rows=<exact candidate rows and status>
 target_pool_or_urls
 mission_identity_focus
 reference_rows_assessed

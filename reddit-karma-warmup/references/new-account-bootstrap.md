@@ -10,13 +10,13 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 2. **Establish a truthful presence baseline.** `Reddit 分发台` may allocate `Reddit 主页台`; that task loads `community-presence-playbook.md`, makes one immediate best-effort display/about/avatar/banner checkpoint, and owns any requested retry without holding outward tasks.
 3. **Join a few high-fit communities.** `Reddit 主页台` runs the membership gate and prefers `1-3` in the first slot. Profile/Join/Flair incompleteness never blocks outward lanes once account identity is known.
 4. **Read before and alongside publishing.** Comment, post, and follow-up tasks independently assess natural incidental votes on external content they already open. These votes have no quota and never cause extra browsing. Create a separate intensity-sized browse slot only when the user explicitly requests pure browsing/voting.
-5. **Run the first-hour launch.** If the user did not specify intensity/count, use the fresh-account low default: comment target/cap `3/4`, first-day proactive-comment cap `12`, and main-post cap `1`. Immediately execute comments, post preflight, and follow-up. Comments remain micro/fragment/one-liner first and span at least three lower-restriction communities. Add pure browsing only when explicitly requested.
+5. **Run the first-hour launch.** If the user did not specify intensity/count, use the fresh-account low default: comment target/cap `3/4`, first-day proactive-comment cap `12`, and main-post target/cap `0/0` until `fresh_post_unlock` passes. Immediately execute comments and follow-up. The post lane may begin read-only destination research and preflight, but it must not open a submission mutation or publish while locked. Comments remain micro/fragment/one-liner first and span at least three lower-restriction communities. Add pure browsing only when explicitly requested.
 6. **Pause between submissions.** After every verified comment, use a local `60-120 sec` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
 7. **Verify locally.** Record and verify the first permalink in the comment task while its mission continues. Any removal retires only its exact subreddit; continue in unaffected communities. Timed rate limits auto-resume; allowlisted account repair states withhold only impossible mutations while this task's Heartbeat and permitted work continue. A pending delayed check or historical event is not a reason to wait.
 8. **Continue after the first hour.** Continue the user's selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A currently active blocker uses its minimum recovery condition, then resumes the same latest command. Historical or cleared failures never select a recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
-9. **Main-post lane.** Broad operation includes one immediate candidate/preflight micro-slot. Default to the truthful `beginner-common-mistake` tendency in `proactive-playbook.md`, using a narrow community-specific pitfall that experienced members can answer. Permit up to two no-link, specific, native posts on the first day only when each passes the full live post preflight. `K0` does not create a six-hour wait before the first eligible post. Only the second requires the first to remain visible, a different subreddit and angle cluster, and at least `6h` separation.
+9. **Main-post lane.** Broad operation includes one immediate read-only candidate/preflight micro-slot. Default to the truthful `beginner-common-mistake` tendency in `proactive-playbook.md`, using a narrow community-specific pitfall that experienced members can answer. A blank or `<48h` `K0 fresh_bootstrap` account publishes no main post by default. After `fresh_post_unlock` passes, permit at most one no-link, specific, native post per rolling `24h` while the account remains `K0`; explicit high intensity does not create a second K0 post in that window.
 
-The user's explicit sequence overrides these defaults. Only a current allowlisted user-repair state can temporarily withhold the exact impossible mutation.
+The user's explicit sequence may reorder comments, follow-up, presence, and research. It does not bypass `fresh_post_unlock` for a K0 main-post mutation. Only a current allowlisted user-repair state can temporarily withhold another exact impossible mutation.
 
 ## Default Persona
 
@@ -35,14 +35,28 @@ For internal Loci accounts without another supplied persona:
 - explicit browsing: when requested, one intensity-sized slot at launch; standard starts at `20` qualified reads, vote target `2`, cap `4`
 - proactive comments: unspecified operation defaults to target/cap `3/4` in the first hour and no more than `12` in the first `24h`; `60/day` requires explicit high-volume mode, at least `6h`, and enough passing candidates
 - startup checkpoint: the comment task verifies its first permalink immediately; delayed visibility may be checked on its next wake without pausing work
-- main posts: unspecified operation defaults to `0-1/day`; explicit higher intensity may use `0-2/day`; never more than one per subreddit per `24h`
-- first main post: no skill-level `6h` wait; publish only after full live eligibility/preflight passes
+- main posts: `fresh_bootstrap` before `fresh_post_unlock` uses target/cap `0/0`; after unlock, all K0 modes use at most `0-1` per rolling `24h`, regardless of requested intensity
+- first main post: publish only after `fresh_post_unlock`, the bundled account-gate audit, and the full same-day live eligibility/preflight all pass
 - first-hour comments: low target/cap `3/4`, standard `5/6`, high `8/10`, with `60-120 sec` local pause after every verified submission
-- second post checkpoint: first post remains visible after `30-60 min`, no account/community warning, different community and angle, `>=6h` later
+- next-post checkpoint: while K0, the previous post remains visible, no account/community warning is active, and at least `24h` has elapsed
 
-These are operating defaults, not Reddit platform rules, guarantees, or grounds to reject an explicit override. Timed limits auto-retry; allowlisted user-repair states withhold only the mutations they prevent, while Heartbeats and permitted work continue. For one removal or invisibility event, retire that target/community, inspect the exact notice, and continue elsewhere.
+These are conservative K0 operating gates, not Reddit platform limits or guarantees. A user may change direction, duration, comment count, or research depth, but a K0 post still requires `fresh_post_unlock`; do not turn an explicit volume request into permission to publish from a blank account. Timed limits auto-retry; allowlisted user-repair states withhold only the mutations they prevent, while Heartbeats and permitted work continue. For one removal or invisibility event, retire that target/community, inspect the exact notice, and continue elsewhere.
 
 `bootstrap_state=initialized` records workflow completion only. It does not change Karma tier, account age, subreddit eligibility, recovery rules, or post limits.
+
+## Fresh Post Unlock
+
+Set `fresh_post_unlock=passed` only when all are true:
+
+- account age is at least `48h`
+- at least `10` comments remain visible across at least `3` eligible communities
+- email/eligibility is not visibly blocking the account
+- no current CAPTCHA, warning, lock, suspension, timed sitewide rate limit, or login mismatch is active
+- the exact subreddit row in `posting-account-gates-audit-2026-07-14.csv` is `verified_numeric`, `verified_qualitative`, or `no_public_gate_found`; `unknown`, `blocked`, and `organization_deny` are closed for K0 main posts
+- every recorded numeric, participation-history, flair, megathread, membership, verified-email, approval, and format gate is satisfied
+- a same-day Chrome check of rules, pinned moderator posts, recent feeds, submit controls, and account-visible eligibility passes
+
+`no_public_gate_found` means only that the checked public surfaces exposed no gate. It never proves that AutoModerator has no hidden gate, so the same-day live submit/account check remains mandatory. A completed audit row ranks a candidate for preflight; it never grants publication by itself.
 
 ## Bootstrap Exit And Tier Change
 
@@ -53,7 +67,7 @@ Change `K0 fresh_bootstrap -> K0 active_new` only when all are true:
 - at least `10` comments remain visible across at least `3` communities
 - no captcha, sitewide rate limit, account warning, lock/suspension, or login mismatch is currently active at the checkpoint
 
-A visible main post is useful evidence but is not required to exit bootstrap. Karma alone does not override failed visibility or verification signals.
+The exit conditions also satisfy the account-history portion of `fresh_post_unlock`, but the exact subreddit audit and same-day live checks still run separately. A visible main post is useful evidence but is not required to exit bootstrap. Karma alone does not override failed visibility or verification signals.
 
 Demotion/recovery:
 
@@ -64,7 +78,7 @@ Demotion/recovery:
 
 ## Help-Seeking Post
 
-Use a real workflow question with one clear ask. The default first form is a community-specific beginner/common-mistake question that invites experienced members to recall what went wrong and why. Never claim the account personally made the mistake unless true. The second same-day post, when allowed, must use a different native form such as a concrete observation, comparison, or artifact discussion rather than a rewritten copy of the first question.
+Use a real workflow question with one clear ask. The default first form is a community-specific beginner/common-mistake question that invites experienced members to recall what went wrong and why. Never claim the account personally made the mistake unless true. K0 has no second same-day post. For a higher tier that permits multiple posts, the next post must use a different native form such as a concrete observation, comparison, or artifact discussion rather than a rewritten copy of the first question.
 
 - beginner trap
 - workflow friction

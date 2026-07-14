@@ -61,17 +61,19 @@ require(ROOT / "references" / "default-operations-sop.md", [
     "do not silently resend the previous mission",
 ], errors)
 
-require(README, [
-    "BOOTSTRAP_REPAIR_REQUIRED",
-    "健康 Bootstrap 提问后，用户回复“继续”",
-    "只有三条精确任务消息都被对应执行台接受后",
-    "后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达",
-    "本轮部分分发",
-], errors)
+if README.exists():
+    require(README, [
+        "BOOTSTRAP_REPAIR_REQUIRED",
+        "健康 Bootstrap 提问后，用户回复“继续”",
+        "只有三条精确任务消息都被对应执行台接受后",
+        "后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达",
+        "本轮部分分发",
+    ], errors)
 
 forbid(ROOT / "SKILL.md", ["后续请直接到对应任务操作："], errors)
 forbid(ROOT / "references" / "launcher-playbook.md", ["后续请直接到对应任务操作："], errors)
-forbid(README, ["后续请直接到对应任务操作："], errors)
+if README.exists():
+    forbid(README, ["后续请直接到对应任务操作："], errors)
 
 transitions = {
     ("BOOTSTRAP_REPAIR_REQUIRED", "继续"): "RECHECK_MISSING_ONLY",

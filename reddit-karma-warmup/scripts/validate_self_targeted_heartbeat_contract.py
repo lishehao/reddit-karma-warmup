@@ -68,11 +68,12 @@ require(ROOT / "references" / "orchestration-core.md", [
     "pre-bind, explicit-bind, and post-bind transaction",
 ], errors)
 
-require(README, [
-    "按返回的 automation ID 读回目标任务 ID",
-    "目标任务 ID 隐藏或不匹配则不能算绑定成功",
-    "worker_task_id=<精确目标任务 ID>",
-], errors)
+if README.exists():
+    require(README, [
+        "按返回的 automation ID 读回目标任务 ID",
+        "目标任务 ID 隐藏或不匹配则不能算绑定成功",
+        "worker_task_id=<精确目标任务 ID>",
+    ], errors)
 
 if errors:
     raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))

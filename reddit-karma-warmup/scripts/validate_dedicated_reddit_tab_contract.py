@@ -16,6 +16,8 @@ def read(path: Path) -> str:
 required = {
     ROOT / "SKILL.md": [
         "one persistent dedicated Reddit primary tab",
+        "persists `own_tab_id` before the first `goto`",
+        "navigation acknowledgement uncertain",
         "URL/title metadata alone is not control proof",
         'status: "handoff"',
         "own_tab.close()",
@@ -23,6 +25,9 @@ required = {
     ],
     ROOT / "references" / "orchestration-core.md": [
         "Every execution task owns one persistent dedicated Reddit primary tab",
+        "persist `own_tab_id` before the first `goto`",
+        "post-timeout page-state check",
+        "Never call `finalize({keep: []})` for a nonterminal navigation failure",
         'tab.goto("https://www.reddit.com/")',
         "Never claim an arbitrary user tab",
         'status: "handoff"',
@@ -31,8 +36,11 @@ required = {
     ],
     ROOT / "references" / "chrome-network-recovery.md": [
         "Never use `Meta+L` address-bar simulation as recovery",
+        "navigation acknowledgement uncertain",
+        "post-timeout page-state check",
+        "Never call `finalize({keep: []})` for this nonterminal condition",
         "proves only tab metadata visibility",
-        "remains `about:blank`",
+        "still show `about:blank`",
     ],
     ROOT / "references" / "launcher-playbook.md": [
         "dedicated_reddit_tab=required",
@@ -43,6 +51,8 @@ required = {
 if README.exists():
     required[README] = [
         "一个专属、持久化的 Reddit 主标签",
+        "先持久记录 tab ID",
+        "超时只代表导航确认不确定",
         "非终态以 `handoff` 保留",
     ]
 

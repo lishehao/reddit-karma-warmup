@@ -9,8 +9,9 @@ Always follow the installed Chrome control Skill. For extension/native-messaging
 - Use `tab.goto(url)` for a known destination and a DOM-supported link click plus navigation wait for an in-page transition. Page-side evaluation is read-only and is not a navigation fallback.
 - `CUA` keypress/type acts on the focused webpage, not reliably on the Chrome omnibox. Never use `Meta+L` address-bar simulation as recovery.
 - `openTabs()` returning a Reddit URL/title proves only tab metadata visibility. After claiming the exact recorded lane tab, require one successful DOM, screenshot, or equivalent page-state read before declaring control healthy.
-- Each lane keeps one persistent dedicated Reddit primary tab. Never recover by claiming an arbitrary existing Reddit tab. A nonterminal turn preserves its controllable primary tab as `handoff`; terminal cleanup closes/releases it.
-- If a new lane-owned tab cannot navigate to both Reddit and a neutral page and remains `about:blank`, classify a page-control/control-channel failure. Stop creating replacement tabs in a loop, keep the lane mission and Heartbeat, and follow the installed Chrome troubleshooting path.
+- Each lane keeps one persistent dedicated Reddit primary tab. Persist `own_tab_id` immediately after creation and before the first `goto`; never recover by claiming an arbitrary existing Reddit tab. A nonterminal turn preserves its controllable primary tab as `handoff`; terminal cleanup closes/releases it.
+- Give awaited `tab.goto(...)` up to `90 sec`. A timeout or REPL reset makes the navigation acknowledgement uncertain because the page transition may already have completed. Reconnect the same Chrome/profile, reclaim the exact `own_tab_id`, and run a post-timeout page-state check using URL/title plus DOM or screenshot before classifying failure.
+- Only when that same-tab check and one bounded same-tab retry still show `about:blank` or an unreadable page may the lane classify a page-control/control-channel failure. Never call `finalize({keep: []})` for this nonterminal condition, never create replacement tabs in a loop, and never claim a user/launcher/sibling tab. Keep the lane mission, Heartbeat, and primary tab as `handoff` for the next wake.
 
 ## Evidence First
 
@@ -67,15 +68,16 @@ Chrome documents common loading codes and exposes the installed browser's full l
 Use Chrome Browser only. Never switch to Computer Use, another browser, Web Search, or a logged-out session as a recovery substitute.
 
 1. Validate the exact URL/hostname.
-2. If the browser binding is connected, wait `5-15 sec` and retry the current read-only navigation once. Do not repeat a mutation.
-3. In the lane's dedicated primary tab, open the relevant Reddit native home surface (`reddit.com`, subreddit home, Notifications, or profile history). If that tab binding is stale, replace it once with a fresh lane-owned primary tab.
-4. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session.
-5. Classify the scope:
+2. If awaited navigation times out, first reconnect the same Chrome/profile, reclaim the exact recorded `own_tab_id`, and inspect actual post-timeout page state. If URL moved and DOM/screenshot is readable, continue as recovered without another navigation.
+3. If the same tab remains blank or unreadable, wait `5-15 sec` and retry the current read-only navigation once in that tab. Do not repeat a mutation and do not create a second primary tab.
+4. In the lane's dedicated primary tab, open the relevant Reddit native home surface (`reddit.com`, subreddit home, Notifications, or profile history). Only if the recorded tab is absent from the current tab inventory is its binding stale and replaceable once.
+5. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session.
+6. Classify the scope:
    - neutral page and Reddit both fail: device/network/proxy/Chrome path
    - neutral page works, Reddit home fails: Reddit/site/domain path
    - Reddit home works, deep target fails: route/candidate path
    - browser calls fail before any page response, or a new tab stays `about:blank` for both Reddit and the neutral page: page-control/control-channel path
-6. After recovery, reconfirm the expected Reddit account and target URL before any mutation.
+7. After recovery, reconfirm the expected Reddit account and target URL before any mutation.
 
 Do not inspect cookies/local storage, clear browsing data, disable extensions, restart Chrome, change DNS/VPN/proxy, or bypass TLS warnings automatically. Those actions can destroy login state or alter the user's machine and require user involvement when genuinely needed.
 

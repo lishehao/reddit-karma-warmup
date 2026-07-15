@@ -16,7 +16,9 @@ def read(path: Path) -> str:
 required = {
     ROOT / "SKILL.md": [
         "one persistent dedicated Reddit primary tab",
-        "persists `own_tab_id` before the first `goto`",
+        "two-call creation transaction",
+        "Never combine `tabs.new()` and the first `goto` in one browser call",
+        "up to 60 seconds",
         "navigation acknowledgement uncertain",
         "URL/title metadata alone is not control proof",
         'status: "handoff"',
@@ -25,7 +27,9 @@ required = {
     ],
     ROOT / "references" / "orchestration-core.md": [
         "Every execution task owns one persistent dedicated Reddit primary tab",
-        "persist `own_tab_id` before the first `goto`",
+        "two-call creation transaction",
+        "Never combine `tabs.new()` and the first `goto` in one browser call",
+        "`60 sec`",
         "post-timeout page-state check",
         "Never call `finalize({keep: []})` for a nonterminal navigation failure",
         'tab.goto("https://www.reddit.com/")',
@@ -36,6 +40,9 @@ required = {
     ],
     ROOT / "references" / "chrome-network-recovery.md": [
         "Never use `Meta+L` address-bar simulation as recovery",
+        "two-call creation transaction",
+        "Never combine `tabs.new()` and the first `goto` in one browser call",
+        "`60 sec`",
         "navigation acknowledgement uncertain",
         "post-timeout page-state check",
         "Never call `finalize({keep: []})` for this nonterminal condition",
@@ -51,7 +58,9 @@ required = {
 if README.exists():
     required[README] = [
         "一个专属、持久化的 Reddit 主标签",
-        "先持久记录 tab ID",
+        "两次浏览器调用完成创建",
+        "禁止把创建和首次导航放在同一次调用里",
+        "最多 60 秒",
         "超时只代表导航确认不确定",
         "非终态以 `handoff` 保留",
     ]

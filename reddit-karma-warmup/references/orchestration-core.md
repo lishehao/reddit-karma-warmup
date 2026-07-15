@@ -12,7 +12,8 @@ account + tier/substate
 mission_id + latest user request + duration/count/intensity/style/language
 operation_stop_at + remaining_target
 mutation_phase_index + initial_mutation_not_before + phase_jitter_minutes + missed_phase_policy
-action_target + slot_target_remaining + action_cap + qualified_read_floor + incidental_vote_count
+action_target + slot_target_remaining + action_cap + qualified_read_floor
+vote_target_mode + combined_vote_target + vote_cap + vote_target_remaining + upvote_count + downvote_count
 own_tab_id + own_tab_origin + optional group_id + current URL + tab_control_proof
 own_history_ledger
 own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc
@@ -35,7 +36,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 | `DRAFT` | Text lanes choose varied length and write target-specific copy; browsing chooses a vote/no-vote decision. | final candidate ready |
 | `CHECK_B` | Recheck account, page, copy/direction, target, and duplicate state. | act/rewrite/retarget/recover |
 | `ACT` | Perform at most the selected action and verify immediate result. | proof recorded |
-| `RECONCILE` | Subtract only verified actions from `slot_target_remaining`; preserve unfinished count and compute the next due time from actual conditions. | unfinished -> `SCHEDULE`; terminal -> `RETIRE` |
+| `RECONCILE` | Subtract only verified text actions from `slot_target_remaining` and accepted votes from `vote_target_remaining`; preserve both unfinished counts and compute the next due time from actual conditions. | either remainder unfinished -> `SCHEDULE`; terminal -> `RETIRE` |
 | `SCHEDULE` | For nonterminal work only, run the scheduler's pre-bind, explicit-bind, and post-bind transaction for this task's own Heartbeat. | exact target binding verified and timer state recorded |
 | `RETIRE` | For explicit stop, deadline, or verified mission-target completion, delete this task's own Heartbeat and clear its timer state before reporting. | deletion success or timer already absent |
 | `REPORT` | Return the three-line local result. | turn ends |
@@ -48,9 +49,9 @@ For proactive comments, the state machine runs once per individual comment, not 
 
 | Lane | Owns | Excludes |
 |-|-|-|
-| comments | proactive comment discovery and submission; independently gated incidental votes on already-read candidates | main posts, notifications, vote hunting, profile changes |
-| posts | native main post discovery/preflight/submission; independently gated incidental votes on already-read external research samples | comments, notifications, vote hunting, profile changes |
-| follow-up | Notifications and replies to own activity; independently gated incidental votes on already-read inbound replies | proactive discovery, new posts, vote hunting |
+| comments | proactive comment discovery/submission plus its hard per-round combined-vote target on eligible candidate posts/parents | main posts, notifications, unrelated-feed vote hunting, profile changes |
+| posts | native main post discovery/preflight/submission plus its hard per-round combined-vote target on eligible external research samples | comments, notifications, unrelated-feed vote hunting, profile changes |
+| follow-up | Notifications/replies plus its hard per-round combined-vote target on eligible inbound replies | proactive discovery, new posts, unrelated-feed vote hunting |
 | browsing | explicit pure-browse missions with qualified reading and independently gated votes | default broad-operation dispatch, publishing text, notifications, profile changes |
 | presence | profile/about, Join/subscribe, truthful Flair/tag | outward content, notifications, votes |
 

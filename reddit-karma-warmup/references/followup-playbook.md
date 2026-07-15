@@ -1,6 +1,6 @@
 # Follow-Up Playbook
 
-Use only for notifications, supplied Reddit URLs, replies to the account's own recent posts/comments, and mod/Automod follow-up. Shared lifecycle and scheduling come from `orchestration-core.md` and `scheduler-and-heartbeats.md`. Load `browse-vote-playbook.md` in incidental mode for another user's inbound reply already opened during this sweep.
+Use only for notifications, supplied Reddit URLs, replies to the account's own recent posts/comments, and mod/Automod follow-up. Shared lifecycle and scheduling come from `orchestration-core.md` and `scheduler-and-heartbeats.md`. Load `browse-vote-playbook.md` in `lane_round` mode for eligible inbound replies opened during this sweep.
 
 ## Cadence And Surfaces
 
@@ -36,7 +36,7 @@ Score each exact inbound item:
 
 Session-level authorization covers `Act` replies. Do not request per-reply confirmation.
 
-After reading the exact inbound chain, independently assess the other user's reply for an incidental vote. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. There is no vote quota: do not browse unrelated feeds, reopen closed chains, or delay a reply to find votes. Record `incidental_vote_count`, `existing_vote`, or `no_vote` locally and continue triage.
+After reading each exact inbound chain, independently assess the other user's reply against the current round's hard vote target. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments while the vote remainder is positive, but do not browse unrelated feeds or reopen closed chains. If these required surfaces contain too few eligible external items, record the exact Upvote/Downvote shortfall as scope exhaustion; never manufacture a reply or weaken a vote gate.
 
 This lane has no artificial reply quota. Its completion target is one full required-surface sweep plus every passing `Act` available in that sweep. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments even when the first surface is quiet; never report a partial sweep as completion.
 

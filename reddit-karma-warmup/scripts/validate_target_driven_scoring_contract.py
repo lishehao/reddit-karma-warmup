@@ -14,8 +14,9 @@ def read(relative: str) -> str:
 
 required = {
     "SKILL.md": [
-        "exact target/cap/read floor",
-        "incidental voting on already-read candidates",
+        "exact text-action target/cap/read floor",
+        "per-round independently gated votes",
+        "Text-action and vote targets are both hard completion objectives",
         "explicit pure-browse missions",
         "The launcher never claims full dispatch before exact message acceptance",
     ],
@@ -28,10 +29,12 @@ required = {
         "slot_target_remaining",
         "primary completion condition",
         "Reaching the read floor with too few actions means expand, not finish",
-        "Natural Incidental Voting",
+        "Per-Round Vote Target",
         "broad `开始/运营`: comments + posts + follow-up",
         "browsing: only when the user explicitly requests",
-        "incidental_voting=already_read_content_only",
+        "per_round_voting=hard_combined_target_with_directional_counters",
+        "low `2/2`, standard `2/4`, high `4/6`",
+        "Never lower `Upvote >=82` or `Downvote >=92`",
         "post_default_angle=beginner-common-mistake",
     ],
     "references/proactive-playbook.md": [
@@ -39,8 +42,8 @@ required = {
         "post_candidate_score >=82",
         "The comment target is the slot's primary completion condition",
         "The post target is an execution objective",
-        "no vote target",
-        "already qualified-read post",
+        "current round's hard vote remainder",
+        "qualified-read post or parent",
         "Default Discussion-First Post Tendency",
         "discussion_potential_score",
         "community-memory prompt",
@@ -61,7 +64,9 @@ required = {
     ],
     "references/browse-vote-playbook.md": [
         "Initial qualified-read floor",
-        "combined-vote target as an active completion objective",
+        "combined-vote target as a hard completion objective",
+        "If exact directional targets are supplied",
+        "`no_vote` is a valid candidate decision but never fills the hard accepted-vote target",
         "Choose `upvote` only at `>=82`",
         "Choose `downvote` only at `>=92`",
     ],
@@ -69,8 +74,8 @@ required = {
         "Act >=75",
         "no artificial reply quota",
         "every passing `Act`",
-        "incidental vote",
-        "incidental_vote_count",
+        "current round's hard vote target",
+        "exact Upvote/Downvote shortfall",
     ],
     "references/outbound-copy-gate.md": [
         "comment_fun_score",
@@ -116,6 +121,6 @@ print(json.dumps({
         "counts": "EXACT_TARGET_AND_CAP",
         "discovery": "EXPAND_UNTIL_TARGET_OR_DEADLINE",
         "quality": "NEVER_LOWER_THRESHOLD",
-        "votes": "LANE_LOCAL_INCIDENTAL_PLUS_EXPLICIT_BROWSE",
+        "votes": "LANE_LOCAL_PER_ROUND_HARD_TARGET",
     },
 }, ensure_ascii=False, sort_keys=True))

@@ -32,6 +32,8 @@ Planning targets are quality-gated. Resolve every range to one exact `action_tar
 
 An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
 
+Every comments, posts, follow-up, or explicit-browse round also resolves a hard combined-vote target/cap: low `2/2`, standard `2/4`, high `4/6`. `Upvote` and `Downvote` are separately counted and reported, but the default target is their accepted sum and never requires one of each. If the user gives exact `upvote_target` and/or `downvote_target`, those directional counts replace the combined default as hard objectives. Existing votes and `no_vote` decisions do not fill an accepted-vote target.
+
 Before resolving a post target, load `new-account-bootstrap.md` and the exact candidate rows from `posting-account-gates-audit-2026-07-14.csv`. K0 always uses post action target/cap `0/0` with `post_action_mode=research_preflight_only`. At K1, require `main_post_unlock=passed` and clamp the post target/cap to at most `1/1` per rolling `24h`. Unknown audit rows never enter a K0/K1 post shortlist.
 
 For proactive comments, decompose every target of `2+` into windows whose planned sizes are all at least `2`. Examples: `3 -> 3`, `5 -> 2+3`, `8 -> 3+2+3`. `single_comment_cluster=forbidden`: after the first verified comment in a window, continue discovery and publishing until at least the second verified comment before yielding, reporting a completed window, or scheduling the next Heartbeat. `cluster_copy_batching=forbidden`: every item gets a new `per_comment_gate_id` and independently reruns context, length, shortening, local-marker, and submit checks. A user instruction explicitly requesting exactly `1` total comment is a single-action mission, not a cluster, and is the only count-based exception. User stop, deadline, or a current hard blocker may interrupt a window after one action, but it remains `cluster_incomplete` with its remainder preserved; never relabel it completed.
@@ -48,17 +50,17 @@ Each lane works backward from the exact action target instead of stopping after 
 
 More qualified reading is always allowed while the action target remains. Fewer actions are not an acceptable convenience outcome while authorized time and recoverable discovery surfaces remain. Never lower a score threshold, invent experience, reuse near-duplicate text, violate live rules, or exceed the action cap merely to fill the number. If execution must yield before the target is met, record an interim checkpoint, carry the exact remaining count into the same slot's next Heartbeat, and continue. A final shortfall report is allowed only at a terminal condition and must state verified actions/target, qualified candidates assessed, expansion stages attempted, and the exact terminal reason.
 
-## Natural Incidental Voting
+## Per-Round Vote Target
 
-Comments, posts, and follow-up tasks may independently score and cast a natural vote only on content they already had to open for their primary objective:
+Comments, posts, and follow-up tasks independently score and may cast a natural vote on eligible external content opened inside their primary lane:
 
 - comments: the candidate post or parent chain already read for comment discovery
 - posts: external survivor/reference posts already read during live rules and angle research
 - follow-up: another user's inbound reply already read during Notifications or own-activity review
 
-Incidental voting has no separate target, cap, or read floor. Never extend a slot, widen discovery, or delay the primary lane merely to find votes. The dedicated `BROWSING_WORKER` remains available only for an explicit pure-browse/vote request and is the only mode with a vote target and browse floor.
+The resolved vote target is a hard per-round completion objective alongside the lane's primary target. If the primary action finishes first, continue through additional eligible candidates within that lane's own normal surfaces until the vote target passes, the cap is reached, or a terminal deadline/blocker occurs. Do not open unrelated feeds, closed/research-only communities, own/team content, or weaker candidates merely to fill votes. Follow-up never leaves Notifications, supplied/known permalinks, recent own posts, and recent own comments; if those surfaces contain too few eligible external items, report the exact hard-target shortfall instead of manufacturing activity. The dedicated `BROWSING_WORKER` remains available for explicit pure-browse/vote requests and owns its independent qualified-read floor.
 
-Every vote uses the independent score in `browse-vote-playbook.md`; comment, post, or reply scores never become vote scores. Before clicking, inspect the intended control once: if either direction is already explicitly selected, record `existing_vote` and do not click; if the state cannot be determined reliably, record `no_vote`. After one successful click, accept it without repeated verification. Never vote on own, team/affiliated, moderator/Automod, or supplied campaign content.
+Every vote uses the independent score in `browse-vote-playbook.md`; comment, post, or reply scores never become vote scores. Never lower `Upvote >=82` or `Downvote >=92` to fill a hard target. Before clicking, inspect the intended control once: if either direction is already explicitly selected, record `existing_vote` and do not click; if the state cannot be determined reliably, record `no_vote`. After one successful click, accept it without repeated verification. Never vote on own, team/affiliated, moderator/Automod, or supplied campaign content.
 
 ## Launcher Dispatch
 
@@ -100,7 +102,8 @@ heartbeat_owner=self
 heartbeat_target=worker_task_id
 launcher_callback=none
 sibling_visibility=none
-incidental_voting=already_read_content_only
+per_round_voting=hard_combined_target_with_directional_counters
+combined_vote_target + vote_cap + optional upvote_target/downvote_target
 action_target + action_cap + qualified_read_floor
 ```
 

@@ -1,11 +1,11 @@
 # Browse And Vote Playbook
 
-Load for `Reddit 浏览台` and for incidental vote decisions inside comments, posts, and follow-up tasks. The browsing lane never publishes text. Other lanes use only the independent score, eligibility, pre-click state, one-click, and ledger rules on content already opened for their primary objective.
+Load for `Reddit 浏览台` and for per-round vote targets inside comments, posts, and follow-up tasks. The browsing lane never publishes text. Other lanes retain their own candidate surfaces while using the same independent score, eligibility, pre-click state, one-click, target, and ledger rules.
 
 ## Two Modes
 
 - `explicit_browse`: user explicitly requested pure browsing/voting. Use the read floor, vote target/cap, scan expansion, scheduling, and browse report below.
-- `incidental`: comments, posts, or follow-up already opened a qualifying external item. Score it once without a vote target. Do not extend the slot, widen discovery, or delay the primary task to find a vote. Record `incidental_vote_count`, then continue the primary lane.
+- `lane_round`: comments, posts, or follow-up use a hard per-round vote target on eligible external items inside that lane's normal surfaces. Resolve low `2/2`, standard `2/4`, or high `4/6` as combined target/cap. Continue lane-local candidate scanning while `vote_target_remaining > 0`; never switch to unrelated feeds or weaken the gate.
 
 ## Browse Slot
 
@@ -17,7 +17,7 @@ Select the slot budget from the operation contract:
 | `standard` | `20-30` | `2` | `4` |
 | `high` | `30-45` | `4` | `6` |
 
-An explicit user read count, vote target, vote cap, interval/range, or browse-only instruction overrides the corresponding default. The read number is the first checkpoint, not a maximum. If only a vote target is supplied, set a reasonable initial floor that can evaluate enough independent items.
+An explicit user read count, combined vote target, vote cap, directional Upvote/Downvote target, interval/range, or browse-only instruction overrides the corresponding default. Upvote and Downvote are always separate counters. By default their accepted sum fills the hard target; never force one of each. If exact directional targets are supplied, each direction has its own remainder and both must pass for normal completion. The read number is the first checkpoint, not a maximum. If only a vote target is supplied, set a reasonable initial floor that can evaluate enough independent items.
 
 Spread a standard slot across roughly `3-6` eligible communities. Use the resolved operation style to bias discovery, while preserving diversity and skipping unrelated targets. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, and can state one specific reason for its assessment. Feed-card impressions, title-only scans, duplicates, ads, deleted/locked items, and accidental opens do not count.
 
@@ -29,12 +29,12 @@ topic | specific_observation | persona_fit | vote_decision | vote_score | vote_r
 eligible_views_since_vote | vote_result = vote_accepted | existing_vote | no_vote | explicit_failure
 ```
 
-Use the slot's combined-vote target as an active completion objective:
+Use the slot's combined-vote target as a hard completion objective:
 
 - Standard operation seeks at least `2` accepted votes in the slot and may continue up to the cap when more independently qualified items pass.
 - Any mix of Upvote and Downvote is allowed; never force one of each or balance directions artificially.
 - Do not vote before reading. One item may receive only one direction, and each decision needs its own score and reason.
-- Normal completion requires both the combined-vote target and qualified-read floor. Reaching one without the other means continue reading; when the vote cap is reached first, continue without further vote mutations.
+- In `explicit_browse`, normal completion requires both the combined-vote target and qualified-read floor. In `lane_round`, normal completion requires the primary lane objective plus the combined or explicit directional vote target. Reaching one without the other means continue within eligible lane-local surfaces; when the vote cap is reached first, continue without further vote mutations and report any directional shortfall.
 - Reaching the initial read floor below target means widen the live scan through more eligible communities, current `New`/`Rising`, recent `Hot`, and deeper comment context; it is not completion.
 - Finish below target only at the deadline or a current concrete blocker after those expansion stages. Report the exact qualified-read count and do not lower thresholds.
 - Do not bank missed votes into a later burst or exceed the cap unless the user explicitly changes it.
@@ -77,11 +77,11 @@ Choose `downvote` only at `>=92`. Ordinary disagreement, competitor content, cri
 - Never click again because the post-click state is hidden, unchanged, ambiguous, or no longer readable. A successful click call remains accepted unless that same call returns an explicit failure.
 - Record `explicit_failure` only for a click exception, Reddit error/banner, account mismatch/logout, captcha, sitewide rate limit, warning, lock, or an unavailable/ambiguous control before click. Do not ask the user to confirm whether a normal click worked.
 - `ERR_BLOCKED_BY_CLIENT` on one page/control is a recoverable route failure: apply `orchestration-core.md` Chrome recovery, then continue the slot through another eligible native Reddit route when needed. Do not convert one blocked route into a lane-wide stop or count unqualified impressions toward the read budget.
-- Record every qualified read and every vote/existing-vote/no-vote decision. In `explicit_browse`, a below-target or no-vote slot is valid only after the authorized time window ended or a concrete blocker appeared, with the initial read floor and expansion stages documented. In `incidental` mode, no-vote is always valid and the lane immediately resumes its primary objective.
+- Record every qualified read and every vote/existing-vote/no-vote decision. In either mode, a below-target round is terminal only after the authorized window ended or a concrete blocker/scope exhaustion appeared, with the scan stages and exact Upvote/Downvote shortfall documented. `no_vote` is a valid candidate decision but never fills the hard accepted-vote target.
 
 ## Scheduling And Report
 
-In `explicit_browse`, execute the first browse slot immediately. Every execution-heartbeat resume must also complete its current qualified-read slot and record the read/vote/no-vote result as `slot_proof` before scheduling another trigger. Incidental votes never create or change a separate browse schedule.
+In `explicit_browse`, execute the first browse slot immediately. Every execution-heartbeat resume must also complete its current qualified-read slot and record the read/vote/no-vote result as `slot_proof` before scheduling another trigger. In `lane_round`, the vote remainder travels with that lane's current round and its own Heartbeat; it never creates a separate browsing timer.
 
 For a continuing run:
 
@@ -94,7 +94,7 @@ For a continuing run:
 Use the shared compact report:
 
 ```text
-本轮完成：有效阅读 <N> 条（初始下限 <N>）；Upvote <N>，Downvote <N>；附关键 r/subreddit/URL；未达到目标则写明扩展扫描范围、差额和原因。
+本轮完成：有效阅读 <N> 条（初始下限 <N>）；Upvote <N>/<目标或“合计目标”>，Downvote <N>/<目标或“合计目标”>，合计 <N>/<硬目标>；附关键 r/subreddit/URL；未达到目标则写明扩展扫描范围、差额和原因。
 下一轮心跳：<本地日期时间、时区及 UTC；结束则写“无，任务已结束”>。
 下轮计划：<下轮阅读预算、投票目标与候选范围；结束则写“无”>。
 ```

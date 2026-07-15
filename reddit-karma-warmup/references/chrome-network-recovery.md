@@ -4,6 +4,14 @@ Load this reference only when Chrome control, navigation, or page loading fails.
 
 Always follow the installed Chrome control Skill. For extension/native-messaging/discovery failures, load its Chrome/bootstrap troubleshooting documentation before resetting any runtime or claiming Chrome is unavailable.
 
+## Navigation And Tab Ownership
+
+- Use `tab.goto(url)` for a known destination and a DOM-supported link click plus navigation wait for an in-page transition. Page-side evaluation is read-only and is not a navigation fallback.
+- `CUA` keypress/type acts on the focused webpage, not reliably on the Chrome omnibox. Never use `Meta+L` address-bar simulation as recovery.
+- `openTabs()` returning a Reddit URL/title proves only tab metadata visibility. After claiming the exact recorded lane tab, require one successful DOM, screenshot, or equivalent page-state read before declaring control healthy.
+- Each lane keeps one persistent dedicated Reddit primary tab. Never recover by claiming an arbitrary existing Reddit tab. A nonterminal turn preserves its controllable primary tab as `handoff`; terminal cleanup closes/releases it.
+- If a new lane-owned tab cannot navigate to both Reddit and a neutral page and remains `about:blank`, classify a page-control/control-channel failure. Stop creating replacement tabs in a loop, keep the lane mission and Heartbeat, and follow the installed Chrome troubleshooting path.
+
 ## Evidence First
 
 Immediately stop the current click/type sequence and record:
@@ -60,13 +68,13 @@ Use Chrome Browser only. Never switch to Computer Use, another browser, Web Sear
 
 1. Validate the exact URL/hostname.
 2. If the browser binding is connected, wait `5-15 sec` and retry the current read-only navigation once. Do not repeat a mutation.
-3. In a fresh lane-owned tab, open the relevant Reddit native home surface (`reddit.com`, subreddit home, Notifications, or profile history).
+3. In the lane's dedicated primary tab, open the relevant Reddit native home surface (`reddit.com`, subreddit home, Notifications, or profile history). If that tab binding is stale, replace it once with a fresh lane-owned primary tab.
 4. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session.
 5. Classify the scope:
    - neutral page and Reddit both fail: device/network/proxy/Chrome path
    - neutral page works, Reddit home fails: Reddit/site/domain path
    - Reddit home works, deep target fails: route/candidate path
-   - browser calls fail before any page response: control-channel path
+   - browser calls fail before any page response, or a new tab stays `about:blank` for both Reddit and the neutral page: page-control/control-channel path
 6. After recovery, reconfirm the expected Reddit account and target URL before any mutation.
 
 Do not inspect cookies/local storage, clear browsing data, disable extensions, restart Chrome, change DNS/VPN/proxy, or bypass TLS warnings automatically. Those actions can destroy login state or alter the user's machine and require user involvement when genuinely needed.

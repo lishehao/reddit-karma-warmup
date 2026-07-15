@@ -13,7 +13,7 @@ mission_id + latest user request + duration/count/intensity/style/language
 operation_stop_at + remaining_target
 mutation_phase_index + initial_mutation_not_before + phase_jitter_minutes + missed_phase_policy
 action_target + slot_target_remaining + action_cap + qualified_read_floor + incidental_vote_count
-own_tab_id + optional group_id + current URL
+own_tab_id + own_tab_origin + optional group_id + current URL + tab_control_proof
 own_history_ledger
 own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc
 mission_target_remaining + mission_terminal_reason + heartbeat_retirement_proof
@@ -28,7 +28,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 |-|-|-|
 | `SCOPE` | Apply the latest instruction for this lane; resolve `self_task_id` from exact current-task context; require it equals the delivered `worker_task_id`; replace conflicting old fields/defaults; resolve exact target/cap/read floor and voting mode. | local mission and worker identity clear |
 | `PROBE` | Discover/reconnect Chrome, confirm account, local time and UTC. | environment recorded |
-| `TAB` | Create/reclaim only this task's dedicated tab or Tab Group. | tab/account/URL confirmed |
+| `TAB` | Create/reclaim this task's one persistent dedicated Reddit primary tab; close stale or same-turn auxiliary tabs. | exact tab ownership plus account/URL/page-control proof confirmed |
 | `HISTORY` | Restore this lane's recent actions, openings, lengths, targets, and permalinks. | local history ready |
 | `DISCOVER` | Inspect current lane surfaces and candidate context. | candidate passes or concrete no-action |
 | `CHECK_A` | Check pool, live rules/eligibility, context, and duplicate history. | pass/retarget/recover |
@@ -58,11 +58,14 @@ An off-lane user request is not forwarded. Tell the user which canonical task ha
 
 ## Dedicated Chrome Context
 
-1. Discover Chrome control automatically.
-2. Open or reclaim one tab owned by this task; use a task-specific Tab Group when available.
-3. Before every action, reselect that tab and confirm account and URL.
-4. Never navigate, close, regroup, inspect, or wait for another task's tab.
-5. Shared Chrome profile/account use is normal and requires no collision check.
+1. Discover Chrome control automatically. Every execution task owns one persistent dedicated Reddit primary tab. A task-specific Tab Group is optional visual organization and never substitutes for the tab.
+2. On the first healthy mission turn, create the primary tab with the supported Chrome tab API, navigate it with `tab.goto("https://www.reddit.com/")`, and record `own_tab_id`, origin, URL, and a successful DOM/screenshot/page-state read. Do not navigate by page-side script or simulate the Chrome address bar with `CUA`/`Meta+L`.
+3. On later turns and Heartbeats, enumerate current Chrome tabs, match the recorded `own_tab_id`, and claim the exact returned tab object. Never guess an ID. URL/title metadata from `openTabs()` is discovery only; the tab is usable only after a fresh page-state read succeeds.
+4. If the recorded tab is missing or stale, discard only that tab binding and create one replacement primary tab from the existing healthy browser binding. Never claim an arbitrary user tab, launcher tab, or sibling task tab merely because it already shows Reddit.
+5. Before every action, reselect the primary tab and confirm the expected account and URL. The lane may open a temporary lane-owned read-only auxiliary tab only when the primary workflow genuinely needs it; close every auxiliary tab in the same turn and never persist more than one primary tab.
+6. Before a nonterminal turn ends, persist the tab state and make Chrome finalization the last browser action: `chrome.tabs.finalize({keep: [{tab: own_tab, status: "handoff"}]})`. This releases control while leaving the exact primary tab available for the next wake. Do not call Chrome again after finalization.
+7. At explicit stop, deadline, or verified mission completion, call `own_tab.close()` for the task-owned primary tab, then run `chrome.tabs.finalize({keep: []})` and clear `own_tab_id`; do not leave an idle lane tab behind.
+8. Never navigate, close, regroup, inspect, or wait for another task's tab. Shared Chrome profile/account use is normal and requires no collision check.
 
 Load `chrome-network-recovery.md` for failures. Retry only this task's action and never infer sibling state.
 

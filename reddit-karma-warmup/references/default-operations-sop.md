@@ -9,6 +9,7 @@ Use in the reusable distributor to split each direct dispatch request, and in a 
 - missing style: `mixed`
 - missing account direction: resolve the broad default in `account-direction.md`
 - missing comment pacing: `clustered_windows`
+- interaction pacing: `measured_human_scale`; every distinct readable candidate owns at least `30 sec`
 - comment cluster completion floor: `minimum_completed_cluster_size=2`
 - missing post angle: `beginner-common-mistake`, implemented as a truthful beginner-readable community-memory question with `discussion_potential_score >=80`
 - broad `开始/运营`: comments + posts + follow-up; for every K0 account, the post mission is read-only research/preflight with action target/cap `0/0`
@@ -81,6 +82,11 @@ single_comment_cluster=forbidden
 per_item_copy_gate=required
 cluster_copy_batching=forbidden
 routine_comment_word_cap=25
+interaction_pacing=measured_human_scale
+candidate_dwell_min_seconds=30
+comment_readable_to_submit_min_seconds=45
+pre_submit_pause_seconds=5-12
+inter_click_pause_seconds=1-4
 post_default_angle=beginner-common-mistake
 post_discussion_gate=required_for_question_posts
 post_discussion_score_min=80

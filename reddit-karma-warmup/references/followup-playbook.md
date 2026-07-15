@@ -47,8 +47,8 @@ This lane has no artificial reply quota. Its completion target is one full requi
 3. Load `outbound-copy-gate.md`; classify the reply as ordinary follow-up, technical, sensitive/support, or mod acknowledgement, then apply that surface's length and slang/abbreviation band against the rolling last `10` outputs. An ordinary follow-up normally needs one locally supported colloquial marker or abbreviation; technical, sensitive, and moderator contexts retain the lower exception bands.
 4. Add one useful thing: acknowledgement, clarification, precise thanks, compact answer, or one question.
 5. Enter the reply and run Double-Check B.
-6. Reselect this lane's dedicated Reddit tab, verify account/target, wait `18-70 sec`, submit, and verify.
-7. Append length, `voice_band`, `native_marker_used`, and `slang_or_abbrev_used` to history; keep at least `1 min` between follow-up replies and vary only when context supports it.
+6. Reselect this lane's dedicated Reddit tab and verify account/target. Apply `interaction-pacing.md`: require `candidate_dwell_seconds >=30`, `comment_readable_to_submit_seconds >=45`, and `pre_submit_pause_seconds=5-12`; then submit once and verify.
+7. Append length, `voice_band`, `native_marker_used`, and `slang_or_abbrev_used` to history; keep `1-3 min` between follow-up replies and vary only when context supports it.
 8. Mark the item Act/Watch/Skip/Closed and set the next check only if still open.
 
 Avoid customer-support boilerplate, repeated thanks, essays, links outside scope, and fixed two-sentence replies.

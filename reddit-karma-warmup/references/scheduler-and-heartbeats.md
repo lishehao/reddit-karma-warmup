@@ -49,7 +49,7 @@ Translate the current lane mission into a bounded next slot. Defaults remain adv
 | browsing | every `20-40m`; normally `20-30` qualified reads |
 | presence | terminal after one slot unless the user explicitly requests ongoing presence work |
 
-Use short in-turn sleep only for human-scale submit pauses below roughly five minutes. Use the recurring Heartbeat for longer waits.
+Use `interaction-pacing.md` for measured human-scale waits. For any remaining delay of at most five minutes, prefer local terminal `sleep <seconds>` while preserving the dedicated Reddit tab. Use the recurring Heartbeat for longer waits; never create one for a 30-second candidate dwell or 5-12 second pre-submit pause.
 
 ## Cross-Lane Phase Stagger
 
@@ -70,7 +70,7 @@ For comments, plan operational batches instead of a uniform per-comment clock:
 1. Compute `effective_hourly_rate` from the latest controlling target and remaining time.
 2. For roughly `6-10 comments/hour`, normally create `2-3` batch windows per hour. Vary the gap from actual completion time, usually `20-35m`, instead of repeating an exact interval.
 3. Give each due window an exact `batch_target` of at least `2`, normally `2-4` verified comments, and an active work envelope of about `6-15m`. `minimum_completed_cluster_size=2`, `single_comment_cluster=forbidden`, and `cluster_copy_batching=forbidden`. Candidate quality, rules, and the mission cap still gate every action.
-4. Inside a window, each comment independently loops through `CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log` with a new `per_comment_gate_id`; do not prewrite the remaining cluster or reuse another item's context, length tier, or slang choice. Keep the existing pre-submit pause and a varied `3-5m` pause after each verified proactive comment before another comment is submitted. Use local sleep for these at-most-five-minute waits; use the lane Heartbeat between windows.
+4. Inside a window, each comment independently loops through `CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log` with a new `per_comment_gate_id`; do not prewrite the remaining cluster or reuse another item's context, length tier, or slang choice. Apply the per-candidate `30 sec` dwell, `45 sec` readable-to-submit floor, and `5-12 sec` pre-submit pause from `interaction-pacing.md`, then keep a varied `3-5m` pause after each verified proactive comment before another comment is submitted. Use local sleep for these at-most-five-minute waits; use the lane Heartbeat between windows.
 5. Preserve `batch_target_remaining` and `slot_target_remaining`. After one verified proactive comment, the current wake stays active and continues discovery until the second passes; do not yield, schedule the next Heartbeat, or report a completed window after only one. A user-requested exact-one total is a single-action mission rather than a cluster. A user stop, deadline, or current hard blocker may produce `cluster_incomplete`, which carries its exact remainder forward without lowering thresholds or creating a catch-up burst.
 6. Recompute later windows from actual verified count and remaining time. Do not precompute a mechanically identical all-day schedule.
 

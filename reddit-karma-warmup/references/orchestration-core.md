@@ -86,7 +86,7 @@ The terminal stage is the complete objective carried by the current Heartbeat: t
 
 ## Action Verification
 
-Use one native click for the selected action. Record immediate UI state, permalink/target when available, exact copy or vote direction, time, and any current warning. Delayed survivor/profile visibility is a quality signal rather than a prerequisite for continuing the lane.
+Load `interaction-pacing.md` before action. Require its measured candidate, readable-to-submit, pre-submit, and inter-click clocks for the exact action; a planned wait is not evidence. Then use one native click for the selected action. Record immediate UI state, permalink/target when available, exact copy or vote direction, time, and any current warning. Delayed survivor/profile visibility is a quality signal rather than a prerequisite for continuing the lane.
 
 For votes, inspect the control state once before clicking. If either direction is already explicitly selected, record `existing_vote` and do not click; if state is ambiguous, record `no_vote`. After one accepted click, do not toggle or repeatedly verify it. For uncertain text submission, inspect the exact target once before considering any retry; never duplicate an uncertain mutation.
 

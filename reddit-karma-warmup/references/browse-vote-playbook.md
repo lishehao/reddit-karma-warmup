@@ -19,7 +19,7 @@ Select the slot budget from the operation contract:
 
 An explicit user read count, combined vote target, vote cap, directional Upvote/Downvote target, interval/range, or browse-only instruction overrides the corresponding default. Upvote and Downvote are always separate counters. By default their accepted sum fills the hard target; never force one of each. If exact directional targets are supplied, each direction has its own remainder and both must pass for normal completion. The read number is the first checkpoint, not a maximum. If only a vote target is supplied, set a reasonable initial floor that can evaluate enough independent items.
 
-Spread a standard slot across roughly `3-6` eligible communities. Use the resolved operation style to bias discovery, while preserving diversity and skipping unrelated targets. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, and can state one specific reason for its assessment. Feed-card impressions, title-only scans, duplicates, ads, deleted/locked items, and accidental opens do not count.
+Spread a standard slot across roughly `3-6` eligible communities. Use the resolved operation style to bias discovery, while preserving diversity and skipping unrelated targets. A qualified read means the worker opened the item, consumed the actual body/media, sampled enough thread context to understand it, can state one specific reason for its assessment, and kept the readable candidate open for the measured `30 sec` minimum in `interaction-pacing.md`. Feed-card impressions, title-only scans, sub-30-second opens, duplicates, ads, deleted/locked items, and accidental opens do not count.
 
 Keep a rolling record:
 
@@ -33,7 +33,7 @@ Use the slot's combined-vote target as a hard completion objective:
 
 - Standard operation seeks at least `2` accepted votes in the slot and may continue up to the cap when more independently qualified items pass.
 - Any mix of Upvote and Downvote is allowed; never force one of each or balance directions artificially.
-- Do not vote before reading. One item may receive only one direction, and each decision needs its own score and reason.
+- Do not vote before reading or before `candidate_dwell_seconds >=30`. One item may receive only one direction, and each decision needs its own score and reason.
 - In `explicit_browse`, normal completion requires both the combined-vote target and qualified-read floor. In `lane_round`, normal completion requires the primary lane objective plus the combined or explicit directional vote target. Reaching one without the other means continue within eligible lane-local surfaces; when the vote cap is reached first, continue without further vote mutations and report any directional shortfall.
 - Reaching the initial read floor below target means widen the live scan through more eligible communities, current `New`/`Rising`, recent `Hot`, and deeper comment context; it is not completion.
 - Finish below target only at the deadline or a current concrete blocker after those expansion stages. Report the exact qualified-read count and do not lower thresholds.

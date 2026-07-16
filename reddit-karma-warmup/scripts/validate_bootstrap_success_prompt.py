@@ -19,9 +19,8 @@ def require(path: Path, needles: list[str], errors: list[str]) -> None:
 errors: list[str] = []
 
 require(ROOT / "SKILL.md", [
-    "Never create a bootstrap probe Heartbeat",
+    "Never create a probe Heartbeat",
     "emit only the Bootstrap Success Prompt",
-    "do not expose version, validator count, NOOP/install state",
 ], errors)
 
 require(ROOT / "references" / "runtime-and-setup.md", [

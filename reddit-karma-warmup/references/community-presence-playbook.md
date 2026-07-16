@@ -1,6 +1,6 @@
 # Bootstrap Profile And Community Setup
 
-Use only in `Reddit 主页台` during first-account bootstrap or an explicit setup/repair mission. This lane covers profile/homepage upkeep, target-based Join/subscribe, truthful Flair/tag, and membership review. It normally terminates after one verified slot; when the user explicitly requested later presence work, this task creates and owns its own recurring Heartbeat.
+Use only in `Reddit 主页台` during first-account bootstrap or an explicit setup/repair mission. This lane covers profile/homepage upkeep, target-based Join/subscribe, truthful Flair/tag, and membership review. It normally terminates after one verified slot; when the user explicitly requested later presence work, this task creates and owns its own recurring Heartbeat. Numeric ceilings and bootstrap targets come only from `operation-defaults.json`.
 
 ## Presence State
 
@@ -20,7 +20,7 @@ If no prior log exists, reconstruct what is visible and begin conservatively.
 | Flair/tag changes | `3/hour`, `8/24h` |
 | Profile/about/avatar/banner edits | `2/day` total |
 
-These are ceilings, not targets. A bootstrap setup slot joins `1-3` strong communities or makes one coherent profile update.
+These are the canonical values rendered from `operation-defaults.json`; they are ceilings, not targets. A bootstrap setup slot uses the configured strong-community range or one coherent profile update.
 
 ## Membership Gate
 

@@ -7,45 +7,46 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT.parent / "README.md"
-
-
-def read(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
 
 
 required = {
     ROOT / "SKILL.md": [
         "community-selection-funnel.md",
-        "assess up to 100 reference rows",
-        "lane-specific low-friction shortlists",
+        "action authority",
+        "Load only filtered rows",
     ],
     ROOT / "references" / "community-selection-funnel.md": [
         "mission_identity_focus",
         "reference_rows_assessed",
         "comment_shortlist",
         "post_reference_shortlist",
-        "post_selection_timebox=20-30m",
-        "reference_rows_assessed_target=up_to_100",
-        "live_deep_preflight_target=8-15",
+        "posts.narrowing_timebox_minutes",
+        "posts.<intensity>.reference_sweep_target",
+        "community_selection.post_live_preflight_community_range",
         "verified post is completion",
+        "Do not report the mission complete because a configured timebox",
     ],
     ROOT / "references" / "launcher-playbook.md": [
-        "assess up to 100 matching reference rows",
-        "comment_shortlist` or `post_reference_shortlist",
-        "reference_rows_assessed",
+        "selected lane's configured reference sweep",
+        "lane shortlist",
+        "traffic-probe row is not an action target",
     ],
-    ROOT / "references" / "proactive-playbook.md": [
-        "allow `20-30m` for the initial selection pass",
-        "assess up to `100` reference rows",
-        "deep-preflight the best `8-15` communities",
-        "For a one-post mission, verified publication is normal completion",
+    ROOT / "references" / "comments-playbook.md": [
+        "eligible communities",
+        "qualified-read target",
+    ],
+    ROOT / "references" / "posts-playbook.md": [
+        "broad-to-deep funnel",
+        "live deep reads",
+        "posts.post_candidate_score_min",
+        "Verified publication normally completes a one-post action target",
     ],
     ROOT / "references" / "account-direction.md": [
         "--lane comments --reference-sweep-limit 100 --limit 20",
         "--lane posts --reference-sweep-limit 100 --limit 20",
     ],
 }
-
 if README.exists():
     required[README] = [
         "评估最多 100 个匹配社区",
@@ -54,8 +55,19 @@ if README.exists():
     ]
 
 errors: list[str] = []
+selection = defaults["community_selection"]
+if selection["comment_reference_sweep_limit"] != 100:
+    errors.append("comment_reference_sweep_limit")
+if selection["shortlist_limit"] != 20:
+    errors.append("shortlist_limit")
+if selection["traffic_floor_weekly_visitors"] != 5000:
+    errors.append("traffic_floor_weekly_visitors")
+if selection["post_live_preflight_community_range"] != [8, 15]:
+    errors.append("post_live_preflight_community_range")
+if selection["post_initial_candidate_range"] != [12, 20]:
+    errors.append("post_initial_candidate_range")
 for path, needles in required.items():
-    body = read(path)
+    body = path.read_text(encoding="utf-8")
     for needle in needles:
         if needle not in body:
             errors.append(f"missing:{path.name}:{needle}")
@@ -65,9 +77,8 @@ if errors:
 
 print(json.dumps({
     "status": "PASS",
-    "reference_sweep_cap": 100,
-    "comment_routing": "ACCOUNT_FOCUS_PLUS_RULE_FRIENDLINESS",
-    "post_selection_timebox": "20-30m_INITIAL",
-    "post_live_deep_preflight": "8-15",
-    "post_completion": "VERIFIED_PUBLICATION",
+    "reference_sweep_cap": "CANONICAL_CONFIG",
+    "shortlist_cap": "CANONICAL_CONFIG",
+    "post_live_deep_preflight": "CANONICAL_CONFIG",
+    "permission": "LIVE_ACTION_GATES_REQUIRED",
 }, ensure_ascii=False, sort_keys=True))

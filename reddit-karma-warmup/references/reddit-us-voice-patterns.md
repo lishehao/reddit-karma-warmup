@@ -11,7 +11,7 @@ There is no single American voice. Target broadly recognizable US-leaning casual
 3. Prefer `claim -> one reason/detail`. Add a second beat only when it changes the conclusion.
 4. Use at most one uncertainty marker unless uncertainty is the substance.
 5. End when the point lands. No conclusion sentence, offer to help, or customer-service close.
-6. Almost every ordinary comment should visibly compress like Reddit writing and carry one locally observed colloquial marker, Redditism, or abbreviation. A routine contraction alone is too weak for this requirement; plain formal prose needs a recorded local-style reason.
+6. Across ordinary comments, use visible Reddit-style compression and locally observed colloquial markers, Redditisms, or abbreviations at high frequency. Each item still follows its exact local context; plain prose is valid when a marker would sound forced.
 
 | Weak/AI-shaped | Assertive Reddit shape |
 |-|-|

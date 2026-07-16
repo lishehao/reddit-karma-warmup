@@ -28,7 +28,7 @@ def main() -> int:
         ROOT / "SKILL.md": [
             "subreddit-catalog-taxonomy.md",
             "subreddit-profile-index.csv",
-            "cached `>=5K` weekly-visitor matches",
+            "Load only filtered rows needed for the current account direction",
         ],
         ROOT / "references" / "account-direction.md": [
             "direction_tags",
@@ -42,7 +42,7 @@ def main() -> int:
             "post_reference_shortlist",
             "reference_rows_assessed",
             "traffic_probe_queue",
-            "at least `5,000` weekly visitors",
+            "catalog's minimum traffic requirement",
         ],
         ROOT / "references" / "subreddit-catalog-taxonomy.md": [
             "Two-Layer Model",

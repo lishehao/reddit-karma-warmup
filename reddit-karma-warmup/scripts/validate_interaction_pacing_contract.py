@@ -1,82 +1,67 @@
 #!/usr/bin/env python3
-"""Validate measured Reddit reading, click, and comment timing floors."""
+"""Validate canonical measured Reddit timing and short-wait ownership."""
 
 import json
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
+timing = defaults["interaction_pacing"]
+comments = defaults["comments"]
+followup = defaults["followup"]
 
+expected = {
+    "candidate_dwell_min_seconds": 30,
+    "candidate_dwell_normal_seconds": [30, 75],
+    "candidate_dwell_long_seconds": [60, 180],
+    "comment_readable_to_submit_min_seconds": 45,
+    "comment_readable_to_submit_normal_seconds": [45, 120],
+    "pre_submit_pause_seconds": [5, 12],
+    "inter_click_pause_seconds": [1, 4],
+    "local_sleep_max_seconds": 300,
+}
+errors = []
+for key, value in expected.items():
+    if timing.get(key) != value:
+        errors.append(f"default:{key}:{timing.get(key)}")
+if (comments["proactive_submit_gap_seconds_min"], comments["proactive_submit_gap_seconds_max"]) != (180, 300):
+    errors.append("proactive_submit_gap")
+if (followup["reply_submit_gap_seconds_min"], followup["reply_submit_gap_seconds_max"]) != (60, 180):
+    errors.append("followup_submit_gap")
 
 required = {
-    "SKILL.md": [
-        "`interaction-pacing.md`",
-        "measured `30 sec` readable dwell",
-        "`45 sec` readable-to-submit",
-        "`5-12 sec` post-entry pause",
-    ],
     "references/interaction-pacing.md": [
-        "distinct candidate post/comment remains open after readable content appears",
-        "`30 sec`",
-        "post/parent readable to comment or reply submission",
-        "`45 sec`",
-        "draft entered to final comment/reply/Post click",
-        "`5 sec`",
+        "interaction_pacing.candidate_dwell_*",
+        "interaction_pacing.comment_readable_to_submit_*",
+        "interaction_pacing.pre_submit_pause_seconds",
         "separate non-atomic UI clicks",
-        "`1 sec`",
         "prefer a local terminal sleep",
-        "Never create a Heartbeat for a 30-second read dwell",
-        "comment_readable_to_submit_seconds",
+        "Never create a Heartbeat for an in-item read or submit-pause floor",
         "candidate_dwell_seconds",
+        "comment_readable_to_submit_seconds",
     ],
-    "references/default-operations-sop.md": [
-        "interaction_pacing=measured_human_scale",
-        "candidate_dwell_min_seconds=30",
-        "comment_readable_to_submit_min_seconds=45",
-        "pre_submit_pause_seconds=5-12",
-        "inter_click_pause_seconds=1-4",
-    ],
-    "references/launcher-playbook.md": [
-        "`interaction_pacing=measured_human_scale`",
-        "candidate_dwell_min_seconds=30",
-        "comment_readable_to_submit_min_seconds=45",
-    ],
-    "references/proactive-playbook.md": [
-        "`candidate_dwell_seconds >=30`",
-        "`comment_readable_to_submit_seconds >=45`",
-        "`pre_submit_pause_seconds=5-12`",
+    "references/comments-playbook.md": [
+        "comments.proactive_submit_gap_seconds_*",
+        "canonical pacing clocks",
     ],
     "references/followup-playbook.md": [
-        "`candidate_dwell_seconds >=30`",
-        "`comment_readable_to_submit_seconds >=45`",
-        "keep `1-3 min` between follow-up replies",
+        "every matching configured field in `interaction_pacing`",
+        "followup.reply_submit_gap_seconds_*",
     ],
     "references/browse-vote-playbook.md": [
-        "measured `30 sec` minimum",
-        "`candidate_dwell_seconds >=30`",
+        "measured dwell in `interaction-pacing.md`",
     ],
     "references/scheduler-and-heartbeats.md": [
-        "prefer local terminal `sleep <seconds>`",
-        "never create one for a 30-second candidate dwell",
+        "configured local-sleep maximum",
+        "use the lane Heartbeat between windows",
     ],
 }
-
-errors = []
 for relative, needles in required.items():
     body = (ROOT / relative).read_text(encoding="utf-8")
     for needle in needles:
         if needle not in body:
             errors.append(f"missing:{relative}:{needle}")
-
-forbidden = {
-    "references/proactive-playbook.md": ["wait `18-70 sec`"],
-    "references/followup-playbook.md": ["wait `18-70 sec`"],
-}
-for relative, needles in forbidden.items():
-    body = (ROOT / relative).read_text(encoding="utf-8")
-    for needle in needles:
-        if needle in body:
-            errors.append(f"forbidden:{relative}:{needle}")
 
 if errors:
     raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))
@@ -87,6 +72,5 @@ print(json.dumps({
     "comment_readable_to_submit_min_seconds": 45,
     "pre_submit_pause_seconds": "5-12",
     "inter_click_pause_seconds": "1-4",
-    "short_timer": "LOCAL_SLEEP_AT_MOST_5_MIN",
-    "long_timer": "SELF_TARGETED_HEARTBEAT_OVER_5_MIN",
+    "local_sleep_max_seconds": 300,
 }, ensure_ascii=False, sort_keys=True))

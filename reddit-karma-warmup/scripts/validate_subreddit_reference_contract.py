@@ -41,9 +41,9 @@ def main() -> int:
             errors.append(f"denylist_contract_missing:{needle}")
 
     contracts = {
-        ROOT / "SKILL.md": "Load `organization-community-denylist.md` and exclude matches before any subreddit visit",
+        ROOT / "SKILL.md": "organization-community-denylist.md",
         ROOT / "references" / "publish-consistency.md": "never read the complete archive into context",
-        ROOT / "references" / "proactive-playbook.md": "do not load the entire archive",
+        ROOT / "references" / "proactive-common.md": "filtered rows from `subreddit-profile-index.csv`",
     }
     for path, needle in contracts.items():
         if needle not in path.read_text(encoding="utf-8"):

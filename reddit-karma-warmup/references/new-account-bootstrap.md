@@ -8,13 +8,13 @@ Run the full flow only while `bootstrap_state` is `not_started`, `in_progress`, 
 
 1. **Inspect first.** Confirm the account, visible age/karma/history, email-verification or eligibility signals where Reddit exposes them, notifications, and any currently active warning/removal state. Keep historical/cleared events in the ledger without turning them into startup blockers.
 2. **Establish a truthful presence baseline.** `Reddit 分发台` may allocate `Reddit 主页台`; that task loads `community-presence-playbook.md`, makes one immediate best-effort display/about/avatar/banner checkpoint, and owns any requested retry without holding outward tasks.
-3. **Join a few high-fit communities.** `Reddit 主页台` runs the membership gate and prefers `1-3` in the first slot. Profile/Join/Flair incompleteness never blocks outward lanes once account identity is known.
-4. **Read before and alongside publishing.** Comment, post, and follow-up tasks each carry a conservative per-round vote envelope on eligible external items inside their own normal surfaces. Use low `0/1`, standard `1/1`, or high `1/2` as target/cap, keep Upvote and Downvote as mandatory separate report counters, and never force one of each. Higher intensity increases qualified reading first. Continue eligible lane-local scanning only for a nonzero remainder; do not enter unrelated or closed communities to fill the number. Create a separate browsing task only when the user explicitly requests pure browsing/voting.
-5. **Run the first-hour launch.** If the user did not specify intensity/count, use the fresh-account low default: comment target/cap `3/4`, first-day proactive-comment cap `12`, and main-post target/cap `0/0` while the account remains K0. Immediately execute comments and follow-up. The post lane may begin read-only destination research and preflight, but it must not open a submission mutation or publish while `main_post_unlock=locked`. Comments remain micro/fragment/one-liner first and span at least three lower-restriction communities. Add pure browsing only when explicitly requested.
-6. **Pause between submissions.** After every verified comment, use a varied local `3-5m` pause before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
+3. **Join a few high-fit communities.** `Reddit 主页台` runs the membership gate and resolves the first-slot target and caps from `presence.bootstrap_join_target_*` and the other `presence` fields in `operation-defaults.json`. Profile/Join/Flair incompleteness never blocks outward lanes once account identity is known.
+4. **Read before and alongside publishing.** Every lane receives the canonical qualified-read target from `operation-defaults.json`; that target is a hard completion condition. Voting is opportunity-only by default: keep Upvote and Downvote as separate counters, apply the intensity vote cap as a hard limit, and never scan merely to manufacture a vote. A user-supplied vote count becomes a hard target inside that cap. Create a separate browsing task only when the user explicitly requests pure browsing/voting.
+5. **Run the first-hour launch.** If the user did not specify intensity/count, resolve comments from `comments.low`, the first-day ceiling from `comments.fresh_account_first_day_action_cap`, and K0 posts from `posts.k0_action_*` in `operation-defaults.json`. Immediately execute comments and follow-up. The post lane may begin read-only destination research and preflight, but it must not open a submission mutation or publish while `main_post_unlock=locked`. Comments remain micro/fragment/one-liner first and span several lower-restriction communities. Add pure browsing only when explicitly requested.
+6. **Pause between submissions.** After every verified comment, use the configured `comments.proactive_submit_gap_seconds_*` before the next publish. Discovery, reading, drafting, and both checks happen in addition to this pause.
 7. **Verify locally.** Record and verify the first permalink in the comment task while its mission continues. Any removal retires only its exact subreddit; continue in unaffected communities. Timed rate limits auto-resume; explicit HTTP `429` first ends the current wake and resumes on the next normal round, while other allowlisted account repair states withhold only impossible mutations. A pending delayed check or historical event is not a reason to wait.
-8. **Continue after the first hour.** Continue the user's selected intensity; explicit high-volume mode follows `proactive-playbook.md`. A currently active blocker uses its minimum recovery condition, then resumes the same latest command. Historical or cleared failures never select a recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
-9. **Main-post lane.** Broad operation includes one immediate read-only candidate/preflight micro-slot. Default to the truthful `beginner-common-mistake` tendency in `proactive-playbook.md`, using a narrow community-specific pitfall that experienced members can answer. Every K0 account publishes no main post, even if it is older than `48h` or has clean comments. Main-post mutation begins only after `main_post_unlock` passes at K1 or above. K1 permits at most one no-link, specific, native post per rolling `24h`; explicit high intensity does not create a second K1 post in that window.
+8. **Continue after the first hour.** Continue the user's selected intensity; comment missions follow `comments-playbook.md`, while post missions follow `posts-playbook.md`. A currently active blocker uses its minimum recovery condition, then resumes the same latest command. Historical or cleared failures never select a recovery level. Avoid repeating one subreddit, topic cluster, opening, or opinion pattern.
+9. **Main-post lane.** Broad operation includes one immediate read-only candidate/preflight micro-slot. Default to the truthful `beginner-common-mistake` tendency in `posts-playbook.md`, using a narrow community-specific pitfall that experienced members can answer. Every K0 account publishes no main post, even if it is older than the bootstrap-age boundary or has clean comments. Main-post mutation begins only after `main_post_unlock` passes at K1 or above. K1 uses `posts.k1_rolling_24h_cap`; explicit high intensity does not raise that cap.
 
 The user's explicit sequence may reorder comments, follow-up, presence, and research. It does not bypass `main_post_unlock` for a main-post mutation. Only a current allowlisted user-repair state can temporarily withhold another exact impossible mutation.
 
@@ -29,16 +29,15 @@ For internal Loci accounts without another supplied persona:
 
 ## First-Day Defaults
 
-- profile/avatar/banner/about edits: max `2`
-- joins: prefer `1-3`, max `5`
-- per-round voting: comments/posts/follow-up each use combined target/cap `0/1` at low, `1/1` at standard, or `1/2` at high; explicit directional targets override the combined default
-- explicit browsing: when requested, one intensity-sized slot at launch; standard starts at `25` qualified reads, vote target `1`, cap `1`
-- proactive comments: unspecified operation defaults to target/cap `3/4` in the first hour and no more than `12` in the first `24h`; `60/day` requires explicit high-volume mode, at least `6h`, and enough passing candidates
+- profile/avatar/banner/about edits and joins: resolve targets and caps from `presence` in `operation-defaults.json`
+- per-round voting: no default vote-count target; resolve the hard intensity cap from `votes.caps_by_intensity`, keep directions separate, and treat an explicit user vote count as a hard target
+- explicit browsing: when requested, resolve the hard read target and vote cap from the selected intensity; do not add a default vote target
+- proactive comments: resolve the first-hour low target/cap and first-day ceiling from `comments`; a larger explicit target still requires enough passing candidates and time
 - startup checkpoint: the comment task verifies its first permalink immediately; delayed visibility may be checked on its next wake without pausing work
-- main posts: every K0 mode uses target/cap `0/0`; after `main_post_unlock` at K1, use at most `0-1` per rolling `24h`, regardless of requested intensity
+- main posts: every K0 mode uses `posts.k0_action_*`; after `main_post_unlock` at K1, apply `posts.k1_rolling_24h_cap` regardless of requested intensity
 - first main post: publish only after `main_post_unlock`, the bundled account-gate audit, and the full same-day live eligibility/preflight all pass
-- first-hour comments: low target/cap `3/4`, standard `5/6`, high `8/10`, with a varied `3-5m` local pause after every verified submission
-- next-post checkpoint: while K1, the previous post remains visible, no account/community warning is active, and at least `24h` has elapsed
+- first-hour comments: resolve the selected intensity under `comments`, including its configured submit gap
+- next-post checkpoint: while K1, the previous post remains visible, no account/community warning is active, and the configured rolling window has elapsed
 
 These are conservative internal operating gates, not Reddit platform limits or guarantees. A user may change direction, duration, comment count, or research depth, but a main post still requires `main_post_unlock`; do not turn an explicit volume request into permission to publish from a K0 account. Timed limits auto-retry; allowlisted user-repair states withhold only the mutations they prevent, while Heartbeats and permitted work continue. For one removal or invisibility event, retire that target/community, inspect the exact notice, and continue elsewhere.
 
@@ -48,16 +47,16 @@ These are conservative internal operating gates, not Reddit platform limits or g
 
 Set `main_post_unlock=passed` only when all are true:
 
-- combined sitewide Karma is at least `50`; if Reddit exposes only separate post/comment values, use their visible combined total and do not infer hidden award/community Karma
-- account age is at least `7d`
-- at least `10` comments remain visible across at least `3` eligible communities
+- combined sitewide Karma meets `posts.main_post_unlock_min_combined_karma`; if Reddit exposes only separate post/comment values, use their visible combined total and do not infer hidden award/community Karma
+- account age meets `posts.main_post_unlock_min_account_age_days`
+- visible comments and eligible-community spread meet `posts.main_post_unlock_min_visible_comments` and `posts.main_post_unlock_min_eligible_communities`
 - email/eligibility is not visibly blocking the account
 - no current CAPTCHA, warning, lock, suspension, timed sitewide rate limit, or login mismatch is active
 - the exact subreddit row in `posting-account-gates-audit-2026-07-14.csv` is `verified_numeric`, `verified_qualitative`, or `no_public_gate_found`; `unknown`, `blocked`, and `organization_deny` are closed for K0 main posts
 - every recorded numeric, participation-history, flair, megathread, membership, verified-email, approval, and format gate is satisfied
 - a same-day Chrome check of rules, pinned moderator posts, recent feeds, submit controls, and account-visible eligibility passes
 
-Fifty Karma is the Skill's minimum entry gate, not a Reddit-wide permission rule. `no_public_gate_found` means only that the checked public surfaces exposed no gate. It never proves that AutoModerator has no hidden gate, so the same-day live submit/account check remains mandatory. A completed audit row ranks a candidate for preflight; it never grants publication by itself.
+The configured Karma value is the Skill's minimum entry gate, not a Reddit-wide permission rule. `no_public_gate_found` means only that the checked public surfaces exposed no gate. It never proves that AutoModerator has no hidden gate, so the same-day live submit/account check remains mandatory. A completed audit row ranks a candidate for preflight; it never grants publication by itself.
 
 ## Bootstrap Exit And Tier Change
 
@@ -65,14 +64,14 @@ Change `K0 fresh_bootstrap -> K0 active_new` only when all are true:
 
 - account has at least `48h` of age or observed clean activity
 - email/eligibility is not visibly blocking the account
-- at least `10` comments remain visible across at least `3` communities
+- visible comments and community spread meet the configured post-unlock participation fields
 - no captcha, sitewide rate limit, account warning, lock/suspension, or login mismatch is currently active at the checkpoint
 
-Exiting `fresh_bootstrap` does not unlock posts. The account remains K0 and read-only in the post lane until it reaches at least `50` combined Karma, `7d` age, and every `main_post_unlock` condition. The exact subreddit audit and same-day live checks still run separately. Karma alone does not override failed visibility or verification signals.
+Exiting `fresh_bootstrap` does not unlock posts. The account remains K0 and read-only in the post lane until it meets every configured `main_post_unlock` field. The exact subreddit audit and same-day live checks still run separately. Karma alone does not override failed visibility or verification signals.
 
 Demotion/recovery:
 
-- one community removal: apply `R1 Isolated` from `proactive-playbook.md`; retire that subreddit and continue elsewhere
+- one community removal: apply `R1 Isolated` from `proactive-common.md`; retire that subreddit and continue elsewhere
 - removals across multiple communities: apply `R2 Multiple Community Retirements`; retire those subreddits without changing the account tier or operating envelope
 - current timed rate limit: automatic wait/re-probe; explicit HTTP `429` pauses the entire current wake, while another timed limit may leave unrelated permitted work available
 - allowlisted current account repair state: record `R3 User Repair`, keep Heartbeats active, withhold only impossible mutations, and resume the latest command after repair

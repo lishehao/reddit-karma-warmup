@@ -1,0 +1,57 @@
+# Lane State Checkpoint
+
+Canonical owner of durable worker state across normal turns, Heartbeat wakes, context compaction, browser recovery, and task reuse. Load in every execution lane before its first Chrome action.
+
+## Paths
+
+Persist one task-owned checkpoint outside the managed Skill tree:
+
+```text
+${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-state/<username>/<lane>/<self_task_id>.json
+```
+
+Append verified outward actions and measured reads to the account+lane history:
+
+```text
+${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-history/<username>/<lane>.ndjson
+```
+
+A replacement task may read the matching account+lane history but never another account or lane's checkpoint. Upgrades preserve both directories. Never store credentials, cookies, page HTML, private messages, or unrelated browser history.
+
+## Checkpoint Schema
+
+```text
+checkpoint_schema_version=1
+account + lane + self_task_id + worker_task_id
+mission_id + mission_revision + mission_status
+latest_user_request + intensity + style + language
+operation_started_at + operation_stop_at
+action_target + action_cap + action_verified + action_remaining
+qualified_read_target + qualified_read_verified + qualified_read_remaining
+vote_target_mode + optional vote_target + vote_cap
+upvote_count + downvote_count
+current_cluster_id + cluster_target + cluster_verified + cluster_remaining
+own_tab_id + own_tab_origin + current_url + tab_control_proof
+own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc
+mutation_state + candidate_url + outbound_text_hash + submission_certainty
+last_verified_action + last_recovery + updated_at
+```
+
+`vote_target` is absent by default. It exists only when the user explicitly requested a vote count. `vote_cap` is always present and remains a hard ceiling.
+
+## Atomic Lifecycle
+
+1. Create or replace the checkpoint atomically after the exact task/account/mission identity is accepted and before Chrome mutation.
+2. Before every outward mutation, write `mutation_state=prepared`, exact candidate URL, and an outbound-text hash when text exists.
+3. After the one mutation attempt, write `verified`, `explicit_failure`, or `submission_uncertain` before another candidate is considered. Never retry `submission_uncertain`.
+4. After every qualified read, verified action, vote, recovery, Heartbeat mutation, or schedule calculation, update counters and timestamps atomically.
+5. Before a nonterminal turn ends, require checkpoint `mission_status=active`, exact remaining counts, exact tab binding, and the current timer state.
+6. At mission terminal cleanup, retain the checkpoint as `mission_status=completed|stopped|deadline`, clear tab/timer/next-due fields, and record Heartbeat retirement proof. Do not delete the history.
+
+## Wake And Recovery
+
+Every Heartbeat carries `checkpoint_path`, `checkpoint_schema_version`, `mission_id`, and `worker_task_id`. On wake, load the checkpoint first and require its account, lane, task ID, mission ID, and Heartbeat target to match current host context.
+
+If the checkpoint is missing or malformed, perform read-only reconstruction from the current task, exact recorded Heartbeat response, current Chrome tab inventory, and recent account+lane history. Do not publish or vote until identity, prior submission certainty, remaining targets, and timer ownership are reconstructed. Repair this task's checkpoint atomically and continue; never inspect sibling state.
+
+A new mission in a reused task increments `mission_revision`, replaces conflicting mission fields, and starts with a new `mission_id`. It never reuses a retired Heartbeat or resets verified history.

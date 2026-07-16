@@ -14,9 +14,9 @@ def read(relative: str) -> str:
 
 required = {
     "SKILL.md": [
-        "Automatically recover stale tabs",
-        "A fault in one lane affects only that lane",
-        "Pending-review own posts are deleted/withdrawn immediately",
+        "Recover stale tabs",
+        "One lane fault affects only that lane",
+        "Pending-review own posts are withdrawn immediately",
     ],
     "references/risk-escalation.md": [
         "Default: Continue Locally",

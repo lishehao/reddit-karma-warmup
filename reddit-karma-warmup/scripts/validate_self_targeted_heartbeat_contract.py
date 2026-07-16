@@ -20,12 +20,8 @@ errors: list[str] = []
 
 require(ROOT / "SKILL.md", [
     "worker_task_id=<exact destination task ID>",
-    "Resolve `self_task_id` only from the host's exact current-task context",
     "targetThreadId=self_task_id",
-    "current_task_id == self_task_id == worker_task_id == Heartbeat.targetThreadId",
-    "Hidden next-run time is non-blocking; hidden/mismatched target binding is not verified",
-    "Unknown automation IDs are never touched",
-    "绑定：本任务已核验",
+    "carry checkpoint path and mission identity",
 ], errors)
 
 require(ROOT / "references" / "scheduler-and-heartbeats.md", [

@@ -4,7 +4,7 @@ Use only for notifications, supplied Reddit URLs, replies to the account's own r
 
 ## Cadence And Surfaces
 
-Derive the base sweep cadence from operation intensity while the session is active: low `45-60 min`, standard `30-45 min`, high `20-30 min`.
+Derive the base sweep cadence from the selected `followup.<intensity>_cadence_minutes` in `operation-defaults.json`.
 
 Check:
 
@@ -36,7 +36,7 @@ Score each exact inbound item:
 
 Session-level authorization covers `Act` replies. Do not request per-reply confirmation.
 
-After reading each exact inbound chain, independently assess the other user's reply within the current round's conservative vote envelope. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments while a nonzero vote remainder is positive, but do not browse unrelated feeds or reopen closed chains. If these required surfaces contain too few eligible external items, record the exact Upvote/Downvote shortfall as scope exhaustion; never manufacture a reply or weaken a vote gate.
+After reading each exact inbound chain, independently assess the other user's reply within the current round's hard vote cap. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. Default voting is opportunity-only: do not create a vote remainder or extend the sweep to find a vote. Only a user-supplied vote count creates a hard vote target; if the required surfaces contain too few eligible external items, record the exact shortfall as scope exhaustion and never browse unrelated feeds, manufacture a reply, or weaken a vote gate.
 
 This lane has no artificial reply quota. Its completion target is one full required-surface sweep plus every passing `Act` available in that sweep. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments even when the first surface is quiet; never report a partial sweep as completion.
 
@@ -44,11 +44,11 @@ This lane has no artificial reply quota. Its completion target is one full requi
 
 1. Read the parent and nearby chain, not only the notification preview.
 2. Load `publish-consistency.md`, compare history, and run Double-Check A.
-3. Load `outbound-copy-gate.md`; classify the reply as ordinary follow-up, technical, sensitive/support, or mod acknowledgement, then apply that surface's length and slang/abbreviation band against the rolling last `10` outputs. An ordinary follow-up normally needs one locally supported colloquial marker or abbreviation; technical, sensitive, and moderator contexts retain the lower exception bands.
+3. Load `outbound-copy-gate.md`; classify the reply as ordinary follow-up, technical, sensitive/support, or mod acknowledgement, then apply that surface's qualitative voice band against the rolling history. Ordinary follow-up uses locally supported Reddit compression at medium-high frequency; technical, sensitive, and moderator contexts use lower bands. Never enforce a percentage quota.
 4. Add one useful thing: acknowledgement, clarification, precise thanks, compact answer, or one question.
 5. Enter the reply and run Double-Check B.
-6. Reselect this lane's dedicated Reddit tab and verify account/target. Apply `interaction-pacing.md`: require `candidate_dwell_seconds >=30`, `comment_readable_to_submit_seconds >=45`, and `pre_submit_pause_seconds=5-12`; then submit once and verify.
-7. Append length, `voice_band`, `native_marker_used`, and `slang_or_abbrev_used` to history; keep `1-3 min` between follow-up replies and vary only when context supports it.
+6. Reselect this lane's dedicated Reddit tab and verify account/target. Apply every matching configured field in `interaction_pacing`; then submit once and verify.
+7. Append length, `voice_band`, `native_marker_used`, and `slang_or_abbrev_used` to history; keep `followup.reply_submit_gap_seconds_*` between follow-up replies and vary only when context supports it.
 8. Mark the item Act/Watch/Skip/Closed and set the next check only if still open.
 
 Avoid customer-support boilerplate, repeated thanks, essays, links outside scope, and fixed two-sentence replies.
@@ -68,9 +68,9 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 On a direct user command or execution-heartbeat resume, complete the current Notifications + known-permalink/recent-activity sweep before scheduling another check. The processed reply/close result or the concrete quiet-queue sweep is `slot_proof`; merely deciding the next sweep time is not.
 
 - normal queue: selected intensity cadence
-- active direct exchange: `12-20 min`
-- quiet queue: `40-90 min`
-- several replies or uncertainty: `57-96 min`
+- active direct exchange: `followup.active_exchange_cadence_minutes`
+- quiet queue: `followup.quiet_queue_cadence_minutes`
+- several replies or uncertainty: `followup.uncertain_queue_cadence_minutes`
 
 Choose from state, not random imitation. Compute one exact local/UTC next due time and update/reuse this follow-up task's own logical Heartbeat.
 

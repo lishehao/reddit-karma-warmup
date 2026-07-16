@@ -1,133 +1,81 @@
 # Operation Request Router
 
-Use in the reusable distributor to split each direct dispatch request, and in a lane task to normalize only that lane's later request.
+Use in `Reddit 分发台` to split a direct dispatch request, and inside a lane task to normalize only a later request for that lane. Load `operation-defaults.json` first; it is the only numeric default source.
 
-## Defaults
+## Resolve The Mission
 
-- missing duration: `3h`
-- missing intensity: `standard`
-- missing style: `mixed`
-- missing account direction: resolve the broad default in `account-direction.md`
-- missing comment pacing: `clustered_windows`
-- interaction pacing: `measured_human_scale`; every distinct readable candidate owns at least `30 sec`
-- comment cluster completion floor: `minimum_completed_cluster_size=2`
-- missing post angle: `beginner-common-mistake`, implemented as a truthful beginner-readable community-memory question with `discussion_potential_score >=80`
-- broad `开始/运营`: comments + posts + follow-up; for every K0 account, the post mission is read-only research/preflight with action target/cap `0/0`
-- healthy first-Bootstrap `继续`: comments + posts + follow-up using the matching saved direction or broad default for `3h`; the K0 post lane researches only, while repair-state `继续` only rechecks the failed dependency
-- browsing: only when the user explicitly requests pure browsing, voting, feed reading, Upvote, or Downvote
-- presence: only when explicitly requested or the first profile baseline is incomplete
+1. Apply the latest explicit user lane, duration, count, intensity, style, language, target pool, vote target, or cap. Do not ask another confirmation.
+2. Fill missing duration, intensity, and style from the top-level fields in `operation-defaults.json`, and account direction from `account-direction.md`.
+3. Broad `开始/运营` enables comments, posts, and follow-up. K0 receives a post research/preflight mission with action target/cap `0/0`. Browsing is explicit-only; presence is explicit or first-profile-baseline only.
+4. Resolve every range/default into one exact mission value before delivery: action target/cap, qualified-read target, vote target mode, optional vote target, hard vote cap, pacing, cadence, and deadline.
+5. When total count and hourly rate conflict, total count plus duration controls. Report the mismatch once without blocking.
 
-Resolve style through `operation-style-profiles.md`. Explicit user counts, duration, language, pool, style, or lane replace defaults without another confirmation.
+A bare `继续` starts default dispatch only from `BOOTSTRAP_AWAITING_OPERATION`. After the distributor returns idle, it does not silently repeat the prior mission without a new pending instruction.
 
-The bare `继续` shortcut is state-scoped. It starts the first default dispatch only from `BOOTSTRAP_AWAITING_OPERATION`. Once the distributor is idle after a completed or partial dispatch, do not silently resend the previous mission; wait for a new direction, duration, lane, count, or other explicit pending dispatch instruction.
+## Completion Semantics
 
-When total comment count and hourly rate conflict, the latest explicit user quantity controls. If both appear in the same instruction, treat the total count plus duration as authoritative, compute `effective_hourly_rate = total / hours`, and report the mismatch once without blocking. Example: `80 comments / 10h = 8/hour`; `10/hour for 10h = 100 comments`.
+`action_target` and `qualified_read_target` are independent hard objectives for numeric comment, post-research, and browsing rounds. Follow-up's hard read objective is a complete sweep of Notifications, supplied/known permalinks, recent own posts, and recent own comments. Presence follows its requested checklist.
 
-Planning targets are quality-gated. Resolve every range to one exact `action_target` and one `action_cap` before the first slot. The action target is the primary completion condition inside the authorized window; the cap is the most that lane may publish or cast without a new user instruction. A candidate-read floor is a discovery-depth checkpoint, never a substitute for the action target and never a reason to stop early.
+Normal completion requires every applicable hard objective:
 
-| Intensity | Comment target/cap; candidate-read floor | Post target/cap; research floor | Follow-up | Browse floor; vote target/cap |
-|-|-|-|-|-|
-| low | `3/4 per hour`; `9` | `1/1 per session`; reference sweep up to `50`, live deep preflight `5-8` | full sweep every `45-60m` | `12`; `0/1` |
-| standard | `5/6 per hour`; `15` | `1/1 every 2-3h`; reference sweep up to `100`, live deep preflight `8-12` | full sweep every `30-45m` | `25`; `1/1` |
-| high | `8/10 per hour`; `24` | `1/1 every 60-90m`; reference sweep up to `100`, live deep preflight `10-15` | full sweep every `20-30m` | `50`; `1/2` |
+```text
+action_remaining == 0
+qualified_read_remaining == 0 or required_surface_sweep == complete
+explicit_vote_target_remaining == 0 only when the user supplied a vote target
+```
 
-An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
+If actions finish first, continue qualified lane-local reading without another text mutation. If reads finish first, continue candidate discovery toward the action target. A read target is not a maximum; additional reading is allowed while another hard objective remains. Stop short only for deadline, explicit user stop, or a current concrete blocker after bounded recovery and candidate expansion.
 
-Every comments, posts, follow-up, or explicit-browse round resolves a conservative combined-vote target/cap: low `0/1`, standard `1/1`, high `1/2`. High intensity increases qualified reads and context depth first; it does not raise the default accepted-vote target above `1`. `Upvote` and `Downvote` are mandatory separate report counters, but the default target is their accepted sum and never requires one of each. If the user gives exact `upvote_target` and/or `downvote_target`, those directional counts replace the combined default as hard objectives. Existing votes and `no_vote` decisions do not fill a nonzero accepted-vote target.
+## Voting
 
-Before resolving a post target, load `new-account-bootstrap.md` and the exact candidate rows from `posting-account-gates-audit-2026-07-14.csv`. K0 always uses post action target/cap `0/0` with `post_action_mode=research_preflight_only`. At K1, require `main_post_unlock=passed` and clamp the post target/cap to at most `1/1` per rolling `24h`. Unknown audit rows never enter a K0/K1 post shortlist.
+Default voting is opportunity-only. Resolve `vote_target_mode=opportunity`, omit `vote_target`, and apply the hard intensity cap from `operation-defaults.json`. Count Upvote and Downvote separately. Do not continue or widen scanning solely to cast a default vote.
 
-For proactive comments, decompose every target of `2+` into windows whose planned sizes are all at least `2`. Examples: `3 -> 3`, `5 -> 2+3`, `8 -> 3+2+3`. `single_comment_cluster=forbidden`: after the first verified comment in a window, continue discovery and publishing until at least the second verified comment before yielding, reporting a completed window, or scheduling the next Heartbeat. `cluster_copy_batching=forbidden`: every item gets a new `per_comment_gate_id` and independently reruns context, length, shortening, local-marker, and submit checks. A user instruction explicitly requesting exactly `1` total comment is a single-action mission, not a cluster, and is the only count-based exception. User stop, deadline, or a current hard blocker may interrupt a window after one action, but it remains `cluster_incomplete` with its remainder preserved; never relabel it completed.
+A user-supplied combined or directional vote count sets `vote_target_mode=hard`. When no separate cap is supplied, the explicit target also becomes the cap. When both are supplied, require target `<=` cap; report and use the explicit cap as the maximum rather than exceeding it. Existing votes and `no_vote` do not fill a hard target.
+
+Every vote uses the independent gate and configured score thresholds in `browse-vote-playbook.md`; comment/post/reply scores never become vote scores. One accepted click is final; do not toggle or repeatedly verify it.
+
+## Clustered Comments
+
+Every proactive target of `2+` is decomposed into windows of at least two, normally two to four. Examples: `3 -> 3`, `5 -> 2+3`, `8 -> 3+2+3`.
+
+Inside a window, each item gets a new `per_comment_gate_id` and independently runs context, rule, length, local voice, shortening, pacing, Check A/B, mutation, and measured logging. A cluster is only a timing/count envelope; prewriting or sharing a copy decision is forbidden.
+
+One verified comment cannot complete the window unless the whole user mission explicitly requested exactly one total comment. User stop, deadline, or a current hard blocker may leave `cluster_incomplete`; preserve its exact remainder in the checkpoint.
 
 ## Target-Driven Scan Loop
 
-Each lane works backward from the exact action target instead of stopping after an arbitrary first batch:
+1. Restore exact action/read/optional-vote remainders from `lane-state-checkpoint.md`.
+2. Start with live `New`/`Rising` in highest-fit eligible communities; open actual content rather than counting feed impressions.
+3. Score each candidate. Act immediately when it passes; record Watch/Skip and continue without drafting weak content.
+4. While a hard remainder is positive and time remains, widen through more eligible communities, recent `Hot`, deeper chains, subreddit search, and adjacent current topics. Refresh surfaces rather than recycling rejected candidates.
+5. Persist every qualified read, verified action, vote/no-vote decision, remaining count, and mutation certainty before yielding.
 
-1. Set `action_target`, `action_cap`, `qualified_read_floor`, `deadline`, and the lane's score threshold. Store `slot_target_remaining = action_target - verified_actions` and preserve it across every continuation.
-2. Start with live `New`/`Rising` items in the highest-fit eligible communities. Open the actual post or comment chain; titles and feed impressions do not count.
-3. Score each exact candidate. Act immediately when it passes; record `Watch`/`Skip` and continue without drafting weak content.
-4. While `slot_target_remaining > 0`, keep scanning while authorized time remains: widen to more eligible communities, then recent `Hot`, deeper comment chains, subreddit search, and adjacent current topics. Refresh live surfaces instead of recycling rejected candidates. Reaching the read floor with too few actions means expand, not finish.
-5. Complete a comment or post slot normally only when `slot_target_remaining == 0`. Once the target is verified, do not keep reading merely to fill the read floor. Stop short only when the user deadline/operation cutoff is reached, the user explicitly stops, or a current hard blocker prevents the remaining action. A thin first page, one empty community, candidate scarcity, or a completed read floor is never terminal.
+Never lower thresholds, invent experience, reuse near-duplicate text, violate live rules, or exceed a cap to fill a target.
 
-More qualified reading is always allowed while the action target remains. Fewer actions are not an acceptable convenience outcome while authorized time and recoverable discovery surfaces remain. Never lower a score threshold, invent experience, reuse near-duplicate text, violate live rules, or exceed the action cap merely to fill the number. If execution must yield before the target is met, record an interim checkpoint, carry the exact remaining count into the same slot's next Heartbeat, and continue. A final shortfall report is allowed only at a terminal condition and must state verified actions/target, qualified candidates assessed, expansion stages attempted, and the exact terminal reason.
+## Mission Card
 
-## Per-Round Vote Target
-
-Comments, posts, and follow-up tasks independently score and may cast a natural vote on eligible external content opened inside their primary lane:
-
-- comments: the candidate post or parent chain already read for comment discovery
-- posts: external survivor/reference posts already read during live rules and angle research
-- follow-up: another user's inbound reply already read during Notifications or own-activity review
-
-The resolved qualified-read floor and any nonzero vote target are per-round completion objectives alongside the lane's primary target. If a nonzero vote target remains after the primary action finishes, continue only through additional eligible candidates within that lane's own normal surfaces until it passes, the cap is reached, or a terminal deadline/blocker occurs. At low intensity, target `0` means no vote is required; still record separate Upvote/Downvote counts and never exceed cap `1`. Do not open unrelated feeds, closed/research-only communities, own/team content, or weaker candidates merely to fill votes. Follow-up never leaves Notifications, supplied/known permalinks, recent own posts, and recent own comments; if those surfaces contain too few eligible external items, report the exact nonzero-target shortfall instead of manufacturing activity. The dedicated `BROWSING_WORKER` remains available for explicit pure-browse/vote requests and owns its independent qualified-read floor.
-
-Every vote uses the independent score in `browse-vote-playbook.md`; comment, post, or reply scores never become vote scores. Never lower `Upvote >=82` or `Downvote >=92` to fill a hard target. Before clicking, inspect the intended control once: if either direction is already explicitly selected, record `existing_vote` and do not click; if the state cannot be determined reliably, record `no_vote`. After one successful click, accept it without repeated verification. Never vote on own, team/affiliated, moderator/Automod, or supplied campaign content.
-
-## Launcher Dispatch
-
-For every distributor command, generate a new mission ID and build one independent mission per enabled lane. The mission ID is new even when delivery reuses the existing account+lane task:
+Every dispatched lane mission contains:
 
 ```text
-mission_id
+mission_id + mission_revision
 worker_task_id=<exact destination task ID>
-lane
-single_objective
-out_of_scope
-account
-account_direction + direction_source
-duration/count/intensity/style/language
-pacing_mode=clustered_windows
-minimum_completed_cluster_size=2
-single_comment_cluster=forbidden
-per_item_copy_gate=required
-cluster_copy_batching=forbidden
-routine_comment_word_cap=25
-interaction_pacing=measured_human_scale
-candidate_dwell_min_seconds=30
-comment_readable_to_submit_min_seconds=45
-pre_submit_pause_seconds=5-12
-inter_click_pause_seconds=1-4
-post_default_angle=beginner-common-mistake
-post_discussion_gate=required_for_question_posts
-post_discussion_score_min=80
-main_post_unlock=<locked|passed>
-post_action_mode=<research_preflight_only|publish>
-posting_gate_audit_rows=<exact candidate rows and status>
-target_pool_or_urls
-mission_identity_focus
-reference_rows_assessed
-comment_shortlist_or_post_reference_shortlist
-start_local + start_utc
-operation_stop_at
-first_due=now
-mutation_phase_index=<0..n-1>
-initial_mutation_not_before=<start + 10m * phase index>
-phase_jitter_minutes=2-4
-missed_phase_policy=next_own_window
-heartbeat_owner=self
-heartbeat_target=worker_task_id
-launcher_callback=none
-sibling_visibility=none
-per_round_voting=read_first_selective_with_directional_counters
-vote_metrics=mandatory_separate_upvote_downvote_counts
-combined_vote_target + vote_cap + optional upvote_target/downvote_target
-action_target + action_cap + qualified_read_floor
+lane + single_objective + out_of_scope
+account + account_direction + direction_source + mission_identity_focus
+duration + intensity + style + language + operation_stop_at
+action_target + action_cap + action_remaining
+qualified_read_target + qualified_read_remaining
+vote_target_mode + optional vote_target + vote_cap
+interaction_pacing=from operation-defaults.json
+first_due=now + mutation_phase_index + initial_mutation_not_before
+heartbeat_owner=self + heartbeat_target=worker_task_id
+checkpoint_path + checkpoint_schema_version=1
+dedicated_reddit_tab=required + launcher_callback=none + sibling_visibility=none
+exact_role_pack + filtered target shortlist + required live gates
+requested_model + requested_reasoning_effort + actual_model_pair
 ```
 
-The missions share only user-provided scope, account identity, the resolved broad account direction, and their static launch-time phase assignments. `first_due=now` starts read-only work immediately; it does not authorize every lane to mutate at once. Missions do not share runtime state, Heartbeats, risk, completion, history, or control.
+Comments also receive clustered-window fields. Posts receive `main_post_unlock`, `post_action_mode`, and exact posting-gate rows. A traffic probe is not an action target until live traffic, action route, and account gates pass.
 
 ## Later Lane Mission
 
-When the user speaks inside a lane task:
-
-1. Accept only instructions for that lane.
-2. Replace conflicting old mission fields with the latest command.
-3. Preserve this lane's verified account, tab, history, and own Heartbeat when still valid.
-4. Execute the first changed slot now. Keep the lane's current phase when still applicable; an explicit user cadence replaces it.
-5. Update only this task's Heartbeat for remaining work.
-
-If the request belongs to another lane, answer briefly with the correct task title. Do not message, create, inspect, or amend that task.
-
-## Status And Stop
-
-A status request reports only the current lane. Pause/resume/stop changes only the current lane and its own Heartbeat unless the user separately addresses other tasks.
+A later command inside a lane replaces conflicting old mission fields, increments `mission_revision`, starts the changed slot now, preserves valid tab/history, and updates only that task's checkpoint and Heartbeat. An off-lane request is not forwarded; name the canonical task briefly.

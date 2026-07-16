@@ -49,14 +49,7 @@ Length ladder:
 
 Use this stricter gate for proactive comments and follow-up replies. Comments should bias short. A longer comment must earn its length with a concrete insight, useful detail, or direct requested feedback.
 
-Hard default length bias for ordinary comment sessions:
-
-- `80-90%` should be `micro`, `fragment`, or `one-liner`.
-- `8-17%` can be `two-beat`.
-- `2-5%` can be `compact paragraph`.
-- `long only-if-needed` should be exceptional, normally `<1%`.
-
-This is a batch-level hard bias, not a mechanical rotation. If the rolling last `10` comments contain fewer than `8` short-tier comments, the next passing candidate defaults to `micro`, `fragment`, or `one-liner` unless the target explicitly needs depth. Do not lengthen a comment to improve variety.
+Use the canonical length mix in `operation-defaults.json`: short tiers dominate, two-beat replies are occasional, compact paragraphs are rare, and long replies are exceptional. In the rolling window, if short-tier coverage is below the configured minimum, the next passing candidate defaults to `micro`, `fragment`, or `one-liner` unless the target explicitly needs depth. This is a bias, not a mechanical rotation; never lengthen a comment merely to create variety.
 
 ### Per-item gate inside a cluster
 
@@ -101,7 +94,7 @@ Short-first rewrite rules:
 
 ### Reddit-native voice
 
-Use current nearby replies as the primary language source. Ordinary comments should almost always contain one visible piece of natural Reddit/internet speech, but each individual reply uses only what fits its meaning and subreddit.
+Use current nearby replies as the primary language source. Ordinary comments use natural Reddit/internet compression at high frequency, but each reply includes only what fits its meaning and subreddit.
 
 Load `reddit-us-voice-patterns.md` after sampling nearby replies. Use it as a fallback pattern table and stale-phrase filter, never as a phrase quota. The current thread and subreddit vocabulary always win.
 
@@ -120,35 +113,35 @@ Density guidance:
 
 Native-marker gate:
 
-- For ordinary non-sensitive sessions, target `90-98%` of published comments with at least one locally supported **strong marker**: a social abbreviation, Redditism, casual stance marker, locally used colloquial fragment, subreddit term, or compressed connective. A routine contraction alone does not satisfy this stronger target.
-- Every ordinary `micro`, `fragment`, `one-liner`, or `two-beat` draft must test at least one strong marker from `local_voice_sample`. Use it only if the meaning stays natural.
-- A final ordinary draft passes with no strong marker only when nearby replies are predominantly formal/technical, the topic is sensitive, or the marker would distort the author's voice. Record that reason as `plain_local_voice`; ordinary sessions should produce no more than `1` such exception in the rolling last `20` comments.
-- Do not satisfy this gate with a random `lol`, `tbh`, or abbreviation. The marker must match the exact thread energy and meaning.
+- Every ordinary `micro`, `fragment`, `one-liner`, or `two-beat` draft tests one strong marker from `local_voice_sample`: a social abbreviation, Redditism, casual stance marker, colloquial fragment, subreddit term, or compressed connective.
+- Use the marker only when it keeps the meaning natural. The configured default is high-frequency use across ordinary comments, not a percentage quota and not a requirement to force slang into every item.
+- A plain draft is valid when nearby replies are formal or technical, the topic is sensitive, or the marker would distort the author's voice. Record the concrete reason as `plain_local_voice`.
+- Do not satisfy this gate with a random `lol`, `tbh`, or abbreviation. The marker must match the exact thread energy and meaning, and per-item density must stay within `operation-defaults.json`.
 
 ### Output-specific frequency bands
 
-These are rolling-session targets, not per-item quotas. Local current replies may lower the band; they never justify random marker insertion.
+These are qualitative session bands, not per-item or percentage quotas. Current nearby replies may lower the band; they never justify random marker insertion.
 
-| Output surface | Native compression marker rate | Social slang / Reddit abbreviation rate | Per-item density |
-|-|-:|-:|-|
-| proactive comment, ordinary | `90-98%` | `85-95%` | normally exactly `1`; maximum `2` only in a natural two-beat reply |
-| creative/gaming/casual comment | `95-100%` | `90-100%` | normally exactly `1`; maximum `2` |
-| follow-up reply | `85-95%` | `60-80%` | usually `1`; maximum `2` |
-| technical reply | `65-80%` | `25-45%` | domain shorthand may be natural; maximum `1` social marker |
-| sensitive/support reply | `30-50%` | `0-15%` | normally `0`; never playful slang unless the parent clearly uses it safely |
-| main-post title | follow current survivor style | `5-20%` | maximum `1`; no slang merely to attract clicks |
-| main-post body | `25-45%` | `10-25%` | maximum `1` per short paragraph |
-| mod/Automod acknowledgement | `0-20%` | `0-5%` | plain and literal; no playful Redditism |
-| Chinese user-facing operation report | not applicable | `0%` | keep only necessary Reddit/Codex technical terms |
+| Output surface | Native compression | Social slang / Reddit abbreviation | Per-item density |
+|-|-|-|-|
+| proactive comment, ordinary | high | high when locally supported | normally `1`; absolute maximum `2` |
+| creative/gaming/casual comment | high | high when locally supported | normally `1`; absolute maximum `2` |
+| follow-up reply | medium-high | medium | usually `1`; absolute maximum `2` |
+| technical reply | medium | low | domain shorthand may be natural; normally at most `1` social marker |
+| sensitive/support reply | low | none by default | normally `0`; never playful slang unless the parent clearly uses it safely |
+| main-post title | local-style dependent | low | maximum `1`; no slang merely to attract clicks |
+| main-post body | low-medium | low | maximum `1` per short paragraph |
+| mod/Automod acknowledgement | plain | none | literal and concise |
+| Chinese user-facing operation report | none | none | keep only necessary Reddit/Codex technical terms |
 
-Rate calculation:
+Band interpretation:
 
 - `native compression marker` includes a contraction, fragment, compressed connective, locally used subreddit term, or social shorthand. For the ordinary-comment strong-marker requirement, a routine contraction by itself is insufficient.
 - `social slang / Reddit abbreviation` is narrower: `tbh`, `ngl`, `imo`, `fwiw`, `afaik`, `iirc`, `idk`, `rn`, `tho`, `bc`, `ppl`, `OP`, `YMMV`, `lol/lmao`, or an observed subreddit-specific Redditism.
 - Choose the band from `output_surface` and context before drafting. When two bands apply, use the lower/safer band.
 - Never reuse the same social marker more than `2` times in the rolling last `10` outputs unless it is an unavoidable subreddit term such as `OP`.
 - Do not open more than `2` of the last `10` comments with the same marker or phrase family.
-- Meet frequency across the batch, not by stacking markers inside one sentence. If an ordinary candidate cannot support one strong marker naturally, prefer another passing candidate; use `plain_local_voice` only for the narrow formal, technical, or sensitive exceptions above.
+- Maintain the selected band through naturally supported outputs, not by stacking markers inside one sentence. If an ordinary candidate cannot support a strong marker naturally, keep the plain draft or choose another passing candidate; do not distort a useful comment to meet a quota.
 
 Do not stack abbreviations, force `lol/lmao`, imitate AAVE, invent typos, or use stale canned Reddit lines such as `take my upvote`, `this is the way`, or `sir, this is a Wendy's` unless the current thread itself makes the phrase specifically relevant. The target is native compression, not cosplay.
 
@@ -169,7 +162,7 @@ Rules:
 ## Main Post Copy Shape
 
 - Sample recent surviving native posts in the target subreddit before choosing length and structure.
-- For question/discussion posts, load the discussion-potential gate in `proactive-playbook.md`; `post_copy_score` evaluates writing quality but cannot rescue a weak or generic discussion premise.
+- For question/discussion posts, load the discussion-potential gate in `posts-playbook.md`; `post_copy_score` evaluates writing quality but cannot rescue a weak or generic discussion premise.
 - Select `post_title` and `post_body` frequency bands separately. A casual body never grants a slang-heavy title.
 - Use the shortest body that supplies the context the community expects; do not force comment-length brevity onto a post.
 - Compare recent account posts for title pattern, opening, angle, paragraph shape, and length. Avoid repeating all of them together.

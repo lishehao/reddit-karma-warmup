@@ -41,8 +41,8 @@ def main() -> int:
             errors.append(f"missing_fence:{needle}")
 
     links = {
-        ROOT / "SKILL.md": "Discovery only; never grants execution permission",
-        ROOT / "references" / "proactive-playbook.md": "is a discovery backlog, not an eligible pool",
+        ROOT / "SKILL.md": "Discovery, traffic, survivor posts, and pending/public audits never grant publishing permission",
+        ROOT / "references" / "proactive-common.md": "Public/pending expansion audits rank future preflight only",
         ROOT / "references" / "publish-consistency.md": "closed_pending_live_review",
     }
     for path, needle in links.items():

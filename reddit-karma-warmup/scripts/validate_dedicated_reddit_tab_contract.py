@@ -16,14 +16,9 @@ def read(path: Path) -> str:
 required = {
     ROOT / "SKILL.md": [
         "one persistent dedicated Reddit primary tab",
-        "two-call creation transaction",
-        "Never combine `tabs.new()` and the first `goto` in one browser call",
-        "up to 60 seconds",
-        "navigation acknowledgement uncertain",
-        "URL/title metadata alone is not control proof",
-        'status: "handoff"',
-        "own_tab.close()",
-        "never treats a visible shared Reddit tab as its own",
+        "First creation uses one call for tab creation and a second awaited `tab.goto(...)`",
+        "never use page-side script navigation or another task's tab",
+        "close its tab",
     ],
     ROOT / "references" / "orchestration-core.md": [
         "Every execution task owns one persistent dedicated Reddit primary tab",

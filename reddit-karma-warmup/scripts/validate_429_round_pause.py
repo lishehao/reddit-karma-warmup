@@ -36,8 +36,8 @@ require(
 require(
     "SKILL.md",
     [
-        "Explicit HTTP `429`/`Too Many Requests` ends every Reddit action in the current wake",
-        "it never deletes the mission or Heartbeat",
+        "HTTP `429` ends the current wake",
+        "preserves checkpoint/mission/Heartbeat",
     ],
 )
 

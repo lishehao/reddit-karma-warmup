@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate strict K0 post unlocking and account-gate audit coverage."""
+"""Validate K0 post lock, K1 unlock, and account-gate audit coverage."""
 
 import csv
 import json
@@ -20,7 +20,6 @@ def require(path: Path, needles: list[str], errors: list[str]) -> None:
 
 
 errors: list[str] = []
-
 with AUDIT.open(newline="", encoding="utf-8-sig") as handle:
     rows = list(csv.DictReader(handle))
 
@@ -33,53 +32,52 @@ expected = {
     "blocked": 1,
     "organization_deny": 2,
 }
-
 if len(rows) != 254:
     errors.append(f"audit_rows:{len(rows)}!=254")
 if dict(counts) != expected:
     errors.append(f"audit_status_counts:{dict(counts)}!={expected}")
 
+defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
+posts = defaults["posts"]
+if (posts["k0_action_target"], posts["k0_action_cap"]) != (0, 0):
+    errors.append("k0_post_target_cap")
+if posts["main_post_unlock_min_combined_karma"] != 50:
+    errors.append("unlock_karma")
+if posts["main_post_unlock_min_account_age_days"] != 7:
+    errors.append("unlock_age")
+if posts["k1_rolling_24h_cap"] != 1:
+    errors.append("k1_rolling_cap")
+
 require(ROOT / "references" / "new-account-bootstrap.md", [
-    "main-post target/cap `0/0` while the account remains K0",
+    "K0 posts from `posts.k0_action_*`",
     "Every K0 account publishes no main post",
     "## Main Post Unlock",
-    "combined sitewide Karma is at least `50`",
-    "account age is at least `7d`",
-    "at least `10` comments remain visible across at least `3` eligible communities",
+    "posts.main_post_unlock_min_combined_karma",
+    "posts.main_post_unlock_min_account_age_days",
+    "posts.main_post_unlock_min_visible_comments",
+    "posts.main_post_unlock_min_eligible_communities",
     "`unknown`, `blocked`, and `organization_deny` are closed for K0 main posts",
 ], errors)
-
-require(ROOT / "references" / "proactive-playbook.md", [
-    "| locked at `0` |",
-    "require `main_post_unlock=passed`",
-    "never publish a second main post inside the same rolling `24h`",
+require(ROOT / "references" / "posts-playbook.md", [
+    "K0 is always `research_preflight_only` with `posts.k0_action_*`",
+    "K1 requires `main_post_unlock=passed`",
+    "posts.k1_rolling_24h_cap",
 ], errors)
-
 require(ROOT / "references" / "default-operations-sop.md", [
-    "K0 always uses post action target/cap `0/0`",
-    "post_action_mode=research_preflight_only",
-    "Unknown audit rows never enter a K0/K1 post shortlist",
+    "K0 receives a post research/preflight mission with action target/cap `0/0`",
+    "main_post_unlock",
+    "posting-gate rows",
 ], errors)
-
 require(ROOT / "references" / "posting-account-gates-audit-status.md", [
     "completed ordinary gate reviews: `22/252` (`8.73%`)",
     "The audit is not complete",
     "Blank fields mean not publicly confirmed, not zero",
 ], errors)
-
-require(ROOT / "SKILL.md", [
-    "unknown is closed for K1 publishing while K0 never publishes",
-    "K0 is always research-only with target/cap `0/0`",
-    "at least `50` combined Karma",
-], errors)
-
 if README.exists():
     require(README, [
         "主帖目标/上限固定为 `0/0`",
         "至少 50 combined Karma",
         "K1 解锁后仍最多每 24 小时 1 篇",
-        "普通社区仅 22 个完成了本轮门槛判断",
-        "这项审计尚未完成",
     ], errors)
 
 if errors:
@@ -88,11 +86,7 @@ if errors:
 print(json.dumps({
     "status": "PASS",
     "audit_rows": len(rows),
-    "completed_ordinary": 22,
-    "ordinary_total": 252,
-    "completion_pct": 8.73,
-    "k0_post_target_cap": "0/0",
-    "unlock_min_combined_karma": 50,
-    "unlock_min_account_age_days": 7,
-    "unlocked_k1_post_cap": "1/24h",
+    "k0_posts": "LOCKED_0_0",
+    "unlock": "50_KARMA_7D_PLUS_LIVE_GATES",
+    "k1_cap": "ONE_PER_ROLLING_24H",
 }, ensure_ascii=False, sort_keys=True))

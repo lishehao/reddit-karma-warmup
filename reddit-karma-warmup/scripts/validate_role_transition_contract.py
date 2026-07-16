@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate reusable distributor, account-scoped lane routing, and worker autonomy."""
+"""Validate distributor routing, independent role packs, and worker autonomy."""
 
 from pathlib import Path
 import sys
@@ -19,171 +19,100 @@ def forbid(path: Path, needles: list[str]) -> list[str]:
     return [f"{path.name}: forbidden {needle!r}" for needle in needles if needle in text]
 
 
-def main() -> int:
-    checks = {
-        ROOT / "SKILL.md": [
-            "REDDIT_LAUNCHER",
-            "Reddit 启动台",
-            "Reddit 分发台",
-            "reusable distributor",
-            "account-keyed registry",
-            "reuse each healthy registered task",
-            "bounded one-time legacy adoption",
-            "new mission IDs",
-            "heartbeat_owner=self",
-            "worker_task_id=<exact destination task ID>",
-            "launcher_callback=none",
-            "No coordinator task, coordinator registry, coordinator supervisor Heartbeat",
-            "后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达",
-            "L1_DIRECTION",
-            "L2_READY",
-            "pinned=true",
-            "Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf",
-            "must not be routed through `loci-prepare-reddit-post`",
-        ],
-        ROOT / "references" / "launcher-playbook.md": [
-            "Reusable Lane Distributor",
-            "registered reuse first",
-            "bounded one-time legacy adoption",
-            "creates only missing/unusable replacements",
-            "returns to pinned idle",
-            "It is not a coordinator",
-            "The distributor never creates timers for workers",
-            "next command generates new mission IDs but normally reuses the registered lane tasks",
-            "Broad `开始/运营` enables comments, posts, and follow-up",
-            "first default dispatch is complete only after comments, posts, and follow-up all accept",
-            "Create browsing only for an explicit pure-browse/vote request",
-            "Keep the distributor pinned and every execution task unpinned",
-            "worker_task_id=<the exact selected destination task ID>",
-            "第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。",
-            "本轮部分分发",
-        ],
-        ROOT / "references" / "thread-supervision-runtime.md": [
-            "Reusable Lane Task Routing",
-            "Account-Keyed Registry",
-            "lane-registry/<username>.json",
-            "Registered reuse",
-            "One-time legacy adoption",
-            "Inspect at most the three newest candidates",
-            "Unarchive that exact registered task when needed",
-            "Do not create a duplicate when a healthy registered task accepted delivery",
-            "incoming `mission_id` is new and supersedes prior mission fields",
-            "delivery_uncertain",
-            "worker_task_id=<that same exact destination task ID>",
-            "No ongoing task reads between direct user commands",
-        ],
-        ROOT / "references" / "runtime-and-setup.md": [
-            "account+lane task registry",
-            "lane-registry/<username>.json",
-            "Persistent task list/read/send/create plus archive-state support",
-        ],
-        ROOT / "references" / "scheduler-and-heartbeats.md": [
-            "The worker is the only scheduler for its lane",
-            "There is no launcher/coordinator supervisor Heartbeat",
-            "targetThreadId=self_task_id",
-            "target_binding_proof=verified",
-        ],
-        ROOT / "references" / "risk-escalation.md": [
-            "There is no callback or central risk surface",
-            "Never send this to `Reddit 分发台`",
-        ],
-        ROOT / "references" / "proactive-playbook.md": [
-            "This lane owns ordinary native posts end to end",
-            "does not call GPT Inf or `loci-prepare-reddit-post`",
-            "GPT Inf is not a readiness gate, a blocker, or a report field for ordinary posts",
-        ],
-    }
+checks = {
+    ROOT / "SKILL.md": [
+        "Five-Step Default Flow",
+        "Reddit 启动台",
+        "Reddit 分发台",
+        "independent account-scoped lane tasks",
+        "comments-playbook.md",
+        "posts-playbook.md",
+        "followup-playbook.md",
+        "browse-vote-playbook.md",
+        "community-presence-playbook.md",
+        "No coordinator task",
+        "worker_task_id=<exact destination task ID>",
+        "A queued `clientThreadId` is not ready",
+        "Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf",
+    ],
+    ROOT / "references" / "launcher-playbook.md": [
+        "Reusable Lane Distributor",
+        "registered reuse first",
+        "bounded one-time legacy adoption",
+        "returns to pinned idle",
+        "It is not a coordinator",
+        "The distributor never creates timers for workers",
+        "Broad `开始/运营` enables comments, posts, and follow-up",
+        "first default dispatch is complete only after comments, posts, and follow-up all accept",
+        "Create browsing only for an explicit pure-browse/vote request",
+        "worker_task_id=<the exact selected destination task ID>",
+        "第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。",
+    ],
+    ROOT / "references" / "thread-supervision-runtime.md": [
+        "Account-Keyed Registry",
+        "lane-registry/<username>.json",
+        "Registered reuse",
+        "One-time legacy adoption",
+        "Inspect at most the three newest candidates",
+        "incoming `mission_id` is new and supersedes prior mission fields",
+        "delivery_uncertain",
+        "No ongoing task reads between direct user commands",
+    ],
+    ROOT / "references" / "scheduler-and-heartbeats.md": [
+        "The worker is the only scheduler for its lane",
+        "There is no launcher/coordinator supervisor Heartbeat",
+        "targetThreadId=self_task_id",
+    ],
+    ROOT / "references" / "comments-playbook.md": [
+        "Load only in `Reddit 评论台`",
+        "Never prewrite a cluster",
+    ],
+    ROOT / "references" / "posts-playbook.md": [
+        "Load only in `Reddit 发帖台`",
+        "Do not use GPT Inf or `loci-prepare-reddit-post`",
+    ],
+}
+if README.exists():
+    checks[README] = [
+        "立即把首轮 mission 投递给评论台、发帖台和跟进台",
+        "后续运营指令优先沿用",
+        "lane registry",
+        "第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。",
+        "首次 Bootstrap 成功时只返回",
+    ]
 
-    if README.exists():
-        checks[README] = [
-            "按账号长期沿用的独立执行台",
-            "立即把首轮 mission 投递给评论台、发帖台和跟进台",
-            "后续运营指令优先沿用",
-            "lane registry",
-            "最多检查三个最新同名候选",
-            "不能仅凭标题猜测",
-            "第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。",
-            "后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达",
-            "首次 Bootstrap 成功时只返回",
-            "电脑需要保持开机且不要休眠",
-        ]
-
-    errors: list[str] = []
-    for path, needles in checks.items():
-        if not path.exists():
-            errors.append(f"missing file: {path}")
-            continue
+errors: list[str] = []
+for path, needles in checks.items():
+    if not path.exists():
+        errors.append(f"missing file: {path}")
+    else:
         errors.extend(require(path, needles))
 
-    obsolete = [
-        ROOT / "references" / "coordinator-playbook.md",
-        ROOT / "references" / "startup-health-check.md",
-        ROOT / "references" / "operations-audit.md",
-    ]
-    for path in obsolete:
-        if path.exists():
-            errors.append(f"obsolete file still present: {path.name}")
+for obsolete in (
+    ROOT / "references" / "coordinator-playbook.md",
+    ROOT / "references" / "proactive-playbook.md",
+    ROOT / "references" / "twelve-hour-ops-template.md",
+):
+    if obsolete.exists():
+        errors.append(f"obsolete file still present: {obsolete.name}")
 
-    forbidden = {
-        ROOT / "SKILL.md": [
-            "create fresh requested lane tasks",
-            "Every distribution command creates another fresh run",
-            "never search or reuse old tasks",
-        ],
-        ROOT / "references" / "launcher-playbook.md": [
-            "For every direct command it creates fresh requested lane tasks",
-            "Do not list/search/read/reuse/unarchive/revive historical tasks",
-            "next command repeats fresh creation with a new run ID",
-        ],
-        ROOT / "references" / "thread-supervision-runtime.md": [
-            "# Fresh-Only Task Allocation",
-            "must not reuse, unarchive, revive",
-            "No historical task discovery or fallback",
-        ],
-        ROOT / "references" / "scheduler-and-heartbeats.md": [
-            "The coordinator is the only scheduler",
-            "supervisor_heartbeat_id",
-            "Coordinator Creation Flow",
-        ],
-    }
-    if README.exists():
-        forbidden[README] = [
-            "每次我发运营指令，都创建全新的独立执行台",
-            "分发台会再次创建全新执行任务并投递",
-            "分发台禁止搜索、读取、复用、反归档",
-        ]
-    for path, needles in forbidden.items():
-        errors.extend(forbid(path, needles))
+forbidden = {
+    ROOT / "SKILL.md": ["Use a persistent main coordinator", "Require worker callback"],
+    ROOT / "references" / "launcher-playbook.md": ["The coordinator is the only scheduler"],
+    ROOT / "references" / "scheduler-and-heartbeats.md": ["supervisor_heartbeat_id"],
+}
+for path, needles in forbidden.items():
+    errors.extend(forbid(path, needles))
 
-    if errors:
-        print("REUSABLE_LANE_ROUTING_CONTRACT=FAIL")
-        for error in errors:
-            print(f"- {error}")
-        return 1
+if errors:
+    print("REUSABLE_LANE_ROUTING_CONTRACT=FAIL")
+    for error in errors:
+        print(f"- {error}")
+    sys.exit(1)
 
-    scenarios = {
-        "setup_command": "RENAME_LAUNCHER_FIRST",
-        "setup_health_passed": "RENAME_AND_PIN_DISTRIBUTOR",
-        "first_lane_dispatch": "CREATE_AND_REGISTER",
-        "later_same_account_lane": "REUSE_REGISTERED_TASK",
-        "legacy_registry_missing": "BOUNDED_EXACT_ADOPTION_THEN_CREATE",
-        "ambiguous_legacy_candidates": "DO_NOT_GUESS_CREATE_NEW",
-        "registered_archived_task": "UNARCHIVE_AND_REUSE",
-        "registered_unusable_task": "REPLACE_AND_UPDATE_REGISTRY",
-        "different_reddit_account": "SEPARATE_REGISTRY",
-        "later_mission": "NEW_MISSION_ID_SAME_TASK",
-        "worker_first_slot": "EXECUTE_NOW",
-        "worker_continuation": "SELF_OWNED_HEARTBEAT",
-        "launcher_callback": "FORBIDDEN",
-        "coordinator_supervisor": "ABSENT",
-        "launcher_idle": "PINNED_NO_BACKGROUND_READS",
-        "ordinary_post_gpt_inf": "NOT_REQUIRED",
-    }
-    print("REUSABLE_LANE_ROUTING_CONTRACT=PASS")
-    for scenario, result in scenarios.items():
-        print(f"{scenario}={result}")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+print("REUSABLE_LANE_ROUTING_CONTRACT=PASS")
+print("topology=DISTRIBUTOR_PLUS_INDEPENDENT_LANES")
+print("reuse=EXACT_ACCOUNT_LANE_TASK_ID")
+print("timers=WORKER_OWNED")
+print("callbacks=NONE")
+print("role_packs=COMMENTS_POSTS_FOLLOWUP_BROWSING_PRESENCE")

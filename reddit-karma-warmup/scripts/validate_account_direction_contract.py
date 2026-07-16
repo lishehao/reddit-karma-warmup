@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 required = {
-    "SKILL.md": ["account-direction.md", "Resolve the account direction"],
+    "SKILL.md": ["account-direction.md", "account direction"],
     "references/account-direction.md": [
         "3-5",
         "direction_source=default_loci_broad",
@@ -37,7 +37,7 @@ required = {
         "comment_shortlist",
         "post_reference_shortlist",
     ],
-    "references/default-operations-sop.md": ["account_direction + direction_source"],
+    "references/default-operations-sop.md": ["account_direction + direction_source + mission_identity_focus"],
     "references/operation-style-profiles.md": [
         "per-run focus inside the broader durable `account_direction`",
     ],

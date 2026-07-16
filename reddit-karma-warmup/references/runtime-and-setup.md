@@ -17,12 +17,13 @@ The first available presentation action after a setup/install command is to rena
 - Current-task exact ID plus rename/pin support for the persistent distribution entrypoint. Do not search by title to recover self identity.
 - Automation/Heartbeat tool capability for multi-round work, including explicit `targetThreadId` and exact-automation target readback. Bootstrap checks the callable schema only; each lane worker performs the first real create/readback for its own mission after its immediate first slot.
 - Local time, timezone, UTC offset, and UTC readback.
+- A host-supported model pair selected from `operation-defaults.json`: prefer `gpt-5.6-luna/high`, then `gpt-5.5/high`, then `gpt-5.4/high`. Unsupported preferred models trigger fallback and never block Reddit operation.
 
 Python, Node.js, Git, GitHub CLI, package managers, macOS Screen Recording, System Audio Recording, Accessibility, databases, API keys, external CLIs, and the generic `thread-supervisor` Skill are not runtime dependencies. When `thread-supervisor` is installed, use its current generic tool semantics while retaining this Skill's Reddit-specific topology.
 
 ## Install And Upgrade
 
-Use repository root `README.md` and the public HTTPS archive. Compare `manifest.json` versions numerically. Install a whole managed folder atomically; never merge old and new trees. Back up the previous folder. Same version plus different content is a conflict; older incoming versions do not downgrade without explicit instruction; failed validation rolls back.
+Use repository root `README.md` and the public HTTPS archive. Compare `manifest.json` versions numerically. Install a whole managed folder atomically; never merge old and new trees. Back up the previous folder. Same version plus different content is a conflict; older incoming versions do not downgrade without explicit instruction; failed validation rolls back. Preserve all user-owned runtime data outside the managed Skill tree, including `account-directions/`, `lane-registry/`, `lane-state/`, and `lane-history/`.
 
 ## Read-Only Preflight
 
@@ -31,6 +32,7 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 3. Confirm persistent task list/read/send/create, rename, and archive/unarchive capability without creating operation tasks yet. Confirm the create schema exposes returned identifier type and host-aware read/send fields when the host supports them.
 4. Confirm from the available automation tool/schema that recurring Heartbeat create/update/read/delete, explicit `targetThreadId`, and exact-automation target readback are callable. Do not create, update, or delete a bootstrap test Heartbeat or smoke-probe automation. Hidden `next_run_at` is handled by the first real worker timer as `created_unreadable`; an unreadable target binding is not verified and cannot schedule continuation.
 5. Read real local time/timezone and UTC.
+6. Detect available task model choices when the host exposes them. Select the first supported canonical fallback pair; if availability is not queryable, let new-task creation attempt the chain in order. Record the actual selected pair internally and do not expose it in the healthy Bootstrap prompt.
 
 If a required item needs user repair, remain `Reddit 启动台`, persist `bootstrap_state=BOOTSTRAP_REPAIR_REQUIRED`, and request only that repair. In this state, `继续` rechecks only the missing items and never dispatches an operation mission.
 
@@ -45,7 +47,7 @@ After successful preflight, rename the same task `Reddit 分发台` and pin that
 
 The answer starts dispatch immediately. Direction-only answers use `3h`; duration-only answers use the matching saved direction or the broad default. Only while `bootstrap_state=BOOTSTRAP_AWAITING_OPERATION`, `继续`, `开始`, `默认`, or `没想法` means matching saved direction or broad default plus `3h`, and immediately dispatches the first comments + posts + follow-up missions. Never ask a second confirmation or a second operation question. Clear the Bootstrap state only after dispatch is attempted; a later bare `继续` in pinned idle must not duplicate the previous mission without a new pending request.
 
-Keep the account-keyed lane registry outside the managed Skill tree at `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json`. Upgrades preserve it. It contains only canonical lane names, exact ready task IDs, optional host IDs, titles, and last successful delivery metadata; never queued client IDs, credentials, Reddit content, Heartbeat IDs, or worker status.
+Keep the account-keyed lane registry outside the managed Skill tree at `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json`. Upgrades preserve it. It contains only canonical lane names, exact ready task IDs, optional host IDs, titles, and last successful delivery metadata; never queued client IDs, credentials, Reddit content, Heartbeat IDs, or worker status. Worker runtime belongs separately under the exact paths in `lane-state-checkpoint.md`; upgrades preserve those checkpoints and append-only lane histories as well.
 
 ## Bootstrap Success Prompt
 

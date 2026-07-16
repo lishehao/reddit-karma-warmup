@@ -17,46 +17,36 @@ def require(path: Path, needles: list[str], errors: list[str]) -> None:
 
 
 errors: list[str] = []
+defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
+if defaults["posts"]["discussion_score_min"] != 80:
+    errors.append("discussion_score_min")
+if defaults["posts"]["discussion_survivor_sample_target"] != 10:
+    errors.append("discussion_survivor_sample_target")
+if defaults["posts"]["discussion_rewrite_score_min"] != 68:
+    errors.append("discussion_rewrite_score_min")
 
 require(ROOT / "SKILL.md", [
-    "truthful beginner-readable community-memory angle",
-    "discussion_potential_score >=80",
-    "never impersonate a novice or fabricate confusion",
+    "posts-playbook.md",
 ], errors)
-
-require(ROOT / "references" / "proactive-playbook.md", [
-    "Default Discussion-First Post Tendency",
-    "beginner-readable community-memory question",
+require(ROOT / "references" / "posts-playbook.md", [
+    "Discussion-First Default",
+    "truthful beginner-readable community-memory question",
     "must not impersonate a novice",
-    "low reply cost and high experience recall",
-    "Discussion-potential gate",
-    "at least `10` recent native question/discussion posts",
-    "discussion_potential_score",
+    "posts.discussion_survivor_sample_target",
     "Recognition density",
     "Answer plurality",
     "Story affordance",
     "Low reply cost",
     "Current native evidence",
     "Novelty vs FAQ/recent posts",
-    "`pass_to_draft`: `>=80`",
-    "never pretend to have used a tool",
+    "Draft only at `posts.discussion_score_min`",
 ], errors)
-
-require(ROOT / "references" / "default-operations-sop.md", [
-    "truthful beginner-readable community-memory question",
-    "post_discussion_gate=required_for_question_posts",
-    "post_discussion_score_min=80",
-], errors)
-
 require(ROOT / "references" / "launcher-playbook.md", [
-    "Every default question-post handoff carries `post_discussion_gate=required_for_question_posts`",
-    "`post_discussion_score_min=80`",
+    "Every default question-post handoff carries the resolved discussion score gate",
 ], errors)
-
 require(ROOT / "references" / "outbound-copy-gate.md", [
     "`post_copy_score` evaluates writing quality but cannot rescue a weak or generic discussion premise",
 ], errors)
-
 if README.exists():
     require(README, [
         "小白也能理解",
@@ -69,9 +59,7 @@ if errors:
 
 print(json.dumps({
     "status": "PASS",
-    "default_angle": "BEGINNER_READABLE_COMMUNITY_MEMORY",
-    "identity": "NO_NOVICE_IMPERSONATION",
+    "default_angle": "TRUTHFUL_BEGINNER_READABLE_COMMUNITY_MEMORY",
     "discussion_score_min": 80,
-    "local_survivor_sample_min": 10,
-    "reply_shape": "LOW_COST_MULTI_ANSWER_STORY_FRIENDLY",
+    "identity": "NO_NOVICE_IMPERSONATION",
 }, ensure_ascii=False, sort_keys=True))

@@ -73,7 +73,7 @@ def main() -> int:
     links = [
         (ROOT / "SKILL.md", "community-action-routing-overrides.md"),
         (ROOT / "SKILL.md", "community-live-audit-30-2026-07-13.md"),
-        (ROOT / "references" / "proactive-playbook.md", "Gate the requested action independently"),
+        (ROOT / "references" / "proactive-common.md", "community-action-routing-overrides.md"),
         (ROOT / "references" / "publish-consistency.md", "never collapse them into one community tier"),
     ]
     for path, needle in links:

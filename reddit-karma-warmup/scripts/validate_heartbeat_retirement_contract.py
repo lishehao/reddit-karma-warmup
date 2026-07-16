@@ -15,13 +15,13 @@ def read(path: Path) -> str:
 
 required = {
     ROOT / "SKILL.md": [
-        "run mandatory terminal cleanup before reporting",
-        "clear `own_heartbeat_id` and every `next_due` field",
-        "may not retain an idle Heartbeat",
+        "delete only this task's Heartbeat",
+        "clear tab/timer/next-due checkpoint fields",
+        "then report terminal completion",
     ],
     ROOT / "references" / "orchestration-core.md": [
         "terminal -> `RETIRE`",
-        "mission_target_remaining == 0",
+        "Once all required components reach zero",
         "unused duration does not justify another wake",
     ],
     ROOT / "references" / "scheduler-and-heartbeats.md": [
@@ -36,7 +36,7 @@ required = {
 if README.exists():
     required[README] = [
         "必须先删除自己的 Heartbeat、清空下一次运行时间，再回报任务完成",
-        "单个评论簇、每小时配额或阅读下限只是中间进度",
+        "单个评论簇、每小时配额或只完成动作/阅读中的一项都只是中间进度",
     ]
 
 errors: list[str] = []

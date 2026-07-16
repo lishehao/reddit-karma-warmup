@@ -8,21 +8,22 @@ The worker is the only scheduler for its lane. It creates, reads, updates, repai
 
 Resolve `self_task_id` only from the host's exact current-task context. Never infer it from a title, task search/list result, lane registry entry, launcher task, sibling task, automation card title, or remembered ID. A distributor-delivered mission must contain `worker_task_id=<the exact destination task ID>`; a direct user command inside a lane sets `worker_task_id=self_task_id`. Before any Reddit action or timer mutation, require `self_task_id == worker_task_id`.
 
-Maintain one mission-local ownership tuple:
+Maintain one mission-local ownership tuple and its durable checkpoint:
 
 ```text
 self_task_id + worker_task_id + lane + mission_id + own_heartbeat_id
+checkpoint_path + checkpoint_schema_version
 ```
 
-`own_heartbeat_id` is valid only when it came from this task's own create/update response and is recorded in this tuple. Never touch an automation ID discovered from another task, a title search, or an unowned card.
+`own_heartbeat_id` is valid only when it came from this task's own create/update response and is recorded in this tuple and checkpoint. Never touch an automation ID discovered from another task, a title search, or an unowned card. Load `lane-state-checkpoint.md` before creating, updating, or waking a timer.
 
 ## Self-Binding Transaction
 
 Every Heartbeat create or update uses all three gates:
 
 1. **Pre-bind:** read the exact current task ID from host context and compare it with the mission's `worker_task_id`. On mismatch, perform no Reddit action and no timer mutation; report `worker_identity_mismatch` in this task.
-2. **Explicit bind:** call the automation create/update tool with `targetThreadId=self_task_id`. Never omit the target, use a title, inherit a launcher ID, or reuse a sibling ID.
-3. **Post-bind:** immediately read/view the exact returned `automation_id`. Require its exposed `targetThreadId == self_task_id`, its mission identity matches the current `mission_id`, and its recurring state is active. Record `target_binding_proof=verified` only after this second read.
+2. **Explicit bind:** persist the intended timer state, then call the automation create/update tool with `targetThreadId=self_task_id`. The Heartbeat instructions carry `checkpoint_path`, `checkpoint_schema_version`, `mission_id`, and `worker_task_id`. Never omit the target, use a title, inherit a launcher ID, or reuse a sibling ID.
+3. **Post-bind:** immediately read/view the exact returned `automation_id`. Require its exposed `targetThreadId == self_task_id`, its mission identity matches the current `mission_id`, and its recurring state is active. Record `target_binding_proof=verified` only after this second read, then atomically persist the returned ID, verified binding, and exposed next-due fields.
 
 Hidden scheduling time and hidden target identity are different states. Hidden `next_run_at` is non-blocking `created_unreadable`; hidden or mismatched `targetThreadId` is `target_binding_unverified`. Retry the exact read once. If it is still unverified, delete only the just-created/recorded `own_heartbeat_id`, clear the local next-due fields, and do not claim or run a scheduled continuation. The already completed first slot remains valid; report the timer-local issue in this task.
 
@@ -39,25 +40,25 @@ Never use a future Heartbeat to defer the first action. Never create a new timer
 
 ## Cadence
 
-Translate the current lane mission into a bounded next slot. Defaults remain advisory and quality-gated:
+Translate the current lane mission into a bounded next slot. Numeric defaults come only from `operation-defaults.json`; candidate thresholds remain quality gates:
 
 | Lane | Standard cadence |
 |-|-|
 | comments | resolve the requested hourly average into `clustered_windows`; do not schedule one evenly spaced comment at a time |
-| posts | one candidate/rules sweep every `2-3h`; publish only when eligible |
-| follow-up | every `30-45m` |
-| browsing | every `20-40m`; normally `20-30` qualified reads |
+| posts | resolve from `posts.research_cadence_minutes`; publish only when eligible |
+| follow-up | resolve from the selected `followup.<intensity>_cadence_minutes` |
+| browsing | resolve cadence from `browsing.default_cadence_minutes` and reads from the selected intensity |
 | presence | terminal after one slot unless the user explicitly requests ongoing presence work |
 
-Use `interaction-pacing.md` for measured human-scale waits. For any remaining delay of at most five minutes, prefer local terminal `sleep <seconds>` while preserving the dedicated Reddit tab. Use the recurring Heartbeat for longer waits; never create one for a 30-second candidate dwell or 5-12 second pre-submit pause.
+Use `interaction-pacing.md` for measured human-scale waits. For any remaining delay at or below `interaction_pacing.local_sleep_max_seconds`, prefer local terminal `sleep <seconds>` while preserving the dedicated Reddit tab. Use the recurring Heartbeat for longer waits; never create one for an in-item pacing floor.
 
 ## Cross-Lane Phase Stagger
 
 This is a lightweight best-effort stagger, not a shared scheduler or platform-safety guarantee.
 
 1. The distributor orders enabled mutation-capable lanes as `comments -> follow-up -> posts -> browsing -> presence` and assigns `mutation_phase_index=0..n-1`.
-2. `initial_mutation_not_before = start + (10 minutes * mutation_phase_index)`. All lanes may read and prepare immediately; only the first mutation is offset. The first comments lane therefore starts at phase `0` instead of waiting for a later round.
-3. Later Heartbeats keep roughly the same relative phase and add only `2-4m` of bounded jitter. They do not read sibling state or negotiate a slot.
+2. `initial_mutation_not_before = start + (scheduler.first_mutation_phase_step_minutes * mutation_phase_index)`. All lanes may read and prepare immediately; only the first mutation is offset. The first comments lane therefore starts at phase `0` instead of waiting for a later round.
+3. Later Heartbeats keep roughly the same relative phase and add bounded jitter from `scheduler.phase_jitter_minutes`. They do not read sibling state or negotiate a slot.
 4. If browser recovery, candidate discovery, or another delay makes a lane miss its intended write window, keep useful read-only work and move the mutation to that lane's next normal window. Do not compress missed work into a catch-up burst.
 5. An explicit user cadence replaces these defaults. Record the override once and continue without adding a second confirmation.
 
@@ -68,31 +69,32 @@ No shared ledger, account lock, claim/complete protocol, or cross-task collision
 For comments, plan operational batches instead of a uniform per-comment clock:
 
 1. Compute `effective_hourly_rate` from the latest controlling target and remaining time.
-2. For roughly `6-10 comments/hour`, normally create `2-3` batch windows per hour. Vary the gap from actual completion time, usually `20-35m`, instead of repeating an exact interval.
-3. Give each due window an exact `batch_target` of at least `2`, normally `2-4` verified comments, and an active work envelope of about `6-15m`. `minimum_completed_cluster_size=2`, `single_comment_cluster=forbidden`, and `cluster_copy_batching=forbidden`. Candidate quality, rules, and the mission cap still gate every action.
-4. Inside a window, each comment independently loops through `CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log` with a new `per_comment_gate_id`; do not prewrite the remaining cluster or reuse another item's context, length tier, or slang choice. Apply the per-candidate `30 sec` dwell, `45 sec` readable-to-submit floor, and `5-12 sec` pre-submit pause from `interaction-pacing.md`, then keep a varied `3-5m` pause after each verified proactive comment before another comment is submitted. Use local sleep for these at-most-five-minute waits; use the lane Heartbeat between windows.
+2. Resolve the number of batch windows and their varied gap from `comments.cluster_windows_per_hour` and `comments.cluster_window_gap_minutes`; do not repeat an exact interval.
+3. Give each due window an exact `batch_target` from `comments.cluster_size_*` and an active work envelope from `comments.cluster_work_envelope_minutes`. `single_comment_cluster=forbidden` unless the entire mission explicitly requests one. Candidate quality, rules, and the mission cap still gate every action.
+4. Inside a window, each comment independently loops through `CHECK_A -> DRAFT -> CHECK_B -> ACT -> measured log` with a new `per_comment_gate_id`; do not prewrite the remaining cluster or reuse another item's context, length tier, or slang choice. Apply the canonical dwell, readable-to-submit, pre-submit, and proactive-submit-gap values from `operation-defaults.json` through `interaction-pacing.md`. Use local sleep for waits at or below the configured local-sleep maximum; use the lane Heartbeat between windows.
 5. Preserve `batch_target_remaining` and `slot_target_remaining`. After one verified proactive comment, the current wake stays active and continues discovery until the second passes; do not yield, schedule the next Heartbeat, or report a completed window after only one. A user-requested exact-one total is a single-action mission rather than a cluster. A user stop, deadline, or current hard blocker may produce `cluster_incomplete`, which carries its exact remainder forward without lowering thresholds or creating a catch-up burst.
 6. Recompute later windows from actual verified count and remaining time. Do not precompute a mechanically identical all-day schedule.
 
-Example: `80 comments / 10h` resolves to `8/hour`, not `10/hour`. A representative hour may use three windows such as `3 + 2 + 3`, with each window starting after a varied `20-35m` gap. The exact distribution changes with qualified candidates and actual completion time; it is not a promise to publish weak comments.
+Example: `80 comments / 10h` resolves to `8/hour`, not `10/hour`. A representative hour may use several compliant windows whose sizes and gaps are resolved from the canonical comment fields. The exact distribution changes with qualified candidates and actual completion time; it is not a promise to publish weak comments.
 
-Before creating or updating the inter-window Heartbeat, assert `verified_comments_in_current_window >= 2` or `explicit_exact_one_mission=true`. If neither is true, keep working in the current wake. Recoverable browser/network failure does not satisfy the assertion; preserve the incomplete cluster and retry locally or on the same lane's continuation without calling it a completed window.
+Before creating or updating the inter-window Heartbeat, assert `verified_comments_in_current_window >= comments.cluster_size_min` or `explicit_exact_one_mission=true`. If neither is true, keep working in the current wake. Recoverable browser/network failure does not satisfy the assertion; preserve the incomplete cluster and retry locally or on the same lane's continuation without calling it a completed window.
 
 ## Wake Flow
 
 On every wake:
 
-1. Read the exact current task ID from host context, then require `current_task_id == self_task_id == worker_task_id == Heartbeat.targetThreadId` and the Heartbeat mission identity equals `mission_id`. This wake-time check is mandatory even when creation previously passed.
-2. Read actual local time/timezone and UTC; compare with intended schedule.
-3. Reconnect Chrome or reclaim only this task's tab.
-4. If the slot is due, resume its preserved `slot_target_remaining` and continue discovery/action toward zero. A runtime boundary may yield an interim checkpoint, but does not complete or reset the slot.
-5. If not due, record `not_due`; do not manufacture activity.
-6. Recompute the next due time from the exact remaining duration/count, current batch remainder, and live conditions; unfinished action targets receive the next permissible continuation rather than a fresh slot.
-7. Update only this task's recorded timer when mission fields, cadence, or cutoff changed, and rerun the complete Self-Binding Transaction after the update.
+1. Read the exact current task ID from host context and load the Heartbeat-carried checkpoint path before any Reddit or timer mutation. Require checkpoint account/lane/task/mission identity to match `current_task_id == self_task_id == worker_task_id == Heartbeat.targetThreadId`. This wake-time check is mandatory even when creation previously passed.
+2. Reconstruct read-only and repair the checkpoint atomically if it is missing or malformed; do not mutate Reddit until prior submission certainty and all remaining targets are known.
+3. Read actual local time/timezone and UTC; compare with intended schedule.
+4. Reconnect Chrome or reclaim only this task's tab.
+5. If the slot is due, resume preserved action, qualified-read, and optional explicit-vote remainders and continue toward zero. A runtime boundary may yield an interim checkpoint, but does not complete or reset the slot.
+6. If not due, record `not_due`; do not manufacture activity.
+7. Recompute the next due time from exact remaining action/read/explicit-vote targets, current batch remainder, duration, and live conditions; unfinished targets receive the next permissible continuation rather than a fresh slot.
+8. Atomically persist the reconciled checkpoint before updating only this task's recorded timer. When mission fields, cadence, or cutoff changed, rerun the complete Self-Binding Transaction.
 
 ## Survival And Repair
 
-Technical failure is not timer termination. Candidate scarcity is also not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake. Resume the same remaining target after recovery. If every current expansion route is genuinely exhausted, yield an interim checkpoint and retry fresh surfaces on the next wake rather than declaring the action target complete.
+Technical failure is not timer termination. Candidate scarcity is also not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake. Persist and resume the same action/read/explicit-vote remainders after recovery. If every current expansion route is genuinely exhausted, yield an interim checkpoint and retry fresh surfaces on the next wake rather than declaring a target complete.
 
 Explicit HTTP `429`/`Too Many Requests` is a round boundary, not a terminal condition: stop all Reddit work in the current wake, preserve the exact remaining target, and schedule the later of the next normal lane round or the server-displayed retry time. Do not delete or pause the Heartbeat, and do not create a catch-up burst after recovery.
 
@@ -104,10 +106,10 @@ Retire this lane's Heartbeat only after:
 
 - explicit user stop for this lane;
 - `operation_stop_at` reached;
-- verified completion of this lane's requested count/objective; or
+- verified completion of all required action, qualified-reading or required-surface, and explicit vote-target components; or
 - verified corrected replacement plus retirement of the old timer.
 
-The stage governed by this Heartbeat is the full current user-authorized lane mission, not one comment cluster, hourly pacing bucket, read floor, or intermediate slot. If that full mission target is verified complete, remaining wall-clock authorization is not unfinished work.
+The stage governed by this Heartbeat is the full current user-authorized lane mission, not one comment cluster, hourly pacing bucket, one completed target component, or intermediate slot. If that full mission target is verified complete, remaining wall-clock authorization is not unfinished work.
 
 ## Completion Cleanup Transaction
 
@@ -115,7 +117,7 @@ At a terminal condition, cleanup is ordered and mandatory:
 
 1. Stop creating or updating future wakes.
 2. Delete this task's exact `own_heartbeat_id`; a successful delete response or an already-absent timer is sufficient proof.
-3. Clear `own_heartbeat_id`, `next_due_local`, and `next_due_utc`; record `heartbeat_retirement_proof`.
+3. Clear `own_heartbeat_id`, `next_due_local`, and `next_due_utc`; record `heartbeat_retirement_proof` and persist the terminal checkpoint atomically.
 4. Release only this task's Chrome tab.
 5. Only then emit the terminal three-line receipt with `下轮时间：无` and no continuation plan.
 

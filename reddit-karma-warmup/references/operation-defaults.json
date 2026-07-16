@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "default_duration_hours": 3,
+  "default_intensity": "standard",
+  "default_style": "mixed",
+  "model_runtime": {
+    "fallback_chain": [
+      {"model": "gpt-5.6-luna", "reasoning_effort": "high"},
+      {"model": "gpt-5.5", "reasoning_effort": "high"},
+      {"model": "gpt-5.4", "reasoning_effort": "high"}
+    ],
+    "launcher_and_workers_use_same_chain": true,
+    "unavailable_model_never_blocks_operation": true
+  },
+  "comments": {
+    "low": {"action_target_per_hour": 3, "action_cap_per_hour": 4, "qualified_read_target": 9},
+    "standard": {"action_target_per_hour": 5, "action_cap_per_hour": 6, "qualified_read_target": 15},
+    "high": {"action_target_per_hour": 8, "action_cap_per_hour": 10, "qualified_read_target": 24},
+    "cluster_size_min": 2,
+    "cluster_size_normal_min": 2,
+    "cluster_size_normal_max": 4,
+    "cluster_windows_per_hour": [2, 3],
+    "cluster_window_gap_minutes": [20, 35],
+    "cluster_work_envelope_minutes": [6, 15],
+    "routine_word_cap": 25,
+    "fresh_account_first_day_action_cap": 12,
+    "proactive_submit_gap_seconds_min": 180,
+    "proactive_submit_gap_seconds_max": 300
+  },
+  "posts": {
+    "low": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 50, "live_deep_read_target": 5},
+    "standard": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 100, "live_deep_read_target": 8},
+    "high": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 100, "live_deep_read_target": 10},
+    "research_cadence_minutes": [120, 180],
+    "narrowing_timebox_minutes": [20, 30],
+    "post_candidate_score_min": 82,
+    "rules_eligibility_score_min": 20,
+    "discussion_survivor_sample_target": 10,
+    "discussion_rewrite_score_min": 68,
+    "k0_action_target": 0,
+    "k0_action_cap": 0,
+    "k1_rolling_24h_cap": 1,
+    "main_post_unlock_min_combined_karma": 50,
+    "main_post_unlock_min_account_age_days": 7,
+    "main_post_unlock_min_visible_comments": 10,
+    "main_post_unlock_min_eligible_communities": 3,
+    "discussion_score_min": 80
+  },
+  "followup": {
+    "low_cadence_minutes": [45, 60],
+    "standard_cadence_minutes": [30, 45],
+    "high_cadence_minutes": [20, 30],
+    "active_exchange_cadence_minutes": [12, 20],
+    "quiet_queue_cadence_minutes": [40, 90],
+    "uncertain_queue_cadence_minutes": [57, 96],
+    "qualified_read_target": "all_required_surfaces",
+    "reply_submit_gap_seconds_min": 60,
+    "reply_submit_gap_seconds_max": 180
+  },
+  "browsing": {
+    "low": {"qualified_read_target": 12},
+    "standard": {"qualified_read_target": 25},
+    "high": {"qualified_read_target": 50},
+    "default_cadence_minutes": [20, 40]
+  },
+  "presence": {
+    "join_cap_per_hour": 5,
+    "join_cap_per_24h": 10,
+    "flair_change_cap_per_hour": 3,
+    "flair_change_cap_per_24h": 8,
+    "profile_edit_cap_per_day": 2,
+    "bootstrap_join_target_min": 1,
+    "bootstrap_join_target_max": 3,
+    "bootstrap_profile_update_target": 1
+  },
+  "community_selection": {
+    "comment_reference_sweep_limit": 100,
+    "shortlist_limit": 20,
+    "traffic_floor_weekly_visitors": 5000,
+    "post_live_preflight_community_range": [8, 15],
+    "post_initial_candidate_range": [12, 20],
+    "near_tie_score_margin": 3
+  },
+  "votes": {
+    "default_target": null,
+    "default_target_mode": "opportunity",
+    "explicit_target_mode": "hard",
+    "caps_by_intensity": {"low": 1, "standard": 1, "high": 2},
+    "upvote_score_min": 82,
+    "downvote_score_min": 92,
+    "count_directions_separately": true,
+    "never_scan_only_for_default_vote": true
+  },
+  "interaction_pacing": {
+    "candidate_dwell_min_seconds": 30,
+    "candidate_dwell_normal_seconds": [30, 75],
+    "candidate_dwell_long_seconds": [60, 180],
+    "comment_readable_to_submit_min_seconds": 45,
+    "comment_readable_to_submit_normal_seconds": [45, 120],
+    "pre_submit_pause_seconds": [5, 12],
+    "inter_click_pause_seconds": [1, 4],
+    "local_sleep_max_seconds": 300
+  },
+  "scheduler": {
+    "first_mutation_phase_step_minutes": 10,
+    "phase_jitter_minutes": [2, 4]
+  },
+  "voice": {
+    "ordinary_comment_native_marker_frequency": "high",
+    "ordinary_comment_social_shorthand_frequency": "high_when_locally_supported",
+    "normal_marker_cap_per_item": 1,
+    "absolute_marker_cap_per_item": 2,
+    "two_beat_word_range": [26, 45],
+    "percentage_quota_is_forbidden": true,
+    "length_mix": {
+      "dominant": "micro_fragment_one_liner",
+      "two_beat": "occasional",
+      "compact_paragraph": "rare",
+      "long_only_if_needed": "exceptional",
+      "rolling_window": 10,
+      "short_tier_minimum": 7
+    }
+  }
+}

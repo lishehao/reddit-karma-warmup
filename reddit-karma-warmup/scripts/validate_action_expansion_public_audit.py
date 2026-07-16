@@ -35,8 +35,8 @@ def main() -> int:
             errors.append(f"missing:{needle}")
 
     links = {
-        ROOT / "SKILL.md": "grants no current action permission",
-        ROOT / "references" / "proactive-playbook.md": "every row is still `closed_pending_live_review`",
+        ROOT / "SKILL.md": "pending/public audits never grant publishing permission",
+        ROOT / "references" / "proactive-common.md": "Public/pending expansion audits rank future preflight only",
         ROOT / "references" / "publish-consistency.md": "no comment, post, vote, Join, or product permission is created",
     }
     for path, needle in links.items():

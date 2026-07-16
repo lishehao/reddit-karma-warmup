@@ -27,13 +27,13 @@ Planning targets are quality-gated. Resolve every range to one exact `action_tar
 
 | Intensity | Comment target/cap; candidate-read floor | Post target/cap; research floor | Follow-up | Browse floor; vote target/cap |
 |-|-|-|-|-|
-| low | `3/4 per hour`; `9` | `1/1 per session`; reference sweep up to `50`, live deep preflight `5-8` | full sweep every `45-60m` | `12`; `2/2` |
-| standard | `5/6 per hour`; `15` | `1/1 every 2-3h`; reference sweep up to `100`, live deep preflight `8-12` | full sweep every `30-45m` | `20`; `2/4` |
-| high | `8/10 per hour`; `24` | `1/1 every 60-90m`; reference sweep up to `100`, live deep preflight `10-15` | full sweep every `20-30m` | `30`; `4/6` |
+| low | `3/4 per hour`; `9` | `1/1 per session`; reference sweep up to `50`, live deep preflight `5-8` | full sweep every `45-60m` | `12`; `0/1` |
+| standard | `5/6 per hour`; `15` | `1/1 every 2-3h`; reference sweep up to `100`, live deep preflight `8-12` | full sweep every `30-45m` | `25`; `1/1` |
+| high | `8/10 per hour`; `24` | `1/1 every 60-90m`; reference sweep up to `100`, live deep preflight `10-15` | full sweep every `20-30m` | `50`; `1/2` |
 
 An explicit user count replaces both the corresponding target and cap unless the user separately provides a cap. Follow-up is demand-driven: its target is to inspect every required surface and process every passing `Act`, not to manufacture a reply count. Presence uses its own playbook ceiling and exact requested target.
 
-Every comments, posts, follow-up, or explicit-browse round also resolves a hard combined-vote target/cap: low `2/2`, standard `2/4`, high `4/6`. `Upvote` and `Downvote` are separately counted and reported, but the default target is their accepted sum and never requires one of each. If the user gives exact `upvote_target` and/or `downvote_target`, those directional counts replace the combined default as hard objectives. Existing votes and `no_vote` decisions do not fill an accepted-vote target.
+Every comments, posts, follow-up, or explicit-browse round resolves a conservative combined-vote target/cap: low `0/1`, standard `1/1`, high `1/2`. High intensity increases qualified reads and context depth first; it does not raise the default accepted-vote target above `1`. `Upvote` and `Downvote` are mandatory separate report counters, but the default target is their accepted sum and never requires one of each. If the user gives exact `upvote_target` and/or `downvote_target`, those directional counts replace the combined default as hard objectives. Existing votes and `no_vote` decisions do not fill a nonzero accepted-vote target.
 
 Before resolving a post target, load `new-account-bootstrap.md` and the exact candidate rows from `posting-account-gates-audit-2026-07-14.csv`. K0 always uses post action target/cap `0/0` with `post_action_mode=research_preflight_only`. At K1, require `main_post_unlock=passed` and clamp the post target/cap to at most `1/1` per rolling `24h`. Unknown audit rows never enter a K0/K1 post shortlist.
 
@@ -59,7 +59,7 @@ Comments, posts, and follow-up tasks independently score and may cast a natural 
 - posts: external survivor/reference posts already read during live rules and angle research
 - follow-up: another user's inbound reply already read during Notifications or own-activity review
 
-The resolved vote target is a hard per-round completion objective alongside the lane's primary target. If the primary action finishes first, continue through additional eligible candidates within that lane's own normal surfaces until the vote target passes, the cap is reached, or a terminal deadline/blocker occurs. Do not open unrelated feeds, closed/research-only communities, own/team content, or weaker candidates merely to fill votes. Follow-up never leaves Notifications, supplied/known permalinks, recent own posts, and recent own comments; if those surfaces contain too few eligible external items, report the exact hard-target shortfall instead of manufacturing activity. The dedicated `BROWSING_WORKER` remains available for explicit pure-browse/vote requests and owns its independent qualified-read floor.
+The resolved qualified-read floor and any nonzero vote target are per-round completion objectives alongside the lane's primary target. If a nonzero vote target remains after the primary action finishes, continue only through additional eligible candidates within that lane's own normal surfaces until it passes, the cap is reached, or a terminal deadline/blocker occurs. At low intensity, target `0` means no vote is required; still record separate Upvote/Downvote counts and never exceed cap `1`. Do not open unrelated feeds, closed/research-only communities, own/team content, or weaker candidates merely to fill votes. Follow-up never leaves Notifications, supplied/known permalinks, recent own posts, and recent own comments; if those surfaces contain too few eligible external items, report the exact nonzero-target shortfall instead of manufacturing activity. The dedicated `BROWSING_WORKER` remains available for explicit pure-browse/vote requests and owns its independent qualified-read floor.
 
 Every vote uses the independent score in `browse-vote-playbook.md`; comment, post, or reply scores never become vote scores. Never lower `Upvote >=82` or `Downvote >=92` to fill a hard target. Before clicking, inspect the intended control once: if either direction is already explicitly selected, record `existing_vote` and do not click; if the state cannot be determined reliably, record `no_vote`. After one successful click, accept it without repeated verification. Never vote on own, team/affiliated, moderator/Automod, or supplied campaign content.
 
@@ -108,7 +108,8 @@ heartbeat_owner=self
 heartbeat_target=worker_task_id
 launcher_callback=none
 sibling_visibility=none
-per_round_voting=hard_combined_target_with_directional_counters
+per_round_voting=read_first_selective_with_directional_counters
+vote_metrics=mandatory_separate_upvote_downvote_counts
 combined_vote_target + vote_cap + optional upvote_target/downvote_target
 action_target + action_cap + qualified_read_floor
 ```

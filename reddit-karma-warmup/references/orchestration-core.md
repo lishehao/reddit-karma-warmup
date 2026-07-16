@@ -49,9 +49,9 @@ For proactive comments, the state machine runs once per individual comment, not 
 
 | Lane | Owns | Excludes |
 |-|-|-|
-| comments | proactive comment discovery/submission plus its hard per-round combined-vote target on eligible candidate posts/parents | main posts, notifications, unrelated-feed vote hunting, profile changes |
-| posts | native main post discovery/preflight/submission plus its hard per-round combined-vote target on eligible external research samples | comments, notifications, unrelated-feed vote hunting, profile changes |
-| follow-up | Notifications/replies plus its hard per-round combined-vote target on eligible inbound replies | proactive discovery, new posts, unrelated-feed vote hunting |
+| comments | proactive comment discovery/submission plus its conservative per-round vote envelope on eligible candidate posts/parents | main posts, notifications, unrelated-feed vote hunting, profile changes |
+| posts | native main post discovery/preflight/submission plus its conservative per-round vote envelope on eligible external research samples | comments, notifications, unrelated-feed vote hunting, profile changes |
+| follow-up | Notifications/replies plus its conservative per-round vote envelope on eligible inbound replies | proactive discovery, new posts, unrelated-feed vote hunting |
 | browsing | explicit pure-browse missions with qualified reading and independently gated votes | default broad-operation dispatch, publishing text, notifications, profile changes |
 | presence | profile/about, Join/subscribe, truthful Flair/tag | outward content, notifications, votes |
 

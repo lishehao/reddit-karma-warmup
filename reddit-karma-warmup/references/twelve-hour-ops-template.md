@@ -16,9 +16,9 @@ Use inside one lane task when the user requests a long timed run. A broad reques
 
 | Lane | Typical 12-hour behavior |
 |-|-|
-| comments | use `clustered_windows`: every completed batch has at least 2 verified comments, normally 2-3 short batches per active hour for a 6-10/hour target, with varied 20-35m inter-window gaps; preserve copy/community variation and complete the round's hard combined-vote target on eligible external items opened during comment discovery |
-| posts | perform periodic live rules/eligibility sweeps; publish only passing native posts; complete the round's hard combined-vote target on eligible external reference items opened during candidate research |
-| follow-up | check Notifications and own activity on a varied cadence; reply only to Act items; complete the round's hard combined-vote target only on eligible external inbound/context items in this lane's scope |
+| comments | use `clustered_windows`: every completed batch has at least 2 verified comments, normally 2-3 short batches per active hour for a 6-10/hour target, with varied 20-35m inter-window gaps; preserve copy/community variation and apply the conservative vote envelope only to eligible external items opened during comment discovery |
+| posts | perform periodic live rules/eligibility sweeps; publish only passing native posts; apply the conservative vote envelope only to eligible external reference items opened during candidate research |
+| follow-up | check Notifications and own activity on a varied cadence; reply only to Act items; apply the conservative vote envelope only to eligible external inbound/context items in this lane's scope |
 | browsing | explicit-only pure browsing: run qualified-read batches with independently gated votes and varied `20-40m` intervals |
 | presence | normally one slot; continue only when explicitly requested |
 

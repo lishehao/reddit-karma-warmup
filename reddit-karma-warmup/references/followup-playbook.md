@@ -36,7 +36,7 @@ Score each exact inbound item:
 
 Session-level authorization covers `Act` replies. Do not request per-reply confirmation.
 
-After reading each exact inbound chain, independently assess the other user's reply against the current round's hard vote target. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments while the vote remainder is positive, but do not browse unrelated feeds or reopen closed chains. If these required surfaces contain too few eligible external items, record the exact Upvote/Downvote shortfall as scope exhaustion; never manufacture a reply or weaken a vote gate.
+After reading each exact inbound chain, independently assess the other user's reply within the current round's conservative vote envelope. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments while a nonzero vote remainder is positive, but do not browse unrelated feeds or reopen closed chains. If these required surfaces contain too few eligible external items, record the exact Upvote/Downvote shortfall as scope exhaustion; never manufacture a reply or weaken a vote gate.
 
 This lane has no artificial reply quota. Its completion target is one full required-surface sweep plus every passing `Act` available in that sweep. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments even when the first surface is quiet; never report a partial sweep as completion.
 

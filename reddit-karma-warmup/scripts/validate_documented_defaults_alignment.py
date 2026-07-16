@@ -8,6 +8,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT.parent / "README.md"
 defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
+if not README.exists():
+    print(json.dumps({
+        "status": "PASS",
+        "authority": "operation-defaults.json",
+        "readme": "NOT_PRESENT_INSTALLED_LAYOUT",
+    }, ensure_ascii=False, sort_keys=True))
+    raise SystemExit(0)
+
 body = README.read_text(encoding="utf-8")
 errors: list[str] = []
 

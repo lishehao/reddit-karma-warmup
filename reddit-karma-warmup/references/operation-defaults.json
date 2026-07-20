@@ -101,6 +101,17 @@
     "inter_click_pause_seconds": [1, 4],
     "local_sleep_max_seconds": 300
   },
+  "chrome_command_runtime": {
+    "outer_timeout_ms": 120000,
+    "locator_action_timeout_ms": 90000,
+    "browser_boundary_commands_per_cell": 1,
+    "slow_success_threshold_ms": 20000,
+    "ambient_network_disable_env": "BROWSER_USE_DISABLE_AMBIENT_NETWORK",
+    "ambient_network_disable_value": "1",
+    "ambient_network_flag_required": false,
+    "bundle_wait_with_mutation": false,
+    "bundle_observation_with_interaction": false
+  },
   "chrome_recovery": {
     "same_wake_recovery_cycle_cap": 2,
     "same_url_retry_cap_per_wake": 1,

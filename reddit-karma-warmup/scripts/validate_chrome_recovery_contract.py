@@ -42,6 +42,10 @@ required = {
         "Never use a later wake to replay an uncertain mutation",
     ],
     "references/chrome-network-recovery.md": [
+        "Apply `chrome-atomic-command-runtime.md` first",
+        "configured `120 sec` outer timeout",
+        "`slow_success`, not `page_control_partial`",
+        "record `ambient_network_degraded`",
         "operation-defaults.json.chrome_recovery",
         "invalidate/reconnect the browser binding only after an explicit browser-disconnected result",
         "`openTabs()` returning no tabs is not proof that the browser disconnected",
@@ -58,6 +62,8 @@ required = {
         "diagnostic_tab_cap_per_wake",
     ],
     "references/chrome-recovery-edge-cases.md": [
+        "Atomic command returns after 20-60 seconds",
+        "`Statsig` or `ab.chatgpt.com` timeout appears but the Chrome command succeeds",
         "Chrome tool is temporarily unavailable",
         "`openTabs()` returns an empty list",
         "Chrome restarted and tab IDs changed",

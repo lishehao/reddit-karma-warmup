@@ -36,10 +36,16 @@ required = {
         "interaction_pacing.comment_readable_to_submit_*",
         "interaction_pacing.pre_submit_pause_seconds",
         "separate non-atomic UI clicks",
-        "prefer a local terminal sleep",
+        "use a local terminal sleep",
         "Never create a Heartbeat for an in-item read or submit-pause floor",
         "candidate_dwell_seconds",
         "comment_readable_to_submit_seconds",
+        "Never bundle that wait with click, fill, type, vote, or submit",
+        "Every click, fill/type, and result observation is a separate `node_repl` cell",
+    ],
+    "references/chrome-atomic-command-runtime.md": [
+        "Do not call `playwright.waitForTimeout` in the submit cell",
+        "Run exactly one final click as the only browser-boundary command",
     ],
     "references/comments-playbook.md": [
         "comments.proactive_submit_gap_seconds_*",

@@ -16,16 +16,17 @@ def read(path: Path) -> str:
 required = {
     ROOT / "SKILL.md": [
         "one persistent dedicated Reddit primary tab",
-        "First creation uses one call for tab creation and a second awaited `tab.goto(...)`",
-        "never use page-side script navigation or another task's tab",
+        "First creation is three atomic calls",
+        "120-second outer command contract",
+        "page-side script navigation and another task's tab are forbidden",
         "close its tab",
     ],
     ROOT / "references" / "orchestration-core.md": [
         "Every execution task owns one persistent dedicated Reddit primary tab",
-        "two-call creation transaction",
-        "Never combine `tabs.new()` and the first `goto` in one browser call",
-        "`60 sec`",
-        "post-timeout page-state check",
+        "three-call creation transaction",
+        "Never combine `tabs.new()`, `goto`, and page-state reading",
+        "`120 sec`",
+        "post-timeout page-state read",
         "Never call `finalize({keep: []})` for a nonterminal navigation failure",
         'tab.goto("https://www.reddit.com/")',
         "Never claim an arbitrary user tab",
@@ -35,10 +36,10 @@ required = {
     ],
     ROOT / "references" / "chrome-network-recovery.md": [
         "Never use `Meta+L` address-bar simulation as recovery",
-        "two-call creation transaction",
-        "Never combine `tabs.new()` and the first `goto` in one browser call",
-        "`60 sec`",
-        "navigation acknowledgement uncertain",
+        "three-call creation transaction",
+        "Never combine `tabs.new()`, `goto`, and page-state reading",
+        "`120 sec`",
+        "acknowledgement uncertain",
         "post-timeout page-state check",
         "Never call `finalize({keep: []})` for this nonterminal condition",
         "proves only tab metadata visibility",
@@ -53,10 +54,10 @@ required = {
 if README.exists():
     required[README] = [
         "一个专属、持久化的 Reddit 主标签",
-        "两次浏览器调用完成创建",
-        "禁止把创建和首次导航放在同一次调用里",
-        "最多 60 秒",
-        "超时只代表导航确认不确定",
+        "三次浏览器调用完成首次创建",
+        "第二次只执行 `tab.goto(...)`",
+        "外层超时统一为 120 秒",
+        "20–60 秒后成功返回属于慢成功",
         "非终态以 `handoff` 保留",
     ]
 

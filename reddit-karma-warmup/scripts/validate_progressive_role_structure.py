@@ -49,6 +49,7 @@ required_entry = [
     "browse-vote-playbook.md",
     "community-presence-playbook.md",
     "lane-state-checkpoint.md",
+    "chrome-atomic-command-runtime.md",
     "There is no persistent main coordinator",
 ]
 for needle in required_entry:

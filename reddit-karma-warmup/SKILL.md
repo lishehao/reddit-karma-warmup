@@ -42,7 +42,7 @@ For every numeric lane round, `qualified_read_target` is a hard completion objec
 
 ## Role Packs
 
-Every worker loads `references/orchestration-core.md`, `references/lane-state-checkpoint.md`, `references/interaction-pacing.md`, `references/scheduler-and-heartbeats.md`, `references/risk-escalation.md`, `references/chrome-network-recovery.md`, `references/publish-consistency.md`, and `references/operation-defaults.json`.
+Every worker loads `references/orchestration-core.md`, `references/lane-state-checkpoint.md`, `references/interaction-pacing.md`, `references/chrome-atomic-command-runtime.md`, `references/scheduler-and-heartbeats.md`, `references/risk-escalation.md`, `references/chrome-network-recovery.md`, `references/publish-consistency.md`, and `references/operation-defaults.json`.
 
 | Role | Stable title | Additional required references | Excludes |
 |-|-|-|-|
@@ -79,10 +79,10 @@ Discovery, traffic, survivor posts, and pending/public audits never grant publis
 
 1. Resolve `self_task_id` from exact current-task context and require it equals `worker_task_id`; accept only the canonical lane.
 2. Load `lane-state-checkpoint.md`; create/recover the exact task-owned checkpoint and account+lane history before mutation.
-3. Discover/reconnect Chrome; create or reclaim this task's one persistent dedicated Reddit primary tab. First creation uses one call for tab creation and a second awaited `tab.goto(...)`; never use page-side script navigation or another task's tab.
+3. Discover/reconnect Chrome; create or reclaim this task's one persistent dedicated Reddit primary tab. First creation is three atomic calls: create and persist the tab ID, navigate with `tab.goto(...)`, then read page state. Every Chrome boundary operation uses the 120-second outer command contract; page-side script navigation and another task's tab are forbidden.
 4. Confirm account, local time, UTC, stop time, mission revision, remaining action/read counts, vote mode/cap, and current timer ownership.
 5. Apply denylist -> action override -> filtered data -> current live rules. Load only this lane's role pack.
-6. Run `SCOPE -> RESTORE -> PROBE -> TAB -> HISTORY -> DISCOVER -> CHECK_A -> DRAFT -> CHECK_B -> ACT -> RECONCILE`. Persist prepared and final mutation certainty around the single click. Never duplicate an uncertain mutation.
+6. Run `SCOPE -> RESTORE -> PROBE -> TAB -> HISTORY -> DISCOVER -> CHECK_A -> DRAFT -> CHECK_B -> ACT -> RECONCILE`. Persist prepared and final mutation certainty around the single click. The submit wait, one click, and readback are three separate operations; never duplicate an uncertain mutation.
 7. Continue until both the action objective and hard read objective pass, or a terminal condition occurs. Once text target/cap is reached, finish required reading without another text mutation. Default votes remain optional opportunities under the hard cap; never extend scanning solely for them.
 8. If nonterminal work remains, create/update one recurring Heartbeat with explicit `targetThreadId=self_task_id`, carry checkpoint path and mission identity, read back the exact target, and keep the same logical timer through recoverable failures.
 9. At explicit stop, deadline, or verified mission completion, delete only this task's Heartbeat, clear tab/timer/next-due checkpoint fields, close its tab, record retirement proof, then report terminal completion.
@@ -93,7 +93,7 @@ Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf and must not 
 
 No coordinator task, coordinator registry, coordinator supervisor Heartbeat, callback contract, shared-tab check, sibling inspection, or centralized completion report. One lane fault affects only that lane.
 
-Recover stale tabs, dropped Chrome control, DNS/network/proxy/TLS errors, blank/loading pages, `ERR_BLOCKED_BY_CLIENT`, candidate exhaustion, route failures, and malformed self-owned timer state locally. HTTP `429` ends the current wake, preserves checkpoint/mission/Heartbeat, and resumes at the later of the next normal round or displayed retry time.
+Recover stale tabs, dropped Chrome control, DNS/network/proxy/TLS errors, blank/loading pages, `ERR_BLOCKED_BY_CLIENT`, candidate exhaustion, route failures, and malformed self-owned timer state locally. A Chrome command that succeeds slowly is not a failure; optional `Statsig`/`ab.chatgpt.com` timeout logs are not Reddit or account evidence. HTTP `429` ends the current wake, preserves checkpoint/mission/Heartbeat, and resumes at the later of the next normal round or displayed retry time.
 
 Recovery is mission-persistent but wake-bounded: load `references/chrome-recovery-edge-cases.md` only after `references/chrome-network-recovery.md` classifies a failure, persist its fingerprint/backoff in the lane checkpoint, and retry through the same Heartbeat until recovery or a real terminal condition. Never use a later wake to replay an uncertain mutation.
 

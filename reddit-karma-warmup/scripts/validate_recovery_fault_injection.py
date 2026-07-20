@@ -46,6 +46,27 @@ def inject_and_expect_failure(
 
 cases = [
     inject_and_expect_failure(
+        "chrome_outer_timeout_deflated",
+        "references/operation-defaults.json",
+        '"outer_timeout_ms": 120000',
+        '"outer_timeout_ms": 30000',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
+        "chrome_boundary_bundle_enabled",
+        "references/operation-defaults.json",
+        '"browser_boundary_commands_per_cell": 1',
+        '"browser_boundary_commands_per_cell": 3',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
+        "ambient_network_flag_made_required",
+        "references/operation-defaults.json",
+        '"ambient_network_flag_required": false',
+        '"ambient_network_flag_required": true',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
         "same_wake_cap_inflated",
         "references/operation-defaults.json",
         '"same_wake_recovery_cycle_cap": 2',
@@ -93,6 +114,13 @@ cases = [
         "`references/chrome-recovery-edge-cases.md`",
         "`references/chrome-recovery-edge-cases-missing.md`",
         "validate_progressive_role_structure.py",
+    ),
+    inject_and_expect_failure(
+        "click_only_submit_rule_removed",
+        "references/chrome-atomic-command-runtime.md",
+        "Run exactly one final click as the only browser-boundary command",
+        "Run the final click together with verification",
+        "validate_chrome_atomic_command_contract.py",
     ),
 ]
 

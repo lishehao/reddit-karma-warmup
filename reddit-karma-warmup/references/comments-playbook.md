@@ -35,7 +35,7 @@ For every individual comment, including every item in one cluster:
 3. Score the candidate and run Double-Check A.
 4. Run `outbound-copy-gate.md`; generate internal micro, one-liner, and two-beat alternatives and choose the shortest passing version.
 5. Use short native speech and high-frequency locally supported Reddit/internet markers across the session. Normally use one marker, never more than two; no percentage quota, forced slang, or copied phrasing.
-6. Enter only the final draft, run Double-Check B, satisfy the canonical pacing clocks, submit once, and verify the permalink or exact immediate result.
+6. Enter only the final draft, run Double-Check B, satisfy the canonical pacing clocks, then follow `chrome-atomic-command-runtime.md`: local wait, one click-only submit cell, and one separate targeted result read. Never combine typing, submit, or verification.
 7. Persist the mutation result and measured text/read fields to `lane-state-checkpoint.md` before the next candidate.
 8. Keep the resolved `comments.proactive_submit_gap_seconds_*`, then restart this full loop for the next item. Never prewrite a cluster.
 

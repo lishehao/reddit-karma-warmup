@@ -35,6 +35,7 @@ posts = defaults["posts"]
 selection = defaults["community_selection"]
 voice = defaults["voice"]
 recovery = defaults["chrome_recovery"]
+runtime = defaults["chrome_command_runtime"]
 chain = defaults["model_runtime"]["fallback_chain"]
 
 require(f"默认 `{duration} 小时`", "duration")
@@ -82,6 +83,13 @@ require(
 )
 require("同一轮最多执行配置内的诊断与重试", "chrome_same_wake_bound")
 require("提交结果不确定的同一动作永不自动重试", "uncertain_mutation")
+require("三次浏览器调用完成首次创建", "chrome_three_call_creation")
+require(f"外层超时统一为 {runtime['outer_timeout_ms'] // 1000} 秒", "chrome_outer_timeout")
+require(
+    f"{runtime['slow_success_threshold_ms'] // 1000}–60 秒后成功返回属于慢成功",
+    "chrome_slow_success",
+)
+require("Statsig/`ab.chatgpt.com` 遥测超时也不是 Reddit 或账号风险", "ambient_network")
 
 if errors:
     raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))

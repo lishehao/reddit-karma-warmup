@@ -105,6 +105,7 @@
     "same_wake_recovery_cycle_cap": 2,
     "same_url_retry_cap_per_wake": 1,
     "tab_replacement_cap_per_wake": 1,
+    "diagnostic_tab_cap_per_wake": 1,
     "neutral_probe_cap_per_wake": 1,
     "short_wait_seconds": [
       5,

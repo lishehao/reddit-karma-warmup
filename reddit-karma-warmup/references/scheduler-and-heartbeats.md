@@ -92,7 +92,7 @@ On every wake:
 7. Recompute the next due time from exact remaining action/read/explicit-vote targets, current batch remainder, duration, and live conditions; unfinished targets receive the next permissible continuation rather than a fresh slot.
 8. Atomically persist the reconciled checkpoint before updating only this task's recorded timer. When mission fields, cadence, or cutoff changed, rerun the complete Self-Binding Transaction.
 
-When the checkpoint says `recovery_status=recovering|quiet_recovery`, normal lane cadence does not overwrite `next_recovery_at`. Resolve it from `operation-defaults.json.chrome_recovery.recovery_backoff_minutes`, bounded jitter, and any later `Retry-After`; persist local and UTC values before updating the same Heartbeat. A healthy wake returns to normal cadence only after the Chrome recovery contract's readable-proof and account-recheck threshold passes.
+When the checkpoint says `recovery_status=recovering|quiet_recovery`, normal lane cadence does not overwrite `next_recovery_at`. Resolve it from `operation-defaults.json.chrome_recovery.recovery_backoff_minutes`, bounded jitter, and any later `Retry-After`, then clamp it to `operation_stop_at`; a deadline-clamped wake performs cleanup only. Persist local and UTC values before updating the same Heartbeat. A healthy wake returns to normal cadence only after the Chrome recovery contract's readable-proof and account-recheck threshold passes.
 
 ## Survival And Repair
 
@@ -103,6 +103,8 @@ Repeated technical wakes use the same logical timer and the configured `5/10/20/
 Explicit HTTP `429`/`Too Many Requests` is a round boundary, not a terminal condition: stop all Reddit work in the current wake, preserve the exact remaining target, and schedule the later of the next normal lane round or the server-displayed retry time. Do not delete or pause the Heartbeat, and do not create a catch-up burst after recovery.
 
 For a malformed or missing timer whose target identity is already verified as this task, repair in place when possible; otherwise create and verify one corrected self-targeted replacement before removing the old timer. For a target mismatch on this task's recorded `own_heartbeat_id`, perform no Reddit action, delete that known misbound timer first so it cannot wake another task, then create and post-bind-verify one corrected self-targeted timer. If the mismatched automation ID is not this task's recorded `own_heartbeat_id`, never inspect further, pause, repair, or delete it. Never inspect, pause, repair, or delete another task's timer.
+
+If an update/readback fails while a previously verified self-owned recurring Heartbeat still exists, keep that timer and checkpoint the desired due time; do not create a duplicate. Repair it on its next wake. If the first create/readback cannot prove a self-targeted recurring timer after one retry, set `scheduler_repair_required`, report that autonomous continuation is not established, and request one concrete user repair in this lane. Never describe checkpoint state alone as a scheduled future wake.
 
 ## Terminal Reasons
 

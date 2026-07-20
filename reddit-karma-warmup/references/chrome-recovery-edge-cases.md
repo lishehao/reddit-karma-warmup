@@ -14,6 +14,8 @@ Load this matrix only after `chrome-network-recovery.md` classifies a failure. I
 | Lane tab was navigated elsewhere | exact tab exists but URL no longer matches the mission | If no mutation is uncertain, navigate that same lane tab back through a native URL. If a mutation is uncertain, inspect history/target first and quarantine the action. |
 | DOM handle or selector became stale | tab URL is correct and page readable, but prior node/action handle fails | Re-read the current DOM and re-resolve the control once. Do not reload the page or consume a network retry. |
 | Browser call times out before a page response | no exact page code and call acknowledgement unknown | Record `unknown_loading_failure`; inspect actual tab state before issuing another navigation. |
+| Tab inventory/creation works but exact-tab page control times out | inventory or `tabs.new()` succeeds, while claim, navigation, URL/title, DOM, or screenshot returns no acknowledgement | Classify `page_control_partial`, not disconnected/network/account failure. Preserve the browser binding and exact recorded tab ID; after one bounded reconciliation attempt, make no more page-control calls or diagnostic tabs in this wake and continue on the verified Heartbeat. |
+| Nonterminal tab handoff/finalize acknowledgement is unknown | finalization call timed out or returned no proof | Keep the recorded `own_tab_id` and mark disposition uncertain. On the next wake, enumerate and reclaim that exact ID before considering replacement; never create a second primary tab merely because handoff proof is missing. |
 
 ## Navigation And Rendering
 
@@ -60,8 +62,11 @@ Load this matrix only after `chrome-network-recovery.md` classifies a failure. I
 | Several scheduled rounds were missed | actual time is later than planned | Recompute from current remainders and remaining authorization. Never catch up with a burst or claim missed reads/actions. |
 | Local timezone, UTC offset, sleep/wake, or system clock changed | current local+UTC differs from checkpoint intent | Recalculate and read back the Heartbeat time before further work. Do not infer lateness only from displayed wall time. |
 | Mission deadline passes during outage | current time is at/after `operation_stop_at` | Perform terminal checkpoint/Heartbeat cleanup; do not run a final recovery mutation or catch-up action. |
+| Proposed recovery or `Retry-After` falls after the mission deadline | calculated recovery time is later than `operation_stop_at` | Clamp the next wake to `operation_stop_at`; that wake performs cleanup only and does not probe or mutate Reddit. |
 | Checkpoint is missing/malformed | file unavailable or schema fields invalid | Reconstruct read-only from exact task, timer, tab inventory, and lane history. No mutation until identity and submission certainty are restored. |
 | Checkpoint write fails | atomic persistence not proven | Withhold new mutation, keep the last durable remainders, retry persistence within budget, and use Heartbeat recovery. |
+| Existing self-owned Heartbeat update/readback fails | previous recurring timer ownership is already verified | Preserve the previous timer and desired due time in the checkpoint; do not create a duplicate. Reconcile and repair on its next wake, or request user repair only if no verified future wake remains. |
+| First Heartbeat creation or target binding cannot be verified | no prior verified recurring timer exists | Retry the create/readback transaction once. If self-targeting still cannot be proven, record `scheduler_repair_required` and tell the user autonomous continuation is unavailable; never claim the mission will continue automatically. |
 | Heartbeat target is hidden/mismatched/duplicated | automation readback evidence | Follow the self-binding transaction. Repair only this task's recorded timer; never inspect or alter another task's timer. |
 | User switches Reddit accounts in the shared Chrome profile | visible account differs from checkpoint account | Set `account_recheck_required`; do not write under the new identity. Continue read-only recovery and request user repair unless a new explicit mission revision authorizes that account. |
 | User uses Chrome concurrently or changes focus | no explicit modification to the lane tab | Ignore focus. Address the lane tab by exact ID and never claim/navigate/close arbitrary user tabs. |
@@ -73,3 +78,4 @@ Load this matrix only after `chrome-network-recovery.md` classifies a failure. I
 - Use `error_fingerprint = error_class|exact_code|failure_scope|hostname`. Keep the backoff index when only the deep URL changes inside the same failed scope.
 - Reset backoff only after the configured number of healthy readable proofs and expected-account confirmation. Reddit home plus the exact target may provide the two proofs in one wake.
 - A recovered technical failure resumes from persisted remainders without catch-up. A terminal deadline retires the Heartbeat even if the targets remain incomplete.
+- A technical retry promise is valid only while a verified self-targeted Heartbeat has a future wake. Checkpoint persistence alone is not an automation guarantee.

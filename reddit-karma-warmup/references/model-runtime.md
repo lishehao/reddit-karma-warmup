@@ -3,16 +3,19 @@
 Use one ordered model/effort fallback chain for both distribution and lane execution. The canonical chain is stored in `operation-defaults.json`:
 
 ```text
-1. gpt-5.6-luna / high
-2. gpt-5.5 / high
-3. gpt-5.4 / high
+1. gpt-5.6-terra / high
+2. gpt-5.6-luna / high
+3. gpt-5.5 / high
+4. gpt-5.4 / high
 ```
 
 Use the first pair exposed by the destination host. Apply the same chain to the distributor and every newly created lane worker. Role separation comes from persistent task ownership and lane prompts, not from different model families. Do not present a model menu during normal operation.
 
 The Skill cannot change the model of an already-running task. If a launcher or worker already exists on another model, do not recreate or interrupt it only to switch; record the actual model and continue setup or the current user-requested operation.
 
-Before task creation, inspect the host's actual model surface. Request Luna/high when supported; otherwise request 5.5/high, then 5.4/high. If none is exposed, inherit the current/default model and use High or the nearest supported effort. Model fallback never blocks Reddit work.
+Before task creation, inspect the host's actual model surface. Request Terra/high when supported; otherwise request Luna/high, then 5.5/high, then 5.4/high. If none is exposed, inherit the current/default model and use High or the nearest supported effort. Model fallback never blocks Reddit work.
+
+Model choice is not a Chrome-recovery mechanism. A selector backend deadline, transport error, stale tab, or unsupported browser API must follow the Chrome runtime contract even on Terra. If a model override sent to an existing task is not reflected by the task's actual runtime metadata, record the actual model and do not claim that the task switched.
 
 Do not use `ultra` by default. The Skill already owns lane fan-out and assigns an independent Chrome tab context to each worker, so automatic task delegation would duplicate orchestration.
 

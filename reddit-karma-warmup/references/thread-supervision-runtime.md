@@ -11,7 +11,7 @@ This scoped contract is aligned with `thread-supervisor` revision `2026.07.14.5`
 - use persistent user-visible tasks, not subagents, for Reddit lanes the user asked to operate independently;
 - treat titles, directories, previews, and search results as labels/discovery evidence only;
 - preserve the exact returned identifier type and never treat a queued `clientThreadId` as a ready `threadId`;
-- for a newly created Reddit task, select the first host-supported model pair from `operation-defaults.json`: `gpt-5.6-luna/high`, then `gpt-5.5/high`, then `gpt-5.4/high`; an explicit user override wins;
+- for a newly created Reddit task, select the first host-supported model pair from `operation-defaults.json`: `gpt-5.6-terra/high`, then `gpt-5.6-luna/high`, then `gpt-5.5/high`, then `gpt-5.4/high`; an explicit user override wins;
 - treat create/send/read requests as intent, not success proof; use returned identity and supported readback/acceptance evidence.
 
 The external `thread-supervisor` Skill is optional. Its absence does not block Reddit because this file contains the required scoped contract. Its generic coordinator/callback protocol must not override Reddit's independent no-callback lane topology.

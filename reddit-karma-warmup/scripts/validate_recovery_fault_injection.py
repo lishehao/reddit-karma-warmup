@@ -125,7 +125,7 @@ cases = [
     inject_and_expect_failure(
         "controlled_input_readback_weakened",
         "references/operation-defaults.json",
-        '"controlled_input_readback": "fresh_locator_evaluate_value_property"',
+        '"controlled_input_readback": "shadow_aware_live_value_projection"',
         '"controlled_input_readback": "action_ack_only"',
         "validate_chrome_atomic_command_contract.py",
     ),
@@ -141,6 +141,20 @@ cases = [
         "references/chrome-atomic-command-runtime.md",
         'Do not use `fill(\"\")` as the sole proof',
         'Use `fill(\"\")` as sufficient proof',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
+        "dom_cua_node_id_numeric",
+        "references/operation-defaults.json",
+        '"dom_cua_node_id_type": "string"',
+        '"dom_cua_node_id_type": "number"',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
+        "locator_deadline_retry_enabled",
+        "references/operation-defaults.json",
+        '"locator_backend_retry_after_deadline": 0',
+        '"locator_backend_retry_after_deadline": 2',
         "validate_chrome_atomic_command_contract.py",
     ),
 ]

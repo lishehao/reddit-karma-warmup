@@ -17,7 +17,7 @@ The first available presentation action after a setup/install command is to rena
 - Current-task exact ID plus rename/pin support for the persistent distribution entrypoint. Do not search by title to recover self identity.
 - Automation/Heartbeat tool capability for multi-round work, including explicit `targetThreadId` and exact-automation target readback. Bootstrap checks the callable schema only; each lane worker performs the first real create/readback for its own mission after its immediate first slot.
 - Local time, timezone, UTC offset, and UTC readback.
-- A host-supported model pair selected from `operation-defaults.json`: prefer `gpt-5.6-luna/high`, then `gpt-5.5/high`, then `gpt-5.4/high`. Unsupported preferred models trigger fallback and never block Reddit operation.
+- A host-supported model pair selected from `operation-defaults.json`: prefer `gpt-5.6-terra/high`, then `gpt-5.6-luna/high`, then `gpt-5.5/high`, then `gpt-5.4/high`. Unsupported preferred models trigger fallback and never block Reddit operation.
 
 Python, Node.js, Git, GitHub CLI, package managers, macOS Screen Recording, System Audio Recording, Accessibility, databases, API keys, external CLIs, and the generic `thread-supervisor` Skill are not runtime dependencies. When `thread-supervisor` is installed, use its current generic tool semantics while retaining this Skill's Reddit-specific topology.
 

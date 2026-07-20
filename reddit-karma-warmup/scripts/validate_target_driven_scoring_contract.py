@@ -31,6 +31,7 @@ errors = []
 defaults = json.loads(DEFAULTS_PATH.read_text(encoding="utf-8"))
 
 expected_chain = [
+    {"model": "gpt-5.6-terra", "reasoning_effort": "high"},
     {"model": "gpt-5.6-luna", "reasoning_effort": "high"},
     {"model": "gpt-5.5", "reasoning_effort": "high"},
     {"model": "gpt-5.4", "reasoning_effort": "high"},
@@ -79,7 +80,7 @@ required = {
         "`qualified_read_target` is a hard completion objective",
         "Voting has no default count target",
         "Only a user-supplied vote count creates a hard vote target",
-        "gpt-5.6-luna/high -> gpt-5.5/high -> gpt-5.4/high",
+        "gpt-5.6-terra/high -> gpt-5.6-luna/high -> gpt-5.5/high -> gpt-5.4/high",
     ],
     "references/default-operations-sop.md": [
         "action_remaining == 0",
@@ -133,7 +134,7 @@ if errors:
 
 print(json.dumps({
     "status": "PASS",
-    "model_fallback": "5.6_LUNA_HIGH__5.5_HIGH__5.4_HIGH",
+    "model_fallback": "5.6_TERRA_HIGH__5.6_LUNA_HIGH__5.5_HIGH__5.4_HIGH",
     "reading": "HARD_OBJECTIVE",
     "default_voting": "OPPORTUNITY_ONLY",
     "vote_caps": "HARD",

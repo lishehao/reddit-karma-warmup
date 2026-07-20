@@ -21,10 +21,15 @@ expected = {
     "ambient_network_flag_required": False,
     "bundle_wait_with_mutation": False,
     "bundle_observation_with_interaction": False,
+    "preferred_interaction_surface": "fresh_dom_cua_node",
+    "dom_cua_node_id_type": "string",
     "controlled_input_select_all_macos": "Meta+A",
     "controlled_input_select_all_other": "Control+A",
     "controlled_input_delete_key": "Backspace",
-    "controlled_input_readback": "fresh_locator_evaluate_value_property",
+    "controlled_input_readback": "shadow_aware_live_value_projection",
+    "controlled_input_fallback_readback": "fresh_visible_dom_exact_text",
+    "locator_backend_deadline_class": "locator_backend_deadline",
+    "locator_backend_retry_after_deadline": 0,
     "reuse_locator_after_accessible_name_change": False,
     "trust_action_ack_without_readback": False,
 }
@@ -52,8 +57,9 @@ required = {
         "optional latency optimization, not a Skill dependency",
         "Classify `page_control_partial` only when one atomic command receives no acknowledgement after the full outer timeout",
         "Controlled Text Inputs",
-        "locator.evaluate(el => el.value)",
-        "locator_identity_changed",
+        "preserve `node_id` as a string",
+        "shadowRoot.activeElement",
+        "locator_backend_deadline",
         "Do not use `fill(\"\")` as the sole proof",
     ],
     "references/orchestration-core.md": [
@@ -68,13 +74,13 @@ required = {
     "references/comments-playbook.md": [
         "local wait, one click-only submit cell, and one separate targeted result read",
         "Never combine typing, submit, or verification",
-        "verify the exact `el.value` before Double-Check B",
+        "verify the exact live value through the focused control's open Shadow DOM before Double-Check B",
     ],
     "references/chrome-network-recovery.md": [
         "configured `120 sec` outer timeout",
         "`slow_success`, not `page_control_partial`",
         "record `ambient_network_degraded`",
-        "Successful action plus old-locator mismatch is `locator_identity_changed`",
+        "an internal locator-only deadline with healthy DOM/page reads is `locator_backend_deadline`",
     ],
 }
 
@@ -113,5 +119,5 @@ print(json.dumps({
     "browser_boundary_commands_per_cell": runtime["browser_boundary_commands_per_cell"],
     "ambient_network_flag_required": runtime["ambient_network_flag_required"],
     "mutation_shape": "WAIT_THEN_CLICK_ONLY_THEN_READBACK",
-    "controlled_input_shape": "ACTION_THEN_FRESH_LOCATOR_THEN_VALUE_PROPERTY",
+    "controlled_input_shape": "FRESH_DOM_CUA_THEN_SHADOW_AWARE_LIVE_VALUE",
 }, ensure_ascii=False, sort_keys=True))

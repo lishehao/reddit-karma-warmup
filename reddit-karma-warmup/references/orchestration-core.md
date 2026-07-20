@@ -21,6 +21,9 @@ own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc
 mission_target_remaining + mission_terminal_reason + heartbeat_retirement_proof
 checkpoint_path + checkpoint_schema_version + checkpoint_updated_at
 last_action/no_action/recovery proof
+recovery_status + error_fingerprint + consecutive_failure_wakes + backoff_index + quiet_recovery
+next_recovery_at_local + next_recovery_at_utc + account_recheck_required
+quarantined_mutation_url + quarantined_outbound_text_hash
 ```
 
 Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, or cross-lane status.
@@ -31,7 +34,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 |-|-|-|
 | `SCOPE` | Apply the latest instruction for this lane; resolve `self_task_id` from exact current-task context; require it equals the delivered `worker_task_id`; load `operation-defaults.json`; resolve exact action target/cap, hard read target, optional vote target, hard vote cap, checkpoint path, and model state. | local mission and worker identity clear |
 | `RESTORE` | Load `lane-state-checkpoint.md` and this task's exact checkpoint. Reconcile the latest command with verified prior actions, reads, submission certainty, tab, and timer state. | atomic checkpoint is valid or safely reconstructed read-only |
-| `PROBE` | Discover/reconnect Chrome, confirm account, local time and UTC. | environment recorded |
+| `PROBE` | Discover/reconnect Chrome, confirm account, local time and UTC. On failure enter the bounded, checkpointed cross-wake recovery state; do not loop or terminate the mission. | environment recorded or lane recovery persisted |
 | `TAB` | Create/reclaim this task's one persistent dedicated Reddit primary tab; close stale or same-turn auxiliary tabs. | exact tab ownership plus account/URL/page-control proof confirmed |
 | `HISTORY` | Restore this lane's recent actions, openings, lengths, targets, and permalinks. | local history ready |
 | `DISCOVER` | Inspect current lane surfaces and candidate context. Count one qualified read only after the exact surface is readable, the configured dwell floor passes, and enough context is understood to score it. | candidate passes or concrete no-action |

@@ -101,6 +101,33 @@
     "inter_click_pause_seconds": [1, 4],
     "local_sleep_max_seconds": 300
   },
+  "chrome_recovery": {
+    "same_wake_recovery_cycle_cap": 2,
+    "same_url_retry_cap_per_wake": 1,
+    "tab_replacement_cap_per_wake": 1,
+    "neutral_probe_cap_per_wake": 1,
+    "short_wait_seconds": [
+      5,
+      15
+    ],
+    "recovery_backoff_minutes": [
+      5,
+      10,
+      20,
+      40,
+      60
+    ],
+    "backoff_jitter_minutes": [
+      0,
+      3
+    ],
+    "quiet_mode_after_consecutive_wakes": 3,
+    "control_user_repair_after_consecutive_wakes": 3,
+    "healthy_read_proofs_to_reset": 2,
+    "user_notice_suppression_minutes": 120,
+    "account_identity_recheck_after_reconnect": true,
+    "uncertain_mutation_retry_allowed": false
+  },
   "scheduler": {
     "first_mutation_phase_step_minutes": 10,
     "phase_jitter_minutes": [2, 4]

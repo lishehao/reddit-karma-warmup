@@ -34,10 +34,18 @@ current_cluster_id + cluster_target + cluster_verified + cluster_remaining
 own_tab_id + own_tab_origin + current_url + tab_control_proof
 own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc
 mutation_state + candidate_url + outbound_text_hash + submission_certainty
+recovery_state_version=1
+recovery_status + error_fingerprint + error_class + exact_code + failure_scope
+consecutive_failure_wakes + same_wake_recovery_cycles + backoff_index
+next_recovery_at_local + next_recovery_at_utc + quiet_recovery
+last_healthy_probe_at + healthy_read_proofs + account_recheck_required
+quarantined_mutation_url + quarantined_outbound_text_hash
 last_verified_action + last_recovery + updated_at
 ```
 
 `vote_target` is absent by default. It exists only when the user explicitly requested a vote count. `vote_cap` is always present and remains a hard ceiling.
+
+The recovery fields are optional when reading a checkpoint written by an older Skill version. Upgrade them in place with zero/empty defaults before any new mutation; do not discard verified counters or create a replacement mission. Compute `error_fingerprint` as `error_class|exact_code|failure_scope|hostname`. A new route inside the same failed host/scope does not reset the fingerprint.
 
 ## Atomic Lifecycle
 
@@ -47,6 +55,8 @@ last_verified_action + last_recovery + updated_at
 4. After every qualified read, verified action, vote, recovery, Heartbeat mutation, or schedule calculation, update counters and timestamps atomically.
 5. Before a nonterminal turn ends, require checkpoint `mission_status=active`, exact remaining counts, exact tab binding, and the current timer state.
 6. At mission terminal cleanup, retain the checkpoint as `mission_status=completed|stopped|deadline`, clear tab/timer/next-due fields, and record Heartbeat retirement proof. Do not delete the history.
+
+For a retryable Chrome failure, increment `consecutive_failure_wakes` at most once per Heartbeat wake, persist the selected backoff before editing the timer, and keep the exact action/read/vote remainders unchanged. Reset the recovery fields only after the configured number of healthy readable Chrome proofs and expected-account confirmation. `submission_uncertain` also records the exact candidate URL and outbound hash in the quarantine fields; no upgrade, reconnect, or later wake may replay that mutation automatically.
 
 ## Wake And Recovery
 

@@ -34,6 +34,7 @@ votes = defaults["votes"]
 posts = defaults["posts"]
 selection = defaults["community_selection"]
 voice = defaults["voice"]
+recovery = defaults["chrome_recovery"]
 chain = defaults["model_runtime"]["fallback_chain"]
 
 require(f"默认 `{duration} 小时`", "duration")
@@ -75,6 +76,12 @@ require(
     "、".join(f"`{row['model']}/{row['reasoning_effort']}`" for row in chain),
     "model_chain",
 )
+require(
+    "`" + "/".join(str(value) for value in recovery["recovery_backoff_minutes"]) + "` 分钟退避",
+    "chrome_recovery_backoff",
+)
+require("同一轮最多执行配置内的诊断与重试", "chrome_same_wake_bound")
+require("提交结果不确定的同一动作永不自动重试", "uncertain_mutation")
 
 if errors:
     raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))

@@ -17,6 +17,8 @@ Automatically recover or retarget for:
 
 Keep this task's Heartbeat active and retry or retarget on later wakes. Normally withhold only the exact impossible/uncertain action. Explicit HTTP `429` is the narrow exception: end every Reddit action in the current wake and resume at the later of the next normal round or the exposed retry time. Do not ask for permission to continue.
 
+Repeated technical failures use the canonical cross-wake backoff and quiet-recovery state in `chrome-network-recovery.md`; they are not converted into a generic blocker. Duplicate notices are suppressed while the lane continues bounded read-only probes. A later wake never clears or replays an uncertain mutation.
+
 ## Direct User Repair In This Task
 
 Ask the user here only when a currently visible state requires their action:

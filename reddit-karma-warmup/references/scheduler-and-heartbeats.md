@@ -92,9 +92,13 @@ On every wake:
 7. Recompute the next due time from exact remaining action/read/explicit-vote targets, current batch remainder, duration, and live conditions; unfinished targets receive the next permissible continuation rather than a fresh slot.
 8. Atomically persist the reconciled checkpoint before updating only this task's recorded timer. When mission fields, cadence, or cutoff changed, rerun the complete Self-Binding Transaction.
 
+When the checkpoint says `recovery_status=recovering|quiet_recovery`, normal lane cadence does not overwrite `next_recovery_at`. Resolve it from `operation-defaults.json.chrome_recovery.recovery_backoff_minutes`, bounded jitter, and any later `Retry-After`; persist local and UTC values before updating the same Heartbeat. A healthy wake returns to normal cadence only after the Chrome recovery contract's readable-proof and account-recheck threshold passes.
+
 ## Survival And Repair
 
 Technical failure is not timer termination. Candidate scarcity is also not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake. Persist and resume the same action/read/explicit-vote remainders after recovery. If every current expansion route is genuinely exhausted, yield an interim checkpoint and retry fresh surfaces on the next wake rather than declaring a target complete.
+
+Repeated technical wakes use the same logical timer and the configured `5/10/20/40/60` minute backoff with bounded jitter. After the quiet-mode threshold, run one read-only diagnostic cycle per due wake and suppress duplicate notices; do not delete the Heartbeat, spawn replacement tasks, or poll continuously. Missed normal slots are recomputed from current remainders and remaining time, never replayed as a catch-up burst.
 
 Explicit HTTP `429`/`Too Many Requests` is a round boundary, not a terminal condition: stop all Reddit work in the current wake, preserve the exact remaining target, and schedule the later of the next normal lane round or the server-displayed retry time. Do not delete or pause the Heartbeat, and do not create a catch-up burst after recovery.
 
@@ -110,6 +114,8 @@ Retire this lane's Heartbeat only after:
 - verified corrected replacement plus retirement of the old timer.
 
 The stage governed by this Heartbeat is the full current user-authorized lane mission, not one comment cluster, hourly pacing bucket, one completed target component, or intermediate slot. If that full mission target is verified complete, remaining wall-clock authorization is not unfinished work.
+
+If `operation_stop_at` arrives while the lane is recovering, the deadline is terminal: do not perform a final Chrome probe or mutation. Retire the timer and tab using the cleanup transaction and report the remaining targets truthfully.
 
 ## Completion Cleanup Transaction
 

@@ -32,7 +32,7 @@ After dispatch, the user speaks directly to the relevant lane task for in-progre
 
 ## Canonical Defaults
 
-`references/operation-defaults.json` is the machine-authoritative source for model fallback, duration, intensity targets, read targets, vote caps, pacing, post unlock numbers, and ordinary voice density. Role files reference its fields rather than redefining them. Human-facing README summaries are non-authoritative and must pass the defaults-alignment validator.
+`references/operation-defaults.json` is the machine-authoritative source for model fallback, duration, intensity targets, read targets, vote caps, pacing, Chrome recovery budgets, post unlock numbers, and ordinary voice density. Role files reference its fields rather than redefining them. Human-facing README summaries are non-authoritative and must pass the defaults-alignment validator.
 
 Model preference is `gpt-5.6-luna/high -> gpt-5.5/high -> gpt-5.4/high`, selecting the first pair exposed by the destination host. An explicit user model request overrides the chain. A running healthy task is not recreated only to switch models.
 
@@ -94,6 +94,8 @@ Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf and must not 
 No coordinator task, coordinator registry, coordinator supervisor Heartbeat, callback contract, shared-tab check, sibling inspection, or centralized completion report. One lane fault affects only that lane.
 
 Recover stale tabs, dropped Chrome control, DNS/network/proxy/TLS errors, blank/loading pages, `ERR_BLOCKED_BY_CLIENT`, candidate exhaustion, route failures, and malformed self-owned timer state locally. HTTP `429` ends the current wake, preserves checkpoint/mission/Heartbeat, and resumes at the later of the next normal round or displayed retry time.
+
+Recovery is mission-persistent but wake-bounded: load `references/chrome-recovery-edge-cases.md` only after `references/chrome-network-recovery.md` classifies a failure, persist its fingerprint/backoff in the lane checkpoint, and retry through the same Heartbeat until recovery or a real terminal condition. Never use a later wake to replay an uncertain mutation.
 
 Ask the user only in the affected lane for currently visible login/credentials, persistent CAPTCHA/challenge, account lock/suspension, required acknowledgement, or an exact prohibited target with no authorized substitute. Pending-review own posts are withdrawn immediately; retire that subreddit and continue elsewhere.
 

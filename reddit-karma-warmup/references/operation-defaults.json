@@ -110,7 +110,13 @@
     "ambient_network_disable_value": "1",
     "ambient_network_flag_required": false,
     "bundle_wait_with_mutation": false,
-    "bundle_observation_with_interaction": false
+    "bundle_observation_with_interaction": false,
+    "controlled_input_select_all_macos": "Meta+A",
+    "controlled_input_select_all_other": "Control+A",
+    "controlled_input_delete_key": "Backspace",
+    "controlled_input_readback": "fresh_locator_evaluate_value_property",
+    "reuse_locator_after_accessible_name_change": false,
+    "trust_action_ack_without_readback": false
   },
   "chrome_recovery": {
     "same_wake_recovery_cycle_cap": 2,

@@ -21,6 +21,12 @@ expected = {
     "ambient_network_flag_required": False,
     "bundle_wait_with_mutation": False,
     "bundle_observation_with_interaction": False,
+    "controlled_input_select_all_macos": "Meta+A",
+    "controlled_input_select_all_other": "Control+A",
+    "controlled_input_delete_key": "Backspace",
+    "controlled_input_readback": "fresh_locator_evaluate_value_property",
+    "reuse_locator_after_accessible_name_change": False,
+    "trust_action_ack_without_readback": False,
 }
 for key, value in expected.items():
     if runtime.get(key) != value:
@@ -45,6 +51,10 @@ required = {
         "classify `ambient_network_degraded`",
         "optional latency optimization, not a Skill dependency",
         "Classify `page_control_partial` only when one atomic command receives no acknowledgement after the full outer timeout",
+        "Controlled Text Inputs",
+        "locator.evaluate(el => el.value)",
+        "locator_identity_changed",
+        "Do not use `fill(\"\")` as the sole proof",
     ],
     "references/orchestration-core.md": [
         "three-call creation transaction",
@@ -58,11 +68,13 @@ required = {
     "references/comments-playbook.md": [
         "local wait, one click-only submit cell, and one separate targeted result read",
         "Never combine typing, submit, or verification",
+        "verify the exact `el.value` before Double-Check B",
     ],
     "references/chrome-network-recovery.md": [
         "configured `120 sec` outer timeout",
         "`slow_success`, not `page_control_partial`",
         "record `ambient_network_degraded`",
+        "Successful action plus old-locator mismatch is `locator_identity_changed`",
     ],
 }
 
@@ -101,4 +113,5 @@ print(json.dumps({
     "browser_boundary_commands_per_cell": runtime["browser_boundary_commands_per_cell"],
     "ambient_network_flag_required": runtime["ambient_network_flag_required"],
     "mutation_shape": "WAIT_THEN_CLICK_ONLY_THEN_READBACK",
+    "controlled_input_shape": "ACTION_THEN_FRESH_LOCATOR_THEN_VALUE_PROPERTY",
 }, ensure_ascii=False, sort_keys=True))

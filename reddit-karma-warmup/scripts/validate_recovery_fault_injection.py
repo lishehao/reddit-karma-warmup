@@ -122,6 +122,27 @@ cases = [
         "Run the final click together with verification",
         "validate_chrome_atomic_command_contract.py",
     ),
+    inject_and_expect_failure(
+        "controlled_input_readback_weakened",
+        "references/operation-defaults.json",
+        '"controlled_input_readback": "fresh_locator_evaluate_value_property"',
+        '"controlled_input_readback": "action_ack_only"',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
+        "stale_locator_reuse_enabled",
+        "references/operation-defaults.json",
+        '"reuse_locator_after_accessible_name_change": false',
+        '"reuse_locator_after_accessible_name_change": true',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
+        "fill_empty_treated_as_clear_proof",
+        "references/chrome-atomic-command-runtime.md",
+        'Do not use `fill(\"\")` as the sole proof',
+        'Use `fill(\"\")` as sufficient proof',
+        "validate_chrome_atomic_command_contract.py",
+    ),
 ]
 
 failures = [row for row in cases if row["result"] != "BLOCKED"]

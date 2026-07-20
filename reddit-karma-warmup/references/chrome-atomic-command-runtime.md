@@ -35,6 +35,7 @@ Cheap `url()` or `title()` metadata may be read only when needed, but never use 
 
 1. Take one snapshot or targeted read in its own cell.
 2. Prefer `dom_cua.get_visible_dom()` for an interactable control. Resolve one exact node locally and preserve `node_id` as a string; DOM CUA rejects numeric node IDs before the page call.
+   For Reddit search, identify the unique visible native `textarea` by semantic identity (`name=q` inside the Reddit search host), not by one exact placeholder. `Find anything`, `Search in r/<subreddit>`, localized copy, and later placeholder changes are equivalent search-control variants; record the observed placeholder as evidence but never use a placeholder mismatch alone to reject an otherwise unique control.
 3. If a Playwright locator is used, prove uniqueness in one separate `count()` cell.
 4. Run the click/fill/type as the sole browser-boundary command in its cell. A focus-dependent DOM CUA control uses separate `click({node_id: string})` and `type(...)` cells.
 5. Collect a separate targeted observation only when the next decision requires it.
@@ -46,6 +47,8 @@ If a locator action fails at its internal selector/CDP deadline while `get_visib
 Treat text entry and text-state proof as separate browser commands. A successful `fill()`, `type()`, or `keypress()` acknowledgement proves only that Chrome accepted the command; it does not prove the final text. Before any outward submit, perform one bounded page projection that reads the live property of the focused control. Starting at `document.activeElement`, follow each open `shadowRoot.activeElement`; recursively inspect open shadow roots when Reddit wraps the native input in a custom element. For value-bearing controls compare the exact `value`; for `contenteditable` compare the exact live text property. Return only the control identity and value needed for proof, never the page body.
 
 An interaction can change a control's tag, accessible name, placeholder, visible label, or surrounding DOM. Never reuse a locator or DOM node across that state change. Fresh visible DOM may expose a shadow-native `textarea` while page-level DOM exposes only its custom-element host. This is expected. Use shadow-aware live-property proof; if the exact draft is not provable, keep the mutation `prepared` and do not submit.
+
+Do not hard-code Reddit placeholder copy as control identity. When visible DOM exposes more than one `textarea name=q`, use a bounded shadow-aware projection to associate each native textarea with its nearest Reddit search host and current scope, then require exactly one visible, enabled candidate. If uniqueness is still not provable, stop that interaction without typing; this is `control_ambiguous`, not a Chrome disconnect or page-control failure.
 
 For a non-empty controlled input that must be replaced or cleared:
 

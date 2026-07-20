@@ -61,6 +61,9 @@ required = {
         "shadowRoot.activeElement",
         "locator_backend_deadline",
         "Do not use `fill(\"\")` as the sole proof",
+        "not by one exact placeholder",
+        "Do not hard-code Reddit placeholder copy as control identity",
+        "`control_ambiguous`, not a Chrome disconnect or page-control failure",
     ],
     "references/orchestration-core.md": [
         "three-call creation transaction",

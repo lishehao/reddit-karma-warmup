@@ -12,7 +12,7 @@ Use one reusable distributor plus independent account-scoped lane tasks. There i
 | Step | Owner | Required result |
 |-|-|-|
 | `1 SETUP` | temporary `Reddit 启动台` | install/upgrade and read-only preflight |
-| `2 READY` | same task renamed/pinned `Reddit 分发台` | ask once for direction + duration, or normalize supplied values |
+| `2 READY` | verified distributor task | prefer the same task on Luna/high; otherwise use the bounded successor gate, then ask once for direction + duration or normalize supplied values |
 | `3 DISPATCH` | `Reddit 分发台` | reuse only exact present, unarchived, healthy account+lane tasks; replace archived, missing, or unusable lanes; deliver complete missions |
 | `4 EXECUTE` | independent lane tasks | start browser-backed work now; own one tab, checkpoint, Heartbeat, recovery, and report |
 | `5 RETIRE OR REUSE` | each lane task | delete its own Heartbeat at mission terminal; retain task/history for a later new mission ID |
@@ -34,7 +34,7 @@ After dispatch, the user speaks directly to the relevant lane task for in-progre
 
 `references/operation-defaults.json` is the machine-authoritative source for model fallback, duration, intensity targets, read targets, vote caps, pacing, Chrome recovery budgets, post unlock numbers, and ordinary voice density. Role files reference its fields rather than redefining them. Human-facing README summaries are non-authoritative and must pass the defaults-alignment validator.
 
-Model preference is `gpt-5.6-terra/high -> gpt-5.6-luna/high -> gpt-5.5/high -> gpt-5.4/high`, selecting the first pair exposed by the destination host. An explicit user model request overrides the chain. A running healthy task is not recreated only to switch models, and a requested override is not treated as applied until actual runtime metadata confirms it.
+Model preference is `gpt-5.6-luna/high -> gpt-5.6-terra/high -> gpt-5.5/high -> gpt-5.4/high`, selecting the first pair exposed by the destination host. The bootstrap prompt explicitly authorizes Luna/high requests for the distributor and lane tasks. New tasks request Luna/high on create; each new mission to an existing lane requests Luna/high on the exact continuation call when supported. A requested override is not treated as applied until actual runtime metadata confirms it. Unknown launcher model never justifies a duplicate; an explicitly confirmed non-Luna launcher may create one verified Luna successor under `model-runtime.md` before the old launcher is archived.
 
 The latest explicit user duration, count, lane, target pool, language, intensity, and style overrides ordinary defaults. Current live Reddit rules, organization denylist, account repair state, browsing-lane vote cap, and post unlock still gate the exact action.
 
@@ -72,9 +72,9 @@ Discovery, traffic, survivor posts, and pending/public audits never grant publis
 
 1. Rename current task `Reddit 启动台` before setup narration.
 2. Run read-only Chrome/login, task-tool, automation-schema, local-time, and UTC preflight. Follow the installed Chrome Plugin's browser-binding/tab-binding model and the launcher sequence in `runtime-and-setup.md`; a healthy metadata channel is not proof that page content or the Reddit account is readable. Never create a probe Heartbeat.
-3. Resolve account direction through `references/account-direction.md`. On success rename/pin the same task `Reddit 分发台`.
+3. Resolve account direction through `references/account-direction.md`, then apply the current-launcher gate in `references/model-runtime.md`. Keep and rename/pin the same task when Luna/high is confirmed, a verifiable in-place transition succeeds, or the actual model is unknown. Only an explicitly confirmed non-Luna launcher with explicit migration authorization may create one Luna/high successor; require exact handoff acceptance before pinning the successor and archiving the old launcher.
 4. If direction or duration is missing, emit only the Bootstrap Success Prompt from `runtime-and-setup.md`. In `BOOTSTRAP_AWAITING_OPERATION`, bare `继续` means saved/default direction plus `3h` and immediately dispatches comments, posts, and follow-up. In repair state it only rechecks the failed dependency.
-5. Resolve exact ready task IDs through the account-keyed registry. A queued `clientThreadId` is not ready. Send every mission with `worker_task_id=<exact destination task ID>`, new `mission_id`, first due now, static first-write phase, `heartbeat_owner=self`, checkpoint path, exact role pack, resolved targets, and actual model pair.
+5. Resolve exact ready task IDs through the account-keyed registry. A queued `clientThreadId` is not ready. Send every mission with `worker_task_id=<exact destination task ID>`, new `mission_id`, first due now, static first-write phase, `heartbeat_owner=self`, checkpoint path, exact role pack, resolved targets, requested Luna/high pair, actual model pair when exposed, and model evidence state. Use the host's per-turn model override on existing tasks when supported.
 6. Full dispatch requires exact message acceptance by comments, posts, and follow-up. Report partial delivery honestly, then return pinned idle.
 
 ## Worker Lifecycle

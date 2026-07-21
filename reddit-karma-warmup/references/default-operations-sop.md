@@ -72,7 +72,7 @@ heartbeat_owner=self + heartbeat_target=worker_task_id
 checkpoint_path + checkpoint_schema_version=1
 dedicated_reddit_tab=required + launcher_callback=none + sibling_visibility=none
 exact_role_pack + filtered target shortlist + required live gates
-requested_model + requested_reasoning_effort + actual_model_pair
+requested_model + requested_reasoning_effort + actual_model_pair + model_evidence_state
 ```
 
 Comments also receive clustered-window fields. Posts receive `main_post_unlock`, `post_action_mode`, and exact posting-gate rows. Non-browsing missions also receive `vote_cap=0`, zero current vote counters, and `browse_vote_playbook=NOT_LOADED`. A traffic probe is not an action target until live traffic, action route, and account gates pass.

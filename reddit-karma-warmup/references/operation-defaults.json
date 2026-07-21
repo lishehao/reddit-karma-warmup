@@ -5,13 +5,19 @@
   "default_style": "mixed",
   "model_runtime": {
     "fallback_chain": [
-      {"model": "gpt-5.6-terra", "reasoning_effort": "high"},
       {"model": "gpt-5.6-luna", "reasoning_effort": "high"},
+      {"model": "gpt-5.6-terra", "reasoning_effort": "high"},
       {"model": "gpt-5.5", "reasoning_effort": "high"},
       {"model": "gpt-5.4", "reasoning_effort": "high"}
     ],
     "launcher_and_workers_use_same_chain": true,
-    "unavailable_model_never_blocks_operation": true
+    "unavailable_model_never_blocks_operation": true,
+    "request_preferred_pair_on_create": true,
+    "request_preferred_pair_on_existing_task_dispatch": true,
+    "current_turn_in_place_switch_supported_by_skill": false,
+    "confirmed_nonpreferred_launcher_policy": "ONE_VERIFIED_SUCCESSOR_WHEN_EXPLICITLY_AUTHORIZED",
+    "unknown_launcher_model_policy": "KEEP_CURRENT_NO_DUPLICATE",
+    "unverified_override_is_success": false
   },
   "thread_reuse": {
     "require_present_unarchived": true,

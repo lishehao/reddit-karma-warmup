@@ -53,6 +53,8 @@ require(
     f"`{votes['caps_by_intensity']['low']}/{votes['caps_by_intensity']['standard']}/{votes['caps_by_intensity']['high']}`",
     "vote_caps",
 )
+require("vote_policy=DISABLED_BY_LANE", "non_browsing_vote_policy")
+require("只有用户明确要求纯浏览/投票时才由 Reddit 浏览台处理", "browsing_vote_owner")
 require(f"至少 {posts['main_post_unlock_min_combined_karma']} combined Karma", "post_unlock_karma")
 require(f"账号满 {posts['main_post_unlock_min_account_age_days']} 天", "post_unlock_age")
 require(

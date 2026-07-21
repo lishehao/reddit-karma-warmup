@@ -16,11 +16,11 @@ Out of scope:
 
 ## Dispatch
 
-1. Load `operation-defaults.json` and `model-runtime.md`. Resolve the exact visible Reddit account, its durable `account_direction`, and one or two truthful `mission_identity_focus` pillars; normalize the command through `default-operations-sop.md`; generate a new `mission_id`.
+1. Load `operation-defaults.json`, `lane-action-ownership.md`, and `model-runtime.md`. Resolve the exact visible Reddit account, its durable `account_direction`, and one or two truthful `mission_identity_focus` pillars; normalize the command through `default-operations-sop.md`; generate a new `mission_id`.
 2. Broad `开始/运营` enables comments, posts, and follow-up. Add presence only when the profile baseline is incomplete or explicitly requested. Create browsing only for an explicit pure-browse/vote request. A named lane enables only that lane.
 3. For comments/posts, load `community-selection-funnel.md`, assess the selected lane's configured reference sweep, and produce a lane-specific low-friction shortlist before task delivery. Then use `thread-supervision-runtime.md` to resolve each lane by exact ready task ID plus `host_id` when available: registered reuse first, bounded one-time legacy adoption only when unregistered, then create/replace only when no exact reusable task exists. A queued `clientThreadId` is not a ready lane.
 4. Keep the distributor pinned and every execution task unpinned. Canonical titles are stable; exact task IDs and the account-keyed registry determine ownership.
-5. Order enabled mutation-capable lanes as `comments -> follow-up -> posts -> browsing -> presence`, assign phase indexes `0..n-1`, and send one complete handoff containing `worker_task_id=<the exact selected destination task ID>`, lane, objective, exclusions, account, tier/substate, `account_direction`, `direction_source`, `mission_identity_focus`, `direction_tags`, lane shortlist, duration/count, intensity, style, language, target pool, stop time, first due=`now`, phase fields, exact `action_target`, `action_cap`, hard `qualified_read_target`, `qualified_read_remaining`, `vote_target_mode=opportunity|hard`, optional `vote_target`, hard `vote_cap`, separate Upvote/Downvote counters, selected/actual model fields, required references, `checkpoint_path`, `checkpoint_schema_version=1`, `heartbeat_owner=self`, `dedicated_reddit_tab=required`, and `tab_persistence=handoff_until_mission_terminal`. The default vote target is absent; only a user-supplied vote count selects hard mode. Every comments handoff also carries `per_item_copy_gate=required`, `cluster_copy_batching=forbidden`, and the resolved routine word cap. Every post handoff carries `main_post_unlock`, `post_action_mode`, exact `posting_gate_audit_rows`, and resolved K0/K1 limits. Every default question-post handoff carries the resolved discussion score gate. A traffic-probe row is not an action target until the worker confirms the catalog's minimum traffic requirement and passes the exact rule/account gate.
+5. Order enabled mutation-capable lanes as `comments -> follow-up -> posts -> browsing -> presence`, assign phase indexes `0..n-1`, and send one complete handoff containing `worker_task_id=<the exact selected destination task ID>`, lane, objective, exclusions, account, tier/substate, `account_direction`, `direction_source`, `mission_identity_focus`, `direction_tags`, lane shortlist, duration/count, intensity, style, language, target pool, stop time, first due=`now`, phase fields, exact `action_target`, `action_cap`, hard `qualified_read_target`, `qualified_read_remaining`, lane-owned `vote_policy`, selected/actual model fields, required references, `checkpoint_path`, `checkpoint_schema_version=1`, `heartbeat_owner=self`, `dedicated_reddit_tab=required`, and `tab_persistence=handoff_until_mission_terminal`. Comments/posts/follow-up/presence always receive `vote_policy=DISABLED_BY_LANE`, `vote_cap=0`, zero current Upvote/Downvote counters, no vote target/remainder, and `browse_vote_playbook=NOT_LOADED`. Only browsing receives `vote_policy=BROWSING_ONLY`, `vote_target_mode=opportunity|hard`, optional explicit `vote_target`, hard `vote_cap`, and separate Upvote/Downvote counters. Every comments handoff also carries `per_item_copy_gate=required`, `cluster_copy_batching=forbidden`, and the resolved routine word cap. Every post handoff carries `main_post_unlock`, `post_action_mode`, exact `posting_gate_audit_rows`, and resolved K0/K1 limits. Every default question-post handoff carries the resolved discussion score gate. A traffic-probe row is not an action target until the worker confirms the catalog's minimum traffic requirement and passes the exact rule/account gate.
 6. Verify only that the exact selected ready task accepted the mission message. A create response, readable summary, rename, or pin is not acceptance. Do not wait for its Chrome result and do not create a supervisor. A first default dispatch is complete only after comments, posts, and follow-up all accept their messages.
 7. Persist the exact lane ID and `reused|adopted|created|replaced` state. Return the accepted titles; if any requested lane is unresolved or uncertain, use the partial-dispatch receipt and name it. Then enter `L4_IDLE`.
 
@@ -69,15 +69,15 @@ direction_tags=<normalized tags>
 comment_shortlist_or_post_reference_shortlist=<lane-specific cached >=5K matches>
 reference_rows_assessed=<resolved lane reference target>
 traffic_probe_queue=<fit matches needing live traffic check>
-per_round_voting=read_first_selective_with_directional_counters
-vote_metrics=mandatory_separate_upvote_downvote_counts
 qualified_read_target=<canonical hard target or explicit override>
 qualified_read_remaining=<same initial value>
-vote_target_mode=<opportunity by default; hard only when explicit>
-vote_target=<absent by default; explicit count only>
-vote_cap=<resolved votes.caps_by_intensity or explicit permitted override>
-upvote_target=<optional explicit directional target>
-downvote_target=<optional explicit directional target>
+vote_policy=<DISABLED_BY_LANE except BROWSING_ONLY for browsing>
+vote_cap=<0 for non-browsing; resolved cap for browsing>
+browse_vote_playbook=<NOT_LOADED except LOADED for browsing>
+vote_target_mode=<browsing only: opportunity by default; hard only when explicit>
+vote_target=<browsing only: absent by default; explicit count only>
+upvote_target=<browsing only: optional explicit directional target>
+downvote_target=<browsing only: optional explicit directional target>
 selected_model=<first supported fallback pair>
 actual_model=<host-reported pair when exposed>
 ```

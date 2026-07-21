@@ -87,16 +87,16 @@ On every wake:
 2. Reconstruct read-only and repair the checkpoint atomically if it is missing or malformed; do not mutate Reddit until prior submission certainty and all remaining targets are known.
 3. Read actual local time/timezone and UTC; compare with intended schedule.
 4. Reconnect Chrome or reclaim only this task's tab.
-5. If the slot is due, resume preserved action, qualified-read, and optional explicit-vote remainders and continue toward zero. A runtime boundary may yield an interim checkpoint, but does not complete or reset the slot.
+5. If the slot is due, resume preserved action and qualified-read remainders; only browsing may also resume an explicit-vote remainder. Continue applicable targets toward zero. A runtime boundary may yield an interim checkpoint, but does not complete or reset the slot.
 6. If not due, record `not_due`; do not manufacture activity.
-7. Recompute the next due time from exact remaining action/read/explicit-vote targets, current batch remainder, duration, and live conditions; unfinished targets receive the next permissible continuation rather than a fresh slot.
+7. Recompute the next due time from exact remaining action/read targets and, only for browsing, any explicit-vote target, plus current batch remainder, duration, and live conditions; unfinished targets receive the next permissible continuation rather than a fresh slot.
 8. Atomically persist the reconciled checkpoint before updating only this task's recorded timer. When mission fields, cadence, or cutoff changed, rerun the complete Self-Binding Transaction.
 
 When the checkpoint says `recovery_status=recovering|quiet_recovery`, normal lane cadence does not overwrite `next_recovery_at`. Resolve it from `operation-defaults.json.chrome_recovery.recovery_backoff_minutes`, bounded jitter, and any later `Retry-After`, then clamp it to `operation_stop_at`; a deadline-clamped wake performs cleanup only. Persist local and UTC values before updating the same Heartbeat. A healthy wake returns to normal cadence only after the Chrome recovery contract's readable-proof and account-recheck threshold passes.
 
 ## Survival And Repair
 
-Technical failure is not timer termination. Candidate scarcity is also not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake. Persist and resume the same action/read/explicit-vote remainders after recovery. If every current expansion route is genuinely exhausted, yield an interim checkpoint and retry fresh surfaces on the next wake rather than declaring a target complete.
+Technical failure is not timer termination. Candidate scarcity is also not timer termination. Keep the lane Heartbeat repeat-on through Chrome disconnect, stale tab, DNS/network/proxy/TLS errors, `ERR_BLOCKED_BY_CLIENT`, blank/loading pages, route failure, candidate exhaustion, rules rejection, subreddit retirement, timed rate limit, uncertain exact mutation, or a failed recovery wake. Persist and resume the same action/read remainders after recovery; browsing additionally preserves an explicit-vote remainder. If every current expansion route is genuinely exhausted, yield an interim checkpoint and retry fresh surfaces on the next wake rather than declaring a target complete.
 
 Repeated technical wakes use the same logical timer and the configured `5/10/20/40/60` minute backoff with bounded jitter. After the quiet-mode threshold, run one read-only diagnostic cycle per due wake and suppress duplicate notices; do not delete the Heartbeat, spawn replacement tasks, or poll continuously. Missed normal slots are recomputed from current remainders and remaining time, never replayed as a catch-up burst.
 
@@ -112,7 +112,7 @@ Retire this lane's Heartbeat only after:
 
 - explicit user stop for this lane;
 - `operation_stop_at` reached;
-- verified completion of all required action, qualified-reading or required-surface, and explicit vote-target components; or
+- verified completion of all required action, qualified-reading or required-surface components and, only for browsing, any explicit vote target; or
 - verified corrected replacement plus retirement of the old timer.
 
 The stage governed by this Heartbeat is the full current user-authorized lane mission, not one comment cluster, hourly pacing bucket, one completed target component, or intermediate slot. If that full mission target is verified complete, remaining wall-clock authorization is not unfinished work.

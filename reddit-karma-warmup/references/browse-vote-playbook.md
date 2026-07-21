@@ -1,13 +1,8 @@
 # Browse And Vote Playbook
 
-Load in `Reddit 浏览台` and in `lane_round` mode for comments, posts, and follow-up. Numeric read targets, vote caps, and score thresholds come only from `operation-defaults.json`.
+Load only in `Reddit 浏览台`. Comments, posts, follow-up, and presence must not load this file or use any vote control. Numeric read targets, vote caps, and score thresholds come only from `operation-defaults.json`.
 
-## Modes
-
-- `explicit_browse`: complete the intensity-sized hard qualified-read target. Voting is opportunity-only unless the user supplied a vote count.
-- `lane_round`: use the primary lane's own hard read objective and candidate surfaces. Do not add the explicit-browse read target and never leave the lane's normal surfaces.
-
-For both modes, default `vote_target_mode=opportunity`: there is no default vote count target. The intensity vote cap is always a hard ceiling. An explicit combined or directional vote count becomes a hard target under the resolved cap.
+Default `vote_target_mode=opportunity`: there is no default vote count target. The intensity vote cap is always a hard ceiling. An explicit combined or directional vote count becomes a hard target under the resolved cap.
 
 ## Qualified Reading
 
@@ -67,9 +62,7 @@ Upvote and Downvote remain separate report counters even when both are zero.
 
 ## Completion And Scheduling
 
-In `explicit_browse`, normal completion requires the hard qualified-read target and any explicit hard vote target. Without an explicit vote target, do not keep scanning after the read target solely to cast a vote. Finish below an explicit target only at deadline or a current concrete blocker after eligible expansion; never lower the score gate.
-
-In `lane_round`, the vote assessment is incidental to the primary lane's normal reads. A default opportunity vote never creates another read target, another timer, or extra vote hunting. An explicit vote target travels with that lane's mission and remains restricted to its normal surfaces.
+Normal completion requires the hard qualified-read target and any explicit hard vote target. Without an explicit vote target, do not keep scanning after the read target solely to cast a vote. Finish below an explicit target only at deadline or a current concrete blocker after eligible expansion; never lower the score gate.
 
 For continuing explicit browsing, choose the next whole-minute delay from `browsing.default_cadence_minutes` after the slot completes, convert to exact local/UTC time, and update the browsing task's own Heartbeat. Do not catch up missed slots.
 

@@ -13,8 +13,15 @@ def read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def resolve_vote(intensity: str, target=None, cap=None):
+def resolve_vote(lane: str, intensity: str, target=None, cap=None):
     defaults = json.loads(DEFAULTS_PATH.read_text(encoding="utf-8"))
+    if lane != "browsing":
+        return {
+            "mode": "disabled_by_lane",
+            "target": None,
+            "cap": 0,
+            "mismatch": target is not None,
+        }
     default_cap = defaults["votes"]["caps_by_intensity"][intensity]
     if target is None:
         return {"mode": "opportunity", "target": None, "cap": default_cap, "mismatch": False}
@@ -62,6 +69,12 @@ if votes["explicit_target_mode"] != "hard":
     errors.append("explicit_vote_target_not_hard")
 if votes["caps_by_intensity"] != {"low": 1, "standard": 1, "high": 2}:
     errors.append("vote_caps")
+if votes.get("allowed_lanes") != ["browsing"]:
+    errors.append("vote_allowed_lanes")
+if votes.get("non_browsing_policy") != "DISABLED_BY_LANE":
+    errors.append("non_browsing_vote_policy")
+if votes.get("non_browsing_cap") != 0:
+    errors.append("non_browsing_vote_cap")
 if not votes["never_scan_only_for_default_vote"]:
     errors.append("default_vote_hunting_not_forbidden")
 
@@ -78,28 +91,32 @@ if (voice["normal_marker_cap_per_item"], voice["absolute_marker_cap_per_item"]) 
 required = {
     "SKILL.md": [
         "`qualified_read_target` is a hard completion objective",
-        "Voting has no default count target",
-        "Only a user-supplied vote count creates a hard vote target",
+        "Only `Reddit 浏览台` may vote",
+        "Comments, posts, follow-up, and presence always use `vote_policy=DISABLED_BY_LANE`",
+        "only a user-supplied vote count creates a hard vote target",
         "gpt-5.6-terra/high -> gpt-5.6-luna/high -> gpt-5.5/high -> gpt-5.4/high",
     ],
     "references/default-operations-sop.md": [
         "action_remaining == 0",
         "qualified_read_remaining == 0 or required_surface_sweep == complete",
-        "Default voting is opportunity-only",
+        "Only `Reddit 浏览台` loads `browse-vote-playbook.md`",
+        "every other lane receives `vote_policy=DISABLED_BY_LANE` and `vote_cap=0`",
         "Do not continue or widen scanning solely to cast a default vote",
     ],
     "references/comments-playbook.md": [
         "separate hard completion conditions",
-        "Default voting is opportunity-only",
+        "vote_policy=DISABLED_BY_LANE",
+        "Vote controls are out of scope even when visible",
         "high-frequency locally supported Reddit/internet markers",
     ],
     "references/posts-playbook.md": [
         "live deep-read target is a hard research objective",
-        "Default voting is opportunity-only",
+        "vote_policy=DISABLED_BY_LANE",
+        "Vote controls are out of scope even when visible",
     ],
     "references/browse-vote-playbook.md": [
         "browsing.<intensity>.qualified_read_target",
-        "default `vote_target_mode=opportunity`",
+        "Default `vote_target_mode=opportunity`",
         "vote cap is always a hard ceiling",
     ],
     "references/lane-state-checkpoint.md": [
@@ -119,15 +136,23 @@ for obsolete in ("references/proactive-playbook.md", "references/twelve-hour-ops
     if (ROOT / obsolete).exists():
         errors.append(f"obsolete_file:{obsolete}")
 
-default_vote = resolve_vote("standard")
+default_vote = resolve_vote("browsing", "standard")
 if default_vote != {"mode": "opportunity", "target": None, "cap": 1, "mismatch": False}:
     errors.append(f"default_vote_scenario:{default_vote}")
-explicit_vote = resolve_vote("standard", target=2)
+explicit_vote = resolve_vote("browsing", "standard", target=2)
 if explicit_vote != {"mode": "hard", "target": 2, "cap": 2, "mismatch": False}:
     errors.append(f"explicit_vote_scenario:{explicit_vote}")
-capped_vote = resolve_vote("standard", target=2, cap=1)
+capped_vote = resolve_vote("browsing", "standard", target=2, cap=1)
 if capped_vote != {"mode": "hard", "target": 2, "cap": 1, "mismatch": True}:
     errors.append(f"capped_vote_scenario:{capped_vote}")
+comment_vote = resolve_vote("comments", "standard", target=2, cap=2)
+if comment_vote != {
+    "mode": "disabled_by_lane",
+    "target": None,
+    "cap": 0,
+    "mismatch": True,
+}:
+    errors.append(f"comment_vote_scenario:{comment_vote}")
 
 if errors:
     raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))
@@ -136,7 +161,8 @@ print(json.dumps({
     "status": "PASS",
     "model_fallback": "5.6_TERRA_HIGH__5.6_LUNA_HIGH__5.5_HIGH__5.4_HIGH",
     "reading": "HARD_OBJECTIVE",
-    "default_voting": "OPPORTUNITY_ONLY",
+    "vote_lane": "BROWSING_ONLY",
+    "default_voting": "BROWSING_OPPORTUNITY_ONLY",
     "vote_caps": "HARD",
     "explicit_vote_target": "HARD",
     "voice": "HIGH_FREQUENCY_NO_PERCENTAGE_QUOTA",

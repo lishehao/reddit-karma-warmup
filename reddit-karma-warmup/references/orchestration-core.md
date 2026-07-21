@@ -14,7 +14,8 @@ operation_stop_at
 mutation_phase_index + initial_mutation_not_before + phase_jitter_minutes + missed_phase_policy
 action_target + action_remaining + slot_target_remaining + action_cap
 qualified_read_target + qualified_read_remaining + qualified_read_count
-vote_target_mode + optional vote_target + optional vote_target_remaining + vote_cap + upvote_count + downvote_count
+vote_policy + vote_cap
+optional browsing-only vote_target_mode + vote_target + vote_target_remaining + upvote_count + downvote_count
 own_tab_id + own_tab_origin + optional group_id + current URL + tab_control_proof
 surface_requested + surface_used + surface_reason + canonical_target_key
 fallback_from + fallback_reason + route_result
@@ -34,7 +35,7 @@ Do not store launcher state, sibling IDs, sibling timers, shared slot ledgers, o
 
 | State | Required action | Exit |
 |-|-|-|
-| `SCOPE` | Apply the latest instruction for this lane; resolve `self_task_id` from exact current-task context; require it equals the delivered `worker_task_id`; load `operation-defaults.json`; resolve exact action target/cap, hard read target, optional vote target, hard vote cap, checkpoint path, and model state. | local mission and worker identity clear |
+| `SCOPE` | Apply the latest instruction for this lane; resolve `self_task_id` from exact current-task context; require it equals the delivered `worker_task_id`; load `operation-defaults.json` and `lane-action-ownership.md`; resolve exact action target/cap, hard read target, lane-owned action policy, checkpoint path, and model state. Only browsing resolves a vote target/cap; every other lane requires `DISABLED_BY_LANE` and zero vote cap. | local mission and worker identity clear |
 | `RESTORE` | Load `lane-state-checkpoint.md` and this task's exact checkpoint. Reconcile the latest command with verified prior actions, reads, submission certainty, tab, and timer state. | atomic checkpoint is valid or safely reconstructed read-only |
 | `PROBE` | Discover/reconnect Chrome, confirm account, local time and UTC. On failure enter the bounded, checkpointed cross-wake recovery state; do not loop or terminate the mission. | environment recorded or lane recovery persisted |
 | `TAB` | Create/reclaim this task's one persistent dedicated Reddit primary tab; close stale or same-turn auxiliary tabs. | exact tab ownership plus account/URL/page-control proof confirmed |
@@ -57,9 +58,9 @@ For proactive comments, the state machine runs once per individual comment, not 
 
 | Lane | Owns | Excludes |
 |-|-|-|
-| comments | proactive comment discovery/submission plus its conservative per-round vote envelope on eligible candidate posts/parents | main posts, notifications, unrelated-feed vote hunting, profile changes |
-| posts | native main post discovery/preflight/submission plus its conservative per-round vote envelope on eligible external research samples | comments, notifications, unrelated-feed vote hunting, profile changes |
-| follow-up | Notifications/replies plus its conservative per-round vote envelope on eligible inbound replies | proactive discovery, new posts, unrelated-feed vote hunting |
+| comments | proactive comment discovery, qualified reading, and comment submission | main posts, notifications, every Upvote/Downvote control, profile changes |
+| posts | native main-post research, qualified reading, preflight, submission, and required withdrawal cleanup | comments, notifications, every Upvote/Downvote control, profile changes |
+| follow-up | Notifications/known chains/recent activity reading, replies, and required withdrawal cleanup | proactive discovery, new posts, every Upvote/Downvote control |
 | browsing | explicit pure-browse missions with qualified reading and independently gated votes | default broad-operation dispatch, publishing text, notifications, profile changes |
 | presence | profile/about, Join/subscribe, truthful Flair/tag | outward content, notifications, votes |
 
@@ -90,13 +91,13 @@ Load `chrome-network-recovery.md` for failures. Retry only this task's action an
 
 One candidate rejection, an empty scan batch/pool page, completion of only one target component, route error, or failed wake is never terminal while another required remainder and authorized time remain.
 
-The terminal stage is the complete objective carried by the current Heartbeat: the latest user-authorized lane mission target across its operation window. Normal completion requires `action_remaining == 0`, `qualified_read_remaining == 0` or the follow-up required-surface sweep complete, and `vote_target_remaining == 0` only when the user supplied an explicit vote target. A comment cluster, hourly pacing bucket, one partial follow-up surface, or intermediate slot is not that terminal stage. Once all required components reach zero, unused duration does not justify another wake.
+The terminal stage is the complete objective carried by the current Heartbeat: the latest user-authorized lane mission target across its operation window. Normal completion requires `action_remaining == 0`, `qualified_read_remaining == 0` or the follow-up required-surface sweep complete, and `vote_target_remaining == 0` only inside a browsing mission with a user-supplied vote target. A comment cluster, hourly pacing bucket, one partial follow-up surface, or intermediate slot is not that terminal stage. Once all required components reach zero, unused duration does not justify another wake.
 
 ## Action Verification
 
 Load `interaction-pacing.md` and `chrome-atomic-command-runtime.md` before action. Require the measured candidate, readable-to-submit, pre-submit, and inter-click clocks for the exact action; a planned wait is not evidence. Run the remaining pre-submit wait outside the browser cell, then use one native click as the only browser-boundary command with the full outer timeout. Record immediate UI state, permalink/target when available, exact copy or vote direction, time, and any current warning. Delayed survivor/profile visibility is a quality signal rather than a prerequisite for continuing the lane.
 
-For votes, inspect the control state once before clicking. If either direction is already explicitly selected, record `existing_vote` and do not click; if state is ambiguous, record `no_vote`. After one accepted click, count the accepted UI transition once and do not toggle or repeatedly verify it. Default opportunity mode never creates a vote remainder. For uncertain text submission, inspect the exact target once before considering any retry; never duplicate an uncertain mutation.
+Only browsing applies the vote verification contract: inspect the control state once before clicking; selected means `existing_vote`, ambiguous means `no_vote`, and one accepted transition is final. Comments, posts, follow-up, and presence never inspect or focus vote controls. For uncertain text submission, inspect the exact target once before considering any retry; never duplicate an uncertain mutation.
 
 ## Reporting
 

@@ -1,6 +1,6 @@
 # Proactive Comments Playbook
 
-Load only in `Reddit 评论台`, together with `proactive-common.md`, `default-operations-sop.md`, `publish-consistency.md`, `outbound-copy-gate.md`, `browse-vote-playbook.md` in `lane_round` mode, and the shared runtime pack. Numeric defaults come only from `operation-defaults.json`.
+Load only in `Reddit 评论台`, together with `proactive-common.md`, `default-operations-sop.md`, `publish-consistency.md`, `outbound-copy-gate.md`, and the shared runtime pack. Numeric defaults come only from `operation-defaults.json`. This lane uses `vote_policy=DISABLED_BY_LANE`: never load `browse-vote-playbook.md` or inspect/click Upvote or Downvote.
 
 ## Mission And High-Volume Mode
 
@@ -41,12 +41,12 @@ For every individual comment, including every item in one cluster:
 
 Ordinary proactive comments use `comments.routine_word_cap` and remain mostly micro/fragment/one-liner. One two-beat exception within `voice.two_beat_word_range` may appear in a routine cluster only when the exact target earns it. Do not use routine compact paragraphs, polished two-sentence templates, generic praise, post summaries, repeated top comments, or product links outside explicit rule-compliant scope.
 
-## Reading And Voting
+## Reading Without Voting
 
 The action target and qualified-read target are separate hard completion conditions. If comments reach target first, continue lane-local qualified reading without publishing beyond the action target. If reading reaches target first, continue candidate discovery toward the remaining comment target. Deadline, explicit stop, or a current concrete blocker may produce a shortfall; candidate scarcity alone produces an interim checkpoint and later retry.
 
-Every opened candidate may receive one independent vote assessment. Default voting is opportunity-only: record Upvote/Downvote separately, obey the hard cap from `operation-defaults.json`, and never continue scanning solely to obtain a default vote. Only an explicit user vote count creates a hard vote target.
+Qualified reading exists only to understand, score, and safely comment on candidates. Vote controls are out of scope even when visible. An explicit vote request belongs to `Reddit 浏览台` and never changes this lane's authorization.
 
 ## Report
 
-Use the shared three-line receipt. Report verified comments/target, qualified reads/target, Upvote and Downvote counts, links, exact remainder, next verified wake, and the next lane-local plan.
+Use the shared three-line receipt. Report verified comments/target, qualified reads/target, links, exact remainder, next verified wake, and the next lane-local plan. Do not include Upvote/Downvote counters.

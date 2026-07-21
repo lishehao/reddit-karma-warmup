@@ -36,7 +36,7 @@ For comments and replies, `comment_readable_to_submit_seconds` must also meet it
 1. Inspect the visible control and account/target state in one atomic browser read; reuse that evidence until the UI changes.
 2. Keep the configured inter-click pause between separate non-atomic UI clicks; never double-click, click-loop, or use repeated clicks as verification. Every click, fill/type, and result observation is a separate `node_repl` cell under `chrome-atomic-command-runtime.md`.
 3. For text, enter the final passing draft as one browser command, run Double-Check B from stored evidence or a separate read, then keep the draft visible for the configured pre-submit pause using terminal `sleep`. The one final submit click is the sole browser-boundary command in its cell. Require the configured readable-to-submit floor.
-4. For votes, the candidate dwell must pass before the one-click vote gate. After an accepted click, do not spend another delay reconfirming selected styling.
+4. Only `Reddit 浏览台` applies vote pacing: candidate dwell must pass before the one-click vote gate. After an accepted click, do not spend another delay reconfirming selected styling. Every other lane ignores vote controls entirely.
 5. After a verified proactive comment or follow-up reply, use the matching configured submit gap. Discovery may continue during the gap, but every newly opened candidate still owns its separate dwell.
 
 ## Evidence And Failure

@@ -23,7 +23,7 @@ required_role_refs = {
     "references/comments-playbook.md": "Load only in `Reddit 评论台`",
     "references/posts-playbook.md": "Load only in `Reddit 发帖台`",
     "references/followup-playbook.md": "Use only for notifications",
-    "references/browse-vote-playbook.md": "Load in `Reddit 浏览台`",
+    "references/browse-vote-playbook.md": "Load only in `Reddit 浏览台`",
     "references/community-presence-playbook.md": "Reddit 主页台",
 }
 for relative, needle in required_role_refs.items():
@@ -49,6 +49,7 @@ required_entry = [
     "browse-vote-playbook.md",
     "community-presence-playbook.md",
     "lane-state-checkpoint.md",
+    "lane-action-ownership.md",
     "chrome-atomic-command-runtime.md",
     "reddit-surface-routing.md",
     "There is no persistent main coordinator",
@@ -72,6 +73,12 @@ if defaults.get("schema_version") != 1:
     errors.append("defaults_schema_version")
 if defaults["votes"]["default_target"] is not None:
     errors.append("default_vote_target_present")
+if defaults["votes"].get("allowed_lanes") != ["browsing"]:
+    errors.append("vote_allowed_lanes")
+if defaults["votes"].get("non_browsing_policy") != "DISABLED_BY_LANE":
+    errors.append("non_browsing_vote_policy")
+if defaults["votes"].get("non_browsing_cap") != 0:
+    errors.append("non_browsing_vote_cap")
 if not defaults["voice"]["percentage_quota_is_forbidden"]:
     errors.append("voice_percentage_quota_allowed")
 if defaults["scheduler"].get("first_mutation_phase_step_minutes") != 10:

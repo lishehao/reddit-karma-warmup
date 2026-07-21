@@ -83,6 +83,9 @@
     "near_tie_score_margin": 3
   },
   "votes": {
+    "allowed_lanes": ["browsing"],
+    "non_browsing_policy": "DISABLED_BY_LANE",
+    "non_browsing_cap": 0,
     "default_target": null,
     "default_target_mode": "opportunity",
     "explicit_target_mode": "hard",

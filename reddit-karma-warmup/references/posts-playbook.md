@@ -1,6 +1,6 @@
 # Native Posts Playbook
 
-Load only in `Reddit 发帖台`, together with `proactive-common.md`, `community-selection-funnel.md`, `new-account-bootstrap.md`, `posting-account-gates-audit-2026-07-14.csv`, `publish-consistency.md`, `outbound-copy-gate.md`, and the shared runtime pack. Numeric defaults come only from `operation-defaults.json`.
+Load only in `Reddit 发帖台`, together with `proactive-common.md`, `community-selection-funnel.md`, `new-account-bootstrap.md`, `posting-account-gates-audit-2026-07-14.csv`, `publish-consistency.md`, `outbound-copy-gate.md`, and the shared runtime pack. Numeric defaults come only from `operation-defaults.json`. This lane uses `vote_policy=DISABLED_BY_LANE`: never load `browse-vote-playbook.md` or inspect/click Upvote or Downvote.
 
 ## Post Eligibility
 
@@ -41,12 +41,12 @@ Ordinary native posts are drafted directly from current subreddit context. Do no
 
 A failed candidate, pending-review cleanup, weak premise, completed timebox, or completed read target does not satisfy a required post action. Continue eligible finalist search while time remains. Verified publication normally completes a one-post action target.
 
-## Reading And Voting
+## Research Reading Without Voting
 
 The configured live deep-read target is a hard research objective. If publication succeeds before the read target, finish the remaining qualified survivor/rule research without another post. If research finishes first, continue toward the post target.
 
-External research samples may receive independent vote assessments. Default voting is opportunity-only, never a completion condition: obey the hard cap, count Upvote/Downvote separately, and never enter unrelated feeds or extend research solely to cast a default vote. An explicit user vote count becomes a hard target within the explicit cap.
+External research samples are read only for rules, survivor patterns, audience fit, and post design. Vote controls are out of scope even when visible. An explicit vote request belongs to `Reddit 浏览台` and never changes this lane's authorization.
 
 ## Diversity And Report
 
-For multiple posts, vary community cluster and native angle only when candidates pass; diversity never justifies a weak destination. Use the shared three-line receipt with publication/read progress, Upvote/Downvote counts, permalink, exact remainder, next verified wake, and next post-lane plan.
+For multiple posts, vary community cluster and native angle only when candidates pass; diversity never justifies a weak destination. Use the shared three-line receipt with publication/read progress, permalink, exact remainder, next verified wake, and next post-lane plan. Do not include Upvote/Downvote counters.

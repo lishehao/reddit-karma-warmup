@@ -122,7 +122,7 @@ Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browse
 
 K0 新号（combined Karma 少于 50）仍会收到发帖台，但该台只做选址和只读预检，主帖目标/上限固定为 `0/0`。只有账号进入 K1：至少 50 combined Karma、账号满 7 天、至少 10 条可见评论分布在 3 个合格社区、当前状态干净，并且候选 subreddit 的门槛审计与当天 Chrome 复核都通过后，才开始解锁首帖。K1 解锁后仍最多每 24 小时 1 篇。50 Karma 是本 Skill 的最低内部门槛，不是 Reddit 全站发帖许可，也不会覆盖目标社区更高、local/community Karma 或隐藏的要求。
 
-分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置 `worker_task_id=<精确目标任务 ID>`、明确动作目标/上限、硬有效阅读目标、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none` 和本任务的 checkpoint 路径。所有数值默认值以 `references/operation-defaults.json` 为机器权威；README 只展示当前值，并由 defaults-alignment validator 对齐。同一账号同时启用多个执行台时，按评论、跟进、发帖、浏览、主页的顺序，把首次写入依次错开约 `0/10/20/30...` 分钟；所有执行台仍会立刻读帖和准备，后续保持相对相位并允许 `2-4` 分钟浮动，错过窗口就顺延而不补发突刺。这里没有共享锁或跨线程账本。每个真实候选在内容可读后至少停留 `30` 秒才可计为有效阅读、投票、评论或切换下一条；评论/回复从内容可读到提交至少 `45` 秒，输入后再等 `5-12` 秒，页面内独立点击间隔 `1-4` 秒。评论簇中相邻两条发布再额外保留变化的 `3-5` 分钟间隔。五分钟以内的等待使用本地短 `sleep`，更长等待才用 Heartbeat。投票默认是阅读过程中的机会动作，没有默认数量目标；低/标准/高强度的硬上限分别为 `1/1/2`。只有用户明确给出投票数量时，它才成为硬目标。Upvote/Downvote 始终分开统计，不强制各一次，也不会降低评分门槛补数。
+分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置 `worker_task_id=<精确目标任务 ID>`、明确动作目标/上限、硬有效阅读目标、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none` 和本任务的 checkpoint 路径。所有数值默认值以 `references/operation-defaults.json` 为机器权威；README 只展示当前值，并由 defaults-alignment validator 对齐。同一账号同时启用多个执行台时，按评论、跟进、发帖、浏览、主页的顺序，把首次写入依次错开约 `0/10/20/30...` 分钟；所有执行台仍会立刻读帖和准备，后续保持相对相位并允许 `2-4` 分钟浮动，错过窗口就顺延而不补发突刺。这里没有共享锁或跨线程账本。每个真实候选在内容可读后至少停留 `30` 秒才可计为有效阅读、投票、评论或切换下一条；评论/回复从内容可读到提交至少 `45` 秒，输入后再等 `5-12` 秒，页面内独立点击间隔 `1-4` 秒。评论簇中相邻两条发布再额外保留变化的 `3-5` 分钟间隔。五分钟以内的等待使用本地短 `sleep`，更长等待才用 Heartbeat。评论台、发帖台、跟进台和主页台固定 `vote_policy=DISABLED_BY_LANE`、`vote_cap=0`，不读取或点击任何 Upvote/Downvote 控件；只有用户明确要求纯浏览/投票时才由 Reddit 浏览台处理。浏览台投票默认是阅读过程中的机会动作，没有默认数量目标；低/标准/高强度的硬上限分别为 `1/1/2`。只有用户明确给出投票数量时，它才成为硬目标。Upvote/Downvote 始终分开统计，不强制各一次，也不会降低评分门槛补数。
 
 新建分发台或执行台默认依次尝试 `gpt-5.6-terra/high`、`gpt-5.6-luna/high`、`gpt-5.5/high`、`gpt-5.4/high`，使用目标机器实际支持的第一组；显式用户模型覆盖该链。健康的既有执行台不会仅为更换模型而重建，且只有任务实际运行元数据确认后才算切换成功。模型选择不替代 Chrome 故障恢复。每个执行台的持久状态位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-state/<username>/<lane>/<task_id>.json`，历史位于相邻 `lane-history/`；升级 Skill 不覆盖这些用户状态。
 
@@ -166,10 +166,10 @@ lane registry 位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-regis
 
 - 立即执行自己的首轮，不等 Heartbeat；
 - 先确定动作数量目标和有效阅读目标；两者都是独立的硬完成条件。动作目标未满足时继续读取真实最新帖子和评论并扩展合格社区，不因第一批候选不足而提前结束；
-- 只有动作剩余量和有效阅读剩余量都归零，跟进台完成全部必查界面，且用户显式投票目标也已归零时，任务才算完成。任一未完成数量跨 Heartbeat 原样续跑，不得重置或把候选不足报告为已完成；
-- 每个候选独立评分，达到门槛才动作；增加阅读量不能降低评论、发帖或投票阈值；
-- 评论、发帖、跟进和显式浏览每轮都把 Upvote/Downvote 分开记账；默认 `vote_target_mode=opportunity`，没有投票数量目标，只有低/标准/高 `1/1/2` 的硬上限。用户明确指定总数或方向数量时才成为硬目标。投票前若任一方向已明确选中则记录 `existing_vote` 并不点击，状态不清则 `no_vote`，成功点击后接受一次 UI 状态变化，不再重复确认；
-- 每个执行台在任何 Reddit 写操作前读取自己的 checkpoint；每次有效阅读、已验证动作、投票、定时变化或恢复结果后原子更新。Heartbeat 必须携带 checkpoint 路径、schema、mission ID 和本任务 ID，唤醒后先恢复状态再继续；
+- 只有动作剩余量和有效阅读剩余量都归零、跟进台完成全部必查界面时，文本 lane 才算完成；只有浏览台还会把用户显式投票目标纳入完成条件。任一未完成数量跨 Heartbeat 原样续跑，不得重置或把候选不足报告为已完成；
+- 每个候选独立评分，达到门槛才执行 lane 自己拥有的动作；增加阅读量不能降低评论、发帖或浏览台投票阈值；
+- 评论台、发帖台、跟进台和主页台不加载投票 playbook，不检查、不点击、不验证 Upvote/Downvote，相关显式请求拆给 Reddit 浏览台。只有浏览台把 Upvote/Downvote 分开记账；默认 `vote_target_mode=opportunity`，没有投票数量目标，低/标准/高硬上限为 `1/1/2`。用户明确指定总数或方向数量时才成为浏览台的硬目标；
+- 每个执行台在任何 Reddit 写操作前读取自己的 checkpoint；每次有效阅读、已验证 lane 动作、定时变化或恢复结果后原子更新，只有浏览台额外写入投票状态。Heartbeat 必须携带 checkpoint 路径、schema、mission ID 和本任务 ID，唤醒后先恢复状态再继续；
 - 始终拥有一个专属 Reddit 主标签：用三次浏览器调用完成首次创建，第一次只创建并持久记录 tab ID，第二次只执行 `tab.goto(...)`，第三次只读取一次页面状态；纯 `openTabs/claimTab/URL/title` 元数据事务使用 30 秒预算且最多 4 个调用，导航、DOM、点击、输入、等待和验证等潜在阻塞页面/动作命令各自在单独调用中使用 120 秒外层预算。20–60 秒后成功返回属于慢成功，不是断线；可选 Statsig/`ab.chatgpt.com` 遥测超时也不是 Reddit 或账号风险。页面理解遵循原生 Chrome 插件原则：选择能回答下一步问题的最便宜状态检查，DOM snapshot、截图和 targeted projection 不默认叠加。受控输入优先从 fresh visible DOM 获取字符串 `node_id`，点击、输入和递归 Shadow DOM 实值读回必须分开；动作确认不是文本证明。locator 单独在内部截止时间失败而 DOM/页面读取健康时，切换 DOM CUA，不误判掉线或重复 locator。完整 120 秒后仍无确认才进入恢复。不得删除主标签、另建重复标签或抢用户/其他任务的标签；后续心跳只重领这个标签，非终态以 `handoff` 保留，任务终态关闭/释放；
 - 只从当前任务上下文读取自己的精确 Task ID；定时前核对 mission 的 `worker_task_id`，创建/更新时显式绑定自身，创建后按 automation ID 读回目标并再次核对；每次唤醒还会复核一次；
 - 自己处理网络恢复、规则复核、重试、候选替换和用户修复；

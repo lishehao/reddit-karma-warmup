@@ -1,6 +1,6 @@
 # Follow-Up Playbook
 
-Use only for notifications, supplied Reddit URLs, replies to the account's own recent posts/comments, and mod/Automod follow-up. Shared lifecycle and scheduling come from `orchestration-core.md` and `scheduler-and-heartbeats.md`. Load `browse-vote-playbook.md` in `lane_round` mode for eligible inbound replies opened during this sweep.
+Use only for notifications, supplied Reddit URLs, replies to the account's own recent posts/comments, and mod/Automod follow-up. Shared lifecycle and scheduling come from `orchestration-core.md` and `scheduler-and-heartbeats.md`. This lane uses `vote_policy=DISABLED_BY_LANE`: never load `browse-vote-playbook.md` or inspect/click Upvote or Downvote.
 
 ## Cadence And Surfaces
 
@@ -36,7 +36,7 @@ Score each exact inbound item:
 
 Session-level authorization covers `Act` replies. Do not request per-reply confirmation.
 
-After reading each exact inbound chain, independently assess the other user's reply within the current round's hard vote cap. Never vote on the account's own item, team/affiliated content, moderator/Automod content, or a supplied campaign target. Default voting is opportunity-only: do not create a vote remainder or extend the sweep to find a vote. Only a user-supplied vote count creates a hard vote target; if the required surfaces contain too few eligible external items, record the exact shortfall as scope exhaustion and never browse unrelated feeds, manufacture a reply, or weaken a vote gate.
+Reading an inbound chain exists only to triage and write a safe, useful reply. Vote controls are out of scope even on another user's reply. An explicit vote request belongs to `Reddit 浏览台` and never changes this lane's authorization.
 
 This lane has no artificial reply quota. Its completion target is one full required-surface sweep plus every passing `Act` available in that sweep. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments even when the first surface is quiet; never report a partial sweep as completion.
 
@@ -80,8 +80,9 @@ The follow-up lane owns its execution state, cleanup queue, and self-targeted re
 
 Use the three-line compact report from `orchestration-core.md`:
 
-- `本轮完成`：已检查的 Notifications、本人帖子/评论，以及完成的回复、清理动作、附带投票数量和 permalink
+- `本轮完成`：已检查的 Notifications、本人帖子/评论，以及完成的回复、清理动作和 permalink
 - `下一轮心跳`：核验后的本地日期时间、时区及 UTC
 - `下轮计划`：下一次跟进范围和目标动作
 
 Keep queue size, Act/Watch/Skip/Closed triage, final reply text/translation, visibility, UTC, and scheduler readback internal unless they explain a risk or the user asks.
+Do not include Upvote/Downvote counters; this lane never owns them.

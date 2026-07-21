@@ -48,7 +48,7 @@ assert RUNTIME["metadata_allowed_operations"] == [
 ]
 
 require("SKILL.md", [
-    "load `references/runtime-and-setup.md`, `references/chrome-atomic-command-runtime.md`",
+    "load `references/runtime-and-setup.md`, `references/reddit-surface-routing.md`, `references/chrome-atomic-command-runtime.md`",
     "Load `references/chrome-network-recovery.md` only if Chrome preflight fails",
     "healthy metadata channel is not proof that page content or the Reddit account is readable",
 ])

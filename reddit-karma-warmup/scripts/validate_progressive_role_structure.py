@@ -50,6 +50,7 @@ required_entry = [
     "community-presence-playbook.md",
     "lane-state-checkpoint.md",
     "chrome-atomic-command-runtime.md",
+    "reddit-surface-routing.md",
     "There is no persistent main coordinator",
 ]
 for needle in required_entry:

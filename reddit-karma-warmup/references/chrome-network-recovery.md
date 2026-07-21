@@ -83,16 +83,21 @@ Use Chrome Browser only. Never switch to Computer Use, another browser, Web Sear
 2. If awaited navigation times out, reacquire the same Chrome control/session, reconnect the browser binding only on an explicit disconnected result, reclaim the exact recorded `own_tab_id`, and run one atomic post-timeout page-state read. If that returned evidence proves the URL moved and the page is readable, continue as recovered without another navigation.
    - If reclaiming that exact tab or URL/title metadata times out, record `page_control_partial`. If metadata succeeds but the first content read times out, record `chrome_content_channel_timeout` and proceed directly to the one safe neutral content probe in step 5; do not cycle through DOM, screenshot, and evaluate on the same Reddit page. Do not immediately repeat claim/read/navigation or infer browser disconnect.
 3. If the same tab remains blank or unreadable, wait within `chrome_recovery.short_wait_seconds` and retry the current read-only navigation no more than `same_url_retry_cap_per_wake` in that tab. Do not repeat a mutation and do not create a second primary tab.
-4. In the lane's dedicated primary tab, open the relevant Reddit native home surface (`reddit.com`, subreddit home, Notifications, or profile history). Only if the recorded tab is absent from the current tab inventory is its binding stale and replaceable once.
+4. In the lane's dedicated primary tab, open the preferred native surface from `reddit-surface-routing.md`: Old Reddit for ordinary text/listing/context work, or current Reddit for a capability that requires it. If that route fails while the equivalent capability remains available on the other surface, perform its single bounded cross-surface fallback. Only if the recorded tab is absent from the current tab inventory is its binding stale and replaceable once.
 5. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session, at most `neutral_probe_cap_per_wake` times. When the primary tab contains a draft or uncertain state, use at most one temporary lane-owned diagnostic tab under `diagnostic_tab_cap_per_wake` and close it in the same wake; never persist it as a second primary tab.
 6. Classify the scope:
    - neutral page and Reddit both fail: device/network/proxy/Chrome path
    - neutral page works, Reddit home fails: Reddit/site/domain path
-   - Reddit home works, deep target fails: route/candidate path
+   - Reddit home works, deep target fails on both permitted equivalent surfaces: route/candidate path
    - browser calls fail before metadata/tab acknowledgement, or a new tab stays `about:blank` for both Reddit and the neutral page: page-control/control-channel path
    - tab inventory works but exact claim or URL/title repeatedly has no acknowledgement: `page_control_partial`; preserve the browser binding and stop this wake's page work
    - exact claim plus URL/title works, but Reddit and neutral DOM/screenshot/evaluate/projection reads both time out: global `chrome_content_channel_timeout`; preserve both bindings and stop this wake's page work
 7. After recovery, reconfirm the expected Reddit account and target URL before any mutation.
+
+A surface fallback is route recovery, not mutation recovery. Preserve the same
+`canonical_target_key`, read/dwell evidence, mutation key, and retry budget. If a
+click/send may already have happened, never change surfaces to retry or verify
+that exact mutation; quarantine it under the existing uncertainty contract.
 
 Do not inspect cookies/local storage, clear browsing data, disable extensions,
 restart Chrome, change DNS/VPN/proxy, or bypass TLS warnings automatically. A

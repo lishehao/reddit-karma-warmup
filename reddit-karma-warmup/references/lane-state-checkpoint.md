@@ -32,8 +32,10 @@ vote_target_mode + optional vote_target + vote_cap
 upvote_count + downvote_count
 current_cluster_id + cluster_target + cluster_verified + cluster_remaining
 own_tab_id + own_tab_origin + current_url + tab_control_proof
+surface_requested + surface_used + surface_reason + canonical_target_key
+fallback_from + fallback_reason + route_result
 own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc
-mutation_state + candidate_url + outbound_text_hash + submission_certainty
+mutation_state + mutation_key + candidate_url + outbound_text_hash + submission_certainty
 recovery_state_version=1
 recovery_status + error_fingerprint + error_class + exact_code + failure_scope
 consecutive_failure_wakes + same_wake_recovery_cycles + backoff_index
@@ -50,9 +52,9 @@ The recovery fields are optional when reading a checkpoint written by an older S
 ## Atomic Lifecycle
 
 1. Create or replace the checkpoint atomically after the exact task/account/mission identity is accepted and before Chrome mutation.
-2. Before every outward mutation, write `mutation_state=prepared`, exact candidate URL, and an outbound-text hash when text exists.
+2. Before every outward mutation, write `mutation_state=prepared`, the host-independent `mutation_key`, exact candidate URL, actual surface, canonical target key, and an outbound-text hash when text exists.
 3. After the one mutation attempt, write `verified`, `explicit_failure`, or `submission_uncertain` before another candidate is considered. Never retry `submission_uncertain`.
-4. After every qualified read, verified action, vote, recovery, Heartbeat mutation, or schedule calculation, update counters and timestamps atomically.
+4. After every qualified read, verified action, vote, surface switch, recovery, Heartbeat mutation, or schedule calculation, update counters and timestamps atomically. The same canonical target across hosts updates one history item and never increments the read or action count twice.
 5. Before a nonterminal turn ends, require checkpoint `mission_status=active`, exact remaining counts, exact tab binding, and the current timer state.
 6. At mission terminal cleanup, retain the checkpoint as `mission_status=completed|stopped|deadline`, clear tab/timer/next-due fields, and record Heartbeat retirement proof. Do not delete the history.
 

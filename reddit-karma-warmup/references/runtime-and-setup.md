@@ -51,12 +51,18 @@ Use this preflight sequence:
    because the current window cannot create/group a tab, ask the user to open
    Reddit in Chrome; never navigate, close, inspect, or repurpose an unrelated
    user, launcher, or sibling-lane tab as fallback.
-3. Open Reddit read-only and confirm the visible account with exactly one
+3. If the launcher created a disposable Reddit tab, open the Old Reddit
+   starting surface from `reddit-surface-routing.md`; if it is unavailable, use
+   its one bounded current-Reddit fallback. If the launcher instead claimed a
+   provably unowned, already-open Reddit tab, verify it on its current native
+   surface and do not navigate it merely to enforce Old Reddit. Confirm the
+   visible account with exactly one
    cheapest page-state surface: DOM snapshot, screenshot, or a bounded read-only
    projection. This content read is the only blocking page command in its cell
    and uses `outer_timeout_ms`. Do not require both DOM and screenshot by
    default. URL/title metadata proves only extension and tab reachability and
-   never proves the account.
+   never proves the account. The launcher records the actual surface used; it
+   does not change the account-wide Reddit preference.
 4. Preserve a user-opened Reddit tab. Close only a disposable tab created by
    this launcher, using the installed Chrome Plugin's cleanup contract. Do not
    retain a worker-style primary tab from preflight.

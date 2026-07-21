@@ -23,7 +23,7 @@ The generic `thread-supervisor` Skill is optional. When present, use its current
 
 | Request | Load and act |
 |-|-|
-| install/setup/upgrade/explain | Rename current task `Reddit 启动台`; load `references/runtime-and-setup.md`, `references/chrome-atomic-command-runtime.md`, `references/model-runtime.md`, and `references/thread-supervision-runtime.md`. Load `references/chrome-network-recovery.md` only if Chrome preflight fails. |
+| install/setup/upgrade/explain | Rename current task `Reddit 启动台`; load `references/runtime-and-setup.md`, `references/reddit-surface-routing.md`, `references/chrome-atomic-command-runtime.md`, `references/model-runtime.md`, and `references/thread-supervision-runtime.md`. Load `references/chrome-network-recovery.md` only if Chrome preflight fails. |
 | healthy Bootstrap answer or later dispatch in `Reddit 分发台` | Load `references/launcher-playbook.md`, `references/default-operations-sop.md`, and `references/operation-defaults.json`; dispatch immediately. |
 | named lane in an ordinary task | Rename to the stable lane title when possible; load the exact role pack below and execute now. |
 | later command/status/pause/resume/stop inside a lane | Change only that lane mission and its own checkpoint/Heartbeat. |
@@ -42,7 +42,7 @@ For every numeric lane round, `qualified_read_target` is a hard completion objec
 
 ## Role Packs
 
-Every worker loads `references/orchestration-core.md`, `references/lane-state-checkpoint.md`, `references/interaction-pacing.md`, `references/chrome-atomic-command-runtime.md`, `references/scheduler-and-heartbeats.md`, `references/risk-escalation.md`, `references/chrome-network-recovery.md`, `references/publish-consistency.md`, and `references/operation-defaults.json`.
+Every worker loads `references/orchestration-core.md`, `references/reddit-surface-routing.md`, `references/lane-state-checkpoint.md`, `references/interaction-pacing.md`, `references/chrome-atomic-command-runtime.md`, `references/scheduler-and-heartbeats.md`, `references/risk-escalation.md`, `references/chrome-network-recovery.md`, `references/publish-consistency.md`, and `references/operation-defaults.json`.
 
 | Role | Stable title | Additional required references | Excludes |
 |-|-|-|-|
@@ -79,7 +79,7 @@ Discovery, traffic, survivor posts, and pending/public audits never grant publis
 
 1. Resolve `self_task_id` from exact current-task context and require it equals `worker_task_id`; accept only the canonical lane.
 2. Load `lane-state-checkpoint.md`; create/recover the exact task-owned checkpoint and account+lane history before mutation.
-3. Discover/reconnect Chrome; create or reclaim this task's one persistent dedicated Reddit primary tab. First creation is three atomic calls: create and persist the tab ID, navigate with `tab.goto(...)`, then read page state. A pure metadata transaction uses the configured 30-second budget; every potentially blocking navigation, content read, interaction, or mutation uses the 120-second outer command contract. Page-side script navigation and another task's tab are forbidden.
+3. Discover/reconnect Chrome; create or reclaim this task's one persistent dedicated Reddit primary tab. First creation is three atomic calls: create and persist the tab ID, navigate to the Old Reddit starting surface with `tab.goto(...)`, then read page state. Apply `reddit-surface-routing.md` for every later capability-specific route; Old is a starting preference, not a hard dependency. A pure metadata transaction uses the configured 30-second budget; every potentially blocking navigation, content read, interaction, or mutation uses the 120-second outer command contract. Page-side script navigation and another task's tab are forbidden.
 4. Confirm account, local time, UTC, stop time, mission revision, remaining action/read counts, vote mode/cap, and current timer ownership.
 5. Apply denylist -> action override -> filtered data -> current live rules. Load only this lane's role pack.
 6. Run `SCOPE -> RESTORE -> PROBE -> TAB -> HISTORY -> DISCOVER -> CHECK_A -> DRAFT -> CHECK_B -> ACT -> RECONCILE`. Persist prepared and final mutation certainty around the single click. For controlled text, resolve one fresh visible DOM node, preserve its `node_id` as a string, and separate focus, typing, and shadow-aware live-value readback. The submit wait, one click, and readback are three separate operations; never duplicate an uncertain mutation.

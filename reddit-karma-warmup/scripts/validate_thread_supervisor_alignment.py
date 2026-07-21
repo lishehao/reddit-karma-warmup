@@ -36,6 +36,8 @@ require(
         "gpt-5.5/high",
         "gpt-5.4/high",
         "Never recreate a healthy reusable task merely to change its model",
+        "Never auto-unarchive it",
+        "only when the user explicitly asks to resume that exact task",
         "never choose by recency alone",
         "A create response, readable summary, rename, or pin alone is not",
         "no-callback lane topology",

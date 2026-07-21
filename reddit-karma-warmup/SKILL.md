@@ -13,7 +13,7 @@ Use one reusable distributor plus independent account-scoped lane tasks. There i
 |-|-|-|
 | `1 SETUP` | temporary `Reddit 启动台` | install/upgrade and read-only preflight |
 | `2 READY` | same task renamed/pinned `Reddit 分发台` | ask once for direction + duration, or normalize supplied values |
-| `3 DISPATCH` | `Reddit 分发台` | reuse exact healthy account+lane tasks, create only missing/unusable lanes, deliver complete missions |
+| `3 DISPATCH` | `Reddit 分发台` | reuse only exact present, unarchived, healthy account+lane tasks; replace archived, missing, or unusable lanes; deliver complete missions |
 | `4 EXECUTE` | independent lane tasks | start browser-backed work now; own one tab, checkpoint, Heartbeat, recovery, and report |
 | `5 RETIRE OR REUSE` | each lane task | delete its own Heartbeat at mission terminal; retain task/history for a later new mission ID |
 
@@ -37,6 +37,8 @@ After dispatch, the user speaks directly to the relevant lane task for in-progre
 Model preference is `gpt-5.6-terra/high -> gpt-5.6-luna/high -> gpt-5.5/high -> gpt-5.4/high`, selecting the first pair exposed by the destination host. An explicit user model request overrides the chain. A running healthy task is not recreated only to switch models, and a requested override is not treated as applied until actual runtime metadata confirms it.
 
 The latest explicit user duration, count, lane, target pool, language, intensity, and style overrides ordinary defaults. Current live Reddit rules, organization denylist, account repair state, browsing-lane vote cap, and post unlock still gate the exact action.
+
+An archived task is never healthy or reusable merely because its exact ID, title, or history remains readable. Ordinary distributor dispatch never auto-unarchives a task: it creates and validates a fresh replacement, then updates the registry only after that replacement accepts the mission. The only restore exception is a separate explicit user request to resume that exact archived task.
 
 For every numeric lane round, `qualified_read_target` is a hard completion objective separate from the text-action target. Only `Reddit 浏览台` may vote; its default is `vote_target_mode=opportunity` under a hard intensity cap, and only a user-supplied vote count creates a hard vote target. Comments, posts, follow-up, and presence always use `vote_policy=DISABLED_BY_LANE`, `vote_cap=0`, and no vote target.
 

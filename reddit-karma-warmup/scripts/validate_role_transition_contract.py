@@ -40,6 +40,8 @@ checks = {
         "Reusable Lane Distributor",
         "registered reuse first",
         "bounded one-time legacy adoption",
+        "current product state proves the task is present and unarchived",
+        "Never search archives or unarchive a task during ordinary dispatch",
         "returns to pinned idle",
         "It is not a coordinator",
         "The distributor never creates timers for workers",
@@ -56,6 +58,9 @@ checks = {
         "lane-registry/<username>.json",
         "Registered reuse",
         "One-time legacy adoption",
+        "current product state proves that it is present and unarchived",
+        "Never auto-unarchive it",
+        "Mistaken Unarchive Recovery",
         "Inspect at most the three newest candidates",
         "incoming `mission_id` is new and supersedes prior mission fields",
         "delivery_uncertain",
@@ -115,7 +120,7 @@ if errors:
 
 print("REUSABLE_LANE_ROUTING_CONTRACT=PASS")
 print("topology=DISTRIBUTOR_PLUS_INDEPENDENT_LANES")
-print("reuse=EXACT_ACCOUNT_LANE_TASK_ID")
+print("reuse=EXACT_PRESENT_UNARCHIVED_ACCOUNT_LANE_TASK_ID")
 print("timers=WORKER_OWNED")
 print("callbacks=NONE")
 print("role_packs=COMMENTS_POSTS_FOLLOWUP_BROWSING_PRESENCE")

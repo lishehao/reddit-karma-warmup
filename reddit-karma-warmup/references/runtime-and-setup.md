@@ -66,7 +66,7 @@ Use this preflight sequence:
 4. Preserve a user-opened Reddit tab. Close only a disposable tab created by
    this launcher, using the installed Chrome Plugin's cleanup contract. Do not
    retain a worker-style primary tab from preflight.
-5. Confirm persistent task list/read/send/create, rename, and archive/unarchive capability without creating operation tasks yet. Confirm the create schema exposes returned identifier type and host-aware read/send fields when the host supports them.
+5. Confirm persistent task list/read/send/create and rename capability without creating operation tasks yet. Require archive-state read support or a current unarchived task inventory for exact-ID reuse checks. Unarchive capability is not an ordinary operation preflight requirement and is used only when the user explicitly asks to restore that exact archived task. Confirm the create schema exposes returned identifier type and host-aware read/send fields when the host supports them.
 6. Confirm from the available automation tool/schema that recurring Heartbeat create/update/read/delete, explicit `targetThreadId`, and exact-automation target readback are callable. Do not create, update, or delete a bootstrap test Heartbeat or smoke-probe automation. Hidden `next_run_at` is handled by the first real worker timer as `created_unreadable`; an unreadable target binding is not verified and cannot schedule continuation.
 7. Read real local time/timezone and UTC.
 8. Detect available task model choices when the host exposes them. Select the first supported canonical fallback pair; if availability is not queryable, let new-task creation attempt the chain in order. Record the actual selected pair internally and do not expose it in the healthy Bootstrap prompt.

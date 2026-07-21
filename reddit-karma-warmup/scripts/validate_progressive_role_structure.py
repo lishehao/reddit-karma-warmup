@@ -85,6 +85,14 @@ if defaults["scheduler"].get("first_mutation_phase_step_minutes") != 10:
     errors.append("scheduler_phase_default")
 if defaults["scheduler"].get("heartbeat_trigger_tolerance_seconds") != 300:
     errors.append("heartbeat_trigger_tolerance_default")
+expected_thread_reuse = {
+    "require_present_unarchived": True,
+    "archived_task_policy": "REPLACE_NEVER_AUTO_UNARCHIVE",
+    "readable_archived_is_liveness": False,
+    "registry_update_after_acceptance_only": True,
+}
+if defaults.get("thread_reuse") != expected_thread_reuse:
+    errors.append("thread_reuse_contract")
 if defaults["posts"].get("research_cadence_minutes") != [120, 180]:
     errors.append("post_research_cadence_default")
 

@@ -13,6 +13,12 @@
     "launcher_and_workers_use_same_chain": true,
     "unavailable_model_never_blocks_operation": true
   },
+  "thread_reuse": {
+    "require_present_unarchived": true,
+    "archived_task_policy": "REPLACE_NEVER_AUTO_UNARCHIVE",
+    "readable_archived_is_liveness": false,
+    "registry_update_after_acceptance_only": true
+  },
   "comments": {
     "low": {"action_target_per_hour": 3, "action_cap_per_hour": 4, "qualified_read_target": 9},
     "standard": {"action_target_per_hour": 5, "action_cap_per_hour": 6, "qualified_read_target": 15},

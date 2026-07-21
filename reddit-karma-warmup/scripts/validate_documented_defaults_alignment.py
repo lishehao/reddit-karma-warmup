@@ -98,6 +98,7 @@ require(
     "chrome_slow_success",
 )
 require("Statsig/`ab.chatgpt.com` 遥测超时也不是 Reddit 或账号风险", "ambient_network")
+require("普通分发不得自动反归档", "archived_task_reuse")
 
 if errors:
     raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))

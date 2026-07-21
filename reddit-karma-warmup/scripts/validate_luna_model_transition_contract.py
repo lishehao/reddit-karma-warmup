@@ -13,6 +13,18 @@ def read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
+def decide_launcher_transition(actual_pair, in_place_supported, authorized, successor_attempts):
+    if actual_pair == "gpt-5.6-luna/high":
+        return "KEEP_SELF_LUNA_CONFIRMED"
+    if actual_pair is None:
+        return "KEEP_SELF_MODEL_UNVERIFIED"
+    if in_place_supported:
+        return "REQUEST_ONE_VERIFIABLE_IN_PLACE_UPDATE"
+    if authorized and successor_attempts == 0:
+        return "CREATE_ONE_LUNA_SUCCESSOR"
+    return "KEEP_SELF_FALLBACK"
+
+
 defaults = json.loads(read("references/operation-defaults.json"))
 runtime = defaults["model_runtime"]
 expected_chain = [
@@ -99,6 +111,22 @@ assert scenarios["confirmed_non_luna_authorized"]["archive_old_before_acceptance
 assert scenarios["unknown_self_model"]["create_duplicate"] is False
 assert scenarios["luna_unsupported"]["next_pair"] == "gpt-5.6-terra/high"
 assert scenarios["browser_failure"]["model_switch_is_recovery"] is False
+assert decide_launcher_transition("gpt-5.6-luna/high", False, True, 0) == (
+    "KEEP_SELF_LUNA_CONFIRMED"
+)
+assert decide_launcher_transition(None, False, True, 0) == "KEEP_SELF_MODEL_UNVERIFIED"
+assert decide_launcher_transition("gpt-5.6-terra/high", True, True, 0) == (
+    "REQUEST_ONE_VERIFIABLE_IN_PLACE_UPDATE"
+)
+assert decide_launcher_transition("gpt-5.6-terra/high", False, True, 0) == (
+    "CREATE_ONE_LUNA_SUCCESSOR"
+)
+assert decide_launcher_transition("gpt-5.6-terra/high", False, True, 1) == (
+    "KEEP_SELF_FALLBACK"
+)
+assert decide_launcher_transition("gpt-5.6-terra/high", False, False, 0) == (
+    "KEEP_SELF_FALLBACK"
+)
 
 print(json.dumps({
     "status": "PASS",

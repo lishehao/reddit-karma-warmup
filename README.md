@@ -69,12 +69,19 @@ Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是运行依
 安装完成后先不修改 Reddit，只检查：
 
 1. Chrome Browser control 可连接并能在掉线后重连。
-2. 通过 Chrome 确认 Reddit 已登录和准确账号；不处理密码。
+2. 通过 Chrome 确认 Reddit 已登录和准确账号；不处理密码。优先使用现有
+   Reddit 标签：`openTabs()` + `claimTab()` + URL/title 只证明扩展和标签元数据
+   健康；账号预检还需要一个最便宜的页面状态证明（DOM snapshot、截图或有界
+   read-only projection 之一即可），不要默认同时要求 DOM 和截图。
 3. Codex 能列出、读取、创建、反归档并向独立用户任务发送指令；能保留工具返回的 `hostId`，并区分 ready `threadId` 与 queued `clientThreadId`。
 4. Automation/Heartbeat 工具 schema 支持 repeat-on、显式 `targetThreadId`，并能按返回的 automation ID 读回目标任务 ID。Bootstrap 不创建测试 Heartbeat；第一个真实执行台负责首次创建和读回验证。
 5. 能读取真实当地时间、时区、UTC offset 和 UTC。
 
 Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browser、Playwright 和普通 Web Search 不能替代。屏幕录制、系统音频录制和辅助功能权限不是本 Skill 依赖。
+若 `openTabs()`、`claimTab()`、URL/title 成功，但 DOM、截图或 read-only
+projection 在完整 Chrome 外层预算后仍无响应，分类为
+`chrome_content_channel_timeout`，不是 Chrome 断连、目标标签丢失、Reddit 登录失败
+或账号风险；启动台只返回一个具体修复/重检动作，并保持 `Reddit 启动台`。
 
 隐藏 `next_run_at` 只记录 `created_unreadable`，不阻断第一轮；目标任务 ID 隐藏或不匹配则不能算绑定成功。若 Chrome 或登录需要用户修复，记录 `BOOTSTRAP_REPAIR_REQUIRED` 并只返回一个具体动作；此状态下用户回复“继续”仅重查缺失项，不启动运营。
 
@@ -160,7 +167,7 @@ lane registry 位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-regis
 - 每个候选独立评分，达到门槛才动作；增加阅读量不能降低评论、发帖或投票阈值；
 - 评论、发帖、跟进和显式浏览每轮都把 Upvote/Downvote 分开记账；默认 `vote_target_mode=opportunity`，没有投票数量目标，只有低/标准/高 `1/1/2` 的硬上限。用户明确指定总数或方向数量时才成为硬目标。投票前若任一方向已明确选中则记录 `existing_vote` 并不点击，状态不清则 `no_vote`，成功点击后接受一次 UI 状态变化，不再重复确认；
 - 每个执行台在任何 Reddit 写操作前读取自己的 checkpoint；每次有效阅读、已验证动作、投票、定时变化或恢复结果后原子更新。Heartbeat 必须携带 checkpoint 路径、schema、mission ID 和本任务 ID，唤醒后先恢复状态再继续；
-- 始终拥有一个专属 Reddit 主标签：用三次浏览器调用完成首次创建，第一次只创建并持久记录 tab ID，第二次只执行 `tab.goto(...)`，第三次只读取一次页面状态；每个 Chrome 边界命令的 Node REPL 外层超时统一为 120 秒，禁止把导航、DOM、点击、输入、等待和验证堆在同一调用里。20–60 秒后成功返回属于慢成功，不是断线；可选 Statsig/`ab.chatgpt.com` 遥测超时也不是 Reddit 或账号风险。受控输入优先从 fresh visible DOM 获取字符串 `node_id`，点击、输入和递归 Shadow DOM 实值读回必须分开；动作确认不是文本证明。locator 单独在内部截止时间失败而 DOM/页面读取健康时，切换 DOM CUA，不误判掉线或重复 locator。完整 120 秒后仍无确认才进入恢复。不得删除主标签、另建重复标签或抢用户/其他任务的标签；后续心跳只重领这个标签，非终态以 `handoff` 保留，任务终态关闭/释放；
+- 始终拥有一个专属 Reddit 主标签：用三次浏览器调用完成首次创建，第一次只创建并持久记录 tab ID，第二次只执行 `tab.goto(...)`，第三次只读取一次页面状态；每个 Chrome 边界命令的 Node REPL 外层超时统一为 120 秒，禁止把导航、DOM、点击、输入、等待和验证堆在同一调用里。20–60 秒后成功返回属于慢成功，不是断线；可选 Statsig/`ab.chatgpt.com` 遥测超时也不是 Reddit 或账号风险。页面理解遵循原生 Chrome 插件原则：选择能回答下一步问题的最便宜状态检查，DOM snapshot、截图和 targeted projection 不默认叠加。受控输入优先从 fresh visible DOM 获取字符串 `node_id`，点击、输入和递归 Shadow DOM 实值读回必须分开；动作确认不是文本证明。locator 单独在内部截止时间失败而 DOM/页面读取健康时，切换 DOM CUA，不误判掉线或重复 locator。完整 120 秒后仍无确认才进入恢复。不得删除主标签、另建重复标签或抢用户/其他任务的标签；后续心跳只重领这个标签，非终态以 `handoff` 保留，任务终态关闭/释放；
 - 只从当前任务上下文读取自己的精确 Task ID；定时前核对 mission 的 `worker_task_id`，创建/更新时显式绑定自身，创建后按 automation ID 读回目标并再次核对；每次唤醒还会复核一次；
 - 自己处理网络恢复、规则复核、重试、候选替换和用户修复；
 - Chrome/网络失败采用“任务级持续、单次唤醒有界”的恢复：同一轮最多执行配置内的诊断与重试，仍失败则用同一个 Heartbeat 按 `5/10/20/40/60` 分钟退避并带少量浮动继续复查；连续相同故障进入静默恢复，避免重复提醒。恢复后先重验账号和页面，再从原剩余目标继续，不补发突刺；提交结果不确定的同一动作永不自动重试；

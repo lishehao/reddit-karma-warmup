@@ -8,6 +8,20 @@ Read `operation-defaults.json.chrome_command_runtime`. Every `node_repl` cell th
 
 The ordinary `node_repl` default of `30000 ms` is not a valid Chrome operation budget on a machine where the browser client itself has a roughly 30-second control or telemetry delay. A browser command that returns successfully after the configured `slow_success_threshold_ms` is slow success, not a timeout, disconnect, page failure, or account risk.
 
+## Native Chrome Plugin Alignment
+
+Follow the installed Chrome control Skill and the browser's emitted
+documentation. Reuse existing browser and tab bindings until an explicit
+disconnect or intentional tab switch. If the tab is already at the desired URL,
+do not call `goto` with the same URL merely to preflight; use a targeted state
+check or reload only when a reload is intentionally required.
+
+After navigation, clicking, scrolling, typing, or another interaction, collect
+the cheapest state check that answers the next decision. Prefer one fresh DOM
+snapshot when locator ground truth is needed, one screenshot when visual state
+matters, or one bounded read-only projection when a small structured fact is
+enough. Do not request DOM and screenshot by default.
+
 ## One Boundary Command Per Cell
 
 Use at most `browser_boundary_commands_per_cell` awaited browser-boundary command in one `node_repl` cell. Local string parsing, hashing, scoring, and use of a previously stored snapshot may share a cell because they do not cross the browser boundary.

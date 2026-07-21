@@ -56,6 +56,8 @@ required = {
         "classify `ambient_network_degraded`",
         "optional latency optimization, not a Skill dependency",
         "Classify `page_control_partial` only when one atomic command receives no acknowledgement after the full outer timeout",
+        "After navigation, clicking, scrolling, typing, or another interaction, collect",
+        "Do not request DOM and screenshot by default",
         "Controlled Text Inputs",
         "preserve `node_id` as a string",
         "shadowRoot.activeElement",
@@ -92,6 +94,7 @@ if README.exists():
         "三次浏览器调用完成首次创建",
         "外层超时统一为 120 秒",
         "20–60 秒后成功返回属于慢成功",
+        "DOM snapshot、截图和 targeted projection 不默认叠加",
     ]
 
 for relative, needles in required.items():

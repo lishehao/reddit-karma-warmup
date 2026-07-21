@@ -25,6 +25,8 @@ require(ROOT / "SKILL.md", [
 
 require(ROOT / "references" / "runtime-and-setup.md", [
     "Do not create, update, or delete a bootstrap test Heartbeat",
+    "DOM snapshot, screenshot, or a bounded read-only",
+    "chrome_content_channel_timeout",
     "BOOTSTRAP_SUCCESS_OUTPUT_EXACT=true",
     "你希望这个 Reddit 账号往什么方向运营，先运营多久？",
     "方向：指账号接下来主要参与的主题范围",
@@ -53,6 +55,8 @@ if README.exists():
     require(README, [
         "只返回 README 规定的“运营方向 + 运营时长”提问",
         "Bootstrap 不创建测试 Heartbeat",
+        "账号预检还需要一个最便宜的页面状态证明",
+        "chrome_content_channel_timeout",
         "首次 Bootstrap 成功时只返回",
         "关机、休眠、关闭 Chrome 或断网会影响后续轮次",
         "健康 Bootstrap 提问后，用户回复“继续”",

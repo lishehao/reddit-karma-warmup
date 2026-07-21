@@ -28,13 +28,23 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 ## Read-Only Preflight
 
 1. Connect/reconnect Chrome control.
-2. Open Reddit read-only and confirm the visible account.
+2. Open Reddit read-only and confirm the visible account. Prefer an already-open
+   Reddit tab selected by `openTabs()` and `claimTab()`. URL/title metadata proves
+   only extension and tab reachability; the account proof requires one cheapest
+   page-state surface: DOM snapshot, screenshot, or a bounded read-only
+   projection. Do not require both DOM and screenshot by default.
 3. Confirm persistent task list/read/send/create, rename, and archive/unarchive capability without creating operation tasks yet. Confirm the create schema exposes returned identifier type and host-aware read/send fields when the host supports them.
 4. Confirm from the available automation tool/schema that recurring Heartbeat create/update/read/delete, explicit `targetThreadId`, and exact-automation target readback are callable. Do not create, update, or delete a bootstrap test Heartbeat or smoke-probe automation. Hidden `next_run_at` is handled by the first real worker timer as `created_unreadable`; an unreadable target binding is not verified and cannot schedule continuation.
 5. Read real local time/timezone and UTC.
 6. Detect available task model choices when the host exposes them. Select the first supported canonical fallback pair; if availability is not queryable, let new-task creation attempt the chain in order. Record the actual selected pair internally and do not expose it in the healthy Bootstrap prompt.
 
 If a required item needs user repair, remain `Reddit 启动台`, persist `bootstrap_state=BOOTSTRAP_REPAIR_REQUIRED`, and request only that repair. In this state, `继续` rechecks only the missing items and never dispatches an operation mission.
+
+If browser metadata succeeds but every page-state surface times out after the
+configured Chrome outer budget, record `chrome_content_channel_timeout`. Do not
+report Chrome disconnected, target tab missing, Reddit login failure, or account
+risk. Ask for one concrete Chrome/plugin repair or later recheck and stay in
+`BOOTSTRAP_REPAIR_REQUIRED`.
 
 When healthy, load `account-direction.md` before switching to the distributor. Resolve the exact visible Reddit account's user-owned direction file under `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/`, but keep this preflight state internal.
 

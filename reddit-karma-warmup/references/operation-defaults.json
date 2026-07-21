@@ -104,8 +104,16 @@
   },
   "chrome_command_runtime": {
     "outer_timeout_ms": 120000,
+    "metadata_timeout_ms": 30000,
     "locator_action_timeout_ms": 90000,
-    "browser_boundary_commands_per_cell": 1,
+    "blocking_page_commands_per_cell": 1,
+    "metadata_commands_per_cell": 4,
+    "metadata_allowed_operations": [
+      "openTabs",
+      "claimTab",
+      "url",
+      "title"
+    ],
     "slow_success_threshold_ms": 20000,
     "ambient_network_disable_env": "BROWSER_USE_DISABLE_AMBIENT_NETWORK",
     "ambient_network_disable_value": "1",

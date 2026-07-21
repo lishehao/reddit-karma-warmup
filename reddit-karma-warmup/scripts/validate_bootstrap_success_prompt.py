@@ -21,12 +21,19 @@ errors: list[str] = []
 require(ROOT / "SKILL.md", [
     "Never create a probe Heartbeat",
     "emit only the Bootstrap Success Prompt",
+    "load `references/runtime-and-setup.md`, `references/chrome-atomic-command-runtime.md`",
 ], errors)
 
 require(ROOT / "references" / "runtime-and-setup.md", [
     "Do not create, update, or delete a bootstrap test Heartbeat",
     "DOM snapshot, screenshot, or a bounded read-only",
     "chrome_content_channel_timeout",
+    "one lightweight metadata transaction under `metadata_timeout_ms`",
+    "Claim only a",
+    "provably unowned Reddit tab",
+    "user, launcher, or sibling-lane tab as fallback",
+    "at most one neutral",
+    "do not recommend reinstalling or re-enabling the extension",
     "BOOTSTRAP_SUCCESS_OUTPUT_EXACT=true",
     "你希望这个 Reddit 账号往什么方向运营，先运营多久？",
     "方向：指账号接下来主要参与的主题范围",
@@ -57,6 +64,10 @@ if README.exists():
         "Bootstrap 不创建测试 Heartbeat",
         "账号预检还需要一个最便宜的页面状态证明",
         "chrome_content_channel_timeout",
+        "绝不拿无关用户、启动台或 sibling lane 标签改道",
+        "未被其他启动台或执行台的 checkpoint 记录为占用",
+        "CHROME_CONTENT_CHANNEL_TIMEOUT",
+        "元数据已成功时不建议重装或重新启用扩展",
         "首次 Bootstrap 成功时只返回",
         "关机、休眠、关闭 Chrome 或断网会影响后续轮次",
         "健康 Bootstrap 提问后，用户回复“继续”",

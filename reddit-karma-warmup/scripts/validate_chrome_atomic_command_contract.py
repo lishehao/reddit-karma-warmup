@@ -13,8 +13,11 @@ errors: list[str] = []
 
 expected = {
     "outer_timeout_ms": 120000,
+    "metadata_timeout_ms": 30000,
     "locator_action_timeout_ms": 90000,
-    "browser_boundary_commands_per_cell": 1,
+    "blocking_page_commands_per_cell": 1,
+    "metadata_commands_per_cell": 4,
+    "metadata_allowed_operations": ["openTabs", "claimTab", "url", "title"],
     "slow_success_threshold_ms": 20000,
     "ambient_network_disable_env": "BROWSER_USE_DISABLE_AMBIENT_NETWORK",
     "ambient_network_disable_value": "1",
@@ -40,13 +43,19 @@ for key, value in expected.items():
 required = {
     "SKILL.md": [
         "chrome-atomic-command-runtime.md",
+        "Load `references/chrome-network-recovery.md` only if Chrome preflight fails",
         "First creation is three atomic calls",
         "The submit wait, one click, and readback are three separate operations",
         "A Chrome command that succeeds slowly is not a failure",
+        "pure metadata transaction uses the configured 30-second budget",
     ],
     "references/chrome-atomic-command-runtime.md": [
-        "Every `node_repl` cell that crosses the Chrome browser boundary",
-        "at most `browser_boundary_commands_per_cell` awaited browser-boundary command",
+        "Load in the Reddit launcher and every Chrome-backed Reddit execution task",
+        "pass the tool's real",
+        "A metadata-only transaction uses `metadata_timeout_ms`",
+        "at most `metadata_commands_per_cell` awaited calls",
+        "members of `metadata_allowed_operations`",
+        "at most `blocking_page_commands_per_cell` potentially",
         "never bundle:",
         "fixed wait + mutation click",
         "mutation click + result verification",
@@ -55,7 +64,8 @@ required = {
         "set `submission_uncertain`, quarantine the exact action, and never replay it",
         "classify `ambient_network_degraded`",
         "optional latency optimization, not a Skill dependency",
-        "Classify `page_control_partial` only when one atomic command receives no acknowledgement after the full outer timeout",
+        "Never implement timeout with `Promise.race()`",
+        "classify `chrome_content_channel_timeout`",
         "After navigation, clicking, scrolling, typing, or another interaction, collect",
         "Do not request DOM and screenshot by default",
         "Controlled Text Inputs",
@@ -82,6 +92,7 @@ required = {
         "verify the exact live value through the focused control's open Shadow DOM before Double-Check B",
     ],
     "references/chrome-network-recovery.md": [
+        "pure metadata transaction its configured `30 sec` budget",
         "configured `120 sec` outer timeout",
         "`slow_success`, not `page_control_partial`",
         "record `ambient_network_degraded`",
@@ -92,7 +103,8 @@ required = {
 if README.exists():
     required["../README.md"] = [
         "三次浏览器调用完成首次创建",
-        "外层超时统一为 120 秒",
+        "元数据事务使用 30 秒预算且最多 4 个调用",
+        "使用 120 秒外层预算",
         "20–60 秒后成功返回属于慢成功",
         "DOM snapshot、截图和 targeted projection 不默认叠加",
     ]
@@ -122,7 +134,9 @@ if errors:
 print(json.dumps({
     "status": "PASS",
     "outer_timeout_ms": runtime["outer_timeout_ms"],
-    "browser_boundary_commands_per_cell": runtime["browser_boundary_commands_per_cell"],
+    "metadata_timeout_ms": runtime["metadata_timeout_ms"],
+    "blocking_page_commands_per_cell": runtime["blocking_page_commands_per_cell"],
+    "metadata_commands_per_cell": runtime["metadata_commands_per_cell"],
     "ambient_network_flag_required": runtime["ambient_network_flag_required"],
     "mutation_shape": "WAIT_THEN_CLICK_ONLY_THEN_READBACK",
     "controlled_input_shape": "FRESH_DOM_CUA_THEN_SHADOW_AWARE_LIVE_VALUE",

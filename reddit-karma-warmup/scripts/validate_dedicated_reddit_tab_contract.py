@@ -18,7 +18,7 @@ required = {
         "one persistent dedicated Reddit primary tab",
         "First creation is three atomic calls",
         "120-second outer command contract",
-        "page-side script navigation and another task's tab are forbidden",
+        "Page-side script navigation and another task's tab are forbidden",
         "close its tab",
     ],
     ROOT / "references" / "orchestration-core.md": [
@@ -56,7 +56,8 @@ if README.exists():
         "一个专属、持久化的 Reddit 主标签",
         "三次浏览器调用完成首次创建",
         "第二次只执行 `tab.goto(...)`",
-        "外层超时统一为 120 秒",
+        "元数据事务使用 30 秒预算且最多 4 个调用",
+        "使用 120 秒外层预算",
         "20–60 秒后成功返回属于慢成功",
         "非终态以 `handoff` 保留",
     ]

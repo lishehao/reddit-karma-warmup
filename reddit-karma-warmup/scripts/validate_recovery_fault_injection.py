@@ -53,10 +53,17 @@ cases = [
         "validate_chrome_atomic_command_contract.py",
     ),
     inject_and_expect_failure(
-        "chrome_boundary_bundle_enabled",
+        "blocking_page_bundle_enabled",
         "references/operation-defaults.json",
-        '"browser_boundary_commands_per_cell": 1',
-        '"browser_boundary_commands_per_cell": 3',
+        '"blocking_page_commands_per_cell": 1',
+        '"blocking_page_commands_per_cell": 3',
+        "validate_chrome_atomic_command_contract.py",
+    ),
+    inject_and_expect_failure(
+        "metadata_transaction_unbounded",
+        "references/operation-defaults.json",
+        '"metadata_commands_per_cell": 4',
+        '"metadata_commands_per_cell": 99',
         "validate_chrome_atomic_command_contract.py",
     ),
     inject_and_expect_failure(

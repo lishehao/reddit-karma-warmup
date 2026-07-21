@@ -1,12 +1,33 @@
 # Chrome Atomic Command Runtime
 
-Load in every Chrome-backed Reddit execution task before the first page command. This reference owns browser command granularity and outer timeout budgets; `chrome-network-recovery.md` owns failures after these rules are applied.
+Load in the Reddit launcher and every Chrome-backed Reddit execution task before
+the first page command. The installed Chrome Plugin is the transport authority:
+initialize its runtime once per fresh Node session, reuse `agent.browsers` when
+present, select Chrome once, read its full documentation once, and reuse the
+browser binding. This reference adds Reddit-specific command
+granularity and timeout budgets; `chrome-network-recovery.md` owns failures after
+these rules are applied.
 
 ## Canonical Budget
 
-Read `operation-defaults.json.chrome_command_runtime`. Every `node_repl` cell that crosses the Chrome browser boundary must set the tool's outer `timeout_ms` to `outer_timeout_ms`. A locator action may additionally set its supported inner `timeoutMs` to `locator_action_timeout_ms`.
+Read `operation-defaults.json.chrome_command_runtime` and pass the tool's real
+`timeout_ms` on every Chrome cell:
 
-The ordinary `node_repl` default of `30000 ms` is not a valid Chrome operation budget on a machine where the browser client itself has a roughly 30-second control or telemetry delay. A browser command that returns successfully after the configured `slow_success_threshold_ms` is slow success, not a timeout, disconnect, page failure, or account risk.
+- A metadata-only transaction uses `metadata_timeout_ms`.
+- Navigation, DOM/screenshot/evaluate/projection reads, locator work, CUA,
+  interactions, and mutations use `outer_timeout_ms`.
+- A locator action may additionally set its supported inner `timeoutMs` to
+  `locator_action_timeout_ms`.
+
+Never implement timeout with `Promise.race()` or another wrapper that leaves the
+underlying Chrome request running after the cell ends.
+
+The ordinary `node_repl` default of `30000 ms` is the explicit metadata budget,
+but it is not a valid navigation, content-read, interaction, or mutation budget
+on a machine where the browser client itself has a roughly 30-second control or
+telemetry delay. A browser command that returns successfully after the configured
+`slow_success_threshold_ms` is slow success, not a timeout, disconnect, page
+failure, or account risk.
 
 ## Native Chrome Plugin Alignment
 
@@ -22,11 +43,23 @@ snapshot when locator ground truth is needed, one screenshot when visual state
 matters, or one bounded read-only projection when a small structured fact is
 enough. Do not request DOM and screenshot by default.
 
-## One Boundary Command Per Cell
+## Metadata Transaction And One Blocking Command
 
-Use at most `browser_boundary_commands_per_cell` awaited browser-boundary command in one `node_repl` cell. Local string parsing, hashing, scoring, and use of a previously stored snapshot may share a cell because they do not cross the browser boundary.
+The native Chrome Plugin keeps browser binding and tab binding separate. A
+metadata-only cell may use at most `metadata_commands_per_cell` awaited calls,
+and only members of `metadata_allowed_operations`: `openTabs`, exact-object
+`claimTab`, `url`, and `title`. The cell may select locally between calls. It may
+not navigate, read page content, take a screenshot, evaluate the page, locate a
+control, use CUA, click, type, submit, or finalize.
 
-Browser-boundary commands include navigation, DOM/screenshot/evaluate reads, locator reads, clicks, fills, typing, keypresses, scrolling, tab claiming, and finalization. In particular, never bundle:
+All other cells use at most `blocking_page_commands_per_cell` potentially
+blocking page or action command. Local string parsing, hashing, scoring, and use
+of a previously stored snapshot may share a cell because they do not cross the
+browser boundary.
+
+Blocking commands include navigation, DOM/screenshot/evaluate/projection reads,
+locator reads/actions, clicks, fills, typing, keypresses, scrolling, tab
+creation, and finalization. In particular, never bundle:
 
 - `goto + DOM read`;
 - `snapshot + locator count + action`;
@@ -35,7 +68,9 @@ Browser-boundary commands include navigation, DOM/screenshot/evaluate reads, loc
 - fixed wait + mutation click;
 - mutation click + result verification.
 
-Cheap `url()` or `title()` metadata may be read only when needed, but never use their speed to justify bundling a slow page command or mutation in the same cell.
+The metadata exception is a simplification, not permission to combine a claim
+with DOM/screenshot/evaluate or a mutation. Cheap URL/title success proves only
+metadata reachability.
 
 ## Stable Sequences
 
@@ -91,4 +126,12 @@ The bundled Chrome client may emit `Statsig` or `ab.chatgpt.com` timeout logs wh
 
 `BROWSER_USE_DISABLE_AMBIENT_NETWORK=1` under `[mcp_servers.node_repl.env]` is an optional latency optimization, not a Skill dependency. It requires a fresh Node REPL/Codex process to take effect. Never stop a healthy mission merely because this flag is absent; the atomic timeout contract must remain sufficient.
 
-Classify `page_control_partial` only when one atomic command receives no acknowledgement after the full outer timeout or the control transport explicitly fails. An internal locator deadline with healthy visible DOM/page projection is `locator_backend_deadline`, not page-control failure. A successful 20-60 second command is evidence that page control remains usable.
+Classify `page_control_partial` only when a metadata/tab-binding command receives
+no acknowledgement after its configured budget or the control transport
+explicitly fails. When metadata and tab claim succeed but a DOM, screenshot,
+evaluate, or projection read receives no acknowledgement after the full outer
+timeout, classify `chrome_content_channel_timeout`; this is not browser
+disconnect, missing tab, Reddit login failure, or account risk. An internal
+locator deadline with healthy visible DOM/page projection is
+`locator_backend_deadline`, not page-control failure. A successful 20-60 second
+command is evidence that page control remains usable.

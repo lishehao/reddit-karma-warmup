@@ -27,24 +27,66 @@ Use repository root `README.md` and the public HTTPS archive. Compare `manifest.
 
 ## Read-Only Preflight
 
-1. Connect/reconnect Chrome control.
-2. Open Reddit read-only and confirm the visible account. Prefer an already-open
-   Reddit tab selected by `openTabs()` and `claimTab()`. URL/title metadata proves
-   only extension and tab reachability; the account proof requires one cheapest
-   page-state surface: DOM snapshot, screenshot, or a bounded read-only
-   projection. Do not require both DOM and screenshot by default.
-3. Confirm persistent task list/read/send/create, rename, and archive/unarchive capability without creating operation tasks yet. Confirm the create schema exposes returned identifier type and host-aware read/send fields when the host supports them.
-4. Confirm from the available automation tool/schema that recurring Heartbeat create/update/read/delete, explicit `targetThreadId`, and exact-automation target readback are callable. Do not create, update, or delete a bootstrap test Heartbeat or smoke-probe automation. Hidden `next_run_at` is handled by the first real worker timer as `created_unreadable`; an unreadable target binding is not verified and cannot schedule continuation.
-5. Read real local time/timezone and UTC.
-6. Detect available task model choices when the host exposes them. Select the first supported canonical fallback pair; if availability is not queryable, let new-task creation attempt the chain in order. Record the actual selected pair internally and do not expose it in the healthy Bootstrap prompt.
+Before the first Chrome call, load `chrome-atomic-command-runtime.md` and follow
+the installed Chrome Plugin as the transport authority. Initialize its browser
+runtime once per fresh Node session, reuse an existing `agent.browsers` runtime,
+select the explicit Chrome extension browser once, read the full Chrome
+documentation once, and reuse that browser binding. A new turn, a stale
+tab, an empty tab list, or a page timeout does not by itself justify selecting
+Chrome again. Only an explicit browser-disconnected result invalidates the
+browser binding; a real kernel reset creates a fresh Node session and therefore
+requires normal one-time initialization again.
+
+Use this preflight sequence:
+
+1. Run one lightweight metadata transaction under `metadata_timeout_ms`.
+   `openTabs()` may be followed by local selection, exact-object `claimTab()`,
+   `url()`, and `title()` in the same metadata-only cell, up to
+   `metadata_commands_per_cell`. Never guess a tab ID.
+2. Prefer a currently open Reddit tab whose URL/title/recency identify it, but
+   first exclude every exact tab ID recorded in the available launcher/lane
+   checkpoints as another task's primary or disposable tab. Claim only a
+   provably unowned Reddit tab. If none exists, create one disposable
+   launcher-owned tab and navigate it in separate calls. If tab creation fails
+   because the current window cannot create/group a tab, ask the user to open
+   Reddit in Chrome; never navigate, close, inspect, or repurpose an unrelated
+   user, launcher, or sibling-lane tab as fallback.
+3. Open Reddit read-only and confirm the visible account with exactly one
+   cheapest page-state surface: DOM snapshot, screenshot, or a bounded read-only
+   projection. This content read is the only blocking page command in its cell
+   and uses `outer_timeout_ms`. Do not require both DOM and screenshot by
+   default. URL/title metadata proves only extension and tab reachability and
+   never proves the account.
+4. Preserve a user-opened Reddit tab. Close only a disposable tab created by
+   this launcher, using the installed Chrome Plugin's cleanup contract. Do not
+   retain a worker-style primary tab from preflight.
+5. Confirm persistent task list/read/send/create, rename, and archive/unarchive capability without creating operation tasks yet. Confirm the create schema exposes returned identifier type and host-aware read/send fields when the host supports them.
+6. Confirm from the available automation tool/schema that recurring Heartbeat create/update/read/delete, explicit `targetThreadId`, and exact-automation target readback are callable. Do not create, update, or delete a bootstrap test Heartbeat or smoke-probe automation. Hidden `next_run_at` is handled by the first real worker timer as `created_unreadable`; an unreadable target binding is not verified and cannot schedule continuation.
+7. Read real local time/timezone and UTC.
+8. Detect available task model choices when the host exposes them. Select the first supported canonical fallback pair; if availability is not queryable, let new-task creation attempt the chain in order. Record the actual selected pair internally and do not expose it in the healthy Bootstrap prompt.
 
 If a required item needs user repair, remain `Reddit 启动台`, persist `bootstrap_state=BOOTSTRAP_REPAIR_REQUIRED`, and request only that repair. In this state, `继续` rechecks only the missing items and never dispatches an operation mission.
 
-If browser metadata succeeds but every page-state surface times out after the
-configured Chrome outer budget, record `chrome_content_channel_timeout`. Do not
-report Chrome disconnected, target tab missing, Reddit login failure, or account
-risk. Ask for one concrete Chrome/plugin repair or later recheck and stay in
+If `openTabs()`, exact-object `claimTab()`, URL, and title succeed but the one
+chosen DOM/screenshot/projection read times out after the full outer budget,
+record the four launcher facts `CHROME_METADATA_HEALTHY`,
+`CHROME_TAB_CLAIMED`, `CHROME_CONTENT_CHANNEL_TIMEOUT`, and
+`REDDIT_PAGE_UNVERIFIED`; the canonical error class is
+`chrome_content_channel_timeout`. Do not report Chrome disconnected, target tab missing,
+Reddit login failure, or account risk. Load `chrome-network-recovery.md` and, only
+while there is no draft, mutation, or uncertain submit, run at most one neutral
+HTTPS content probe in a disposable launcher-owned tab. Reddit failing while the
+neutral content read works scopes the fault to Reddit/site content; both content
+reads failing scopes it to the browser content channel or network path. A
+healthy metadata response means the native Chrome extension setup check already
+passed, so do not recommend reinstalling or re-enabling the extension unless an
+explicit extension/native-messaging/disconnected error later appears. Request
+one evidence-matched repair or later recheck and stay in
 `BOOTSTRAP_REPAIR_REQUIRED`.
+
+Use the tool's real `timeout_ms`; never wrap browser work in `Promise.race()` or
+another model-side pseudo-timeout, because it does not cancel the underlying
+Chrome request and can leave later reads blocked.
 
 When healthy, load `account-direction.md` before switching to the distributor. Resolve the exact visible Reddit account's user-owned direction file under `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/`, but keep this preflight state internal.
 

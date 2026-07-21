@@ -45,6 +45,7 @@ assert runtime["unverified_override_is_success"] is False
 
 documents = {
     "SKILL.md": read("SKILL.md"),
+    "agents/openai.yaml": read("agents/openai.yaml"),
     "model-runtime.md": read("references/model-runtime.md"),
     "runtime-and-setup.md": read("references/runtime-and-setup.md"),
     "thread-supervision-runtime.md": read("references/thread-supervision-runtime.md"),
@@ -64,6 +65,9 @@ required = (
     "send the new mission with a Luna/high per-turn override",
     "never infer confirmation from message acceptance",
     "Model choice is not a Chrome-recovery mechanism",
+    "request gpt-5.6-luna/high for the distributor",
+    "only when it is explicitly confirmed non-Luna",
+    "Never create a duplicate from unknown model state",
 )
 missing = [item for item in required if item not in joined]
 assert not missing, missing

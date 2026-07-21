@@ -34,6 +34,9 @@ require(ROOT / "references" / "scheduler-and-heartbeats.md", [
     "target_binding_unverified",
     "one_active_heartbeat_per_mission=true",
     "current_task_id == self_task_id == worker_task_id == Heartbeat.targetThreadId",
+    "trigger_status=ON_TIME_TOLERANCE",
+    "trigger_status=EARLY_OUTSIDE_TOLERANCE",
+    "trigger_status=LATE_OUTSIDE_TOLERANCE",
     "delete that known misbound timer first",
     "never inspect further, pause, repair, or delete it",
 ], errors)
@@ -85,5 +88,6 @@ print(json.dumps({
     "unknown_automation_id": "NEVER_TOUCH",
     "existing_own_heartbeat": "UPDATE_NOT_DUPLICATE",
     "reused_task_new_mission": "RETIRE_VERIFIED_STALE_OWN_TIMER",
+    "wake_within_five_minutes": "CONTINUE_WITHOUT_RESCHEDULE",
     "terminal": "DELETE_BEFORE_REPORT",
 }, ensure_ascii=False, sort_keys=True))

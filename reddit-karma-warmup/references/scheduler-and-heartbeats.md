@@ -85,12 +85,39 @@ On every wake:
 
 1. Read the exact current task ID from host context and load the Heartbeat-carried checkpoint path before any Reddit or timer mutation. Require checkpoint account/lane/task/mission identity to match `current_task_id == self_task_id == worker_task_id == Heartbeat.targetThreadId`. This wake-time check is mandatory even when creation previously passed.
 2. Reconstruct read-only and repair the checkpoint atomically if it is missing or malformed; do not mutate Reddit until prior submission certainty and all remaining targets are known.
-3. Read actual local time/timezone and UTC; compare with intended schedule.
+3. Read actual local time/timezone and UTC; compare machine UTC with the intended UTC schedule under **Heartbeat Trigger Tolerance** below.
 4. Reconnect Chrome or reclaim only this task's tab.
 5. If the slot is due, resume preserved action and qualified-read remainders; only browsing may also resume an explicit-vote remainder. Continue applicable targets toward zero. A runtime boundary may yield an interim checkpoint, but does not complete or reset the slot.
 6. If not due, record `not_due`; do not manufacture activity.
 7. Recompute the next due time from exact remaining action/read targets and, only for browsing, any explicit-vote target, plus current batch remainder, duration, and live conditions; unfinished targets receive the next permissible continuation rather than a fresh slot.
 8. Atomically persist the reconciled checkpoint before updating only this task's recorded timer. When mission fields, cadence, or cutoff changed, rerun the complete Self-Binding Transaction.
+
+## Heartbeat Trigger Tolerance
+
+Resolve `tolerance_seconds` only from
+`scheduler.heartbeat_trigger_tolerance_seconds` in `operation-defaults.json`.
+Compute `trigger_delta_seconds = actual_wake_utc - intended_due_utc` with machine
+timestamps; never estimate from prose or displayed wall-clock labels.
+
+- If `abs(trigger_delta_seconds) <= tolerance_seconds`, classify
+  `trigger_status=ON_TIME_TOLERANCE`, treat the slot as due, and continue the
+  ordinary Wake Flow immediately. Do not notify, reschedule, downgrade, repair
+  the Heartbeat, or alter counters merely because it fired up to five minutes
+  early or late.
+- If `trigger_delta_seconds < -tolerance_seconds`, classify
+  `trigger_status=EARLY_OUTSIDE_TOLERANCE`, record `not_due`, perform no Reddit
+  action, and preserve/update the same self-owned Heartbeat for the intended
+  due time.
+- If `trigger_delta_seconds > tolerance_seconds`, classify
+  `trigger_status=LATE_OUTSIDE_TOLERANCE`. Continue the due slot when still
+  inside the mission deadline, but recompute future scheduling from the actual
+  time and remaining work. Never create a catch-up burst or replay a missed
+  slot.
+
+The tolerance is an execution acceptance window, not random pacing, a platform
+guarantee, or permission to extend `operation_stop_at`. A wake at or after the
+mission deadline follows terminal cleanup even if it is within tolerance of a
+planned action time.
 
 When the checkpoint says `recovery_status=recovering|quiet_recovery`, normal lane cadence does not overwrite `next_recovery_at`. Resolve it from `operation-defaults.json.chrome_recovery.recovery_backoff_minutes`, bounded jitter, and any later `Retry-After`, then clamp it to `operation_stop_at`; a deadline-clamped wake performs cleanup only. Persist local and UTC values before updating the same Heartbeat. A healthy wake returns to normal cadence only after the Chrome recovery contract's readable-proof and account-recheck threshold passes.
 

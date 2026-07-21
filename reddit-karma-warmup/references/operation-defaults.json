@@ -165,6 +165,7 @@
   },
   "scheduler": {
     "first_mutation_phase_step_minutes": 10,
+    "heartbeat_trigger_tolerance_seconds": 300,
     "phase_jitter_minutes": [2, 4]
   },
   "voice": {

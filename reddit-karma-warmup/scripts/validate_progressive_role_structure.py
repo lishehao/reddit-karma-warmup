@@ -83,6 +83,8 @@ if not defaults["voice"]["percentage_quota_is_forbidden"]:
     errors.append("voice_percentage_quota_allowed")
 if defaults["scheduler"].get("first_mutation_phase_step_minutes") != 10:
     errors.append("scheduler_phase_default")
+if defaults["scheduler"].get("heartbeat_trigger_tolerance_seconds") != 300:
+    errors.append("heartbeat_trigger_tolerance_default")
 if defaults["posts"].get("research_cadence_minutes") != [120, 180]:
     errors.append("post_research_cadence_default")
 

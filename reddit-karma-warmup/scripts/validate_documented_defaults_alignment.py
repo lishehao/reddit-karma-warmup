@@ -28,6 +28,7 @@ def require(fragment: str, label: str) -> None:
 duration = defaults["default_duration_hours"]
 phase = defaults["scheduler"]["first_mutation_phase_step_minutes"]
 jitter = defaults["scheduler"]["phase_jitter_minutes"]
+tolerance = defaults["scheduler"]["heartbeat_trigger_tolerance_seconds"]
 pacing = defaults["interaction_pacing"]
 comments = defaults["comments"]
 votes = defaults["votes"]
@@ -41,6 +42,7 @@ chain = defaults["model_runtime"]["fallback_chain"]
 require(f"默认 `{duration} 小时`", "duration")
 require(f"`0/{phase}/{phase * 2}/{phase * 3}...` 分钟", "phase")
 require(f"`{jitter[0]}-{jitter[1]}` 分钟浮动", "phase_jitter")
+require(f"`±{tolerance // 60} 分钟`", "heartbeat_trigger_tolerance")
 require(f"至少停留 `{pacing['candidate_dwell_min_seconds']}` 秒", "candidate_dwell")
 require(f"至少 `{pacing['comment_readable_to_submit_min_seconds']}` 秒", "readable_to_submit")
 require(f"`{pacing['pre_submit_pause_seconds'][0]}-{pacing['pre_submit_pause_seconds'][1]}` 秒", "pre_submit")

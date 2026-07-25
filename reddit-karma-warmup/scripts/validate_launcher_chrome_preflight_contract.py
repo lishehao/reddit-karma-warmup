@@ -75,6 +75,10 @@ require("references/runtime-and-setup.md", [
     "at most one neutral",
     "do not recommend reinstalling or re-enabling the extension",
     "never wrap browser work in `Promise.race()`",
+    "current Chrome Skill root",
+    "STALE_CHROME_RUNTIME_PATH",
+    "Never reuse a",
+    "do not report Chrome or Reddit login failure",
 ])
 require("references/chrome-atomic-command-runtime.md", [
     "metadata-only cell may use at most `metadata_commands_per_cell`",
@@ -83,12 +87,19 @@ require("references/chrome-atomic-command-runtime.md", [
     "not permission to combine a claim",
     "Never implement timeout with `Promise.race()`",
     "reuse `agent.browsers` when",
+    "Runtime Entry Resolution",
+    "current Chrome Skill root",
+    "Never persist, copy forward, or reconstruct",
+    "STALE_CHROME_RUNTIME_PATH",
+    "not Chrome disconnection, Reddit logout, or",
 ])
 require("references/chrome-network-recovery.md", [
     "exact-object claim or URL/title metadata times out, classify `page_control_partial`",
     "classify `chrome_content_channel_timeout`",
     "do not cycle through DOM, screenshot, and evaluate",
     "content-read timeout alone never",
+    "STALE_CHROME_RUNTIME_PATH",
+    "Do not retry an old cache path",
 ])
 
 if README.exists():

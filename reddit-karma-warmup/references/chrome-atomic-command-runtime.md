@@ -8,6 +8,36 @@ browser binding. This reference adds Reddit-specific command
 granularity and timeout budgets; `chrome-network-recovery.md` owns failures after
 these rules are applied.
 
+## Runtime Entry Resolution
+
+The Chrome client path belongs to the **currently loaded Chrome control Skill**,
+not to a mission, checkpoint, prior turn, or plugin-cache version. At the start
+of every fresh Node session, resolve the current Chrome Skill root exposed to
+that task, verify its `scripts/browser-client.mjs` entry exists, then initialize
+once:
+
+```js
+const clientPath = "<CURRENT_CHROME_SKILL_ROOT>/scripts/browser-client.mjs";
+if (globalThis.agent?.browsers == null) {
+  const { setupBrowserRuntime } = await import(clientPath);
+  await setupBrowserRuntime({ globals: globalThis });
+}
+```
+
+Never persist, copy forward, or reconstruct a versioned plugin-cache path. Do
+not choose a cache version by sorting directories, and do not insert the
+control-Skill subdirectory between the plugin root and `scripts/`. A missing
+`globalThis.agent` or `globalThis.chrome` at the start of a later Heartbeat is
+normal for a fresh session; it is not Chrome disconnection, Reddit logout, or
+account risk.
+
+If the current Skill root has no entry file, record
+`STALE_CHROME_RUNTIME_PATH` with the attempted path, stop browser work for that
+wake, and reload the current Chrome control Skill before the next attempt. Do
+not retry an old path, switch browser surfaces, inspect credentials, or claim a
+tab. Only after runtime initialization and an explicit extension/disconnect
+error may the normal control-channel recovery path apply.
+
 ## Canonical Budget
 
 Read `operation-defaults.json.chrome_command_runtime` and pass the tool's real

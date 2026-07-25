@@ -4,6 +4,14 @@ Load this reference only when Chrome control, navigation, or page loading fails.
 
 Always follow the installed Chrome control Skill. For extension/native-messaging/discovery failures, load its Chrome/bootstrap troubleshooting documentation before resetting any runtime or claiming Chrome is unavailable.
 
+Before browser selection, distinguish a missing current runtime entry from an
+extension failure. If the browser client import path came from a prior task or
+plugin-cache version, classify it as `STALE_CHROME_RUNTIME_PATH`: resolve the
+current Chrome Skill root, verify `scripts/browser-client.mjs`, then initialize
+once. Do not retry an old cache path or call it Chrome disconnected, a missing
+tab, Reddit login failure, or account risk. This setup failure has no browser
+or tab binding to recover.
+
 ## Navigation And Tab Ownership
 
 - Use `tab.goto(url)` for a known destination and a DOM-supported link click plus navigation wait for an in-page transition. Page-side evaluation is read-only and is not a navigation fallback.

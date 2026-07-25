@@ -82,7 +82,7 @@ Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是运行依
 4. Automation/Heartbeat 工具 schema 支持 repeat-on、显式 `targetThreadId`，并能按返回的 automation ID 读回目标任务 ID。Bootstrap 不创建测试 Heartbeat；第一个真实执行台负责首次创建和读回验证。
 5. 能读取真实当地时间、时区、UTC offset 和 UTC。
 
-Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browser、Playwright 和普通 Web Search 不能替代。屏幕录制、系统音频录制和辅助功能权限不是本 Skill 依赖。预检复用原生 Plugin 的 Chrome browser binding；空列表、旧标签或页面超时不会重新选择浏览器。纯 `openTabs/claimTab/URL/title` 元数据事务可在一个 30 秒调用内完成；导航、DOM/截图/evaluate、交互和 mutation 各自在单独调用中使用 120 秒预算。现成 Reddit 标签只有在其精确 ID 未被其他启动台或执行台的 checkpoint 记录为占用时才可认领。若当前窗口不支持创建/分组新标签且没有可证明未占用的 Reddit 标签，启动台请用户手动打开 Reddit，绝不拿无关用户、启动台或 sibling lane 标签改道。
+Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browser、Playwright 和普通 Web Search 不能替代。屏幕录制、系统音频录制和辅助功能权限不是本 Skill 依赖。每个 fresh Node session 必须从**当前加载的 Chrome Skill 根目录**解析并验证 `scripts/browser-client.mjs`，绝不沿用任务、checkpoint 或旧插件缓存版本里的路径；入口缺失是 `STALE_CHROME_RUNTIME_PATH`，不是 Chrome/Reddit 登录失败。预检复用原生 Plugin 的 Chrome browser binding；空列表、旧标签或页面超时不会重新选择浏览器。纯 `openTabs/claimTab/URL/title` 元数据事务可在一个 30 秒调用内完成；导航、DOM/截图/evaluate、交互和 mutation 各自在单独调用中使用 120 秒预算。现成 Reddit 标签只有在其精确 ID 未被其他启动台或执行台的 checkpoint 记录为占用时才可认领。若当前窗口不支持创建/分组新标签且没有可证明未占用的 Reddit 标签，启动台请用户手动打开 Reddit，绝不拿无关用户、启动台或 sibling lane 标签改道。
 
 若 `openTabs()`、精确 `claimTab()`、URL/title 成功，但一次最便宜的 DOM、截图或 read-only projection 在完整 Chrome 页面预算后仍无响应，记录 `CHROME_METADATA_HEALTHY + CHROME_TAB_CLAIMED + CHROME_CONTENT_CHANNEL_TIMEOUT + REDDIT_PAGE_UNVERIFIED`，canonical error class 为 `chrome_content_channel_timeout`。这不是 Chrome 断连、目标标签丢失、Reddit 登录失败或账号风险；无草稿/写入时最多用一个临时中性 HTTPS 内容探针区分 Reddit 路径和全局内容通道。元数据已成功时不建议重装或重新启用扩展，除非随后出现明确的 extension/native-messaging/disconnected 错误。启动台只返回一个证据匹配的修复/重检动作，并保持 `Reddit 启动台`。
 

@@ -37,6 +37,14 @@ Chrome again. Only an explicit browser-disconnected result invalidates the
 browser binding; a real kernel reset creates a fresh Node session and therefore
 requires normal one-time initialization again.
 
+Resolve `scripts/browser-client.mjs` from the **current Chrome Skill root** for
+that fresh session and verify the file before importing it. Never reuse a
+versioned plugin-cache path from a checkpoint, mission prompt, previous Node
+session, or previous Skill release. A missing previous runtime global means
+only that this is a fresh session. If the current entry file is absent, record
+`STALE_CHROME_RUNTIME_PATH`, reload the current Chrome control Skill, and keep
+this launcher in repair state; do not report Chrome or Reddit login failure.
+
 Use this preflight sequence:
 
 1. Run one lightweight metadata transaction under `metadata_timeout_ms`.

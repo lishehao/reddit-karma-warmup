@@ -54,7 +54,6 @@
     "candidate_packet_min_before_blocked": 3,
     "native_discussion_candidate_score_min": 76,
     "artifact_post_candidate_score_min": 82,
-    "post_candidate_score_min": 82,
     "rules_eligibility_score_min": 20,
     "discussion_survivor_sample_target": 15,
     "discussion_rewrite_score_min": 65,

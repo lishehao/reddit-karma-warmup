@@ -44,6 +44,8 @@ if (posts["candidate_packet_target"], posts["candidate_packet_min_before_blocked
     errors.append("candidate_packet_target")
 if (posts["native_discussion_candidate_score_min"], posts["artifact_post_candidate_score_min"]) != (76, 82):
     errors.append("mode_candidate_scores")
+if "post_candidate_score_min" in posts:
+    errors.append("obsolete_generic_post_candidate_score")
 if (posts["discussion_survivor_sample_target"], posts["discussion_score_min"], posts["discussion_rewrite_score_min"]) != (15, 75, 65):
     errors.append("discussion_coverage_scores")
 if selection["post_shortlist_limit"] != 30:

@@ -28,6 +28,9 @@ latest_user_request + intensity + style + language
 operation_started_at + operation_stop_at
 action_target + action_cap + action_verified + action_remaining
 qualified_read_target + qualified_read_verified + qualified_read_remaining
+optional posts-only post_mode + target_pool_policy + target_pool_exact_and_closed
+optional posts-only publication_target + publication_cap + publication_status
+optional posts-only candidate_packet_target + candidate_packet_verified + candidate_packet_rejections
 vote_policy + vote_cap
 optional browsing-only vote_target_mode + vote_target + upvote_count + downvote_count
 current_cluster_id + cluster_target + cluster_verified + cluster_remaining

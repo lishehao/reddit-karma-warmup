@@ -39,19 +39,19 @@ required = {
     ROOT / "references" / "posts-playbook.md": [
         "broad-to-deep funnel",
         "live deep reads",
-        "posts.post_candidate_score_min",
-        "Verified publication normally completes a one-post action target",
+        "resolved post-mode candidate gate",
+        "verified publication normally completes a one-post action target",
     ],
     ROOT / "references" / "account-direction.md": [
         "--lane comments --reference-sweep-limit 100 --limit 20",
-        "--lane posts --reference-sweep-limit 100 --limit 20",
+        "--lane posts --reference-sweep-limit 150 --limit 30",
     ],
 }
 if README.exists():
     required[README] = [
-        "评估最多 100 个匹配社区",
-        "各收到最多 20 个已过基础门槛的候选",
-        "Chrome 深查排名前 8–15 个社区",
+        "标准发帖任务评估最多 150 个匹配社区",
+        "下发最多 30 个低摩擦候选",
+        "Chrome 深查排名前 12–20 个社区",
     ]
 
 errors: list[str] = []
@@ -60,11 +60,13 @@ if selection["comment_reference_sweep_limit"] != 100:
     errors.append("comment_reference_sweep_limit")
 if selection["shortlist_limit"] != 20:
     errors.append("shortlist_limit")
+if selection["post_shortlist_limit"] != 30:
+    errors.append("post_shortlist_limit")
 if selection["traffic_floor_weekly_visitors"] != 5000:
     errors.append("traffic_floor_weekly_visitors")
-if selection["post_live_preflight_community_range"] != [8, 15]:
+if selection["post_live_preflight_community_range"] != [12, 20]:
     errors.append("post_live_preflight_community_range")
-if selection["post_initial_candidate_range"] != [12, 20]:
+if selection["post_initial_candidate_range"] != [20, 30]:
     errors.append("post_initial_candidate_range")
 for path, needles in required.items():
     body = path.read_text(encoding="utf-8")

@@ -1,6 +1,6 @@
 # Community Selection Funnel
 
-Use in `Reddit 分发台` for lane-specific reference routing, in `Reddit 评论台` for its initial community order, and in `Reddit 发帖台` for broad-to-deep post destination selection. This funnel ranks candidates; live rules and the organization denylist still control the exact action.
+Use in `Reddit 分发台` for lane-specific reference routing, in `Reddit 评论台` for its initial community order, and in `Reddit 发帖台` for broad-to-deep post destination selection. For posts, load `post-coverage-and-kpi.md` as the KPI and pool-policy authority. This funnel ranks candidates; live rules and the organization denylist still control the exact action.
 
 ## Truthful Account Focus
 
@@ -15,7 +15,7 @@ scripts/query_subreddit_profile_index.py
   --direction <confirmed pillars + mission focus>
   --lane <comments|posts>
   --reference-sweep-limit <resolved reference sweep>
-  --limit <community_selection.shortlist_limit>
+  --limit <resolved lane shortlist limit>
   --include-traffic-probes
 ```
 
@@ -44,7 +44,7 @@ Reference evidence never publishes by itself. Output:
 - `reference_rows_assessed`: up to the resolved direction/lane reference sweep retained for ranking;
 - `mission_identity_focus`;
 - `comment_shortlist`: up to `community_selection.shortlist_limit` eligible communities ordered by fit and rule friendliness; use fewer when fewer pass traffic/action gates;
-- `post_reference_shortlist`: the same configured maximum, ordered by fit and rule friendliness; use fewer when fewer pass traffic/action gates;
+- `post_reference_shortlist`: up to `community_selection.post_shortlist_limit` eligible communities ordered by fit and rule friendliness; use fewer when fewer pass traffic/action gates;
 - each row's route, traffic, friction band/reasons, matched tags, and next live gate;
 - `traffic_probe_queue`, kept outside action targets until traffic passes.
 
@@ -58,14 +58,16 @@ If the supplied shortlist produces too few passing live candidates, widen throug
 
 ## Stage C: Post Lane Deep Search
 
-When the post mission requires one verified main post, resolve `post_selection_timebox` from `posts.narrowing_timebox_minutes`, `reference_rows_assessed_target` from `posts.<intensity>.reference_sweep_target`, and `live_deep_preflight_target` from `community_selection.post_live_preflight_community_range`. The timebox is for initial selection work, not permission to stop without posting while authorized time and viable candidates remain.
+When the post mission requires one verified main post, resolve `post_selection_timebox` from `posts.narrowing_timebox_minutes`, `reference_rows_assessed_target` from `posts.<intensity>.reference_sweep_target`, `live_deep_preflight_target` from `community_selection.post_live_preflight_community_range`, and `candidate_packet_target` from `posts.candidate_packet_target`. The timebox is for initial selection work, not permission to stop without posting while authorized time and viable candidates remain.
+
+Default to `target_pool_policy=preferred_expandable`: an initial shortlist is a starting order, not a closed list. Expand through the next action-eligible reference rows after a concrete rejection. Only a user-provided `target_pool_exact_and_closed=true` stops expansion; record that exhaustion as a blocker instead of converting the publication target to zero.
 
 Do not turn the reference sweep into rapid live navigation. Use cached/reference breadth, then use Chrome for depth:
 
 1. Take the highest-ranked range from `community_selection.post_initial_candidate_range`. For K0/K1, first remove every candidate without a completed account-gate audit row.
 2. Deep-preflight the configured `community_selection.post_live_preflight_community_range` with current subreddit home/About/rules, pinned mod posts, `New`, `Hot`, `Top Month`, submit fields, account/Karma/flair requirements, posting placement, and recent same-angle repetition. A `no_public_gate_found` audit row still needs this same-day check because hidden AutoModerator gates remain possible.
 3. Search the exact proposed topic and close variants in each finalist.
-4. Draft only after one subreddit + audience + angle passes the live post gate.
+4. Build a candidate packet for every serious finalist; draft only after one subreddit + audience + angle passes the live post gate.
 5. If a candidate fails, immediately retarget to the next ranked candidate. Continue until one post is verified, the user stops, the operation deadline arrives, or a current concrete post-lane blocker survives recovery.
 
 Rank each live finalist out of `100`:
@@ -79,7 +81,7 @@ Rank each live finalist out of `100`:
 | Originality and account coherence | 0-15 | Distinct from account/team history and consistent with the truthful identity focus. |
 | Rule friendliness and moderation friction | 0-10 | Low special-placement, approval, or subjective promotion risk. |
 
-`pass` requires `posts.post_candidate_score_min`, at least `posts.rules_eligibility_score_min` on live rules and eligibility, and no mandatory conflict. Prefer the highest passing candidate, not the first merely acceptable community. If two candidates are within `community_selection.near_tie_score_margin`, prefer the lower-friction route and stronger account coherence.
+`native_discussion` pass requires `posts.native_discussion_candidate_score_min`; `artifact` pass requires `posts.artifact_post_candidate_score_min`. Both require at least `posts.rules_eligibility_score_min` on live rules and eligibility and no mandatory conflict. Prefer the highest passing candidate, not the first merely acceptable community. If two candidates are within `community_selection.near_tie_score_margin`, prefer the lower-friction route and stronger account coherence.
 
 ## Completion Evidence
 
@@ -89,6 +91,8 @@ For a one-post mission, selection is progress and the verified post is completio
 reference_rows_assessed
 live_communities_preflighted
 finalist_scores
+candidate_packets + rejection_reasons
+target_pool_policy + closed_pool_exhausted
 selected_subreddit + selected_angle
 verified_post_permalink
 remaining_post_target

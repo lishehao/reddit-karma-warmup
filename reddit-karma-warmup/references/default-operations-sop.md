@@ -6,7 +6,7 @@ Use in `Reddit 分发台` to split a direct dispatch request, and inside a lane 
 
 1. Apply the latest explicit user lane, duration, count, intensity, style, language, target pool, vote target, or cap. A vote request always selects/adds the browsing lane; it never expands a text lane. Do not ask another confirmation.
 2. Fill missing duration, intensity, and style from the top-level fields in `operation-defaults.json`, and account direction from `account-direction.md`.
-3. Broad `开始/运营` enables comments, posts, and follow-up. K0 receives a post research/preflight mission with action target/cap `0/0`. Browsing is explicit-only; presence is explicit or first-profile-baseline only.
+3. Broad `开始/运营` enables comments, posts, and follow-up. K0 receives a post research/preflight mission with action target/cap `0/0`. For K1+ posts, default to `post_mode=native_discussion`, `target_pool_policy=preferred_expandable`, a conditional `publication_target=1/publication_cap=1`, and the resolved coverage KPI. Browsing is explicit-only; presence is explicit or first-profile-baseline only.
 4. Resolve every range/default into one exact mission value before delivery: action target/cap, qualified-read target, pacing, cadence, and deadline. Resolve vote target mode, optional vote target, and hard vote cap only for browsing; every other lane receives `vote_policy=DISABLED_BY_LANE` and `vote_cap=0`.
 5. When total count and hourly rate conflict, total count plus duration controls. Report the mismatch once without blocking.
 
@@ -24,7 +24,7 @@ qualified_read_remaining == 0 or required_surface_sweep == complete
 explicit_vote_target_remaining == 0 only for a browsing mission with a user-supplied vote target
 ```
 
-If actions finish first, continue qualified lane-local reading without another text mutation. If reads finish first, continue candidate discovery toward the action target. A read target is not a maximum; additional reading is allowed while another hard objective remains. Stop short only for deadline, explicit user stop, or a current concrete blocker after bounded recovery and candidate expansion.
+If actions finish first, continue qualified lane-local reading without another text mutation. If reads finish first, continue candidate discovery toward the action target. For posts, coverage completion also requires the resolved candidate packets and exact rejection reasons. A read target is not a maximum; additional reading is allowed while another hard objective remains. Stop short only for deadline, explicit user stop, or a current concrete blocker after bounded recovery and candidate expansion.
 
 ## Browsing-Lane Voting
 
@@ -75,7 +75,7 @@ exact_role_pack + filtered target shortlist + required live gates
 requested_model + requested_reasoning_effort + actual_model_pair + model_evidence_state
 ```
 
-Comments also receive clustered-window fields. Posts receive `main_post_unlock`, `post_action_mode`, and exact posting-gate rows. Non-browsing missions also receive `vote_cap=0`, zero current vote counters, and `browse_vote_playbook=NOT_LOADED`. A traffic probe is not an action target until live traffic, action route, and account gates pass.
+Comments also receive clustered-window fields. Posts receive `main_post_unlock`, `post_action_mode`, `post_mode`, `target_pool_policy`, `target_pool_exact_and_closed`, `candidate_packet_target`, `publication_target`, `publication_cap`, and exact posting-gate rows. Non-browsing missions also receive `vote_cap=0`, zero current vote counters, and `browse_vote_playbook=NOT_LOADED`. A traffic probe is not an action target until live traffic, action route, and account gates pass.
 
 ## Later Lane Mission
 

@@ -64,14 +64,17 @@ require(
     "post_unlock_history",
 )
 require(f"最多每 24 小时 {posts['k1_rolling_24h_cap']} 篇", "k1_cap")
-require(f"评估最多 {selection['comment_reference_sweep_limit']} 个匹配社区", "reference_sweep")
-require(f"各收到最多 {selection['shortlist_limit']} 个", "shortlist")
+require(f"标准发帖任务评估最多 {posts['standard']['reference_sweep_target']} 个匹配社区", "post_reference_sweep")
+require(f"下发最多 {selection['post_shortlist_limit']} 个低摩擦候选", "post_shortlist")
 require(
     f"排名前 {selection['post_live_preflight_community_range'][0]}–{selection['post_live_preflight_community_range'][1]} 个社区",
     "post_live_preflight",
 )
 require(f"至少抽样 {posts['discussion_survivor_sample_target']} 条", "discussion_samples")
 require(f"discussion_potential_score >={posts['discussion_score_min']}", "discussion_score")
+require("preferred_expandable", "post_pool_policy")
+require("条件性 1 篇", "conditional_publication_kpi")
+require(f"{posts['candidate_packet_target']} 个候选包", "candidate_packets")
 require(f"不超过 {comments['routine_word_cap']} 个英文词", "routine_word_cap")
 require(
     f"放宽到 {voice['two_beat_word_range'][0]}–{voice['two_beat_word_range'][1]} 词",

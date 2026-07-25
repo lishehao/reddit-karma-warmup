@@ -67,7 +67,7 @@ After direction confirmation, select one or two truthful pillars as `mission_ide
 
 ```text
 scripts/query_subreddit_profile_index.py --direction <resolved pillars + mission focus> --lane comments --reference-sweep-limit 100 --limit 20 --include-traffic-probes
-scripts/query_subreddit_profile_index.py --direction <resolved pillars + mission focus> --lane posts --reference-sweep-limit 100 --limit 20 --include-traffic-probes
+scripts/query_subreddit_profile_index.py --direction <resolved pillars + mission focus> --lane posts --reference-sweep-limit 150 --limit 30 --include-traffic-probes
 ```
 
 Use `research_matches` only to summarize account-direction coverage. Keep only the relevant `comment_shortlist` or `post_reference_shortlist` plus `traffic_probe_queue` for worker dispatch:

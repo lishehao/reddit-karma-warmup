@@ -18,11 +18,11 @@ def require(path: Path, needles: list[str], errors: list[str]) -> None:
 
 errors: list[str] = []
 defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
-if defaults["posts"]["discussion_score_min"] != 80:
+if defaults["posts"]["discussion_score_min"] != 75:
     errors.append("discussion_score_min")
-if defaults["posts"]["discussion_survivor_sample_target"] != 10:
+if defaults["posts"]["discussion_survivor_sample_target"] != 15:
     errors.append("discussion_survivor_sample_target")
-if defaults["posts"]["discussion_rewrite_score_min"] != 68:
+if defaults["posts"]["discussion_rewrite_score_min"] != 65:
     errors.append("discussion_rewrite_score_min")
 
 require(ROOT / "SKILL.md", [
@@ -49,8 +49,8 @@ require(ROOT / "references" / "outbound-copy-gate.md", [
 ], errors)
 if README.exists():
     require(README, [
-        "小白也能理解",
-        "discussion_potential_score >=80",
+        "默认发帖是 `native_discussion`",
+        "discussion_potential_score >=75",
         "不能伪装新手",
     ], errors)
 
@@ -60,6 +60,6 @@ if errors:
 print(json.dumps({
     "status": "PASS",
     "default_angle": "TRUTHFUL_BEGINNER_READABLE_COMMUNITY_MEMORY",
-    "discussion_score_min": 80,
+    "discussion_score_min": 75,
     "identity": "NO_NOVICE_IMPERSONATION",
 }, ensure_ascii=False, sort_keys=True))

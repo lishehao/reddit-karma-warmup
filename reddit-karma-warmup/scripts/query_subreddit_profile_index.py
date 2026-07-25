@@ -42,11 +42,17 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--direction", required=True, help="Account direction or profile pillars")
     parser.add_argument("--lane", choices=("all", "comments", "posts"), default="all")
-    parser.add_argument("--limit", type=int, default=12)
-    parser.add_argument("--reference-sweep-limit", type=int, default=100)
+    parser.add_argument("--limit", type=int)
+    parser.add_argument("--reference-sweep-limit", type=int)
     parser.add_argument("--min-weekly-visitors", type=int, default=5_000)
     parser.add_argument("--include-traffic-probes", action="store_true")
     args = parser.parse_args()
+    shortlist_limit = args.limit if args.limit is not None else (30 if args.lane == "posts" else 20)
+    reference_sweep_limit = (
+        args.reference_sweep_limit
+        if args.reference_sweep_limit is not None
+        else (150 if args.lane == "posts" else 100)
+    )
 
     query_tags = set()
     for rules in (TAG_RULES["topic_tags"], TAG_RULES["audience_tags"], TAG_RULES["need_tags"]):
@@ -129,7 +135,7 @@ def main() -> int:
     passed = [item for item in action_candidates if item["traffic_state"] == "pass"]
     probes = [item for item in action_candidates if item["traffic_state"] in {"unknown", "stale"}]
     research_matches = [item for item in research_candidates if item["traffic_state"] == "pass"]
-    operating_shortlist = select_diverse(passed, args.limit)
+    operating_shortlist = select_diverse(passed, shortlist_limit)
     result = {
         "direction": args.direction,
         "lane": args.lane,
@@ -137,10 +143,10 @@ def main() -> int:
         "minimum_weekly_visitors": args.min_weekly_visitors,
         "catalog_rows_scanned": catalog_rows_scanned,
         "catalog_matches_assessed": len(candidates),
-        "reference_sweep": action_candidates[: max(0, min(args.reference_sweep_limit, 100))],
+        "reference_sweep": action_candidates[: max(0, reference_sweep_limit)],
         "operating_shortlist": operating_shortlist,
-        "traffic_probe_queue": select_diverse(probes, args.limit) if args.include_traffic_probes else [],
-        "research_matches": select_diverse(research_matches, args.limit),
+        "traffic_probe_queue": select_diverse(probes, shortlist_limit) if args.include_traffic_probes else [],
+        "research_matches": select_diverse(research_matches, shortlist_limit),
     }
     if args.lane == "comments":
         result["comment_shortlist"] = operating_shortlist

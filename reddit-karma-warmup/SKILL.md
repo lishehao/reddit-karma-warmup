@@ -49,7 +49,7 @@ Every worker loads `references/orchestration-core.md`, `references/lane-action-o
 | Role | Stable title | Additional required references | Excludes |
 |-|-|-|-|
 | comments | `Reddit 评论台` | `references/proactive-common.md`, `references/comments-playbook.md`, `references/outbound-copy-gate.md`, `references/reddit-us-voice-patterns.md` | posts, notifications, every Upvote/Downvote control |
-| posts | `Reddit 发帖台` | `references/proactive-common.md`, `references/posts-playbook.md`, `references/community-selection-funnel.md`, `references/new-account-bootstrap.md`, exact `references/posting-account-gates-audit-2026-07-14.csv` rows, `references/outbound-copy-gate.md` | comments, notifications, every Upvote/Downvote control |
+| posts | `Reddit 发帖台` | `references/proactive-common.md`, `references/posts-playbook.md`, `references/post-coverage-and-kpi.md`, `references/community-selection-funnel.md`, `references/new-account-bootstrap.md`, exact `references/posting-account-gates-audit-2026-07-14.csv` rows, `references/outbound-copy-gate.md` | comments, notifications, every Upvote/Downvote control |
 | follow-up | `Reddit 跟进台` | `references/followup-playbook.md`, `references/outbound-copy-gate.md`, `references/reddit-us-voice-patterns.md` | proactive discovery, new posts, every Upvote/Downvote control |
 | browsing | `Reddit 浏览台` | `references/browse-vote-playbook.md` | text publishing, notifications, profile changes |
 | presence | `Reddit 主页台` | `references/community-presence-playbook.md`, `references/account-direction.md` | outward content, notifications, votes |

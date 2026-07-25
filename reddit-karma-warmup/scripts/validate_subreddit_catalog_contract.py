@@ -92,7 +92,10 @@ def main() -> int:
         errors.append(f"unexpected traffic snapshot size: {len(snapshot_rows)}")
 
     lane_payloads = {}
-    for lane, alias in (("comments", "comment_shortlist"), ("posts", "post_reference_shortlist")):
+    for lane, alias, sweep_limit, shortlist_limit in (
+        ("comments", "comment_shortlist", 100, 20),
+        ("posts", "post_reference_shortlist", 150, 30),
+    ):
         query = subprocess.run(
             [
                 sys.executable,
@@ -102,9 +105,9 @@ def main() -> int:
                 "--lane",
                 lane,
                 "--reference-sweep-limit",
-                "100",
+                str(sweep_limit),
                 "--limit",
-                "20",
+                str(shortlist_limit),
                 "--include-traffic-probes",
             ],
             check=False,
@@ -127,8 +130,8 @@ def main() -> int:
         }
         if not required_keys <= payload.keys():
             errors.append(f"{lane} query output missing shortlist buckets")
-        if len(payload.get("reference_sweep", [])) > 100:
-            errors.append(f"{lane} reference sweep exceeds 100")
+        if len(payload.get("reference_sweep", [])) > sweep_limit:
+            errors.append(f"{lane} reference sweep exceeds {sweep_limit}")
         if payload.get("catalog_rows_scanned") != len(rows):
             errors.append(f"{lane} catalog scan did not cover all indexed rows")
         for row in payload.get("reference_sweep", []):
@@ -143,7 +146,7 @@ def main() -> int:
                 errors.append(f"comment shortlist route closed: {row['subreddit']}")
             if lane == "posts" and row["post_route"] != "conditional":
                 errors.append(f"post shortlist route closed: {row['subreddit']}")
-        if len(payload.get("traffic_probe_queue", [])) > 20:
+        if len(payload.get("traffic_probe_queue", [])) > shortlist_limit:
             errors.append(f"{lane} traffic probe queue exceeds limit")
         for row in payload.get("research_matches", []):
             if row["launcher_state"] != "research_only":
@@ -166,7 +169,7 @@ def main() -> int:
     print("traffic_floor=5000_WEEKLY_VISITORS")
     if lane_payloads:
         print("lane_prefilter=COMMENTS_AND_POSTS")
-        print("reference_sweep_cap=100")
+        print("reference_sweep_caps=COMMENTS_100_POSTS_150")
     return 0
 
 

@@ -41,15 +41,23 @@
     "proactive_submit_gap_seconds_max": 300
   },
   "posts": {
-    "low": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 50, "live_deep_read_target": 5},
-    "standard": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 100, "live_deep_read_target": 8},
-    "high": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 100, "live_deep_read_target": 10},
+    "low": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 80, "live_deep_read_target": 8},
+    "standard": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 150, "live_deep_read_target": 14},
+    "high": {"action_target": 1, "action_cap": 1, "reference_sweep_target": 220, "live_deep_read_target": 18},
     "research_cadence_minutes": [120, 180],
-    "narrowing_timebox_minutes": [20, 30],
+    "narrowing_timebox_minutes": [30, 45],
+    "default_post_mode": "native_discussion",
+    "default_target_pool_policy": "preferred_expandable",
+    "exact_closed_pool_user_only": true,
+    "publication_kpi": "CONDITIONAL_ONE_VERIFIED_POST",
+    "candidate_packet_target": 3,
+    "candidate_packet_min_before_blocked": 3,
+    "native_discussion_candidate_score_min": 76,
+    "artifact_post_candidate_score_min": 82,
     "post_candidate_score_min": 82,
     "rules_eligibility_score_min": 20,
-    "discussion_survivor_sample_target": 10,
-    "discussion_rewrite_score_min": 68,
+    "discussion_survivor_sample_target": 15,
+    "discussion_rewrite_score_min": 65,
     "k0_action_target": 0,
     "k0_action_cap": 0,
     "k1_rolling_24h_cap": 1,
@@ -57,7 +65,7 @@
     "main_post_unlock_min_account_age_days": 7,
     "main_post_unlock_min_visible_comments": 10,
     "main_post_unlock_min_eligible_communities": 3,
-    "discussion_score_min": 80
+    "discussion_score_min": 75
   },
   "followup": {
     "low_cadence_minutes": [45, 60],
@@ -89,9 +97,10 @@
   "community_selection": {
     "comment_reference_sweep_limit": 100,
     "shortlist_limit": 20,
+    "post_shortlist_limit": 30,
     "traffic_floor_weekly_visitors": 5000,
-    "post_live_preflight_community_range": [8, 15],
-    "post_initial_candidate_range": [12, 20],
+    "post_live_preflight_community_range": [12, 20],
+    "post_initial_candidate_range": [20, 30],
     "near_tie_score_margin": 3
   },
   "votes": {

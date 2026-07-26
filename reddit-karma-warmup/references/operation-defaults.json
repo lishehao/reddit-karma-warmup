@@ -125,53 +125,89 @@
     ],
     "research_brief": {
       "required_fields": [
+        "research_brief_id",
+        "lane",
         "decision_question",
-        "target_audience_or_subreddit",
+        "target_surface",
+        "audience_or_context",
         "candidate_angle",
-        "known_claims",
+        "intended_claims_or_questions",
         "unknowns_to_resolve",
-        "publish_risk_hypothesis"
+        "research_questions",
+        "publish_risk_hypothesis",
+        "stop_condition"
       ],
       "max_bullets": 6
     },
     "query_plan": {
+      "required_fields": [
+        "research_brief_id",
+        "query_plan_id",
+        "query_family",
+        "research_question_id",
+        "candidate_or_claim_use"
+      ],
       "require_family_labels": true,
       "require_distinct_question_per_query": true,
       "duplicate_wording_policy": "DO_NOT_COUNT",
       "comments_min_distinct_families": 4,
-      "posts_min_distinct_families": 4
+      "posts_min_distinct_families": 3
     },
     "evidence_synthesis": {
       "required_fields": [
+        "research_brief_id",
+        "evidence_synthesis_id",
+        "linked_web_search_item_ids",
         "usable_findings",
         "counter_evidence_or_objections",
         "saturation_or_duplicate_risk",
         "unsupported_or_forbidden_claims",
         "draft_constraints",
-        "chrome_live_gate_targets"
+        "chrome_live_gate_targets",
+        "candidate_decision"
       ],
       "must_have_counterevidence": true,
       "must_have_draft_constraints": true,
       "publish_without_synthesis_policy": "BLOCK_DRAFT"
     },
     "comments": {
+      "brief_scope": "cluster_window",
+      "per_comment_exact_query_updates_synthesis": true,
       "cluster_discovery_query_min": 4,
       "cluster_discovery_query_target": 6,
       "cluster_discovery_query_cap": 10,
       "per_comment_exact_query_min": 1,
+      "substantive_item_objection_query_min": 1,
+      "required_window_query_families": [
+        "community_topic",
+        "recent_discussion",
+        "contradiction_or_objection",
+        "language_or_event_signal"
+      ],
       "time_sensitive_claim_source_min": 2
     },
     "posts": {
+      "brief_scope": "candidate_packet",
+      "query_plan_required_before_pack": true,
+      "synthesis_required_before_chrome_finalists": true,
       "query_pack_min": 12,
       "query_pack_target": 18,
       "query_pack_cap": 30,
+      "finalist_delta_query_min": 1,
       "time_sensitive_claim_source_min": 2,
       "required_query_families": [
         "community_topic_and_recent_discussion",
         "premise_and_close_variants",
         "duplicate_and_faq_risk",
         "external_fact_or_primary_source_when_claimed"
-      ]
+      ],
+      "base_query_family_minimums": {
+        "community_topic_and_recent_discussion": 3,
+        "premise_and_close_variants": 3,
+        "duplicate_and_faq_risk": 3
+      },
+      "external_fact_query_min_when_claimed": 2,
+      "external_fact_family_policy": "REQUIRED_ONLY_WHEN_EXTERNAL_FACT_CLAIMED"
     },
     "freshness": {
       "record_query_time": true,

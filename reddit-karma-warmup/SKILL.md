@@ -82,7 +82,7 @@ publishing permission.
 ## One lane slot
 
 ```text
-RESTORE → PROBE → [WEB RESEARCH: comment/post only] → TAB → DISCOVER → QUALIFY → [DRAFT] → ACT → VERIFY
+RESTORE → PROBE → [WEB RESEARCH: brief -> plan -> synthesis] → TAB → DISCOVER → QUALIFY → [DRAFT] → ACT → VERIFY
 → RECONCILE → SCHEDULE or RETIRE
 ```
 
@@ -93,11 +93,13 @@ Heartbeat, releases only its own tab, and reports three concise Chinese lines.
 Heartbeat timing within the configured ±5-minute tolerance is ordinary and
 continues without repair or notification.
 
-`WEB RESEARCH` uses the host's built-in Web Search before Chrome candidate
-discovery and must produce `research_brief -> query_plan -> evidence_synthesis`
-before any draft. It is mandatory for comment and post lanes, but it never
-proves current Reddit rules, logged-in eligibility, composer state, or mutation
-success; Chrome remains the final live authority for those facts.
+`WEB RESEARCH` uses the host's built-in Web Search in a compact
+`research_brief -> query_plan -> evidence_synthesis` chain before Chrome
+candidate narrowing. It is mandatory for comment and post lanes. A material
+live change to a finalist, premise, or factual claim requires a targeted delta
+query and updated synthesis before drafting. Web Search never proves current
+Reddit rules, logged-in eligibility, composer state, or mutation success;
+Chrome remains the final live authority for those facts.
 
 ## Output
 

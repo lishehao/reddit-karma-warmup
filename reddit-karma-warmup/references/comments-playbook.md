@@ -18,13 +18,17 @@ Daily `60` mode is not default. Enable it only for an explicit roughly-60/day re
 ## Candidate Gate
 
 Before opening candidate threads in Chrome, run the comment-window built-in Web
-Search pipeline: `research_brief`, labelled `query_plan`, query pack, and
-`evidence_synthesis`. Before every individual comment, run its separate exact
-query and record the returned `web_search_item_id`; a cluster never shares one
-item-level query. Search is the fast discovery layer, not proof that Reddit
-still permits the action. A no-result query is still valid discovery evidence
-for a thread-native response, but Chrome must then establish the live context,
-rules, and composer state.
+Search pipeline: `research_brief`, labelled `query_plan`, all configured window
+families, and `evidence_synthesis`. It must state useful current signals,
+objections/duplicate risks, discarded angles, and draft constraints. Before
+every individual comment, run its separate exact query, record the returned
+`web_search_item_id`, and update the item-level synthesis; a cluster never
+shares one item-level query or synthesis. A substantive recommendation,
+technical/product interpretation, or external/current factual angle also needs
+the configured objection/duplicate-risk query before draft. Search is the fast
+discovery layer, not proof that Reddit still permits the action. A no-result
+query is valid discovery evidence for a thread-native response, but Chrome must
+then establish the live context, rules, and composer state.
 
 Score the exact post and intended parent after the required measured read:
 
@@ -46,11 +50,14 @@ A qualified read opens the exact content, consumes body/media and enough nearby 
 
 For every individual comment, including every item in one cluster:
 
-1. Assign a fresh `per_comment_gate_id`, run the required exact Web Search
-   query, and reopen the exact target.
+1. Assign a fresh `per_comment_gate_id`, preserve its `research_brief_id` and
+   `query_plan_id`, run the required exact Web Search query, update the
+   `evidence_synthesis_id`, and reopen the exact target. For a substantive
+   angle, also record the required objection/duplicate-risk query.
 2. Run the current rule glance and record `context_detail`, `duplicate_to_avoid`,
-   `local_voice_sample`, `web_search_item_id`, and the current
-   `evidence_synthesis_id`.
+   `local_voice_sample`, `web_search_item_id`, `evidence_synthesis_id`, any
+   `unsupported_or_forbidden_claims` removed or reframed, and the current
+   `draft_constraints`.
 3. Score the candidate and run Double-Check A.
 4. Run `outbound-copy-gate.md`; generate internal micro, one-liner, and two-beat alternatives and choose the shortest passing version.
 5. Use short native speech and high-frequency locally supported Reddit/internet markers across the session. Normally use one marker, never more than two; no percentage quota, forced slang, or copied phrasing.

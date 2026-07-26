@@ -63,17 +63,30 @@ When the post mission requires one verified main post, resolve `post_selection_t
 Default to `target_pool_policy=preferred_expandable`: an initial shortlist is a starting order, not a closed list. Expand through the next action-eligible reference rows after a concrete rejection. Only a user-provided `target_pool_exact_and_closed=true` stops expansion; record that exhaustion as a blocker instead of converting the publication target to zero.
 
 Do not turn the reference sweep into rapid live navigation. Use
-cached/reference breadth, then the built-in Web Search post query pack for
-current external and Reddit-indexed discovery, then use Chrome for depth:
+cached/reference breadth, then the built-in Web Search post research pipeline
+for current external and Reddit-indexed discovery, then use Chrome for depth:
 
 1. Take the highest-ranked range from `community_selection.post_initial_candidate_range`. For K0/K1, first remove every candidate without a completed account-gate audit row.
-2. Complete `web_search.posts.query_pack_min` or more purpose-labelled Web
-   Search queries before narrowing. Use all required query families; batch
-   independent queries when the tool supports it. Record query, result URL,
-   source date when visible, and its exact candidate/claim use.
+2. Create the post `research_brief` and `query_plan`, then complete
+   `web_search.posts.query_pack_min` or more purpose-labelled Web Search
+   queries before narrowing. Meet the configured minimum for every base query
+   family; use external-fact queries only when the proposed post actually makes
+   an external factual claim. Batch independent queries when the tool supports
+   it. Record query, result URL, source date when visible,
+   `research_question_id`, and exact candidate/claim use; then write
+   `evidence_synthesis` before selecting Chrome finalists. It must preserve
+   claim support, contradictions/open uncertainty, FAQ/duplicate risk,
+   discarded angles, and draft constraints.
 3. Deep-preflight the configured `community_selection.post_live_preflight_community_range` with current subreddit home/About/rules, pinned mod posts, `New`, `Hot`, `Top Month`, submit fields, account/Karma/flair requirements, posting placement, and recent same-angle repetition. A `no_public_gate_found` audit row still needs this same-day check because hidden AutoModerator gates remain possible.
 4. Search the exact proposed topic and close variants in each finalist on live Reddit; Web Search results do not replace this current duplicate check.
-5. Build a candidate packet for every serious finalist. First resolve hard compliance, then the minimum content floor; draft only after both pass. Do not let a high aggregate ranking score rescue a rules failure.
+5. Build a candidate packet for every serious finalist. Attach the
+   `research_brief_id`, `query_plan_id`, `evidence_synthesis_id`,
+   supported-claim allowlist, unsupported claims removed/reframed, and Chrome
+   live-gate targets. If the live check materially
+   changes the finalist, premise, or factual claim, run the configured targeted
+   finalist delta query and update the synthesis before drafting. First resolve
+   hard compliance, then the minimum content floor; draft only after both pass.
+   Do not let a high aggregate ranking score rescue a rules failure.
 6. If a candidate fails, immediately retarget to the next ranked candidate. Continue until one post is verified, the user stops, the operation deadline arrives, or a current concrete post-lane blocker survives recovery.
 
 ### Compliance Gate Before Ranking

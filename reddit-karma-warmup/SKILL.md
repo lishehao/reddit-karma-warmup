@@ -35,7 +35,10 @@ mutation, a lane Heartbeat, or user communication.
    explicit user scope overrides defaults; current live Reddit rules, account
    state, and exact submit state still govern the action.
 3. An archived task is never healthy/reusable. Reuse only an exact present,
-   unarchived, account-matched task that accepts delivery; otherwise replace it.
+   unarchived, account-matched task with a verified delivery receipt. Replace
+   only after exact archived, missing, or permanent-delivery-rejection proof;
+   `notLoaded`, empty, timeout, or unknown liveness blocks that lane without
+   creating a duplicate.
 4. Do not duplicate an uncertain Reddit mutation. Persist uncertainty and
    inspect the exact target once before considering any new action.
 5. For posts, apply **hard compliance → truthful minimum content floor →

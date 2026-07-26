@@ -10,20 +10,29 @@
       {"model": "gpt-5.5", "reasoning_effort": "high"},
       {"model": "gpt-5.4", "reasoning_effort": "high"}
     ],
-    "launcher_and_workers_use_same_chain": true,
+    "default_policy": "INHERIT_HOST_RUNTIME_NO_OVERRIDE",
+    "explicit_user_override_required": true,
+    "fallback_requires_explicit_user_consent": true,
+    "launcher_and_workers_use_same_chain_when_explicitly_requested": true,
     "unavailable_model_never_blocks_operation": true,
-    "request_preferred_pair_on_create": true,
-    "request_preferred_pair_on_existing_task_dispatch": true,
+    "request_preferred_pair_on_create": false,
+    "request_preferred_pair_on_existing_task_dispatch": false,
     "current_turn_in_place_switch_supported_by_skill": false,
-    "confirmed_nonpreferred_launcher_policy": "ONE_VERIFIED_SUCCESSOR_WHEN_EXPLICITLY_AUTHORIZED",
+    "confirmed_nonpreferred_launcher_policy": "KEEP_CURRENT_UNLESS_USER_EXPLICITLY_REQUESTS_MIGRATION",
     "unknown_launcher_model_policy": "KEEP_CURRENT_NO_DUPLICATE",
-    "unverified_override_is_success": false
+    "unverified_override_is_success": false,
+    "model_selection_is_liveness_or_replacement_evidence": false
   },
   "thread_reuse": {
     "require_present_unarchived": true,
     "archived_task_policy": "REPLACE_NEVER_AUTO_UNARCHIVE",
     "readable_archived_is_liveness": false,
-    "registry_update_after_acceptance_only": true
+    "registry_update_after_acceptance_only": true,
+    "transient_liveness_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
+    "unknown_archive_capability_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
+    "explicit_missing_task_policy": "REPLACE",
+    "permanent_delivery_rejection_policy": "REPLACE",
+    "delivery_uncertain_policy": "DELIVERY_UNCERTAIN_NO_REPLACEMENT"
   },
   "comments": {
     "low": {"action_target_per_hour": 3, "action_cap_per_hour": 4, "qualified_read_target": 9},

@@ -104,6 +104,11 @@ expected_thread_reuse = {
     "archived_task_policy": "REPLACE_NEVER_AUTO_UNARCHIVE",
     "readable_archived_is_liveness": False,
     "registry_update_after_acceptance_only": True,
+    "transient_liveness_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
+    "unknown_archive_capability_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
+    "explicit_missing_task_policy": "REPLACE",
+    "permanent_delivery_rejection_policy": "REPLACE",
+    "delivery_uncertain_policy": "DELIVERY_UNCERTAIN_NO_REPLACEMENT",
 }
 if defaults.get("thread_reuse") != expected_thread_reuse:
     errors.append("thread_reuse_contract")

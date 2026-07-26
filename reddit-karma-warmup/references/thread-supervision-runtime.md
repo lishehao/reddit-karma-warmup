@@ -13,7 +13,10 @@ published independently:
 - use persistent user-visible tasks, not subagents, for Reddit lanes the user asked to operate independently;
 - treat titles, directories, previews, and search results as labels/discovery evidence only;
 - preserve the exact returned identifier type and never treat a queued `clientThreadId` as a ready `threadId`;
-- for a newly created Reddit task, select the first host-supported model pair from `operation-defaults.json`: `gpt-5.6-luna/high`, then `gpt-5.6-terra/high`, then `gpt-5.5/high`, then `gpt-5.4/high`; the bootstrap carries explicit Luna/high authorization and a later explicit user override wins;
+- omit model and reasoning overrides unless the current user command explicitly
+  supplies them; an explicit preferred-model request may use the
+  user-authorized fallback chain in `operation-defaults.json`, but model choice
+  never proves liveness, delivery, archive state, or replacement eligibility;
 - treat create/send/read requests as intent, not success proof; use returned identity and supported readback/acceptance evidence.
 - treat a task as reusable only with current exact-ID, present/unarchived,
   account/lane-matched proof; an archived task is never healthy or reusable.
@@ -46,25 +49,87 @@ ${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json
 
 Store `registry_version`, exact Reddit username, and per lane: `task_id`, optional `host_id`, `identifier_state=ready`, canonical title, `last_known_archive_state=unarchived`, `last_mission_id`, `last_delivery_at`, and `last_delivery_state`. `last_known_archive_state` is cached routing evidence only: re-read current product state on every direct dispatch. Never store credentials, Reddit content, Heartbeat IDs, worker runtime state, or sibling state. Write atomically and never reuse another Reddit account's registry.
 
-Current presence proof must come from a host-exposed archive-state readback or the product's current unarchived task inventory for the exact task ID and `host_id`. `read_thread` history alone is observation, not liveness. If the host cannot distinguish archived from unarchived for that exact task, archive state is unknown and the task is not reusable; create a fresh replacement instead of mutating archive state to probe it. A registry written before `last_known_archive_state` existed remains readable, but its task still needs the same current proof.
+Current presence proof must come from a host-exposed archive-state readback or
+the product's current unarchived task inventory for the exact task ID and
+`host_id`. `read_thread` history alone is observation, not liveness.
+
+Treat these states differently:
+
+- `ARCHIVED_EXACT`, `MISSING_EXACT`, or a permanent exact-task delivery
+  rejection: replacement is eligible; never auto-unarchive the old task.
+- `LIVENESS_UNVERIFIED` (`notLoaded`, empty/partial inventory, host/tool timeout,
+  or unknown archive result): the task is not reusable **and is not proven
+  absent**. Mark only this lane `routing_unverified`, retry one readback when
+  safe, then return a partial dispatch. Do not create a duplicate or mutate
+  archive state to probe it.
+- a host that never exposes archive state or a usable current inventory:
+  `ROUTING_CAPABILITY_BLOCKED` at bootstrap. Do not create a replacement based
+  on that missing capability.
+
+A registry written before `last_known_archive_state` existed remains readable,
+but its task still needs the same current proof.
 
 ## Resolve One Lane
 
 For every requested lane, use this order:
 
-1. **Registered reuse:** resolve the exact registered task ID once, passing its `host_id` to host-aware tools, and separately obtain current presence/archive proof. Reuse it only when current product state proves that it is present and unarchived, it is the same canonical lane, it belongs to the current Reddit account, and it can accept a message. A readable archived task, exact archived ID, matching title, accessible history, or prior idleness is not liveness. Never auto-unarchive it. Restore the canonical title only for a currently unarchived reusable task, keep it unpinned, and send the new mission with a Luna/high per-turn override when the host supports it. Read actual runtime metadata when exposed; an accepted override without readback is `LUNA_REQUESTED_UNVERIFIED`, not confirmed switching.
-2. **One-time legacy adoption:** only when the lane has no registry entry, perform one bounded lookup among current present/unarchived tasks for the exact canonical title. Inspect at most the three newest candidates that are eligible under this unarchived-only rule. Archived search/history entries are ineligible. Adopt only one uniquely supported task whose lane identity and visible Reddit account both match and whose history does not show a conflicting role. Persist its exact ID and returned `host_id` only after that task accepts the new mission. If zero or multiple candidates remain plausible, adopt none; never choose by recency alone.
-3. **Create or replace:** when no exact reusable task exists—including when the registered task is archived—create one new persistent projectless task for this general Chrome operation. Leave the archived task untouched. The user's current dispatch command is the authorization for this persistent task and the bootstrap explicitly authorizes Luna/high. Use the first host-supported pair in the canonical model fallback chain; if model availability cannot be queried, attempt the chain in order and treat an unsupported-model response as a creation retry, not an operation blocker. Put the lane identity, Reddit account, and same-turn assignment expectation in the initial prompt, capture the returned identifier, rename the ready task to the canonical title, keep it unpinned, send the complete mission immediately, and atomically register it only after acceptance. If the tool returns a ready `threadId`, use it. If it returns only a queued `clientThreadId`, do not register, rename, message, or claim the lane ready until product state exposes the real task ID. If a registered task is archived, permanently unavailable, or rejects delivery after one bounded transient retry, create one replacement and overwrite only that lane's registry entry after the replacement accepts. Never recreate a healthy reusable lane merely because Luna readback is missing or an override is unverified; in this contract, healthy always means present and unarchived. Record requested pair, actual pair when exposed, and evidence state separately.
+1. **Registered reuse:** resolve the exact registered task ID once, passing its
+   `host_id` to host-aware tools, and separately obtain current
+   presence/archive proof. Reuse it only when current product state proves it
+   is present and unarchived, it is the same canonical lane, it belongs to the
+   current Reddit account, and the exact send yields a `DELIVERY_ACCEPTED`
+   host receipt. A readable archived task, exact archived ID, matching title,
+   accessible history, prior idleness, or a requested model is not liveness.
+   Never auto-unarchive it. Restore the canonical title only for a currently
+   unarchived reusable task, keep it unpinned, and apply a model override only
+   when the current user command explicitly authorizes one.
+2. **Routing uncertainty:** if the exact registered task is `notLoaded`, absent
+   from an incomplete/empty inventory, produces a transient tool failure, or
+   has unknown archive state, do not adopt, replace, or message a second task.
+   Record `routing_unverified`, retry one exact readback when safe, then return
+   that lane as a partial dispatch. `DELIVERY_UNCERTAIN` follows the same rule.
+3. **One-time legacy adoption:** only when the lane has no registry entry and a
+   current reliable unarchived inventory is available, perform one bounded
+   lookup among current present/unarchived tasks for the exact canonical title.
+   Inspect at most the three newest candidates that are eligible under this
+   unarchived-only rule. Archived search/history entries are ineligible. Adopt
+   only one uniquely supported task whose lane identity and visible Reddit
+   account both match and whose history does not show a conflicting role.
+   Persist its exact ID and returned `host_id` only after `DELIVERY_ACCEPTED`.
+   If zero or multiple candidates remain plausible, adopt none; never choose by
+   recency alone.
+4. **Create or replace:** create one new persistent projectless task when there
+   is no registry entry after reliable legacy-adoption resolution, or replace
+   only after `ARCHIVED_EXACT`, `MISSING_EXACT`, or
+   `PERMANENT_DELIVERY_REJECTION` proof for the registered exact task. Leave an
+   archived task untouched. Put the lane identity, Reddit account, and
+   same-turn assignment expectation in the initial prompt, capture the returned
+   identifier, rename the ready task to the canonical title, keep it unpinned,
+   send the complete mission immediately, and atomically register it only after
+   `DELIVERY_ACCEPTED`. If the tool returns a ready `threadId`, use it. If it
+   returns only a queued `clientThreadId`, do not register, rename, message, or
+   claim the lane ready until product state exposes the real task ID. Omit model
+   fields unless the current user command explicitly requests them. Never
+   recreate a healthy reusable lane because model readback is missing or an
+   override is unverified. Record requested pair, actual pair when exposed, and
+   evidence state separately only for an explicit model request.
 
-Do not create a duplicate when a healthy present/unarchived registered task accepted delivery. A readable task, successful rename, or accessible archived history is neither archive-state proof nor delivery proof. Do not search archives, select by title alone, choose by recency alone, or adopt a task from another Reddit account. Do not revive a completed mission or old Heartbeat: task reuse carries only the durable unarchived task surface and its lane history; the incoming `mission_id` is new and supersedes prior mission fields.
+Do not create a duplicate when a healthy present/unarchived registered task has
+`DELIVERY_ACCEPTED`. A readable task, successful rename, accessible archived
+history, or model metadata is neither archive-state nor delivery proof. Do not
+search archives, select by title alone, choose by recency alone, or adopt a task
+from another Reddit account. Do not revive a completed mission or old
+Heartbeat: task reuse carries only the durable unarchived task surface and its
+lane history; the incoming `mission_id` is new and supersedes prior mission
+fields.
 
 ## Mistaken Unarchive Recovery
 
 If ordinary dispatch mistakenly unarchived an old registered task, do not promote that mistake into health or reuse evidence:
 
 1. Stop and release any mission mistakenly delivered to the old task without replaying uncertain Reddit actions.
-2. Create a fresh replacement and require exact mission acceptance.
-3. Update the lane registry only after the replacement accepts.
+2. Create a fresh replacement and require `DELIVERY_ACCEPTED`.
+3. Update the lane registry only after the replacement has `DELIVERY_ACCEPTED`.
 4. Rearchive the old exact task only after its mission, Heartbeat, and Chrome ownership are proven released.
 
 The generic restore exception remains separate: restore an archived task only when the user explicitly asks to resume that exact task. A broad Reddit dispatch, account direction, or request to reuse healthy lanes is never such authorization.
@@ -72,13 +137,33 @@ The generic restore exception remains separate: restore an archived task only wh
 ## Delivery Contract
 
 1. Generate a new `mission_id` for the current user command even when the task is reused.
-2. Send the complete mission to the resolved exact ready task ID, passing `host_id` when supported, with `worker_task_id=<that same exact destination task ID>`, `first_due=now`, `heartbeat_owner=self`, `launcher_callback=none`, requested pair `gpt-5.6-luna/high`, actual pair when exposed, and model evidence state. On existing tasks, use the host's per-turn model override on this exact send call when supported.
-3. The worker reads its exact current-task ID from host context and accepts the mission only when it equals `worker_task_id`. It then applies its latest-command rule, executes the first slot immediately, and creates/updates only its own explicitly bound and post-read-verified Heartbeat for unfinished work. If its previous mission finished, the retired old Heartbeat stays retired; the new mission creates a new lifecycle.
-4. Successful message acceptance by the exact selected task is delivery proof. A create response, readable summary, rename, or pin alone is not. Persist `last_mission_id`, timestamp, exact `task_id`, optional `host_id`, and `reused|adopted|created|replaced` only for accepted lanes.
-5. Call a requested first dispatch complete only when comments, posts, and follow-up each accepted their exact mission. If any lane is unavailable or `delivery_uncertain`, call it a partial dispatch, name that lane, and never claim that all first-round missions were sent.
+2. Send the complete mission to the resolved exact ready task ID, passing
+   `host_id` when supported, with `worker_task_id=<that same exact destination
+   task ID>`, `first_due=now`, `heartbeat_owner=self`, and
+   `launcher_callback=none`. Omit model fields unless the current user command
+   explicitly supplies a model request. On an explicit request, record the
+   request, actual pair when exposed, and evidence state.
+3. The worker reads its exact current-task ID from host context and applies the
+   mission only when it equals `worker_task_id`. It then applies its latest-
+   command rule, executes the first slot immediately, and creates/updates only
+   its own explicitly bound and post-read-verified Heartbeat for unfinished
+   work. If its previous mission finished, the retired old Heartbeat stays
+   retired; the new mission creates a new lifecycle.
+4. `DELIVERY_ACCEPTED` is the Reddit domain gate: a successful exact host send
+   receipt addressed to the ready task ID. It proves dispatch delivery, not the
+   worker's later Reddit execution. A create response, readable summary, rename,
+   pin, or uncertain tool timeout is not `DELIVERY_ACCEPTED`. Persist
+   `last_mission_id`, timestamp, exact `task_id`, optional `host_id`, and
+   `reused|adopted|created|replaced` only after this receipt.
+5. Call a requested first dispatch complete only when comments, posts, and
+   follow-up each have `DELIVERY_ACCEPTED`. If any lane is unavailable,
+   `routing_unverified`, or `delivery_uncertain`, call it a partial dispatch,
+   name that lane, and never claim that all first-round missions were sent.
 6. Return the exact accepted titles and any failed lane, then release launcher ownership.
 
-If delivery certainty is unknown, do not send the same mission to a second task because that could duplicate Reddit actions. Report that lane as `delivery_uncertain`; other lanes continue.
+If delivery certainty is unknown, do not send the same mission to a second task
+because that could duplicate Reddit actions. Report that lane as
+`delivery_uncertain`; other lanes continue.
 
 ## Independence
 

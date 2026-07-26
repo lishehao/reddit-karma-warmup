@@ -47,8 +47,8 @@ require(ROOT / "references" / "launcher-playbook.md", [
 ], errors)
 
 require(ROOT / "references" / "thread-supervision-runtime.md", [
-    "worker_task_id=<that same exact destination task ID>",
-    "accepts the mission only when it equals `worker_task_id`",
+    "worker_task_id=<that same exact destination\n   task ID>",
+    "applies the\n   mission only when it equals `worker_task_id`",
 ], errors)
 
 require(ROOT / "references" / "default-operations-sop.md", [

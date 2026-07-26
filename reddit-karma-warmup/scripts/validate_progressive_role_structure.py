@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate concise entry routing, role-pack boundaries, and direct references."""
+"""Validate concise staged routing, lane boundaries, and direct references."""
 
 import json
 import re
@@ -14,7 +14,15 @@ errors: list[str] = []
 if len(body.splitlines()) > 500:
     errors.append(f"skill_entry_too_long:{len(body.splitlines())}")
 
-direct_refs = sorted(set(re.findall(r"`(references/[^`]+)`", body)))
+agent_yaml = (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
+if "Use $reddit-karma-warmup" not in agent_yaml:
+    errors.append("agent_default_prompt_missing_skill")
+if len(agent_yaml.splitlines()) > 8:
+    errors.append("agent_metadata_too_long")
+if "Temporarily name this task Reddit 启动台" in agent_yaml:
+    errors.append("agent_metadata_contains_stale_bootstrap_protocol")
+
+direct_refs = sorted(set(re.findall(r"references/[A-Za-z0-9_.-]+", body)))
 for relative in direct_refs:
     if not (ROOT / relative).exists():
         errors.append(f"missing_direct_reference:{relative}")
@@ -22,7 +30,7 @@ for relative in direct_refs:
 required_role_refs = {
     "references/comments-playbook.md": "Load only in `Reddit 评论台`",
     "references/posts-playbook.md": "Load only in `Reddit 发帖台`",
-    "references/followup-playbook.md": "Use only for notifications",
+    "references/followup-playbook.md": "Use only in `Reddit 跟进台` for notifications",
     "references/browse-vote-playbook.md": "Load only in `Reddit 浏览台`",
     "references/community-presence-playbook.md": "Reddit 主页台",
 }
@@ -42,7 +50,9 @@ for obsolete in (
         errors.append(f"obsolete_role_file:{obsolete}")
 
 required_entry = [
-    "`references/operation-defaults.json` is the machine-authoritative source",
+    "Fixed identities",
+    "Route and load progressively",
+    "operation-defaults.json` is the only numeric-default authority",
     "comments-playbook.md",
     "posts-playbook.md",
     "followup-playbook.md",
@@ -52,7 +62,11 @@ required_entry = [
     "lane-action-ownership.md",
     "chrome-atomic-command-runtime.md",
     "reddit-surface-routing.md",
-    "There is no persistent main coordinator",
+    "Only `Reddit 浏览台` may inspect or operate",
+    "Do not preload all of these",
+    "hard compliance → truthful minimum content floor",
+    "An archived task is never healthy/reusable",
+    "One lane slot",
 ]
 for needle in required_entry:
     if needle not in body:
@@ -104,6 +118,23 @@ for stale in ("90-98%", "85-95%", "95-100%"):
     if stale in voice_docs:
         errors.append(f"stale_voice_quota:{stale}")
 
+if "Every worker loads" in body:
+    errors.append("eager_common_pack")
+if "together with `proactive-common.md`" in (ROOT / "references" / "comments-playbook.md").read_text(encoding="utf-8"):
+    errors.append("comments_eager_pack")
+if "together with `proactive-common.md`" in (ROOT / "references" / "posts-playbook.md").read_text(encoding="utf-8"):
+    errors.append("posts_eager_pack")
+outbound = (ROOT / "references" / "outbound-copy-gate.md").read_text(encoding="utf-8")
+if "Publish only at `post_copy_score >=80`" in outbound:
+    errors.append("post_copy_score_hard_gate")
+for needle in (
+    "`post_copy_score` is a revision cue, not an eligibility gate",
+    "does not reach an arbitrary writing-score threshold",
+    "blocks an otherwise compliant,\ntruthful native discussion",
+):
+    if needle not in outbound:
+        errors.append(f"post_copy_policy:{needle}")
+
 if errors:
     raise SystemExit(json.dumps({"status": "FAIL", "errors": errors}, ensure_ascii=False))
 
@@ -112,6 +143,7 @@ print(json.dumps({
     "skill_lines": len(body.splitlines()),
     "direct_references": len(direct_refs),
     "roles": sorted(required_role_refs),
+    "loading": "STAGED_NOT_EAGER",
     "defaults": "ONE_STRUCTURED_AUTHORITY",
     "state": "PER_ACCOUNT_LANE_TASK",
 }, ensure_ascii=False, sort_keys=True))

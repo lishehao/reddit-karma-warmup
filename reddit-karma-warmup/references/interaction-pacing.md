@@ -1,6 +1,10 @@
 # Measured Interaction Pacing
 
-Load in every Chrome-backed Reddit execution task before reading candidates, clicking controls, voting, or publishing text. Numeric clocks come only from `operation-defaults.json`; this file explains short in-turn timing, while `scheduler-and-heartbeats.md` owns waits longer than the configured local-sleep maximum.
+Load only when a current lane is about to begin a measured candidate dwell or
+an outward mutation. Do not preload it during setup, registry resolution, or a
+pure checkpoint repair. Numeric clocks come only from `operation-defaults.json`;
+this file explains short in-turn timing, while `scheduler-and-heartbeats.md`
+owns waits longer than the configured local-sleep maximum.
 
 ## Hard Clocks
 

@@ -23,7 +23,8 @@ def require(path: str, needles: list[str]) -> None:
 require(
     "references/scheduler-and-heartbeats.md",
     [
-        "comments -> follow-up -> posts -> browsing -> presence",
+        "comments -> follow-up -> posts -> browsing",
+        "Presence is an independent nonblocking lane",
         "scheduler.first_mutation_phase_step_minutes * mutation_phase_index",
         "scheduler.phase_jitter_minutes",
         "next normal window",

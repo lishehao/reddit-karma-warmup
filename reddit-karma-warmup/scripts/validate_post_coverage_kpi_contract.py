@@ -84,6 +84,10 @@ required = {
         "ordinary discussion post does not require an artifact",
         "conditional publication KPI",
     ],
+    ROOT / "references" / "outbound-copy-gate.md": [
+        "`post_copy_score` is a revision cue, not an eligibility gate",
+        "does not reach an arbitrary writing-score threshold",
+    ],
     ROOT / "references" / "community-selection-funnel.md": [
         "candidate_packet_target",
         "target_pool_policy=preferred_expandable",
@@ -123,6 +127,9 @@ if README.exists():
         "内容质量只用于该底线及合规候选间的排序",
         "discussion_potential_score >=50",
     ], errors)
+
+if "Publish only at `post_copy_score >=80`" in (ROOT / "references" / "outbound-copy-gate.md").read_text(encoding="utf-8"):
+    errors.append("post_copy_score_hard_gate")
 
 scenarios = {
     "ordinary_discussion": {

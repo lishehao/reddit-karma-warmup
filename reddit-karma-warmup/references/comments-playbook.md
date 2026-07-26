@@ -1,6 +1,13 @@
 # Proactive Comments Playbook
 
-Load only in `Reddit 评论台`, together with `proactive-common.md`, `default-operations-sop.md`, `publish-consistency.md`, `outbound-copy-gate.md`, and the shared runtime pack. Numeric defaults come only from `operation-defaults.json`. This lane uses `vote_policy=DISABLED_BY_LANE`: never load `browse-vote-playbook.md` or inspect/click Upvote or Downvote.
+Load only in `Reddit 评论台`. Follow the progressive load map in `SKILL.md`:
+load common runtime documents for the current slot, then load this playbook.
+Load `web-search-preflight.md` before Chrome candidate discovery. Load
+`outbound-copy-gate.md`, `reddit-us-voice-patterns.md`, and
+`publish-consistency.md` only after one exact comment candidate has passed
+context/rule checks. Numeric defaults come only from `operation-defaults.json`.
+This lane uses `vote_policy=DISABLED_BY_LANE`: never load
+`browse-vote-playbook.md` or inspect/click Upvote or Downvote.
 
 ## Mission And High-Volume Mode
 
@@ -9,6 +16,14 @@ Resolve one exact action target, cap, and qualified-read target from `operation-
 Daily `60` mode is not default. Enable it only for an explicit roughly-60/day request or explicit high intensity for at least `6h`. Keep at least six eligible communities and three clusters when available, no more than five proactive comments in one subreddit per `24h`, and no catch-up burst. The target never lowers candidate, copy, rule, or pacing gates.
 
 ## Candidate Gate
+
+Before opening candidate threads in Chrome, run the comment-window built-in Web
+Search query pack. Before every individual comment, run its separate exact
+query and record the returned `web_search_item_id`; a cluster never shares one
+item-level query. Search is the fast discovery layer, not proof that Reddit
+still permits the action. A no-result query is still valid discovery evidence
+for a thread-native response, but Chrome must then establish the live context,
+rules, and composer state.
 
 Score the exact post and intended parent after the required measured read:
 
@@ -30,8 +45,10 @@ A qualified read opens the exact content, consumes body/media and enough nearby 
 
 For every individual comment, including every item in one cluster:
 
-1. Assign a fresh `per_comment_gate_id` and reopen the exact target.
-2. Run the current rule glance and record `context_detail`, `duplicate_to_avoid`, and `local_voice_sample`.
+1. Assign a fresh `per_comment_gate_id`, run the required exact Web Search
+   query, and reopen the exact target.
+2. Run the current rule glance and record `context_detail`, `duplicate_to_avoid`,
+   `local_voice_sample`, and `web_search_item_id`.
 3. Score the candidate and run Double-Check A.
 4. Run `outbound-copy-gate.md`; generate internal micro, one-liner, and two-beat alternatives and choose the shortest passing version.
 5. Use short native speech and high-frequency locally supported Reddit/internet markers across the session. Normally use one marker, never more than two; no percentage quota, forced slang, or copied phrasing.

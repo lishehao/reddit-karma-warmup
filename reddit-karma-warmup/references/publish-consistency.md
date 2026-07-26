@@ -76,10 +76,26 @@ For comments/replies:
 2. Read the full post/media, intended parent comment, and enough nearby replies to understand the actual point, local energy, and what has already been said. When available, inspect at least `3` nearby/top replies; when the thread is empty, sample recent native comments from the same subreddit.
 3. Record one `context_detail` that the reply will react to, one `duplicate_to_avoid`, and `2-4` short local voice patterns or Reddit-native expressions observed on the current surface. Do not copy another user's sentence.
 4. Confirm the target is visible, unlocked, current enough, and not sensitive or hostile.
-5. Compare subreddit, cluster, angle, intended claim, and the last `10` measured comment/reply lengths with `history_ledger`.
-6. Confirm the account can contribute without fake experience, product mention, or unsupported factual claims.
+5. Confirm this item has one fresh `web_search_item_id` from the current
+   comment window; when it asserts a time-sensitive external fact, retain at
+   least `web_search.comments.time_sensitive_claim_source_min` supporting
+   authoritative sources or remove/reframe the claim.
+6. Compare subreddit, cluster, angle, intended claim, and the last `10` measured comment/reply lengths with `history_ledger`.
+7. Confirm the account can contribute without fake experience, product mention, or unsupported factual claims.
 
-For main posts, first verify live home/about/rules, pinned posts, recent survivor patterns, karma/age, flair/title/megathread, link/self-promo rules, submit controls, same-subreddit history, and moderator-approval state. These are hard compliance gates and a failure ends the candidate before copy quality is compared. Only after compliance passes, require the `native_discussion` local `discussion_survivor_sample` and minimum `discussion_potential_score`; never use a fabricated novice identity as the hook. For `artifact` mode, require direct evidence for every claimed artifact, ownership, metric, or result; never make a normal discussion post inherit that proof requirement.
+For main posts, first verify a completed `web_search.posts` query pack, then
+live home/about/rules, pinned posts, recent survivor patterns, karma/age,
+flair/title/megathread, link/self-promo rules, submit controls,
+same-subreddit history, and moderator-approval state. Web results may support
+facts and narrow candidates, but are never evidence of Reddit permission.
+These are hard compliance gates and a failure ends the candidate before copy
+quality is compared. Only after compliance passes, require the
+`native_discussion` local `discussion_survivor_sample` and minimum
+`discussion_potential_score`; never use a fabricated novice identity as the
+hook. For `artifact` mode, require direct evidence for every claimed artifact,
+ownership, metric, or result; any time-sensitive external claim needs at least
+`web_search.posts.time_sensitive_claim_source_min` supporting authoritative
+sources or must be removed/reframed.
 
 Decision: `pass_to_draft`, `retarget`, `recover_lane`, or `hard_user_repair`.
 

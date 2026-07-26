@@ -15,9 +15,9 @@ def read(path: Path) -> str:
 
 required = {
     ROOT / "SKILL.md": [
-        "delete only this task's Heartbeat",
-        "clear tab/timer/next-due checkpoint fields",
-        "then report terminal completion",
+        "terminal lane deletes only its own\nHeartbeat",
+        "releases only its own tab",
+        "reports three concise Chinese lines",
     ],
     ROOT / "references" / "orchestration-core.md": [
         "terminal -> `RETIRE`",

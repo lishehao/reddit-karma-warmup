@@ -19,9 +19,9 @@ def require(path: Path, needles: list[str], errors: list[str]) -> None:
 errors: list[str] = []
 
 require(ROOT / "SKILL.md", [
-    "Never create a probe Heartbeat",
-    "emit only the Bootstrap Success Prompt",
-    "load `references/runtime-and-setup.md`, `references/reddit-surface-routing.md`, `references/chrome-atomic-command-runtime.md`",
+    "[runtime setup](references/runtime-and-setup.md) for Chrome preflight",
+    "[surface routing](references/reddit-surface-routing.md) while selecting a surface",
+    "[Chrome atomic runtime](references/chrome-atomic-command-runtime.md)",
 ], errors)
 
 require(ROOT / "references" / "runtime-and-setup.md", [

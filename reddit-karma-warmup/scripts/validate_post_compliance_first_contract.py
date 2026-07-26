@@ -32,8 +32,8 @@ if "native_discussion_candidate_score_min" in posts or "artifact_post_candidate_
     errors.append("obsolete_high_score_gate")
 
 require(ROOT / "SKILL.md", [
-    "evaluate hard compliance before content quality",
-    "secondary tiebreaker",
+    "hard compliance → truthful minimum content floor →\n   secondary ranking",
+    "must not block an otherwise compliant, truthful native discussion",
 ], errors)
 require(ROOT / "references" / "post-coverage-and-kpi.md", [
     "Hard compliance",
@@ -51,6 +51,13 @@ require(ROOT / "references" / "posts-playbook.md", [
     "Resolve hard compliance first",
     "minimum anti-spam/fit floor",
 ], errors)
+require(ROOT / "references" / "outbound-copy-gate.md", [
+    "`post_copy_score` is a revision cue, not an eligibility gate",
+    "does not reach an arbitrary writing-score threshold",
+    "Retarget only when that defect means the minimum content floor fails",
+], errors)
+if "Publish only at `post_copy_score >=80`" in (ROOT / "references" / "outbound-copy-gate.md").read_text(encoding="utf-8"):
+    errors.append("post_copy_score_hard_gate")
 require(ROOT / "references" / "launcher-playbook.md", [
     "post_selection_priority=COMPLIANCE_FIRST",
     "post_content_quality_role=SECONDARY_MINIMUM_AND_TIEBREAK",
@@ -68,6 +75,7 @@ if README.exists():
 scenarios = {
     "excellent_copy_rule_failure": "RETARGET_BEFORE_RANKING",
     "compliant_native_post_without_high_hype_score": "ELIGIBLE_AFTER_CONTENT_FLOOR",
+    "compliant_native_post_below_arbitrary_copy_score": "ELIGIBLE_AFTER_CONCRETE_COPY_REVIEW",
     "compliant_duplicate_or_spam": "REWRITE_OR_RETARGET",
     "artifact_without_direct_evidence": "BLOCKED_NO_FABRICATION",
 }

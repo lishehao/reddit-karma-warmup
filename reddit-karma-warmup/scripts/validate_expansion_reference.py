@@ -41,12 +41,13 @@ def main() -> int:
             errors.append(f"missing_fence:{needle}")
 
     links = {
-        ROOT / "SKILL.md": "Discovery, traffic, survivor posts, and pending/public audits never grant publishing permission",
+        ROOT / "SKILL.md": "never treat it as publishing permission",
         ROOT / "references" / "proactive-common.md": "Public/pending expansion audits rank future preflight only",
         ROOT / "references" / "publish-consistency.md": "closed_pending_live_review",
     }
     for path, needle in links.items():
-        if needle not in path.read_text(encoding="utf-8"):
+        normalized = " ".join(path.read_text(encoding="utf-8").split())
+        if needle not in normalized:
             errors.append(f"missing_link:{path.name}:{needle}")
 
     if errors:

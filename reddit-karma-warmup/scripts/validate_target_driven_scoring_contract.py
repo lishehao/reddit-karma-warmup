@@ -90,11 +90,15 @@ if (voice["normal_marker_cap_per_item"], voice["absolute_marker_cap_per_item"]) 
 
 required = {
     "SKILL.md": [
-        "`qualified_read_target` is a hard completion objective",
-        "Only `Reddit 浏览台` may vote",
-        "Comments, posts, follow-up, and presence always use `vote_policy=DISABLED_BY_LANE`",
-        "only a user-supplied vote count creates a hard vote target",
-        "gpt-5.6-luna/high -> gpt-5.6-terra/high -> gpt-5.5/high -> gpt-5.4/high",
+        "Only `Reddit 浏览台` may inspect or operate",
+        "vote_policy=DISABLED_BY_LANE",
+        "vote_cap=0",
+    ],
+    "references/model-runtime.md": [
+        "gpt-5.6-luna / high",
+        "gpt-5.6-terra / high",
+        "gpt-5.5 / high",
+        "gpt-5.4 / high",
     ],
     "references/default-operations-sop.md": [
         "action_remaining == 0",

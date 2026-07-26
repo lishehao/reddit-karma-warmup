@@ -18,10 +18,10 @@ or tab binding to recover.
 - `CUA` keypress/type acts on the focused webpage, not reliably on the Chrome omnibox. Never use `Meta+L` address-bar simulation as recovery.
 - `openTabs()` returning a Reddit URL/title proves only tab metadata visibility. After claiming the exact recorded lane tab, require one successful DOM, screenshot, or equivalent page-state read before declaring control healthy.
 - Inventory or `tabs.new()` success proves only browser metadata/control reachability. If exact-object claim or URL/title metadata times out, classify `page_control_partial`; keep the browser binding and recorded tab ID, consume the current recovery cycle, and do not immediately repeat the same control call in that wake. If claim plus URL/title succeed but DOM, screenshot, evaluate, or a bounded projection times out after the full outer budget, classify `chrome_content_channel_timeout`; the browser and tab metadata bindings remain healthy while Reddit/page content is unverified.
-- Each lane keeps one persistent dedicated Reddit primary tab. Use a three-call creation transaction: one completed browser call creates the tab and returns/persists `own_tab_id`; the next browser call performs only the first `goto`; a third browser call performs one page-state read. Never combine `tabs.new()`, `goto`, and page-state reading, and never recover by claiming an arbitrary existing Reddit tab. A nonterminal turn preserves its controllable primary tab as `handoff`; terminal cleanup closes/releases it.
+- Each lane keeps one persistent dedicated Reddit primary tab through a matching active `chrome_tab_lease/v1`. Use a three-call creation transaction: one completed browser call creates the tab and returns/persists `own_tab_id` plus creation nonce/lease proof; the next browser call performs only the first `goto`; a third browser call performs one page-state read. Never combine `tabs.new()`, `goto`, and page-state reading, and never recover by claiming an arbitrary existing Reddit tab. A nonterminal turn preserves its controllable primary tab as `handoff`; terminal cleanup closes/releases it.
 - Apply `chrome-atomic-command-runtime.md` first. Give a pure metadata transaction its configured `30 sec` budget and each atomic `tab.goto(...)`, page read, locator action, or mutation cell the configured `120 sec` outer timeout. A timeout or REPL reset after the applicable full budget makes the acknowledgement uncertain because a page transition or action may already have completed. Reuse the current Chrome control/session and enumerate tabs; invalidate/reconnect the browser binding only after an explicit browser-disconnected result. Reclaim the exact `own_tab_id` and run one separate post-timeout page-state check before classifying failure.
 
-- A page/content/action command that returns successfully after 20-60 seconds is `slow_success`, not `page_control_partial`. If stderr also shows `Statsig` or `ab.chatgpt.com` timeout logs, record `ambient_network_degraded`; do not infer Reddit/network/account failure and do not reconnect or retry the successful command.
+- A page/content/action command that returns successfully after 20-60 seconds is `slow_success`, not `page_control_partial`. If stderr also shows `Statsig` or `ab.chatgpt.com` timeout logs, record `ambient_network_degraded`; do not infer Reddit/network/account failure and do not reconnect or retry the successful command. The 120-second outer timeout is a ceiling, not a fixed sleep; only one potentially blocking browser operation may consume it.
 - A locator can become stale because its own action changed the control's accessible name or DOM identity. After input, clear, toggle, or state-changing click, take fresh evidence. For controlled text prefer a fresh DOM CUA string node and shadow-aware live-value projection. Successful action plus old-locator mismatch is `locator_identity_changed`; an internal locator-only deadline with healthy DOM/page reads is `locator_backend_deadline`. Neither is a transport, network, or page-control failure.
 - `openTabs()` returning no tabs is not proof that the browser disconnected. Retry inventory once within the wake budget. Replace the lane tab only when the healthy browser binding confirms the exact ID is absent, and never exceed `tab_replacement_cap_per_wake`.
 - Only when that same-tab check and the configured bounded same-tab retry still show `about:blank` or an unreadable page may the lane classify a page-control/control-channel failure. Never call `finalize({keep: []})` for this nonterminal condition, never create replacement tabs in a loop, and never claim a user/launcher/sibling tab. Keep the lane mission, Heartbeat, and controllable primary tab as `handoff` for the next wake.
@@ -67,6 +67,7 @@ When several causes remain possible, give at most the two strongest based on the
 |-|-|-|-|
 | `control_channel` | explicit browser disconnected/extension/native messaging error | Chrome control binding failed, not a Reddit/network verdict | Reconnect Chrome control; preserve the existing Chrome profile. |
 | `page_control_partial` | tab inventory/creation succeeds, but claim or URL/title metadata times out | browser inventory is reachable while exact tab binding/metadata is unknown; not a Reddit, account, DNS, or disconnect verdict | Preserve the browser binding and exact lane tab ID. After one bounded inventory reconciliation, end page work for the wake and continue through Heartbeat recovery without opening more tabs. |
+| `chrome_control_slot_busy` | another active local task owns the short control slot | shared transport is occupied; own page/tab lease remains valid | release no tab, do not inspect the holder, and yield/retry later through the lane Heartbeat |
 | `chrome_content_channel_timeout` | `openTabs`, exact claim, URL, and title succeed, but DOM/screenshot/evaluate/projection receives no acknowledgement after the full page budget | browser and tab metadata are healthy while page content is unreadable; Reddit account remains unverified | Preserve browser/tab identity. Run at most one neutral HTTPS content probe when mutation state is safe, scope the failure, then end page work for the wake. Do not diagnose disconnect or reinstall the extension from this evidence. |
 | `stale_tab` | tab missing/closed/not in session, while browser binding remains connected | Only this tab binding is stale | Discard only the tab binding and open/reclaim a fresh lane tab from the existing Chrome binding. Do not reconnect the whole browser. |
 | `dns_or_offline` | `ERR_NAME_NOT_RESOLVED`, `ERR_INTERNET_DISCONNECTED` | bad hostname, DNS, or device/network outage | Validate the URL, then run the scope probes below. |
@@ -85,14 +86,17 @@ Chrome documents common loading codes and exposes the installed browser's full l
 
 ## Scope Probes
 
-Use Chrome Browser only. Never switch to Computer Use, another browser, Web Search, or a logged-out session as a recovery substitute.
+Use Chrome Browser only for Reddit surface recovery. Never switch to Computer Use,
+another browser, Web Search, or a logged-out session as a recovery substitute.
+This does not prohibit the separate mandatory built-in Web Search research stage;
+that stage cannot repair or verify a broken logged-in Reddit surface.
 
 1. Validate the exact URL/hostname.
 2. If awaited navigation times out, reacquire the same Chrome control/session, reconnect the browser binding only on an explicit disconnected result, reclaim the exact recorded `own_tab_id`, and run one atomic post-timeout page-state read. If that returned evidence proves the URL moved and the page is readable, continue as recovered without another navigation.
    - If reclaiming that exact tab or URL/title metadata times out, record `page_control_partial`. If metadata succeeds but the first content read times out, record `chrome_content_channel_timeout` and proceed directly to the one safe neutral content probe in step 5; do not cycle through DOM, screenshot, and evaluate on the same Reddit page. Do not immediately repeat claim/read/navigation or infer browser disconnect.
 3. If the same tab remains blank or unreadable, wait within `chrome_recovery.short_wait_seconds` and retry the current read-only navigation no more than `same_url_retry_cap_per_wake` in that tab. Do not repeat a mutation and do not create a second primary tab.
 4. In the lane's dedicated primary tab, open the preferred native surface from `reddit-surface-routing.md`: Old Reddit for ordinary text/listing/context work, or current Reddit for a capability that requires it. If that route fails while the equivalent capability remains available on the other surface, perform its single bounded cross-surface fallback. Only if the recorded tab is absent from the current tab inventory is its binding stale and replaceable once.
-5. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session, at most `neutral_probe_cap_per_wake` times. When the primary tab contains a draft or uncertain state, use at most one temporary lane-owned diagnostic tab under `diagnostic_tab_cap_per_wake` and close it in the same wake; never persist it as a second primary tab.
+5. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session, at most `neutral_probe_cap_per_wake` times. When the primary tab contains a draft or uncertain state, use at most one temporary lane-owned diagnostic tab under `diagnostic_tab_cap_per_wake`, give it a distinct temporary tab lease, and close/release it in the same wake; never persist it as a second primary tab.
 6. Classify the scope:
    - neutral page and Reddit both fail: device/network/proxy/Chrome path
    - neutral page works, Reddit home fails: Reddit/site/domain path
@@ -117,6 +121,12 @@ requires user involvement when genuinely needed.
 ## Bounded Recovery State Machine
 
 Recovery is persistent at mission scope and bounded at wake scope. A technical failure never creates an unbounded local reload loop, and a later Heartbeat never resets mutation certainty.
+
+`chrome_control_slot_busy` is local scheduling, not a Chrome-control fault. It
+does not increment `consecutive_failure_wakes` toward
+`control_user_repair_after_consecutive_wakes`, does not ask the user, and does
+not invalidate the lane's primary tab lease; retain the same remainders and use
+the next permitted lane wake.
 
 ### Stable Recovery Record
 

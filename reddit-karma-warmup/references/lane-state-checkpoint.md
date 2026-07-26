@@ -37,6 +37,7 @@ vote_policy + vote_cap
 optional browsing-only vote_target_mode + vote_target + upvote_count + downvote_count
 current_cluster_id + cluster_target + cluster_verified + cluster_remaining
 own_tab_id + own_tab_origin + current_url + tab_control_proof
+tab_lease_id + tab_creation_nonce + tab_lease_state + chrome_control_scope
 surface_requested + surface_used + surface_reason + canonical_target_key
 fallback_from + fallback_reason + route_result
 own_heartbeat_id + target_binding_proof + next_due_local + next_due_utc

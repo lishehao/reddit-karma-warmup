@@ -42,12 +42,8 @@ for key, value in expected.items():
 
 required = {
     "SKILL.md": [
-        "chrome-atomic-command-runtime.md",
-        "Load `references/chrome-network-recovery.md` only if Chrome preflight fails",
-        "First creation is three atomic calls",
-        "The submit wait, one click, and readback are three separate operations",
-        "A Chrome command that succeeds slowly is not a failure",
-        "pure metadata transaction uses the configured 30-second budget",
+        "[Chrome atomic runtime](references/chrome-atomic-command-runtime.md)",
+        "[network recovery](references/chrome-network-recovery.md) only after a failure",
     ],
     "references/chrome-atomic-command-runtime.md": [
         "Load in the Reddit launcher and every Chrome-backed Reddit execution task",

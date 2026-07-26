@@ -104,6 +104,36 @@
     "post_initial_candidate_range": [20, 30],
     "near_tie_score_margin": 3
   },
+  "web_search": {
+    "tool_requirement": "BUILT_IN_WEB_SEARCH",
+    "batch_independent_queries_when_supported": true,
+    "results_are_discovery_and_fact_evidence_not_reddit_permission": true,
+    "comments": {
+      "cluster_discovery_query_min": 4,
+      "cluster_discovery_query_target": 6,
+      "cluster_discovery_query_cap": 10,
+      "per_comment_exact_query_min": 1,
+      "time_sensitive_claim_source_min": 2
+    },
+    "posts": {
+      "query_pack_min": 12,
+      "query_pack_target": 18,
+      "query_pack_cap": 30,
+      "time_sensitive_claim_source_min": 2,
+      "required_query_families": [
+        "community_topic_and_recent_discussion",
+        "premise_and_close_variants",
+        "duplicate_and_faq_risk",
+        "external_fact_or_primary_source_when_claimed"
+      ]
+    },
+    "freshness": {
+      "record_query_time": true,
+      "record_source_date_when_visible": true,
+      "no_result_is_valid_discovery_evidence": true,
+      "unsupported_time_sensitive_claim_policy": "REMOVE_OR_REFRAME"
+    }
+  },
   "votes": {
     "allowed_lanes": ["browsing"],
     "non_browsing_policy": "DISABLED_BY_LANE",
@@ -130,6 +160,10 @@
   "chrome_command_runtime": {
     "outer_timeout_ms": 120000,
     "metadata_timeout_ms": 30000,
+    "control_slot_scope": "chrome-default-control",
+    "control_slot_wait_ms": 5000,
+    "control_slot_ttl_seconds": 150,
+    "tab_lease_ttl_seconds": 14400,
     "locator_action_timeout_ms": 90000,
     "blocking_page_commands_per_cell": 1,
     "metadata_commands_per_cell": 4,

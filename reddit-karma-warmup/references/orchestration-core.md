@@ -17,6 +17,7 @@ qualified_read_target + qualified_read_remaining + qualified_read_count
 vote_policy + vote_cap
 optional browsing-only vote_target_mode + vote_target + vote_target_remaining + upvote_count + downvote_count
 own_tab_id + own_tab_origin + optional group_id + current URL + tab_control_proof
+tab_lease_id + tab_creation_nonce + tab_lease_state + chrome_control_scope
 surface_requested + surface_used + surface_reason + canonical_target_key
 fallback_from + fallback_reason + route_result
 own_history_ledger
@@ -54,29 +55,24 @@ The first user command reaches `ACT` when its mutation phase is open and a candi
 
 For proactive comments, the state machine runs once per individual comment, not once per cluster. After one verified `ACT`, write the measured log, return to `DISCOVER`, assign a new `per_comment_gate_id`, and rerun `CHECK_A`, `DRAFT`, and `CHECK_B` for the next item. A prewritten batch or shared cluster-level copy decision is invalid.
 
-## Lane Boundaries
+## Lane Boundary Reference
 
-| Lane | Owns | Excludes |
-|-|-|-|
-| comments | proactive comment discovery, qualified reading, and comment submission | main posts, notifications, every Upvote/Downvote control, profile changes |
-| posts | native main-post research, qualified reading, preflight, submission, and required withdrawal cleanup | comments, notifications, every Upvote/Downvote control, profile changes |
-| follow-up | Notifications/known chains/recent activity reading, replies, and required withdrawal cleanup | proactive discovery, new posts, every Upvote/Downvote control |
-| browsing | explicit pure-browse missions with qualified reading and independently gated votes | default broad-operation dispatch, publishing text, notifications, profile changes |
-| presence | profile/about, Join/subscribe, truthful Flair/tag | outward content, notifications, votes |
-
-An off-lane user request is not forwarded. Tell the user which canonical task handles it and continue only the current lane if applicable.
+`lane-action-ownership.md` is the sole authority for lane permissions,
+including the rule that only `Reddit 浏览台` may inspect or operate vote controls.
+Do not duplicate or reinterpret that matrix here. An off-lane request is not
+forwarded: identify the canonical lane and continue only current-lane work.
 
 ## Dedicated Chrome Context
 
-1. Discover Chrome control automatically. Every execution task owns one persistent dedicated Reddit primary tab. A task-specific Tab Group is optional visual organization and never substitutes for the tab.
+1. Discover Chrome control automatically. Every execution task owns one persistent dedicated Reddit primary tab through an active `chrome_tab_lease/v1`. A task-specific Tab Group is optional visual organization and never substitutes for the tab or lease. Before every browser boundary call, it holds one short `chrome_control_slot/v1`; that serializes shared transport calls but never makes another task's tab available.
 2. On the first healthy mission turn, use a three-call creation transaction. The first completed browser call only creates the primary tab with the supported Chrome API and returns/persists `own_tab_id` in the tool result/local mission state. A second browser call navigates that recorded tab with `tab.goto("https://old.reddit.com/")` as its only browser-boundary command and gives the outer `node_repl` call `120 sec`; a third browser call performs one page-state read and then records origin and URL from that returned evidence. Old Reddit is only the `old_first_modern_fallback` starting surface: load `reddit-surface-routing.md` and use its capability matrix for later routes. Never combine `tabs.new()`, `goto`, and page-state reading. Do not navigate by page-side script or simulate the Chrome address bar with `CUA`/`Meta+L`.
 3. A `goto` timeout or REPL reset is an uncertain navigation acknowledgement, not proof that navigation failed. Reconnect the same Chrome/profile, enumerate current tabs, reclaim the exact recorded `own_tab_id`, and perform one post-timeout page-state read. If that single read proves the URL moved and the page is readable, treat navigation as recovered success. If it remains blank or unreadable, retry once in the same tab; do not create a second primary tab.
-4. On later turns and Heartbeats, enumerate current Chrome tabs, match the recorded `own_tab_id`, and claim the exact returned tab object. Never guess an ID. URL/title metadata from `openTabs()` is discovery only; the tab is usable only after a fresh page-state read succeeds.
+4. On later turns and Heartbeats, enumerate current Chrome tabs, match the recorded `own_tab_id` plus active lease creation nonce, renew the exact existing lease, and claim the exact returned tab object. Never guess an ID. URL/title metadata from `openTabs()` is discovery only; the tab is usable only after a fresh page-state read succeeds. Lease expiry never authorizes adoption of a visible tab.
 5. If the recorded tab is genuinely missing or stale after enumeration, discard only that binding and create one replacement primary tab from the existing healthy browser binding. Never claim an arbitrary user tab, launcher tab, or sibling task tab merely because it already shows Reddit, and never describe another task's occupied tab as this lane's blocker.
-6. Before every action, reselect the primary tab and confirm the expected account, canonical target, surface, and URL. A host change never creates a new candidate or mutation key. The lane may open a temporary lane-owned read-only auxiliary tab only when the primary workflow genuinely needs it; close every auxiliary tab in the same turn and never persist more than one primary tab.
+6. Before every action, reselect the primary tab and confirm the expected account, canonical target, surface, and URL. A host change never creates a new candidate or mutation key. The lane may open a temporary lane-owned read-only auxiliary tab only when the primary workflow genuinely needs it; give it a separate temporary lease, close/release it in the same turn, and never persist more than one primary tab.
 7. Before a nonterminal turn ends, including navigation recovery that must continue later, persist the tab state and make Chrome finalization the last browser action: `chrome.tabs.finalize({keep: [{tab: own_tab, status: "handoff"}]})`. This releases control while leaving the exact primary tab available for the next wake. Never call `finalize({keep: []})` for a nonterminal navigation failure, and do not call Chrome again after finalization.
 8. At explicit stop, deadline, or verified mission completion, call `own_tab.close()` for the task-owned primary tab, then run `chrome.tabs.finalize({keep: []})` and clear `own_tab_id`; do not leave an idle lane tab behind.
-9. Never navigate, close, regroup, inspect, or wait for another task's tab. Shared Chrome profile/account use is normal and requires no collision check.
+9. Never navigate, close, regroup, inspect, or wait for another task's tab. Shared Chrome profile/account use is normal, but tab sharing is forbidden: rely only on lease metadata and the short control slot, never sibling page state or a sibling tab handle.
 
 Load `chrome-network-recovery.md` for failures. Retry only this task's action and never infer sibling state.
 

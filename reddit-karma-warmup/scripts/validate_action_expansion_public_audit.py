@@ -35,12 +35,13 @@ def main() -> int:
             errors.append(f"missing:{needle}")
 
     links = {
-        ROOT / "SKILL.md": "pending/public audits never grant publishing permission",
+        ROOT / "SKILL.md": "never treat it as publishing permission",
         ROOT / "references" / "proactive-common.md": "Public/pending expansion audits rank future preflight only",
         ROOT / "references" / "publish-consistency.md": "no comment, post, vote, Join, or product permission is created",
     }
     for path, needle in links.items():
-        if needle not in path.read_text(encoding="utf-8"):
+        normalized = " ".join(path.read_text(encoding="utf-8").split())
+        if needle not in normalized:
             errors.append(f"missing_link:{path.name}:{needle}")
 
     if errors:

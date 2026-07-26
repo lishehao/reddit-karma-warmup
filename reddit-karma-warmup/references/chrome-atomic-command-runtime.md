@@ -59,6 +59,39 @@ telemetry delay. A browser command that returns successfully after the configure
 `slow_success_threshold_ms` is slow success, not a timeout, disconnect, page
 failure, or account risk.
 
+## Task Tab And Control-Slot Leases
+
+Read `operation-defaults.json.chrome_command_runtime` before the first Chrome
+boundary. The task first takes the short control slot and creates its tab as one
+browser action, then creates exactly one active `chrome_tab_lease/v1` through
+`scripts/chrome_surface_lease.py` before page work. Persist exact
+`owner_task_id`, lane, mission ID, tab creation nonce, control scope, lease ID,
+and extension/provider tab identity when exposed. A tab may be claimed only
+when its active lease matches the current task and exact recorded tab identity.
+A matching URL, title, or exposed tab ID is not ownership proof.
+
+The tab lease scope combines the control scope, exact provider tab identity,
+and creation nonce. On each later reclaim, renew that exact existing lease with
+the same owner and lease ID before page work. Expiry never makes a visible tab
+adoptable: if exact reclaim fails, discard only that lane binding and follow the
+fresh dedicated-tab path.
+
+Tabs isolate page state, but all tasks using the local Chrome extension still
+share one control/content transport. Before each Chrome boundary call, acquire a
+short `chrome_control_slot/v1` with
+`control_slot_scope=chrome-default-control`, wait no more than
+`control_slot_wait_ms`, execute one browser boundary, and release the slot as
+soon as the call acknowledges. The `control_slot_ttl_seconds` is crash cleanup,
+not a normal hold duration. A successful call returns immediately; the
+`outer_timeout_ms=120000` budget is a ceiling, not a fixed wait.
+
+If the slot stays busy, record `CHROME_CONTROL_SLOT_BUSY`, keep the current tab
+lease, and yield/retry through this lane's Heartbeat. It is never Chrome
+disconnect evidence, permission to inspect the holder, or permission to reuse a
+sibling/user tab. Local parsing, scoring, hash/ledger writes, and Web Search may
+continue outside the control slot. The only allowed browser-call batch remains a
+metadata-only transaction.
+
 ## Native Chrome Plugin Alignment
 
 Follow the installed Chrome control Skill and the browser's emitted

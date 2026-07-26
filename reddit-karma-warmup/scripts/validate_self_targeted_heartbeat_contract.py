@@ -19,9 +19,9 @@ def require(path: Path, needles: list[str], errors: list[str]) -> None:
 errors: list[str] = []
 
 require(ROOT / "SKILL.md", [
-    "worker_task_id=<exact destination task ID>",
-    "targetThreadId=self_task_id",
-    "carry checkpoint path and mission identity",
+    "one self-targeted recurring Heartbeat",
+    "[scheduler](references/scheduler-and-heartbeats.md) only when work remains",
+    "Each lane owns only its own tab, checkpoint, Heartbeat, history, and report",
 ], errors)
 
 require(ROOT / "references" / "scheduler-and-heartbeats.md", [

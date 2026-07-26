@@ -1,6 +1,9 @@
 # Browse And Vote Playbook
 
-Load only in `Reddit 浏览台`. Comments, posts, follow-up, and presence must not load this file or use any vote control. Numeric read targets, vote caps, and score thresholds come only from `operation-defaults.json`.
+Load only in `Reddit 浏览台`, after the current-slot runtime documents named in
+`SKILL.md`. Comments, posts, follow-up, and presence must not load this file or
+use any vote control. Numeric read targets, vote caps, and score thresholds
+come only from `operation-defaults.json`.
 
 Default `vote_target_mode=opportunity`: there is no default vote count target. The intensity vote cap is always a hard ceiling. An explicit combined or directional vote count becomes a hard target under the resolved cap.
 

@@ -26,6 +26,8 @@ required = {
         "community_selection.post_live_preflight_community_range",
         "verified post is completion",
         "Do not report the mission complete because a configured timebox",
+        "Compliance Gate Before Ranking",
+        "No 100-point aggregate candidate score is a publication gate",
     ],
     ROOT / "references" / "launcher-playbook.md": [
         "selected lane's configured reference sweep",
@@ -39,7 +41,8 @@ required = {
     ROOT / "references" / "posts-playbook.md": [
         "broad-to-deep funnel",
         "live deep reads",
-        "resolved post-mode candidate gate",
+        "Resolve hard compliance first",
+        "minimum content floor",
         "verified publication normally completes a one-post action target",
     ],
     ROOT / "references" / "account-direction.md": [
@@ -83,4 +86,5 @@ print(json.dumps({
     "shortlist_cap": "CANONICAL_CONFIG",
     "post_live_deep_preflight": "CANONICAL_CONFIG",
     "permission": "LIVE_ACTION_GATES_REQUIRED",
+    "post_selection_priority": "COMPLIANCE_FIRST",
 }, ensure_ascii=False, sort_keys=True))

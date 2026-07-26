@@ -18,11 +18,15 @@ def require(path: Path, needles: list[str], errors: list[str]) -> None:
 
 errors: list[str] = []
 defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
-if defaults["posts"]["discussion_score_min"] != 75:
+if defaults["posts"]["selection_priority"] != "COMPLIANCE_FIRST":
+    errors.append("selection_priority")
+if defaults["posts"]["content_quality_role"] != "SECONDARY_MINIMUM_AND_TIEBREAK":
+    errors.append("content_quality_role")
+if defaults["posts"]["discussion_score_min"] != 50:
     errors.append("discussion_score_min")
 if defaults["posts"]["discussion_survivor_sample_target"] != 15:
     errors.append("discussion_survivor_sample_target")
-if defaults["posts"]["discussion_rewrite_score_min"] != 65:
+if defaults["posts"]["discussion_rewrite_score_min"] != 40:
     errors.append("discussion_rewrite_score_min")
 
 require(ROOT / "SKILL.md", [
@@ -39,10 +43,11 @@ require(ROOT / "references" / "posts-playbook.md", [
     "Low reply cost",
     "Current native evidence",
     "Novelty vs FAQ/recent posts",
-    "Draft only at `posts.discussion_score_min`",
+    "After hard compliance passes, draft at `posts.discussion_score_min`",
+    "minimum anti-spam/fit floor",
 ], errors)
 require(ROOT / "references" / "launcher-playbook.md", [
-    "Every default question-post handoff carries the resolved discussion score gate",
+    "Every default question-post handoff carries the resolved compliance-first content floor",
 ], errors)
 require(ROOT / "references" / "outbound-copy-gate.md", [
     "`post_copy_score` evaluates writing quality but cannot rescue a weak or generic discussion premise",
@@ -50,7 +55,8 @@ require(ROOT / "references" / "outbound-copy-gate.md", [
 if README.exists():
     require(README, [
         "默认发帖是 `native_discussion`",
-        "discussion_potential_score >=75",
+    "discussion_potential_score >=50",
+    "只在版规合规后使用",
         "不能伪装新手",
     ], errors)
 
@@ -60,6 +66,7 @@ if errors:
 print(json.dumps({
     "status": "PASS",
     "default_angle": "TRUTHFUL_BEGINNER_READABLE_COMMUNITY_MEMORY",
-    "discussion_score_min": 75,
+    "discussion_score_min": 50,
+    "selection_priority": "COMPLIANCE_FIRST",
     "identity": "NO_NOVICE_IMPERSONATION",
 }, ensure_ascii=False, sort_keys=True))

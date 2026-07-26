@@ -75,7 +75,7 @@ exact_role_pack + filtered target shortlist + required live gates
 requested_model + requested_reasoning_effort + actual_model_pair + model_evidence_state
 ```
 
-Comments also receive clustered-window fields. Posts receive `main_post_unlock`, `post_action_mode`, `post_mode`, `target_pool_policy`, `target_pool_exact_and_closed`, `candidate_packet_target`, `publication_target`, `publication_cap`, and exact posting-gate rows. Non-browsing missions also receive `vote_cap=0`, zero current vote counters, and `browse_vote_playbook=NOT_LOADED`. A traffic probe is not an action target until live traffic, action route, and account gates pass.
+Comments also receive clustered-window fields. Posts receive `main_post_unlock`, `post_action_mode`, `post_mode`, `target_pool_policy`, `target_pool_exact_and_closed`, `post_selection_priority=COMPLIANCE_FIRST`, `post_content_quality_role=SECONDARY_MINIMUM_AND_TIEBREAK`, `candidate_packet_target`, `publication_target`, `publication_cap`, and exact posting-gate rows. Non-browsing missions also receive `vote_cap=0`, zero current vote counters, and `browse_vote_playbook=NOT_LOADED`. A traffic probe is not an action target until live traffic, action route, and account gates pass.
 
 ## Later Lane Mission
 

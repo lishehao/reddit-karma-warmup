@@ -21,29 +21,40 @@ Use `target_pool_exact_and_closed=true` only when the user explicitly names a cl
 
 Expansion is not a permission shortcut. Every new community still passes denylist -> action override -> filtered catalog/audit -> same-day live rules/account/submit checks. `research_only`, closed, unknown K1 gate, and live-rule failures remain ineligible.
 
+## Compliance First, Quality Second
+
+Evaluate every candidate in this fixed order:
+
+1. **Hard compliance:** denylist and action route, same-day live rules, account and submission eligibility, flair/title/body/megathread placement, self-promotion/link limits, approval state, and same-subreddit duplicate/recent-post checks. A mandatory conflict or a live rule/account failure is an immediate `retarget`; do not draft, score for hype, or try to compensate with better copy.
+2. **Minimum content floor:** the premise is truthful, directly on topic, native to the allowed format, non-spam, and not a FAQ or recent duplicate. This protects the community but is not a demand for a highly optimized viral angle.
+3. **Secondary ranking:** only among candidates that passed 1 and 2, use audience fit, timeliness, survivor fit, originality, and discussion potential to choose the least-friction suitable destination. A higher ranking score never rescues a compliance failure, and a compliant candidate that meets the content floor is not rejected merely for missing an arbitrary high aggregate score.
+
+Live rules are time-sensitive, so a historical route or a strong local content pattern never substitutes for the first step.
+
 ## Post Modes
 
 Resolve `post_mode` before drafting:
 
 | Mode | Default use | Candidate gate | Additional truth requirement |
 |-|-|-|-|
-| `native_discussion` | Ordinary community question, observation, workflow friction, or tradeoff | `posts.native_discussion_candidate_score_min` | A real, community-native premise; no personal claim unless known true. No project link, metric, or artifact is required. |
-| `artifact` | Research, build, launch, benchmark, project, or evidence-led post | `posts.artifact_post_candidate_score_min` | The claimed artifact, ownership, facts, and any metrics must be directly verifiable before drafting. |
+| `native_discussion` | Ordinary community question, observation, workflow friction, or tradeoff | hard compliance pass + `posts.native_discussion_content_score_floor` | A real, community-native premise; no personal claim unless known true. No project link, metric, or artifact is required. |
+| `artifact` | Research, build, launch, benchmark, project, or evidence-led post | hard compliance pass + `posts.artifact_content_score_floor` | The claimed artifact, ownership, facts, and any metrics must be directly verifiable before drafting. |
 
 Use `native_discussion` by default. Do not make an ordinary question inherit an artifact-link requirement. Do not relabel a promotion, launch, survey, recruiting post, or weak personal anecdote as discussion to bypass artifact evidence.
 
 ## Coverage Packet
 
-Target `posts.candidate_packet_target` candidate packets before declaring a nonterminal no-post state. A packet is not a draft and need not pass; it records:
+Target `posts.candidate_packet_target` candidate packets before declaring a nonterminal no-post state. A packet is not a draft and need not pass; it records the two gates before any ranking:
 
 ```text
 subreddit + post_mode + truthful premise
-live rules/account/submit result + exact score
-recent survivor/topic evidence + duplicate check
+hard_compliance=pass|fail + exact live rule/account/submit/duplicate evidence
+content_floor=pass|fail + exact reason
+secondary_rank_score only after both gates pass
 accept/reject decision + exact reason
 ```
 
-For `native_discussion`, sample `posts.discussion_survivor_sample_target` recent local discussion survivors across the candidates and use the mode's discussion-potential gate. For `artifact`, sample the comparable current artifact/project format; do not apply a fake discussion-score requirement.
+For `native_discussion`, sample `posts.discussion_survivor_sample_target` recent local discussion survivors across the candidates and use the mode's lower content floor. For `artifact`, sample the comparable current artifact/project format; direct proof is a truth requirement, not a popularity score.
 
 Candidate packets make the system accountable for breadth and publishing readiness. They do not lower any hard rule or turn rejected communities into publishable destinations.
 
@@ -52,7 +63,7 @@ Candidate packets make the system accountable for breadth and publishing readine
 1. Use cached catalog breadth for the resolved reference sweep; do not rapidly open every community in Chrome.
 2. Deep-preflight the ranked range from `community_selection.post_live_preflight_community_range` and inspect recent native content in each viable finalist.
 3. Build candidate packets, retarget immediately after a concrete rejection, and keep the exact reasons.
-4. Publish once only when one packet passes its mode gate, live rules/eligibility, submit state, history/duplicate checks, and Double-Check B.
+4. Publish once when one packet first passes hard compliance, its mode's minimum content floor, and Double-Check B. Use secondary ranking only to choose among multiple passing packets.
 5. After verified publication, finish any remaining hard reading objective without another post.
 
 Never use the coverage KPI to imply that Reddit accepted a post. Only a verified permalink completes the publication KPI.

@@ -72,6 +72,8 @@ require(
 )
 require(f"至少抽样 {posts['discussion_survivor_sample_target']} 条", "discussion_samples")
 require(f"discussion_potential_score >={posts['discussion_score_min']}", "discussion_score")
+require("候选先过当天版规", "post_compliance_first")
+require("内容质量只用于该底线及合规候选间的排序", "post_quality_secondary")
 require("preferred_expandable", "post_pool_policy")
 require("条件性 1 篇", "conditional_publication_kpi")
 require(f"{posts['candidate_packet_target']} 个候选包", "candidate_packets")

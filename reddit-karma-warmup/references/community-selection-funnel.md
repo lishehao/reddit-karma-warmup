@@ -67,10 +67,18 @@ Do not turn the reference sweep into rapid live navigation. Use cached/reference
 1. Take the highest-ranked range from `community_selection.post_initial_candidate_range`. For K0/K1, first remove every candidate without a completed account-gate audit row.
 2. Deep-preflight the configured `community_selection.post_live_preflight_community_range` with current subreddit home/About/rules, pinned mod posts, `New`, `Hot`, `Top Month`, submit fields, account/Karma/flair requirements, posting placement, and recent same-angle repetition. A `no_public_gate_found` audit row still needs this same-day check because hidden AutoModerator gates remain possible.
 3. Search the exact proposed topic and close variants in each finalist.
-4. Build a candidate packet for every serious finalist; draft only after one subreddit + audience + angle passes the live post gate.
+4. Build a candidate packet for every serious finalist. First resolve hard compliance, then the minimum content floor; draft only after both pass. Do not let a high aggregate ranking score rescue a rules failure.
 5. If a candidate fails, immediately retarget to the next ranked candidate. Continue until one post is verified, the user stops, the operation deadline arrives, or a current concrete post-lane blocker survives recovery.
 
-Rank each live finalist out of `100`:
+### Compliance Gate Before Ranking
+
+Before computing a ranking score, require every one of these facts to be positively evidenced: action route is open; current subreddit rules permit the exact content and format; account-age/Karma/history and current submit controls pass; required flair/title/body/megathread placement is known and satisfiable; no approval, self-promotion, external-link, or duplicate/recent-own-post conflict remains. A failure is `retarget`, not a lower score.
+
+Then require the content floor: truthful premise, exact topical fit, native format, no spam, and no FAQ/recent duplicate. A compliant but generic, fabricated, or duplicate premise is rewritten or retargeted; it is not published just because it is technically allowed.
+
+### Secondary Ranking Among Passing Candidates
+
+Rank only live-compliant, content-floor-passing finalists out of `100`:
 
 | Factor | Points | Meaning |
 |-|-:|-|
@@ -81,7 +89,7 @@ Rank each live finalist out of `100`:
 | Originality and account coherence | 0-15 | Distinct from account/team history and consistent with the truthful identity focus. |
 | Rule friendliness and moderation friction | 0-10 | Low special-placement, approval, or subjective promotion risk. |
 
-`native_discussion` pass requires `posts.native_discussion_candidate_score_min`; `artifact` pass requires `posts.artifact_post_candidate_score_min`. Both require at least `posts.rules_eligibility_score_min` on live rules and eligibility and no mandatory conflict. Prefer the highest passing candidate, not the first merely acceptable community. If two candidates are within `community_selection.near_tie_score_margin`, prefer the lower-friction route and stronger account coherence.
+Both modes require at least `posts.rules_eligibility_score_min` on live rules and eligibility, no mandatory conflict, and their mode's content floor. No 100-point aggregate candidate score is a publication gate. Prefer the highest-ranked candidate only after the hard compliance and content-floor checks have passed. If two candidates are within `community_selection.near_tie_score_margin`, prefer the lower-friction route and stronger account coherence.
 
 ## Completion Evidence
 

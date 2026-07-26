@@ -31,6 +31,8 @@ qualified_read_target + qualified_read_verified + qualified_read_remaining
 optional posts-only post_mode + target_pool_policy + target_pool_exact_and_closed
 optional posts-only publication_target + publication_cap + publication_status
 optional posts-only candidate_packet_target + candidate_packet_verified + candidate_packet_rejections
+optional posts-only post_selection_priority + post_content_quality_role
+optional posts-only candidate_hard_compliance + candidate_content_floor + candidate_secondary_rank_score
 vote_policy + vote_cap
 optional browsing-only vote_target_mode + vote_target + upvote_count + downvote_count
 current_cluster_id + cluster_target + cluster_verified + cluster_remaining

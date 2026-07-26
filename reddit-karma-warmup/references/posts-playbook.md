@@ -8,13 +8,13 @@ K0 is always `research_preflight_only` with `posts.k0_action_*`. K1 requires `ma
 
 For one required post without an explicitly closed destination pool, run the broad-to-deep funnel under `target_pool_policy=preferred_expandable`: assess the configured reference target, use `posts.narrowing_timebox_minutes`, then complete the configured number of live deep reads and candidate packets. A timebox, reference count, candidate packet, or rejected finalist is not publication completion. Honor `target_pool_exact_and_closed=true` only when it is explicit user scope.
 
-For every finalist, check current rules/sidebar, pinned moderator posts, `New`/`Hot`/`Top Month`, submit fields, Flair/title/body mode, account-age/Karma/history gates, megathread placement, external-link/product/survey rules, same-subreddit history, and approval signals. Use the funnel's six-factor score; require the resolved post-mode candidate gate, including `posts.rules_eligibility_score_min` on live rules and eligibility.
+For every finalist, check current rules/sidebar, pinned moderator posts, `New`/`Hot`/`Top Month`, submit fields, Flair/title/body mode, account-age/Karma/history gates, megathread placement, external-link/product/survey rules, same-subreddit history, and approval signals. Resolve hard compliance first, including `posts.rules_eligibility_score_min` on live rules and eligibility; any mandatory conflict immediately retargets. Only then check the mode's minimum content floor and use the funnel's six-factor score as a secondary ranking signal.
 
 ## Discussion-First Default
 
 Without another user angle, resolve `post_mode=native_discussion` and prefer a truthful beginner-readable community-memory question, observation, workflow friction, or tradeoff. It may sound simple but must not impersonate a novice, invent confusion, claim a personal mistake, or use deliberate factual errors. An ordinary discussion post does not require an artifact, project link, metric, or ownership claim.
 
-Before drafting a question post, sample `posts.discussion_survivor_sample_target` recent native discussion/question survivors when available and search the exact topic plus close variants. Reject FAQ, pinned, duplicate, one-answer, generic “any tips,” or cross-subreddit template premises.
+Before drafting a question post, sample `posts.discussion_survivor_sample_target` recent native discussion/question survivors when available and search the exact topic plus close variants. Reject FAQ, pinned, duplicate, one-answer, generic “any tips,” or cross-subreddit template premises. This is the minimum content floor after compliance, not a demand for maximal engagement potential.
 
 Score discussion potential:
 
@@ -27,7 +27,7 @@ Score discussion potential:
 | Current native evidence | 0-10 |
 | Novelty vs FAQ/recent posts | 0-10 |
 
-Draft only at `posts.discussion_score_min`, with recognition, plurality, and live evidence all nonzero. Scores from `posts.discussion_rewrite_score_min` up to that gate rewrite once; lower scores retarget. The score predicts discussion potential and never overrides eligibility. For `artifact` mode, use comparable current artifact/project survivors instead; never invent a discussion premise to avoid an artifact-evidence gap.
+After hard compliance passes, draft at `posts.discussion_score_min`, with recognition, plurality, and live evidence all nonzero. Scores from `posts.discussion_rewrite_score_min` up to that floor rewrite once; lower scores retarget. The score is a minimum anti-spam/fit floor and a secondary ranking signal; it never overrides eligibility or becomes a high-quality-only publishing gate. For `artifact` mode, use comparable current artifact/project survivors instead; never invent a discussion premise to avoid an artifact-evidence gap.
 
 ## Draft And Submit
 

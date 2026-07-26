@@ -42,11 +42,17 @@ if posts["publication_kpi"] != "CONDITIONAL_ONE_VERIFIED_POST":
     errors.append("publication_kpi")
 if (posts["candidate_packet_target"], posts["candidate_packet_min_before_blocked"]) != (3, 3):
     errors.append("candidate_packet_target")
-if (posts["native_discussion_candidate_score_min"], posts["artifact_post_candidate_score_min"]) != (76, 82):
-    errors.append("mode_candidate_scores")
+if posts["selection_priority"] != "COMPLIANCE_FIRST":
+    errors.append("selection_priority")
+if posts["content_quality_role"] != "SECONDARY_MINIMUM_AND_TIEBREAK":
+    errors.append("content_quality_role")
+if (posts["native_discussion_content_score_floor"], posts["artifact_content_score_floor"]) != (50, 50):
+    errors.append("mode_content_floors")
+if "native_discussion_candidate_score_min" in posts or "artifact_post_candidate_score_min" in posts:
+    errors.append("obsolete_mode_candidate_scores")
 if "post_candidate_score_min" in posts:
     errors.append("obsolete_generic_post_candidate_score")
-if (posts["discussion_survivor_sample_target"], posts["discussion_score_min"], posts["discussion_rewrite_score_min"]) != (15, 75, 65):
+if (posts["discussion_survivor_sample_target"], posts["discussion_score_min"], posts["discussion_rewrite_score_min"]) != (15, 50, 40):
     errors.append("discussion_coverage_scores")
 if selection["post_shortlist_limit"] != 30:
     errors.append("post_shortlist_limit")
@@ -66,10 +72,15 @@ required = {
         "artifact",
         "candidate_packet_target",
         "0/1",
+        "Hard compliance",
+        "Minimum content floor",
+        "Secondary ranking",
+        "not rejected merely for missing an arbitrary high aggregate score",
     ],
     ROOT / "references" / "posts-playbook.md": [
         "target_pool_policy=preferred_expandable",
-        "resolved post-mode candidate gate",
+        "Resolve hard compliance first",
+        "minimum content floor",
         "ordinary discussion post does not require an artifact",
         "conditional publication KPI",
     ],
@@ -77,13 +88,15 @@ required = {
         "candidate_packet_target",
         "target_pool_policy=preferred_expandable",
         "target_pool_exact_and_closed=true",
-        "native_discussion` pass requires",
+        "Compliance Gate Before Ranking",
+        "No 100-point aggregate candidate score is a publication gate",
     ],
     ROOT / "references" / "launcher-playbook.md": [
         "post-coverage-and-kpi.md",
         "target_pool_policy",
         "candidate_packet_target",
         "publication_target=1",
+        "post_selection_priority=COMPLIANCE_FIRST",
     ],
     ROOT / "references" / "default-operations-sop.md": [
         "post_mode=native_discussion",
@@ -94,6 +107,7 @@ required = {
     ROOT / "references" / "lane-state-checkpoint.md": [
         "publication_target + publication_cap + publication_status",
         "candidate_packet_target + candidate_packet_verified + candidate_packet_rejections",
+        "candidate_hard_compliance + candidate_content_floor + candidate_secondary_rank_score",
     ],
 }
 for path, needles in required.items():
@@ -105,15 +119,17 @@ if README.exists():
         "preferred_expandable",
         "条件性 1 篇",
         "3 个候选包",
-        "discussion_potential_score >=75",
-        "artifact` 模式才保留 `>=82`",
+        "候选先过当天版规",
+        "内容质量只用于该底线及合规候选间的排序",
+        "discussion_potential_score >=50",
     ], errors)
 
 scenarios = {
     "ordinary_discussion": {
         "post_mode": "native_discussion",
         "artifact_required": False,
-        "candidate_score_min": posts["native_discussion_candidate_score_min"],
+        "selection_priority": posts["selection_priority"],
+        "content_floor": posts["native_discussion_content_score_floor"],
         "pool_policy": posts["default_target_pool_policy"],
         "publication_target": 1,
     },
@@ -121,6 +137,15 @@ scenarios = {
         "post_mode": "artifact",
         "artifact_required": True,
         "publication": "BLOCKED_NO_FABRICATION",
+    },
+    "high_rank_but_noncompliant": {
+        "hard_compliance": "FAIL",
+        "publication": "REJECT_BEFORE_RANKING",
+    },
+    "compliant_but_not_hype_optimized": {
+        "hard_compliance": "PASS",
+        "content_floor": "PASS",
+        "publication": "ELIGIBLE_NO_HIGH_AGGREGATE_GATE",
     },
     "coverage_without_eligible_post": {
         "candidate_packets": posts["candidate_packet_min_before_blocked"],

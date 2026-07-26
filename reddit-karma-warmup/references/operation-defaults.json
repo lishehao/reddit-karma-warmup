@@ -52,11 +52,13 @@
     "publication_kpi": "CONDITIONAL_ONE_VERIFIED_POST",
     "candidate_packet_target": 3,
     "candidate_packet_min_before_blocked": 3,
-    "native_discussion_candidate_score_min": 76,
-    "artifact_post_candidate_score_min": 82,
+    "selection_priority": "COMPLIANCE_FIRST",
+    "content_quality_role": "SECONDARY_MINIMUM_AND_TIEBREAK",
+    "native_discussion_content_score_floor": 50,
+    "artifact_content_score_floor": 50,
     "rules_eligibility_score_min": 20,
     "discussion_survivor_sample_target": 15,
-    "discussion_rewrite_score_min": 65,
+    "discussion_rewrite_score_min": 40,
     "k0_action_target": 0,
     "k0_action_cap": 0,
     "k1_rolling_24h_cap": 1,
@@ -64,7 +66,7 @@
     "main_post_unlock_min_account_age_days": 7,
     "main_post_unlock_min_visible_comments": 10,
     "main_post_unlock_min_eligible_communities": 3,
-    "discussion_score_min": 75
+    "discussion_score_min": 50
   },
   "followup": {
     "low_cadence_minutes": [45, 60],

@@ -45,7 +45,7 @@ def main() -> int:
             "catalog's minimum traffic requirement",
         ],
         ROOT / "references" / "subreddit-catalog-taxonomy.md": [
-            "Two-Layer Model",
+            "Four-Layer Model",
             "The default discovery floor is `5,000` weekly visitors",
             "Catalog-only expansion does not require a full rule audit",
             "subreddit-catalog-expansion-2026-07-14.csv",

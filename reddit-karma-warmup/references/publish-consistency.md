@@ -83,11 +83,12 @@ For comments/replies:
 6. Compare subreddit, cluster, angle, intended claim, and the last `10` measured comment/reply lengths with `history_ledger`.
 7. Confirm the account can contribute without fake experience, product mention, or unsupported factual claims.
 
-For main posts, first verify a completed `web_search.posts` query pack, then
-live home/about/rules, pinned posts, recent survivor patterns, karma/age,
-flair/title/megathread, link/self-promo rules, submit controls,
-same-subreddit history, and moderator-approval state. Web results may support
-facts and narrow candidates, but are never evidence of Reddit permission.
+For main posts, first verify a completed `web_search.posts` query pack and
+decision-ready `evidence_synthesis`, then live home/about/rules, pinned posts,
+recent survivor patterns, karma/age, flair/title/megathread,
+link/self-promo rules, submit controls, same-subreddit history, and
+moderator-approval state. Web results may support facts and narrow candidates,
+but are never evidence of Reddit permission.
 These are hard compliance gates and a failure ends the candidate before copy
 quality is compared. Only after compliance passes, require the
 `native_discussion` local `discussion_survivor_sample` and minimum

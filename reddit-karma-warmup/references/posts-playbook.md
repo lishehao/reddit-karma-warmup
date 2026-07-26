@@ -19,7 +19,9 @@ For one required post without an explicitly closed destination pool, run the
 broad-to-deep funnel under `target_pool_policy=preferred_expandable`: assess
 the configured reference target, run the built-in Web Search post query pack,
 use `posts.narrowing_timebox_minutes`, then complete the configured number of
-live deep reads and candidate packets. A timebox, query count, reference count,
+live deep reads and candidate packets. The Web Search pack must include
+`research_brief`, labelled `query_plan`, and `evidence_synthesis`; query count
+alone does not unlock drafting. A timebox, query count, reference count,
 candidate packet, or rejected finalist is not publication completion. Honor
 `target_pool_exact_and_closed=true` only when it is explicit user scope.
 
@@ -32,9 +34,11 @@ Without another user angle, resolve `post_mode=native_discussion` and prefer a t
 Before drafting a question post, sample `posts.discussion_survivor_sample_target`
 recent native discussion/question survivors when available and search the exact
 topic plus close variants through both the Web Search query pack and live Reddit
-surfaces. Reject FAQ, pinned, duplicate, one-answer, generic “any tips,” or
-cross-subreddit template premises. This is the minimum content floor after
-compliance, not a demand for maximal engagement potential.
+surfaces. The synthesis must name the surviving premise, known objections,
+duplicate/FAQ risk, and claims that must be removed or softened. Reject FAQ,
+pinned, duplicate, one-answer, generic “any tips,” or cross-subreddit template
+premises. This is the minimum content floor after compliance, not a demand for
+maximal engagement potential.
 
 Score discussion potential:
 

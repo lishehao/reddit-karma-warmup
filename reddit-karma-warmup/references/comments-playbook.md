@@ -18,7 +18,8 @@ Daily `60` mode is not default. Enable it only for an explicit roughly-60/day re
 ## Candidate Gate
 
 Before opening candidate threads in Chrome, run the comment-window built-in Web
-Search query pack. Before every individual comment, run its separate exact
+Search pipeline: `research_brief`, labelled `query_plan`, query pack, and
+`evidence_synthesis`. Before every individual comment, run its separate exact
 query and record the returned `web_search_item_id`; a cluster never shares one
 item-level query. Search is the fast discovery layer, not proof that Reddit
 still permits the action. A no-result query is still valid discovery evidence
@@ -48,7 +49,8 @@ For every individual comment, including every item in one cluster:
 1. Assign a fresh `per_comment_gate_id`, run the required exact Web Search
    query, and reopen the exact target.
 2. Run the current rule glance and record `context_detail`, `duplicate_to_avoid`,
-   `local_voice_sample`, and `web_search_item_id`.
+   `local_voice_sample`, `web_search_item_id`, and the current
+   `evidence_synthesis_id`.
 3. Score the candidate and run Double-Check A.
 4. Run `outbound-copy-gate.md`; generate internal micro, one-liner, and two-beat alternatives and choose the shortest passing version.
 5. Use short native speech and high-frequency locally supported Reddit/internet markers across the session. Normally use one marker, never more than two; no percentage quota, forced slang, or copied phrasing.

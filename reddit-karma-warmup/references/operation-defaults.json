@@ -117,6 +117,43 @@
     "tool_requirement": "BUILT_IN_WEB_SEARCH",
     "batch_independent_queries_when_supported": true,
     "results_are_discovery_and_fact_evidence_not_reddit_permission": true,
+    "required_pipeline": [
+      "research_brief",
+      "query_plan",
+      "evidence_synthesis",
+      "chrome_live_gate"
+    ],
+    "research_brief": {
+      "required_fields": [
+        "decision_question",
+        "target_audience_or_subreddit",
+        "candidate_angle",
+        "known_claims",
+        "unknowns_to_resolve",
+        "publish_risk_hypothesis"
+      ],
+      "max_bullets": 6
+    },
+    "query_plan": {
+      "require_family_labels": true,
+      "require_distinct_question_per_query": true,
+      "duplicate_wording_policy": "DO_NOT_COUNT",
+      "comments_min_distinct_families": 4,
+      "posts_min_distinct_families": 4
+    },
+    "evidence_synthesis": {
+      "required_fields": [
+        "usable_findings",
+        "counter_evidence_or_objections",
+        "saturation_or_duplicate_risk",
+        "unsupported_or_forbidden_claims",
+        "draft_constraints",
+        "chrome_live_gate_targets"
+      ],
+      "must_have_counterevidence": true,
+      "must_have_draft_constraints": true,
+      "publish_without_synthesis_policy": "BLOCK_DRAFT"
+    },
     "comments": {
       "cluster_discovery_query_min": 4,
       "cluster_discovery_query_target": 6,

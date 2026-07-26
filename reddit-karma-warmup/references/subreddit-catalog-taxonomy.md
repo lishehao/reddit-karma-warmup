@@ -2,11 +2,15 @@
 
 Use this reference when resolving an account direction, expanding the community catalog, or querying `subreddit-profile-index.csv`. The catalog is a discovery index, not posting permission.
 
-## Two-Layer Model
+## Four-Layer Model
 
 1. `subreddit-profile-index.csv`: lightweight discovery metadata for hundreds of communities. It owns tags, traffic snapshots, broad fit, and evidence status.
 2. `subreddit-catalog-expansion-2026-07-14.csv` plus `reddit-community-search-snapshot-2026-07-14.json`: curated traffic-qualified discovery rows and the read-only Reddit search snapshot that produced them. These rows are `research_only` by default.
 3. `loci-subreddit-pool-v1.md` plus `community-action-routing-overrides.md`: detailed pain/rules evidence and action routing. Current live Reddit rules and account state remain final.
+4. The Skill-external `community-audit-pool/`: versioned public API snapshots
+   with a rule hash, freshness, structural flags, and limited hot-item pointers.
+   It is written by one local read-only service and read by every lane; it never
+   grants action permission or replaces visible Chrome browsing.
 
 Never promote a catalog-only row directly into comment or post scoring. A match only identifies which exact rule rows and live pages to inspect next.
 

@@ -8,6 +8,13 @@ Start from the confirmed `account_direction` and select one or two truthful pill
 
 ## Stage A: Distributor Reference Sweep
 
+Start from the most recent completed audit-pool snapshot when it exists. It is
+read-only cached public evidence: use its rule hash, structural flags, and
+small hot-item pointers to prioritize candidates, but never call a provider from
+`Reddit 分发台` or a lane. A missing, stale, or refresh-in-progress cache does
+not block routing; label its freshness and preserve the ordinary Chrome final
+gate.
+
 For every comment or post mission, resolve the reference sweep from `community_selection.comment_reference_sweep_limit` or `posts.<intensity>.reference_sweep_target` before worker dispatch. When Python is available, use:
 
 ```text
@@ -63,8 +70,10 @@ When the post mission requires one verified main post, resolve `post_selection_t
 Default to `target_pool_policy=preferred_expandable`: an initial shortlist is a starting order, not a closed list. Expand through the next action-eligible reference rows after a concrete rejection. Only a user-provided `target_pool_exact_and_closed=true` stops expansion; record that exhaustion as a blocker instead of converting the publication target to zero.
 
 Do not turn the reference sweep into rapid live navigation. Use
-cached/reference breadth, then the built-in Web Search post research pipeline
-for current external and Reddit-indexed discovery, then use Chrome for depth:
+cached/reference breadth and the audit-pool public-rule snapshot, then the
+built-in Web Search post research pipeline for current external and
+Reddit-indexed discovery, then use Chrome for normal visible content reading
+and the account-specific final gate:
 
 1. Take the highest-ranked range from `community_selection.post_initial_candidate_range`. For K0/K1, first remove every candidate without a completed account-gate audit row.
 2. Create the post `research_brief` and `query_plan`, then complete
@@ -77,7 +86,7 @@ for current external and Reddit-indexed discovery, then use Chrome for depth:
    `evidence_synthesis` before selecting Chrome finalists. It must preserve
    claim support, contradictions/open uncertainty, FAQ/duplicate risk,
    discarded angles, and draft constraints.
-3. Deep-preflight the configured `community_selection.post_live_preflight_community_range` with current subreddit home/About/rules, pinned mod posts, `New`, `Hot`, `Top Month`, submit fields, account/Karma/flair requirements, posting placement, and recent same-angle repetition. A `no_public_gate_found` audit row still needs this same-day check because hidden AutoModerator gates remain possible.
+3. Deep-preflight the configured `community_selection.post_live_preflight_community_range` through normal visible Chrome use: current destination context, relevant rule clarification when the cache is stale/ambiguous, pinned mod posts, `New`, `Hot`, `Top Month`, submit fields, account/Karma/flair requirements, posting placement, and recent same-angle repetition. The API cache replaces repeated public-rule scraping, not this account-specific gate. A `no_public_gate_found` audit row still needs this same-day check because hidden AutoModerator gates remain possible.
 4. Search the exact proposed topic and close variants in each finalist on live Reddit; Web Search results do not replace this current duplicate check.
 5. Build a candidate packet for every serious finalist. Attach the
    `research_brief_id`, `query_plan_id`, `evidence_synthesis_id`,

@@ -14,6 +14,7 @@ does not supervise workers, share a scheduler, or aggregate later results.
 | Identity | Sole responsibility | Never does |
 | --- | --- | --- |
 | `Reddit 启动台 → Reddit 分发台` | read-only preflight; resolve present/unarchived lanes; deliver a new mission | browse or mutate Reddit after dispatch |
+| `Reddit 社区审计服务` (local script, not a task) | maintain one shared public-rule/reference cache under a single API budget | Chrome, login state, Reddit mutations, task creation, Heartbeats, or user communication |
 | `Reddit 评论台` | discover, read context, and publish proactive comments | posts, notifications, votes |
 | `Reddit 发帖台` | scan eligible communities, verify rules, and publish native posts | comments, notifications, votes |
 | `Reddit 跟进台` | read inbound/known chains and reply when warranted | proactive discovery, new posts, votes |
@@ -48,19 +49,25 @@ mutation, a lane Heartbeat, or user communication.
    Its tab must hold an active `chrome_tab_lease/v1`; it never reads, changes,
    or waits on a sibling lane. A short `chrome_control_slot/v1` serializes one
    shared Chrome boundary call at a time without transferring page ownership.
+7. Public-rule/API work is not account browsing. Only `Reddit 启动台` may
+   initialize or request a refresh from the local `Reddit 社区审计服务`; the
+   resulting cache is read-only to `Reddit 分发台` and every lane. API requests
+   are GET-only and never submit, comment, vote, join, inspect a logged-in
+   account, or substitute for Chrome live gates. Every visible content read,
+   composer, submit form, flair picker, and final mutation remains Chrome-only.
 
 ## Route and load progressively
 
 | Situation | Load now | Load only when the condition occurs |
 | --- | --- | --- |
-| setup / dispatch | [launcher playbook](references/launcher-playbook.md), [model runtime](references/model-runtime.md), ownership, [operation defaults](references/operation-defaults.json) | [runtime setup](references/runtime-and-setup.md) for Chrome preflight; [thread runtime](references/thread-supervision-runtime.md) only for task create/reuse semantics |
+| setup / dispatch | [launcher playbook](references/launcher-playbook.md), [model runtime](references/model-runtime.md), ownership, [operation defaults](references/operation-defaults.json) | [runtime setup](references/runtime-and-setup.md) for Chrome preflight; [community audit pool](references/community-audit-pool.md) only for bootstrap/cache status; [thread runtime](references/thread-supervision-runtime.md) only for task create/reuse semantics |
 | every lane slot | [orchestration core](references/orchestration-core.md), [checkpoint](references/lane-state-checkpoint.md), [Chrome atomic runtime](references/chrome-atomic-command-runtime.md), ownership | [surface routing](references/reddit-surface-routing.md) while selecting a surface; [scheduler](references/scheduler-and-heartbeats.md) only when work remains; [network recovery](references/chrome-network-recovery.md) only after a failure |
 | comment lane | [comments playbook](references/comments-playbook.md), [Web Search preflight](references/web-search-preflight.md) | [outbound copy gate](references/outbound-copy-gate.md) and [US voice](references/reddit-us-voice-patterns.md) only before a draft/submission |
 | posts lane | [posts playbook](references/posts-playbook.md), [post KPI](references/post-coverage-and-kpi.md), [Web Search preflight](references/web-search-preflight.md) | [selection funnel](references/community-selection-funnel.md) while widening; [new-account gate](references/new-account-bootstrap.md) only for K0/K1; copy gate only before drafting |
 | follow-up lane | [follow-up playbook](references/followup-playbook.md) | copy gate only for a reply candidate |
 | browsing lane | [browse/vote playbook](references/browse-vote-playbook.md) | no text-copy playbook |
 | presence lane | [presence playbook](references/community-presence-playbook.md), [account direction](references/account-direction.md) | no publishing or vote playbook |
-| catalog expansion / a blocked destination | [subreddit catalog](references/subreddit-catalog-taxonomy.md) | exact historical audit row only for the candidate being checked; it never grants permission |
+| catalog expansion / a blocked destination | [subreddit catalog](references/subreddit-catalog-taxonomy.md), [community audit pool](references/community-audit-pool.md) | exact historical audit row only for the candidate being checked; it never grants permission |
 | visible rate limit, removal, approval, or account warning | [risk escalation](references/risk-escalation.md) | [Chrome edge cases](references/chrome-recovery-edge-cases.md) only when the recovery classifier selects one |
 
 Load [publish consistency](references/publish-consistency.md) only immediately
@@ -72,12 +79,15 @@ documents "just in case."
 
 ## Community data
 
-Use current live rules and submit state as final authority. Filter
-`subreddit-profile-index.csv`, then apply `organization-community-denylist.md`
-and `community-action-routing-overrides.md`. Historical audits, traffic
-snapshots, and `loci-subreddit-pool-v1.md` are evidence lookup only: read an
-exact row when needed, never load an archive by default, and never treat it as
-publishing permission.
+Use current live rules and submit state as final authority. The shared audit
+pool may supply public rule snapshots, public structural metadata, and at most
+small public hot-item pointers; it is not content browsing or publishing
+permission. Filter `subreddit-profile-index.csv`, then apply
+`organization-community-denylist.md` and
+`community-action-routing-overrides.md`. Historical audits, traffic snapshots,
+the audit-pool cache, and `loci-subreddit-pool-v1.md` are evidence lookup only:
+read an exact row when needed, never load an archive by default, and never treat
+it as publishing permission.
 
 ## One lane slot
 

@@ -6,8 +6,8 @@ Load only for install, upgrade, dependency preflight, or initial lane allocation
 
 The first available presentation action after a setup/install command is to rename the current task `Reddit 启动台`. Do this before download, preflight, or explanation. Rename failure is presentation-only and never blocks setup.
 
-`Reddit 启动台` is temporary and owns only installation plus read-only runtime
-checks. Prefer renaming/pinning this same task as `Reddit 分发台`. The default
+`Reddit 启动台` is temporary and owns only installation, read-only runtime
+checks, and one local community-audit-pool bootstrap. Prefer renaming/pinning this same task as `Reddit 分发台`. The default
 runtime is inherited; do not create a successor merely to change models. A
 successor is allowed only when the user explicitly asks to migrate this exact
 task's model and the model-runtime gate plus ordinary exact-ID handoff both
@@ -33,13 +33,21 @@ pinned and idle.
   only when the user explicitly permits fallback. Model selection never proves
   task health, delivery, archive state, or replacement eligibility.
 
-Python, Node.js, Git, GitHub CLI, package managers, macOS Screen Recording, System Audio Recording, Accessibility, databases, API keys, external CLIs, and the generic `thread-supervisor` Skill are not runtime dependencies. When `thread-supervisor` is installed, use its current generic tool semantics while retaining this Skill's Reddit-specific topology.
+Python, Node.js, Git, GitHub CLI, package managers, macOS Screen Recording, System Audio Recording, Accessibility, databases, API keys, external CLIs, and the generic `thread-supervisor` Skill are not runtime dependencies. The audit pool can initialize and serve an existing cache without API credentials; a public API refresh is optional and never blocks Chrome operation. When `thread-supervisor` is installed, use its current generic tool semantics while retaining this Skill's Reddit-specific topology.
 
 ## Install And Upgrade
 
 Use repository root `README.md` and the public HTTPS archive. Compare `manifest.json` versions numerically. Install a whole managed folder atomically; never merge old and new trees. Back up the previous folder. Same version plus different content is a conflict; older incoming versions do not downgrade without explicit instruction; failed validation rolls back. Preserve all user-owned runtime data outside the managed Skill tree, including `account-directions/`, `lane-registry/`, `lane-state/`, and `lane-history/`.
 
 ## Read-Only Preflight
+
+Before Chrome preflight, load `community-audit-pool.md`. `Reddit 启动台` alone
+runs `scripts/community_audit_pool.py init` and `status` against the shared
+Skill-external root. If the user has configured the official Reddit read-only
+provider and the cache is stale, it may request one locked refresh. A busy lock,
+missing credential, rate pause, or stale cache is an audit-pool status, not a
+Chrome failure or a reason to create another launcher. `Reddit 分发台` and lane
+tasks only read the latest completed snapshot; they never refresh it.
 
 Before the first Chrome call, load `chrome-atomic-command-runtime.md` and follow
 the installed Chrome Plugin as the transport authority. Initialize its browser

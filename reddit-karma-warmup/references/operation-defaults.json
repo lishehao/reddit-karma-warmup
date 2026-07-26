@@ -113,6 +113,23 @@
     "post_initial_candidate_range": [20, 30],
     "near_tie_score_margin": 3
   },
+  "community_audit_pool": {
+    "owner": "REDDIT_LAUNCHER_ONLY",
+    "storage_root": "${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/community-audit-pool",
+    "provider_default": "official_reddit",
+    "provider_write_policy": "GET_ONLY_NO_REDDIT_MUTATION",
+    "tikhub_policy": "OPTIONAL_ENRICHMENT_AFTER_FIELD_CALIBRATION",
+    "lanes_may_refresh": false,
+    "content_browsing_surface": "CHROME_ONLY",
+    "small_hot_pointer_limit_per_community": 3,
+    "official_oauth_documented_qpm_baseline": 100,
+    "operating_qpm": 60,
+    "unauthenticated_api_policy": "DISABLED",
+    "rules_ttl_seconds": 86400,
+    "hot_pointer_ttl_seconds": 21600,
+    "one_local_writer": true,
+    "store_user_content_policy": "MINIMIZE_AND_EXPIRE"
+  },
   "web_search": {
     "tool_requirement": "BUILT_IN_WEB_SEARCH",
     "batch_independent_queries_when_supported": true,

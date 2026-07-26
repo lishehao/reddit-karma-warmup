@@ -1,4 +1,4 @@
-# Measured Interaction Pacing
+# Purposeful Visible Chrome Reading
 
 Load only when a current lane is about to begin a measured candidate dwell or
 an outward mutation. Do not preload it during setup, registry resolution, or a
@@ -17,14 +17,26 @@ owns waits longer than the configured local-sleep maximum.
 | verified proactive comment to next comment submission | `comments.proactive_submit_gap_seconds_*` |
 | verified follow-up reply to next reply submission | `followup.reply_submit_gap_seconds_*` |
 
-These are measured wall-clock floors, not estimates. The user may request a slower cadence. A faster user request does not remove any configured floor or the one-click mutation rules.
+These are measured comprehension/evidence floors, not a recipe for pretending
+to be human. The user may request a slower cadence. A faster user request does
+not remove any configured floor or the one-click mutation rules. Never add random delay, cursor jitter, hidden-DOM scrolling, fingerprint changes, or other stealth behavior.
 
 ## Candidate Dwell
 
 1. Set `content_readable_at` only after the actual body/media and enough parent/thread context are visible and readable. Navigation, loading, blank-page, reconnect, and tool latency before that point do not count.
-2. Read the content and current context, then keep that exact candidate open until `candidate_dwell_min_seconds` passes. Choose upward within the configured normal/long ranges from content length and complexity; do not use the same exact duration mechanically.
+2. Read the content and current visible context through the normal Chrome page path. Let real content length, premise, comments, and needed context determine whether the configured floor is naturally exceeded; do not select variable delays to imitate a person.
 3. Before the dwell floor passes, do not move to another candidate, cast a vote, begin a publish mutation, or count a qualified read. Scrolling and additional context reading on the same item are allowed.
 4. If useful reading and analysis already consumed the floor, do not add another full wait. Record actual elapsed time and continue.
+
+## Browser/API Boundary
+
+All account browsing is visible Chrome browsing: open a normal subreddit/post
+surface, read the post and enough visible context/comments for the decision, and
+move to the next item only after the qualified-read evidence exists. Do not use
+the audit API as a per-item browsing surface, bulk-read post bodies, automate
+infinite scrolling, or substitute API item lists for a lane's visible content
+reading. The shared audit pool may provide a small list of public hot-item IDs
+or permalinks; Chrome still opens and evaluates every such item.
 
 For comments and replies, `comment_readable_to_submit_seconds` must also meet its configured minimum. Candidate dwell is contained inside that clock; it is not added twice.
 

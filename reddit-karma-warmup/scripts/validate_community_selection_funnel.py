@@ -14,7 +14,7 @@ required = {
     ROOT / "SKILL.md": [
         "[selection funnel](references/community-selection-funnel.md) while widening",
         "[subreddit catalog](references/subreddit-catalog-taxonomy.md)",
-        "Filter\n`subreddit-profile-index.csv`",
+        "Filter `subreddit-profile-index.csv`",
     ],
     ROOT / "references" / "community-selection-funnel.md": [
         "mission_identity_focus",

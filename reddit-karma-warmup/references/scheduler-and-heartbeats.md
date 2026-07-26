@@ -50,7 +50,7 @@ Translate the current lane mission into a bounded next slot. Numeric defaults co
 | browsing | resolve cadence from `browsing.default_cadence_minutes` and reads from the selected intensity |
 | presence | terminal after one slot unless the user explicitly requests ongoing presence work |
 
-Use `interaction-pacing.md` for measured human-scale waits. For any remaining delay at or below `interaction_pacing.local_sleep_max_seconds`, prefer local terminal `sleep <seconds>` while preserving the dedicated Reddit tab. Use the recurring Heartbeat for longer waits; never create one for an in-item pacing floor.
+Use `interaction-pacing.md` for measured content-comprehension waits. For any remaining delay at or below `interaction_pacing.local_sleep_max_seconds`, prefer local terminal `sleep <seconds>` while preserving the dedicated Reddit tab. Use the recurring Heartbeat for longer waits; never create one for an in-item pacing floor.
 
 ## Cross-Lane Phase Stagger
 

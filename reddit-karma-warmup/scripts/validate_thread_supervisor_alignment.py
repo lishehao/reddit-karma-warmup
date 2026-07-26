@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate scoped task-routing alignment and the Reddit model fallback chain."""
+"""Validate Reddit's scoped semantic alignment with generic task supervision."""
 
 import json
 from pathlib import Path
@@ -15,15 +15,30 @@ def require(path: str, needles: list[str]) -> None:
         raise SystemExit(f"{path}: missing {missing}")
 
 
-defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8"))
-expected = [
+defaults = json.loads(
+    (ROOT / "references" / "operation-defaults.json").read_text(encoding="utf-8")
+)
+expected_chain = [
     {"model": "gpt-5.6-luna", "reasoning_effort": "high"},
     {"model": "gpt-5.6-terra", "reasoning_effort": "high"},
     {"model": "gpt-5.5", "reasoning_effort": "high"},
     {"model": "gpt-5.4", "reasoning_effort": "high"},
 ]
-if defaults["model_runtime"]["fallback_chain"] != expected:
-    raise SystemExit("operation-defaults.json: invalid model fallback chain")
+runtime = defaults["model_runtime"]
+if runtime["fallback_chain"] != expected_chain:
+    raise SystemExit("operation-defaults.json: invalid explicit model fallback chain")
+expected_runtime = {
+    "default_policy": "INHERIT_HOST_RUNTIME_NO_OVERRIDE",
+    "explicit_user_override_required": True,
+    "fallback_requires_explicit_user_consent": True,
+    "request_preferred_pair_on_create": False,
+    "request_preferred_pair_on_existing_task_dispatch": False,
+    "unknown_launcher_model_policy": "KEEP_CURRENT_NO_DUPLICATE",
+    "model_selection_is_liveness_or_replacement_evidence": False,
+}
+for key, expected in expected_runtime.items():
+    if runtime.get(key) != expected:
+        raise SystemExit(f"operation-defaults.json: model_runtime.{key} mismatch")
 
 require(
     "references/thread-supervision-runtime.md",
@@ -31,18 +46,12 @@ require(
         "semantic task-health contract",
         "exact `task_id` plus `host_id`",
         "never treat a queued `clientThreadId` as a ready `threadId`",
-        "gpt-5.6-luna/high",
-        "gpt-5.6-terra/high",
-        "gpt-5.5/high",
-        "gpt-5.4/high",
-        "send the new mission with a Luna/high per-turn override",
-        "Never recreate a healthy reusable lane merely because Luna readback is missing",
-        "Never auto-unarchive it",
-        "only when the user explicitly asks to resume that exact task",
-        "present/unarchived",
-        "never choose by recency alone",
-        "A create response, readable summary, rename, or pin alone is not",
+        "omit model and reasoning overrides unless the current user command explicitly",
+        "model choice\n  never proves liveness, delivery, archive state, or replacement eligibility",
+        "LIVENESS_UNVERIFIED", "ROUTING_CAPABILITY_BLOCKED",
+        "`DELIVERY_ACCEPTED` is the Reddit domain gate",
         "no-callback lane topology",
+        "no shared version lock with the TikTok",
     ],
 )
 require(
@@ -50,8 +59,17 @@ require(
     [
         "distinguish a ready `threadId` from a queued `clientThreadId`",
         "generic `thread-supervisor` Skill are not runtime dependencies",
-        "prefer `gpt-5.6-luna/high`",
-        "do not create a successor when current model metadata is unknown",
+        "The default\nruntime is inherited",
+        "never create a\n   successor from unknown model metadata",
+    ],
+)
+require(
+    "references/model-runtime.md",
+    [
+        "The default is **inheritance**, not automatic migration",
+        "unless the current user\nexplicitly supplies a model request",
+        "No model request, accepted send, title, pin, or model readback is task-liveness",
+        "Unknown model metadata always keeps the current\ntask",
     ],
 )
 require(
@@ -60,7 +78,8 @@ require(
         "independent account-scoped lane tasks",
         "[thread runtime](references/thread-supervision-runtime.md)",
         "An archived task is never healthy/reusable",
+        "unknown liveness blocks that lane without",
     ],
 )
 
-print("thread supervisor alignment validation passed")
+print("thread supervisor semantic alignment validation passed")

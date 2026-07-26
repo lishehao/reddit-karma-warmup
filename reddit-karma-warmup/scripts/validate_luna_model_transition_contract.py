@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
-"""Validate Luna-first create, continuation, and launcher self-transition rules."""
+"""Validate explicit-only model overrides (kept at the legacy filename)."""
 
 import json
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-README = ROOT.parent / "README.md"
 
 
 def read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def decide_launcher_transition(actual_pair, in_place_supported, authorized, successor_attempts):
-    if actual_pair == "gpt-5.6-luna/high":
-        return "KEEP_SELF_LUNA_CONFIRMED"
-    if actual_pair is None:
-        return "KEEP_SELF_MODEL_UNVERIFIED"
-    if in_place_supported:
-        return "REQUEST_ONE_VERIFIABLE_IN_PLACE_UPDATE"
-    if authorized and successor_attempts == 0:
-        return "CREATE_ONE_LUNA_SUCCESSOR"
-    return "KEEP_SELF_FALLBACK"
+def decide_model_action(request_kind, available, current_task, migration_requested):
+    if request_kind == "inherit":
+        return "INHERIT_NO_OVERRIDE"
+    if request_kind == "exact" and not available:
+        return "MODEL_REQUEST_UNAVAILABLE_NO_SUBSTITUTION"
+    if request_kind == "preferred_with_fallback" and available:
+        return "REQUEST_USER_AUTHORIZED_FALLBACK_CHAIN"
+    if migration_requested and current_task == "nonpreferred_confirmed":
+        return "ONE_EXPLICIT_MIGRATION_GATE"
+    return "REQUEST_EXACT_PAIR"
 
 
 defaults = json.loads(read("references/operation-defaults.json"))
@@ -34,14 +33,14 @@ expected_chain = [
     {"model": "gpt-5.4", "reasoning_effort": "high"},
 ]
 assert runtime["fallback_chain"] == expected_chain
-assert runtime["request_preferred_pair_on_create"] is True
-assert runtime["request_preferred_pair_on_existing_task_dispatch"] is True
+assert runtime["default_policy"] == "INHERIT_HOST_RUNTIME_NO_OVERRIDE"
+assert runtime["explicit_user_override_required"] is True
+assert runtime["fallback_requires_explicit_user_consent"] is True
+assert runtime["request_preferred_pair_on_create"] is False
+assert runtime["request_preferred_pair_on_existing_task_dispatch"] is False
 assert runtime["current_turn_in_place_switch_supported_by_skill"] is False
-assert runtime["confirmed_nonpreferred_launcher_policy"] == (
-    "ONE_VERIFIED_SUCCESSOR_WHEN_EXPLICITLY_AUTHORIZED"
-)
 assert runtime["unknown_launcher_model_policy"] == "KEEP_CURRENT_NO_DUPLICATE"
-assert runtime["unverified_override_is_success"] is False
+assert runtime["model_selection_is_liveness_or_replacement_evidence"] is False
 
 documents = {
     "SKILL.md": read("SKILL.md"),
@@ -53,88 +52,35 @@ documents = {
 }
 joined = "\n".join(documents.values())
 required = (
-    "Use one ordered model/effort fallback chain",
-    "LUNA_CONFIRMED",
-    "LUNA_REQUESTED_UNVERIFIED",
-    "LUNA_UNAVAILABLE_FALLBACK",
-    "SELF_MODEL_UNVERIFIED",
-    "SELF_SUCCESSOR_CREATED_CONFIRMED",
-    "The Skill cannot mutate the model of the turn that is already executing",
-    "do not create a speculative duplicate",
-    "create exactly one projectless Luna/high successor",
-    "send the new mission with a Luna/high per-turn override",
-    "never infer confirmation from message acceptance",
+    "The default is **inheritance**, not automatic migration",
+    "unless the current user\nexplicitly supplies a model request",
+    "MODEL_INHERITED",
+    "MODEL_REQUEST_UNAVAILABLE",
+    "MODEL_REQUESTED_UNVERIFIED",
+    "MODEL_FALLBACK_CONFIRMED",
+    "do not create a successor merely to change models",
+    "Unknown model metadata always keeps the current",
+    "model choice\n  never proves liveness, delivery, archive state, or replacement eligibility",
     "Model choice is not a Chrome-recovery mechanism",
-    "Apply the same chain to the distributor",
-    "If the current task is explicitly confirmed non-Luna",
-    "If the current model is unknown, do not create a speculative duplicate",
 )
 missing = [item for item in required if item not in joined]
 assert not missing, missing
 
-if README.is_file():
-    readme = README.read_text(encoding="utf-8")
-    assert "我明确授权为当前分发台、后续分发台 successor" in readme
-    assert "所有新建或继续执行台请求 `gpt-5.6-luna/high`" in readme
-    assert "如果当前模型不可读，不要为了猜测而创建重复分发台" in readme
-
 scenarios = {
-    "new_task": {
-        "request": "gpt-5.6-luna/high",
-        "proof": "ACTUAL_RUNTIME_READBACK",
-    },
-    "existing_unarchived_task": {
-        "action": "SEND_EXACT_MISSION_WITH_LUNA_OVERRIDE",
-        "recreate_when_unverified": False,
-    },
-    "active_turn": {
-        "claim_in_place_switch": False,
-        "next_step": "READ_RUNTIME_THEN_APPLY_GATE",
-    },
-    "confirmed_non_luna_authorized": {
-        "successor_attempt_cap": 1,
-        "archive_old_before_acceptance": False,
-    },
-    "unknown_self_model": {
-        "state": "SELF_MODEL_UNVERIFIED",
-        "create_duplicate": False,
-    },
-    "luna_unsupported": {
-        "next_pair": "gpt-5.6-terra/high",
-        "block_operation": False,
-    },
-    "browser_failure": {
-        "model_switch_is_recovery": False,
-    },
+    "default_new_task": decide_model_action("inherit", False, "unknown", False),
+    "exact_pair_unavailable": decide_model_action("exact", False, "unknown", False),
+    "preferred_with_fallback": decide_model_action("preferred_with_fallback", True, "unknown", False),
+    "explicit_migration": decide_model_action("exact", True, "nonpreferred_confirmed", True),
 }
-
-assert scenarios["existing_unarchived_task"]["recreate_when_unverified"] is False
-assert scenarios["active_turn"]["claim_in_place_switch"] is False
-assert scenarios["confirmed_non_luna_authorized"]["successor_attempt_cap"] == 1
-assert scenarios["confirmed_non_luna_authorized"]["archive_old_before_acceptance"] is False
-assert scenarios["unknown_self_model"]["create_duplicate"] is False
-assert scenarios["luna_unsupported"]["next_pair"] == "gpt-5.6-terra/high"
-assert scenarios["browser_failure"]["model_switch_is_recovery"] is False
-assert decide_launcher_transition("gpt-5.6-luna/high", False, True, 0) == (
-    "KEEP_SELF_LUNA_CONFIRMED"
-)
-assert decide_launcher_transition(None, False, True, 0) == "KEEP_SELF_MODEL_UNVERIFIED"
-assert decide_launcher_transition("gpt-5.6-terra/high", True, True, 0) == (
-    "REQUEST_ONE_VERIFIABLE_IN_PLACE_UPDATE"
-)
-assert decide_launcher_transition("gpt-5.6-terra/high", False, True, 0) == (
-    "CREATE_ONE_LUNA_SUCCESSOR"
-)
-assert decide_launcher_transition("gpt-5.6-terra/high", False, True, 1) == (
-    "KEEP_SELF_FALLBACK"
-)
-assert decide_launcher_transition("gpt-5.6-terra/high", False, False, 0) == (
-    "KEEP_SELF_FALLBACK"
-)
+assert scenarios == {
+    "default_new_task": "INHERIT_NO_OVERRIDE",
+    "exact_pair_unavailable": "MODEL_REQUEST_UNAVAILABLE_NO_SUBSTITUTION",
+    "preferred_with_fallback": "REQUEST_USER_AUTHORIZED_FALLBACK_CHAIN",
+    "explicit_migration": "ONE_EXPLICIT_MIGRATION_GATE",
+}
 
 print(json.dumps({
     "status": "PASS",
-    "preferred": "gpt-5.6-luna/high",
-    "readme": "PRESENT" if README.is_file() else "OPTIONAL_ABSENT",
+    "default": "INHERIT_HOST_RUNTIME_NO_OVERRIDE",
     "scenarios": scenarios,
 }, ensure_ascii=False, sort_keys=True))

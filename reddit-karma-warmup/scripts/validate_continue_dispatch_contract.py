@@ -39,7 +39,7 @@ require(ROOT / "references" / "runtime-and-setup.md", [
 ], errors)
 
 require(ROOT / "references" / "launcher-playbook.md", [
-    "A first default dispatch is complete only after comments, posts, and follow-up all accept",
+    "A first default\n   dispatch is complete only after comments, posts, and follow-up all have\n   `DELIVERY_ACCEPTED`",
     "Never say `已分发` merely because tasks were resolved or messages were prepared",
     "第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。",
     "后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达",
@@ -47,8 +47,8 @@ require(ROOT / "references" / "launcher-playbook.md", [
 ], errors)
 
 require(ROOT / "references" / "thread-supervision-runtime.md", [
-    "Successful message acceptance by the exact selected task is delivery proof",
-    "Call a requested first dispatch complete only when comments, posts, and follow-up each accepted",
+    "`DELIVERY_ACCEPTED` is the Reddit domain gate",
+    "Call a requested first dispatch complete only when comments, posts, and\n   follow-up each have `DELIVERY_ACCEPTED`",
     "never claim that all first-round missions were sent",
 ], errors)
 
@@ -83,7 +83,7 @@ if errors:
 print(json.dumps({
     "status": "PASS",
     "transitions": {f"{state}+{command}": result for (state, command), result in transitions.items()},
-    "full_dispatch_proof": "ALL_REQUESTED_EXACT_TASKS_ACCEPTED_MESSAGES",
-    "partial_dispatch": "NAME_ACCEPTED_AND_UNCONFIRMED_LANES",
+    "full_dispatch_proof": "ALL_REQUESTED_EXACT_TASKS_DELIVERY_ACCEPTED",
+    "partial_dispatch": "NAME_DELIVERY_ACCEPTED_AND_UNCONFIRMED_LANES",
     "future_distribution": "SAME_PINNED_REDDIT_DISTRIBUTOR",
 }, ensure_ascii=False, sort_keys=True))

@@ -76,15 +76,23 @@ For comments/replies:
 2. Read the full post/media, intended parent comment, and enough nearby replies to understand the actual point, local energy, and what has already been said. When available, inspect at least `3` nearby/top replies; when the thread is empty, sample recent native comments from the same subreddit.
 3. Record one `context_detail` that the reply will react to, one `duplicate_to_avoid`, and `2-4` short local voice patterns or Reddit-native expressions observed on the current surface. Do not copy another user's sentence.
 4. Confirm the target is visible, unlocked, current enough, and not sensitive or hostile.
-5. Confirm this item has one fresh `web_search_item_id` from the current
-   comment window; when it asserts a time-sensitive external fact, retain at
-   least `web_search.comments.time_sensitive_claim_source_min` supporting
-   authoritative sources or remove/reframe the claim.
+5. Confirm this item has its current `research_brief_id`, `query_plan_id`,
+   fresh `web_search_item_id`, and `evidence_synthesis_id`; for a substantive
+   angle, confirm its objection/duplicate-risk query too. When it asserts a
+   time-sensitive external fact, retain at least
+   `web_search.comments.time_sensitive_claim_source_min` supporting
+   authoritative sources or remove/reframe the claim. No final wording may
+   retain an item the synthesis marked unsupported.
 6. Compare subreddit, cluster, angle, intended claim, and the last `10` measured comment/reply lengths with `history_ledger`.
 7. Confirm the account can contribute without fake experience, product mention, or unsupported factual claims.
 
-For main posts, first verify a completed `web_search.posts` query pack, then
-live home/about/rules, pinned posts, recent survivor patterns, karma/age,
+For main posts, first verify a completed `research_brief`, `query_plan`,
+`web_search.posts` query pack, and decision-ready `evidence_synthesis`; the
+three base query families must meet their configured minimums, and an
+external-fact query is required only when a factual external claim remains. If
+live narrowing changes the finalist, premise, or factual claim, verify a
+targeted delta query and updated synthesis before drafting. Then check live
+home/about/rules, pinned posts, recent survivor patterns, karma/age,
 flair/title/megathread, link/self-promo rules, submit controls,
 same-subreddit history, and moderator-approval state. Web results may support
 facts and narrow candidates, but are never evidence of Reddit permission.
@@ -119,7 +127,11 @@ Run after the final draft is entered and before clicking Reply/Post.
 1. Confirm the intended Reddit account, target subreddit/URL, and action type.
 2. Confirm the target is still visible/unlocked and no currently active warning, removal, captcha, or rate limit appeared.
 3. Re-read the final text against the exact parent/post and current subreddit context.
-4. Confirm truthfulness, on-topic fit, no prohibited promotion/link, and no contradiction with `history_ledger`; for a comment/reply, verify the final text visibly uses the recorded `context_detail` and does not repeat `duplicate_to_avoid`.
+4. Confirm truthfulness, on-topic fit, no prohibited promotion/link, and no
+   contradiction with `history_ledger`; obey the applicable evidence synthesis
+   `draft_constraints` and omit every unsupported claim. For a comment/reply,
+   verify the final text visibly uses the recorded `context_detail` and does
+   not repeat `duplicate_to_avoid`.
 5. Compute the final draft's `char_count`, `word_count`, `sentence_form`, and `length_tier`; confirm its length, opening, rhythm, subreddit, cluster, and angle are not needlessly repeating recent actions.
    For an ordinary proactive cluster item, default to `<=25` English words. A `26-45` word two-beat reply requires the recorded depth exception and no other item in that cluster may consume another such exception; compact paragraphs are invalid for routine proactive clusters.
 6. Confirm this exact action was not already submitted; after a Chrome reconnect, inspect profile/thread before any retry.
@@ -142,6 +154,7 @@ For every outward action, record:
 ```text
 double_check_a | double_check_b | history_comparison | restriction_level
 per_comment_gate_id | cluster_id | item_index | shortening_pass
+research_brief_id | query_plan_id | evidence_synthesis_id | finalist_delta_item_id?
 rule_glance | context_detail | duplicate_to_avoid | local_voice_sample
 char_count | word_count | sentence_form | length_tier | why_this_length
 subreddit/cluster diversity result | verified permalink

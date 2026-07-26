@@ -10,20 +10,29 @@
       {"model": "gpt-5.5", "reasoning_effort": "high"},
       {"model": "gpt-5.4", "reasoning_effort": "high"}
     ],
-    "launcher_and_workers_use_same_chain": true,
+    "default_policy": "INHERIT_HOST_RUNTIME_NO_OVERRIDE",
+    "explicit_user_override_required": true,
+    "fallback_requires_explicit_user_consent": true,
+    "launcher_and_workers_use_same_chain_when_explicitly_requested": true,
     "unavailable_model_never_blocks_operation": true,
-    "request_preferred_pair_on_create": true,
-    "request_preferred_pair_on_existing_task_dispatch": true,
+    "request_preferred_pair_on_create": false,
+    "request_preferred_pair_on_existing_task_dispatch": false,
     "current_turn_in_place_switch_supported_by_skill": false,
-    "confirmed_nonpreferred_launcher_policy": "ONE_VERIFIED_SUCCESSOR_WHEN_EXPLICITLY_AUTHORIZED",
+    "confirmed_nonpreferred_launcher_policy": "KEEP_CURRENT_UNLESS_USER_EXPLICITLY_REQUESTS_MIGRATION",
     "unknown_launcher_model_policy": "KEEP_CURRENT_NO_DUPLICATE",
-    "unverified_override_is_success": false
+    "unverified_override_is_success": false,
+    "model_selection_is_liveness_or_replacement_evidence": false
   },
   "thread_reuse": {
     "require_present_unarchived": true,
     "archived_task_policy": "REPLACE_NEVER_AUTO_UNARCHIVE",
     "readable_archived_is_liveness": false,
-    "registry_update_after_acceptance_only": true
+    "registry_update_after_acceptance_only": true,
+    "transient_liveness_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
+    "unknown_archive_capability_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
+    "explicit_missing_task_policy": "REPLACE",
+    "permanent_delivery_rejection_policy": "REPLACE",
+    "delivery_uncertain_policy": "DELIVERY_UNCERTAIN_NO_REPLACEMENT"
   },
   "comments": {
     "low": {"action_target_per_hour": 3, "action_cap_per_hour": 4, "qualified_read_target": 9},
@@ -108,24 +117,97 @@
     "tool_requirement": "BUILT_IN_WEB_SEARCH",
     "batch_independent_queries_when_supported": true,
     "results_are_discovery_and_fact_evidence_not_reddit_permission": true,
+    "required_pipeline": [
+      "research_brief",
+      "query_plan",
+      "evidence_synthesis",
+      "chrome_live_gate"
+    ],
+    "research_brief": {
+      "required_fields": [
+        "research_brief_id",
+        "lane",
+        "decision_question",
+        "target_surface",
+        "audience_or_context",
+        "candidate_angle",
+        "intended_claims_or_questions",
+        "unknowns_to_resolve",
+        "research_questions",
+        "publish_risk_hypothesis",
+        "stop_condition"
+      ],
+      "max_bullets": 6
+    },
+    "query_plan": {
+      "required_fields": [
+        "research_brief_id",
+        "query_plan_id",
+        "query_family",
+        "research_question_id",
+        "candidate_or_claim_use"
+      ],
+      "require_family_labels": true,
+      "require_distinct_question_per_query": true,
+      "duplicate_wording_policy": "DO_NOT_COUNT",
+      "comments_min_distinct_families": 4,
+      "posts_min_distinct_families": 3
+    },
+    "evidence_synthesis": {
+      "required_fields": [
+        "research_brief_id",
+        "evidence_synthesis_id",
+        "linked_web_search_item_ids",
+        "usable_findings",
+        "counter_evidence_or_objections",
+        "saturation_or_duplicate_risk",
+        "unsupported_or_forbidden_claims",
+        "draft_constraints",
+        "chrome_live_gate_targets",
+        "candidate_decision"
+      ],
+      "must_have_counterevidence": true,
+      "must_have_draft_constraints": true,
+      "publish_without_synthesis_policy": "BLOCK_DRAFT"
+    },
     "comments": {
+      "brief_scope": "cluster_window",
+      "per_comment_exact_query_updates_synthesis": true,
       "cluster_discovery_query_min": 4,
       "cluster_discovery_query_target": 6,
       "cluster_discovery_query_cap": 10,
       "per_comment_exact_query_min": 1,
+      "substantive_item_objection_query_min": 1,
+      "required_window_query_families": [
+        "community_topic",
+        "recent_discussion",
+        "contradiction_or_objection",
+        "language_or_event_signal"
+      ],
       "time_sensitive_claim_source_min": 2
     },
     "posts": {
+      "brief_scope": "candidate_packet",
+      "query_plan_required_before_pack": true,
+      "synthesis_required_before_chrome_finalists": true,
       "query_pack_min": 12,
       "query_pack_target": 18,
       "query_pack_cap": 30,
+      "finalist_delta_query_min": 1,
       "time_sensitive_claim_source_min": 2,
       "required_query_families": [
         "community_topic_and_recent_discussion",
         "premise_and_close_variants",
         "duplicate_and_faq_risk",
         "external_fact_or_primary_source_when_claimed"
-      ]
+      ],
+      "base_query_family_minimums": {
+        "community_topic_and_recent_discussion": 3,
+        "premise_and_close_variants": 3,
+        "duplicate_and_faq_risk": 3
+      },
+      "external_fact_query_min_when_claimed": 2,
+      "external_fact_family_policy": "REQUIRED_ONLY_WHEN_EXTERNAL_FACT_CLAIMED"
     },
     "freshness": {
       "record_query_time": true,

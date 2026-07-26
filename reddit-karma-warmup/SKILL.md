@@ -35,7 +35,10 @@ mutation, a lane Heartbeat, or user communication.
    explicit user scope overrides defaults; current live Reddit rules, account
    state, and exact submit state still govern the action.
 3. An archived task is never healthy/reusable. Reuse only an exact present,
-   unarchived, account-matched task that accepts delivery; otherwise replace it.
+   unarchived, account-matched task with a verified delivery receipt. Replace
+   only after exact archived, missing, or permanent-delivery-rejection proof;
+   `notLoaded`, empty, timeout, or unknown liveness blocks that lane without
+   creating a duplicate.
 4. Do not duplicate an uncertain Reddit mutation. Persist uncertainty and
    inspect the exact target once before considering any new action.
 5. For posts, apply **hard compliance → truthful minimum content floor →
@@ -79,7 +82,7 @@ publishing permission.
 ## One lane slot
 
 ```text
-RESTORE → PROBE → [WEB RESEARCH: comment/post only] → TAB → DISCOVER → QUALIFY → [DRAFT] → ACT → VERIFY
+RESTORE → PROBE → [WEB RESEARCH: brief -> plan -> synthesis] → TAB → DISCOVER → QUALIFY → [DRAFT] → ACT → VERIFY
 → RECONCILE → SCHEDULE or RETIRE
 ```
 
@@ -90,10 +93,13 @@ Heartbeat, releases only its own tab, and reports three concise Chinese lines.
 Heartbeat timing within the configured ±5-minute tolerance is ordinary and
 continues without repair or notification.
 
-`WEB RESEARCH` uses the host's built-in Web Search in purpose-labelled batches
-before Chrome candidate discovery. It is mandatory for comment and post lanes,
-but it never proves current Reddit rules, logged-in eligibility, composer state,
-or mutation success; Chrome remains the final live authority for those facts.
+`WEB RESEARCH` uses the host's built-in Web Search in a compact
+`research_brief -> query_plan -> evidence_synthesis` chain before Chrome
+candidate narrowing. It is mandatory for comment and post lanes. A material
+live change to a finalist, premise, or factual claim requires a targeted delta
+query and updated synthesis before drafting. Web Search never proves current
+Reddit rules, logged-in eligibility, composer state, or mutation success;
+Chrome remains the final live authority for those facts.
 
 ## Output
 

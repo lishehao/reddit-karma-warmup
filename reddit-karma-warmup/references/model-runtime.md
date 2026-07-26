@@ -1,6 +1,13 @@
 # Model Runtime
 
-Use one ordered model/effort fallback chain for both distribution and lane execution. The canonical chain is stored in `operation-defaults.json`:
+The default is **inheritance**, not automatic migration: omit `model` and
+`reasoning_effort` on task creation and continuation unless the current user
+explicitly supplies a model request. Do not silently upgrade a task or copy a
+previous task's execution profile. Role separation comes from exact task
+ownership and lane prompts, not model-family differences.
+
+The optional fallback chain in `operation-defaults.json` is available only when
+the user explicitly asks for a preferred model **and** permits fallback:
 
 ```text
 1. gpt-5.6-luna / high
@@ -9,40 +16,37 @@ Use one ordered model/effort fallback chain for both distribution and lane execu
 4. gpt-5.4 / high
 ```
 
-Use the first pair exposed by the destination host. Apply the same chain to the distributor and every newly created lane worker. Role separation comes from persistent task ownership and lane prompts, not from different model families. Do not present a model menu during normal operation.
+## Explicit Request Forms
 
-The launcher requests `gpt-5.6-luna/high` first for the distributor and all lane tasks through the canonical fallback chain. A model request is intent, not proof. Record one of these evidence states whenever the host exposes task model control:
+- **Absent:** send no model override; record `MODEL_INHERITED`. Host/default
+  runtime is valid and needs no model readback.
+- **Exact pair:** request only the user-specified pair. If unavailable, record
+  `MODEL_REQUEST_UNAVAILABLE`; do not silently substitute a different model.
+- **Preferred pair with fallback:** use the user-authorized chain, record the
+  requested pair and the actual pair when exposed, and use
+  `MODEL_FALLBACK_CONFIRMED` only after runtime readback.
 
-- `LUNA_CONFIRMED`: actual task runtime metadata reports `gpt-5.6-luna/high`;
-- `LUNA_REQUESTED_UNVERIFIED`: create/send accepted the override but actual runtime metadata is unavailable;
-- `LUNA_UNAVAILABLE_FALLBACK`: the host explicitly rejected Luna and the next supported pair was used;
-- `SELF_MODEL_UNVERIFIED`: the current launcher's actual pair cannot be read;
-- `SELF_SUCCESSOR_CREATED_CONFIRMED`: one Luna/high successor accepted the exact distributor handoff and its runtime was confirmed.
-
-Never report `LUNA_CONFIRMED` from a requested field, accepted message, title, or model preference alone.
+For an explicit request, `MODEL_REQUESTED_UNVERIFIED` means the host accepted
+the request but did not expose actual runtime metadata. It is never confirmation.
+No model request, accepted send, title, pin, or model readback is task-liveness,
+archive, delivery, or replacement evidence.
 
 ## New And Existing Tasks
 
-Before creating a distributor successor or lane task, inspect the host's actual model surface when available. Request Luna/high first; otherwise request Terra/high, then 5.5/high, then 5.4/high. If none is exposed, inherit the current/default model and use High or the nearest supported effort. Model fallback never blocks Reddit work.
+For a new task, pass a model pair only under an explicit request form. For an
+existing present/unarchived lane, apply a per-turn override only when the same
+current user command explicitly authorizes it and the host supports it. A
+missing/unchanged readback preserves the exact lane; it never causes recreation.
 
-When dispatching a new mission to an existing present, unarchived, healthy lane task, request `gpt-5.6-luna/high` on that exact send/continuation call when the host schema supports per-turn model overrides. Read actual runtime metadata afterward when exposed. If readback is absent or does not change, preserve the exact task, record `LUNA_REQUESTED_UNVERIFIED` or the actual pair, and continue the authorized mission. Do not recreate a healthy lane merely because a per-turn override is unverified.
+The current `Reddit 启动台` normally becomes the distributor in place. Create a
+successor for a model reason only when the user explicitly requests a model
+migration, the host cannot update the current task in place, and the ordinary
+exact-ID handoff gate succeeds. Unknown model metadata always keeps the current
+task. Never transfer an in-flight Reddit mutation or Heartbeat to a successor.
 
-## Current Launcher Self-Transition
+Model choice is not a Chrome-recovery mechanism. A selector deadline,
+transport error, stale tab, or page-content timeout follows the Chrome runtime
+contract on every model. Do not use `ultra` by default.
 
-The Skill cannot mutate the model of the turn that is already executing. The current `Reddit 启动台` must therefore follow this ordered gate after read-only preflight and before becoming the persistent distributor:
-
-1. Read the current task's actual model/effort when the host exposes it.
-2. If it is already Luna/high, keep the same task and record `LUNA_CONFIRMED`.
-3. If the host exposes a verifiable current-task/next-turn model update, request Luna/high once and require actual runtime readback before calling it confirmed.
-4. If the current task is explicitly confirmed non-Luna, no verifiable in-place update exists, and the bootstrap prompt or latest user instruction explicitly authorizes Luna migration, create exactly one projectless Luna/high successor. Send only the distributor identity, bootstrap/preflight result, exact account direction state, and pending user command. Require exact successor acceptance, actual ready task ID, canonical rename/pin, and model readback when available. Only then release and archive the old temporary launcher. Never transfer an in-flight Reddit mutation or Heartbeat.
-5. If the current model is unknown, do not create a speculative duplicate. Keep the same task, record `SELF_MODEL_UNVERIFIED`, and continue with Luna/high requests for every created or continued lane task.
-
-At most one successor attempt is allowed per bootstrap. A queued `clientThreadId`, create response, readable history, title, or pin is not a ready successor. If the successor is unsupported, uncertain, or rejects the handoff, keep the current launcher and use the normal fallback chain; do not archive it.
-
-Model choice is not a Chrome-recovery mechanism. A selector backend deadline, transport error, stale tab, or unsupported browser API must follow the Chrome runtime contract on every model. Switching Luna/Terra never repairs browser transport or page content channels.
-
-Do not use `ultra` by default. The Skill already owns lane fan-out and assigns an independent Chrome tab context to each worker, so automatic task delegation would duplicate orchestration.
-
-The user's latest explicit model/effort request overrides the chain when that pair is available. Record requested pair, actual pair, and evidence state separately in mission state.
-
-Keep launcher/worker model runtime internal. Mention it only when an unavailable model or effort materially changes execution quality or blocks the current task.
+Keep model metadata internal unless an explicit request is unavailable or
+materially changes the current task.

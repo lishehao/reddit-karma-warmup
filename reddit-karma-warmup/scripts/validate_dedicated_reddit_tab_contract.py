@@ -15,11 +15,8 @@ def read(path: Path) -> str:
 
 required = {
     ROOT / "SKILL.md": [
-        "one persistent dedicated Reddit primary tab",
-        "First creation is three atomic calls",
-        "120-second outer command contract",
-        "Page-side script navigation and another task's tab are forbidden",
-        "close its tab",
+        "[orchestration core](references/orchestration-core.md)",
+        "Each lane owns only its own tab, checkpoint, Heartbeat, history, and report",
     ],
     ROOT / "references" / "orchestration-core.md": [
         "Every execution task owns one persistent dedicated Reddit primary tab",

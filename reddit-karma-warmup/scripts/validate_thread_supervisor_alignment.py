@@ -28,7 +28,7 @@ if defaults["model_runtime"]["fallback_chain"] != expected:
 require(
     "references/thread-supervision-runtime.md",
     [
-        "thread-supervisor` revision `2026.07.14.5",
+        "semantic task-health contract",
         "exact `task_id` plus `host_id`",
         "never treat a queued `clientThreadId` as a ready `threadId`",
         "gpt-5.6-luna/high",
@@ -39,6 +39,7 @@ require(
         "Never recreate a healthy reusable lane merely because Luna readback is missing",
         "Never auto-unarchive it",
         "only when the user explicitly asks to resume that exact task",
+        "present/unarchived",
         "never choose by recency alone",
         "A create response, readable summary, rename, or pin alone is not",
         "no-callback lane topology",
@@ -56,11 +57,9 @@ require(
 require(
     "SKILL.md",
     [
-        "Five-Step Default Flow",
-        "The generic `thread-supervisor` Skill is optional",
-        "A queued `clientThreadId` is not ready",
-        "gpt-5.6-luna/high -> gpt-5.6-terra/high -> gpt-5.5/high -> gpt-5.4/high",
-        "Unknown launcher model never justifies a duplicate",
+        "independent account-scoped lane tasks",
+        "[thread runtime](references/thread-supervision-runtime.md)",
+        "An archived task is never healthy/reusable",
     ],
 )
 

@@ -118,8 +118,8 @@ cases = [
     inject_and_expect_failure(
         "edge_reference_missing",
         "SKILL.md",
-        "`references/chrome-recovery-edge-cases.md`",
-        "`references/chrome-recovery-edge-cases-missing.md`",
+        "[Chrome edge cases](references/chrome-recovery-edge-cases.md)",
+        "[Chrome edge cases](references/chrome-recovery-edge-cases-missing.md)",
         "validate_progressive_role_structure.py",
     ),
     inject_and_expect_failure(

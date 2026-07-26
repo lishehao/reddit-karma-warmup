@@ -56,7 +56,7 @@ Use `interaction-pacing.md` for measured human-scale waits. For any remaining de
 
 This is a lightweight best-effort stagger, not a shared scheduler or platform-safety guarantee.
 
-1. The distributor orders enabled mutation-capable lanes as `comments -> follow-up -> posts -> browsing -> presence` and assigns `mutation_phase_index=0..n-1`.
+1. The distributor phase-orders requested content/vote lanes as `comments -> follow-up -> posts -> browsing` and assigns `mutation_phase_index=0..n-1`. Presence is an independent nonblocking lane: it receives a phase when requested but never delays content/vote dispatch.
 2. `initial_mutation_not_before = start + (scheduler.first_mutation_phase_step_minutes * mutation_phase_index)`. All lanes may read and prepare immediately; only the first mutation is offset. The first comments lane therefore starts at phase `0` instead of waiting for a later round.
 3. Later Heartbeats keep roughly the same relative phase and add bounded jitter from `scheduler.phase_jitter_minutes`. They do not read sibling state or negotiate a slot.
 4. If browser recovery, candidate discovery, or another delay makes a lane miss its intended write window, keep useful read-only work and move the mutation to that lane's next normal window. Do not compress missed work into a catch-up burst.

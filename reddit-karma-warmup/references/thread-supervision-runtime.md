@@ -4,7 +4,9 @@ Load only in `Reddit 分发台` for a direct user dispatch command. It resolves 
 
 ## Generic Supervisor Alignment
 
-This scoped contract is aligned with `thread-supervisor` revision `2026.07.14.5`:
+This scoped contract adopts the current semantic task-health contract from
+`thread-supervisor`; it intentionally does not pin a revision because Reddit is
+published independently:
 
 - choose the task operation before the topology;
 - identify a task by exact `task_id` plus `host_id` when the host exposes one;
@@ -13,8 +15,14 @@ This scoped contract is aligned with `thread-supervisor` revision `2026.07.14.5`
 - preserve the exact returned identifier type and never treat a queued `clientThreadId` as a ready `threadId`;
 - for a newly created Reddit task, select the first host-supported model pair from `operation-defaults.json`: `gpt-5.6-luna/high`, then `gpt-5.6-terra/high`, then `gpt-5.5/high`, then `gpt-5.4/high`; the bootstrap carries explicit Luna/high authorization and a later explicit user override wins;
 - treat create/send/read requests as intent, not success proof; use returned identity and supported readback/acceptance evidence.
+- treat a task as reusable only with current exact-ID, present/unarchived,
+  account/lane-matched proof; an archived task is never healthy or reusable.
 
-The external `thread-supervisor` Skill is optional. Its absence does not block Reddit because this file contains the required scoped contract. Its generic coordinator/callback protocol must not override Reddit's independent no-callback lane topology.
+The external `thread-supervisor` Skill is optional. Its absence does not block
+Reddit because this file contains the required scoped contract. Its generic
+coordinator/callback protocol must not override Reddit's independent
+no-callback lane topology; Reddit has no shared version lock with the TikTok
+bundle.
 
 ## Canonical Titles
 
@@ -78,7 +86,10 @@ If delivery certainty is unknown, do not send the same mission to a second task 
 - No launcher Heartbeat and no worker callback.
 - No ongoing task reads between direct user commands.
 - No sibling discovery from a worker.
-- No shared-tab or account collision checks.
+- No sibling page/content inspection or account-state coordination. A lane may
+  inspect only local `chrome_tab_lease/v1`/`chrome_control_slot/v1` metadata to
+  avoid shared-tab or concurrent-control collisions; it must never use that
+  metadata to claim, read, or wait on a sibling tab.
 - No cross-task pause, timer change, status aggregation, archive, or completion monitoring.
 
 The distributor may read/reuse/adopt/replace tasks only during a direct dispatch command. After successful delivery it returns to pinned idle. Workers never register with, callback, or send completion/risk events to the distributor.

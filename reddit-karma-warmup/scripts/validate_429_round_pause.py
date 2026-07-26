@@ -81,11 +81,10 @@ require_text(
 
 skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
 require_text(
-    "skill",
+    "skill_route",
     skill,
     [
-        "HTTP `429` ends the current wake",
-        "preserves checkpoint/mission/Heartbeat",
+        "[network recovery](references/chrome-network-recovery.md) only after a failure",
     ],
 )
 

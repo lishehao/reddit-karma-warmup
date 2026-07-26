@@ -11,7 +11,7 @@ Use one ordered model/effort fallback chain for both distribution and lane execu
 
 Use the first pair exposed by the destination host. Apply the same chain to the distributor and every newly created lane worker. Role separation comes from persistent task ownership and lane prompts, not from different model families. Do not present a model menu during normal operation.
 
-The bootstrap prompt explicitly authorizes requesting `gpt-5.6-luna/high` for the distributor and all lane tasks. A model request is intent, not proof. Record one of these evidence states whenever the host exposes task model control:
+The launcher requests `gpt-5.6-luna/high` first for the distributor and all lane tasks through the canonical fallback chain. A model request is intent, not proof. Record one of these evidence states whenever the host exposes task model control:
 
 - `LUNA_CONFIRMED`: actual task runtime metadata reports `gpt-5.6-luna/high`;
 - `LUNA_REQUESTED_UNVERIFIED`: create/send accepted the override but actual runtime metadata is unavailable;

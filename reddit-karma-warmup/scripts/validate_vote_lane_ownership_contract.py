@@ -26,7 +26,7 @@ if votes.get("non_browsing_cap") != 0:
 required = {
     "SKILL.md": [
         "references/lane-action-ownership.md",
-        "Only `Reddit 浏览台` may vote",
+        "Only `Reddit 浏览台` may inspect or operate",
         "vote_policy=DISABLED_BY_LANE",
     ],
     "references/lane-action-ownership.md": [
@@ -47,7 +47,7 @@ required = {
     ],
     "references/browse-vote-playbook.md": [
         "Load only in `Reddit 浏览台`",
-        "must not load this file or use any vote control",
+        "must not load this file or\nuse any vote control",
     ],
     "references/comments-playbook.md": [
         "vote_policy=DISABLED_BY_LANE",
@@ -94,6 +94,7 @@ scenarios = {
     "followup_inbound_visible_vote": "IGNORE_CONTROL",
     "explicit_vote_with_comment_request": "SPLIT_TO_BROWSING",
     "explicit_vote_inside_comment_lane": "NAME_BROWSING_AS_OWNER",
+    "mixed_text_and_vote_request": "SPLIT_TEXT_AND_BROWSING",
     "broad_start_without_vote_request": "NO_BROWSING_LANE",
     "legacy_non_browsing_checkpoint": "HISTORY_ONLY_CURRENT_ZERO",
     "browsing_vote_candidate": "ALLOW_INDEPENDENT_GATE",
@@ -104,6 +105,7 @@ expected = {
     "followup_inbound_visible_vote": "IGNORE_CONTROL",
     "explicit_vote_with_comment_request": "SPLIT_TO_BROWSING",
     "explicit_vote_inside_comment_lane": "NAME_BROWSING_AS_OWNER",
+    "mixed_text_and_vote_request": "SPLIT_TEXT_AND_BROWSING",
     "broad_start_without_vote_request": "NO_BROWSING_LANE",
     "legacy_non_browsing_checkpoint": "HISTORY_ONLY_CURRENT_ZERO",
     "browsing_vote_candidate": "ALLOW_INDEPENDENT_GATE",

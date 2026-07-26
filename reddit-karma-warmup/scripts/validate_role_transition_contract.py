@@ -21,7 +21,7 @@ def forbid(path: Path, needles: list[str]) -> list[str]:
 
 checks = {
     ROOT / "SKILL.md": [
-        "Five-Step Default Flow",
+        "Fixed identities",
         "Reddit 启动台",
         "Reddit 分发台",
         "independent account-scoped lane tasks",
@@ -31,10 +31,9 @@ checks = {
         "browse-vote-playbook.md",
         "community-presence-playbook.md",
         "lane-action-ownership.md",
-        "No coordinator task",
-        "worker_task_id=<exact destination task ID>",
-        "A queued `clientThreadId` is not ready",
-        "Ordinary native account posts in `POSTS_WORKER` do not use GPT Inf",
+        "Only `Reddit 浏览台` may inspect or operate",
+        "An archived task is never healthy/reusable",
+        "Each lane owns only its own tab, checkpoint, Heartbeat, history, and report",
     ],
     ROOT / "references" / "launcher-playbook.md": [
         "Reusable Lane Distributor",
@@ -47,7 +46,7 @@ checks = {
         "The distributor never creates timers for workers",
         "Broad `开始/运营` enables comments, posts, and follow-up",
         "first default dispatch is complete only after comments, posts, and follow-up all accept",
-        "Create browsing only for an explicit pure-browse/vote request",
+        "Add browsing when the user explicitly requests a browse/vote component",
         "vote_policy=DISABLED_BY_LANE",
         "vote_policy=BROWSING_ONLY",
         "worker_task_id=<the exact selected destination task ID>",
@@ -105,7 +104,7 @@ for obsolete in (
         errors.append(f"obsolete file still present: {obsolete.name}")
 
 forbidden = {
-    ROOT / "SKILL.md": ["Use a persistent main coordinator", "Require worker callback"],
+    ROOT / "SKILL.md": ["Use a persistent main coordinator", "Require worker callback", "Every worker loads"],
     ROOT / "references" / "launcher-playbook.md": ["The coordinator is the only scheduler"],
     ROOT / "references" / "scheduler-and-heartbeats.md": ["supervisor_heartbeat_id"],
 }

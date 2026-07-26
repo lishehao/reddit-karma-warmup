@@ -179,4 +179,11 @@ Before submission, score the final title/body package separately from the candid
 | Compression | 0-15 | Is it no longer than the community and idea require? |
 | Distinct/account-consistent shape | 0-15 | Is it non-duplicative while remaining truthful? |
 
-Publish only at `post_copy_score >=80` with all live eligibility checks still passing. `70-79` rewrites once; `<70` retargets or skips. A copy score never overrides the mandatory post gate.
+`post_copy_score` is a revision cue, not an eligibility gate. A post may submit
+when hard compliance and the truthful minimum content floor pass, even when it
+does not reach an arbitrary writing-score threshold. Use the factor table to
+spot an unclear hook, missing specific value, needless length, or an
+account-duplicate shape; revise once when such a concrete defect exists.
+Retarget only when that defect means the minimum content floor fails. A score
+never overrides a mandatory post gate or blocks an otherwise compliant,
+truthful native discussion merely to preserve a high average.

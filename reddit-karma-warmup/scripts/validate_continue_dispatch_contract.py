@@ -26,9 +26,9 @@ def forbid(path: Path, needles: list[str], errors: list[str]) -> None:
 errors: list[str] = []
 
 require(ROOT / "SKILL.md", [
-    "BOOTSTRAP_AWAITING_OPERATION",
-    "bare `继续` means saved/default direction plus `3h`",
-    "Full dispatch requires exact message acceptance",
+    "setup / dispatch",
+    "[runtime setup](references/runtime-and-setup.md)",
+    "[thread runtime](references/thread-supervision-runtime.md)",
 ], errors)
 
 require(ROOT / "references" / "runtime-and-setup.md", [

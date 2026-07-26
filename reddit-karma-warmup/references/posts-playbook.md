@@ -1,12 +1,27 @@
 # Native Posts Playbook
 
-Load only in `Reddit 发帖台`, together with `proactive-common.md`, `post-coverage-and-kpi.md`, `community-selection-funnel.md`, `new-account-bootstrap.md`, `posting-account-gates-audit-2026-07-14.csv`, `publish-consistency.md`, `outbound-copy-gate.md`, and the shared runtime pack. Numeric defaults come only from `operation-defaults.json`. This lane uses `vote_policy=DISABLED_BY_LANE`: never load `browse-vote-playbook.md` or inspect/click Upvote or Downvote.
+Load only in `Reddit 发帖台`, after the common current-slot runtime documents
+from `SKILL.md`. Load `web-search-preflight.md` before Chrome candidate
+discovery. Load `post-coverage-and-kpi.md` when the mission includes a
+publication KPI; load `community-selection-funnel.md` only while widening a
+candidate search; load `new-account-bootstrap.md` and the exact account-gate
+row only for K0/K1; load `outbound-copy-gate.md` and
+`publish-consistency.md` only before a draft/submission. Numeric defaults come
+only from `operation-defaults.json`. This lane uses
+`vote_policy=DISABLED_BY_LANE`: never load `browse-vote-playbook.md` or
+inspect/click Upvote or Downvote.
 
 ## Post Eligibility
 
 K0 is always `research_preflight_only` with `posts.k0_action_*`. K1 requires `main_post_unlock=passed`, the exact account-gate row, and same-day Chrome preflight; it applies `posts.k1_rolling_24h_cap`. Unknown, blocked, organization-deny, approval-required, or unmet rows are closed.
 
-For one required post without an explicitly closed destination pool, run the broad-to-deep funnel under `target_pool_policy=preferred_expandable`: assess the configured reference target, use `posts.narrowing_timebox_minutes`, then complete the configured number of live deep reads and candidate packets. A timebox, reference count, candidate packet, or rejected finalist is not publication completion. Honor `target_pool_exact_and_closed=true` only when it is explicit user scope.
+For one required post without an explicitly closed destination pool, run the
+broad-to-deep funnel under `target_pool_policy=preferred_expandable`: assess
+the configured reference target, run the built-in Web Search post query pack,
+use `posts.narrowing_timebox_minutes`, then complete the configured number of
+live deep reads and candidate packets. A timebox, query count, reference count,
+candidate packet, or rejected finalist is not publication completion. Honor
+`target_pool_exact_and_closed=true` only when it is explicit user scope.
 
 For every finalist, check current rules/sidebar, pinned moderator posts, `New`/`Hot`/`Top Month`, submit fields, Flair/title/body mode, account-age/Karma/history gates, megathread placement, external-link/product/survey rules, same-subreddit history, and approval signals. Resolve hard compliance first, including `posts.rules_eligibility_score_min` on live rules and eligibility; any mandatory conflict immediately retargets. Only then check the mode's minimum content floor and use the funnel's six-factor score as a secondary ranking signal.
 
@@ -14,7 +29,12 @@ For every finalist, check current rules/sidebar, pinned moderator posts, `New`/`
 
 Without another user angle, resolve `post_mode=native_discussion` and prefer a truthful beginner-readable community-memory question, observation, workflow friction, or tradeoff. It may sound simple but must not impersonate a novice, invent confusion, claim a personal mistake, or use deliberate factual errors. An ordinary discussion post does not require an artifact, project link, metric, or ownership claim.
 
-Before drafting a question post, sample `posts.discussion_survivor_sample_target` recent native discussion/question survivors when available and search the exact topic plus close variants. Reject FAQ, pinned, duplicate, one-answer, generic “any tips,” or cross-subreddit template premises. This is the minimum content floor after compliance, not a demand for maximal engagement potential.
+Before drafting a question post, sample `posts.discussion_survivor_sample_target`
+recent native discussion/question survivors when available and search the exact
+topic plus close variants through both the Web Search query pack and live Reddit
+surfaces. Reject FAQ, pinned, duplicate, one-answer, generic “any tips,” or
+cross-subreddit template premises. This is the minimum content floor after
+compliance, not a demand for maximal engagement potential.
 
 Score discussion potential:
 

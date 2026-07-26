@@ -1,6 +1,11 @@
 # Follow-Up Playbook
 
-Use only for notifications, supplied Reddit URLs, replies to the account's own recent posts/comments, and mod/Automod follow-up. Shared lifecycle and scheduling come from `orchestration-core.md` and `scheduler-and-heartbeats.md`. This lane uses `vote_policy=DISABLED_BY_LANE`: never load `browse-vote-playbook.md` or inspect/click Upvote or Downvote.
+Use only in `Reddit 跟进台` for notifications, supplied Reddit URLs, replies to
+the account's own recent posts/comments, and mod/Automod follow-up. Follow the
+progressive current-slot runtime map in `SKILL.md`; load
+`scheduler-and-heartbeats.md` only when unfinished work needs a later wake.
+This lane uses `vote_policy=DISABLED_BY_LANE`: never load
+`browse-vote-playbook.md` or inspect/click Upvote or Downvote.
 
 ## Cadence And Surfaces
 

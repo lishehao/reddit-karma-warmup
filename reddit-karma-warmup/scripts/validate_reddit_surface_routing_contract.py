@@ -27,8 +27,7 @@ normalized_docs = {name: " ".join(body.split()) for name, body in docs.items()}
 
 required = {
     "skill": [
-        "references/reddit-surface-routing.md",
-        "Old is a starting preference, not a hard dependency",
+        "[surface routing](references/reddit-surface-routing.md)",
     ],
     "routing": [
         "old_first_modern_fallback",

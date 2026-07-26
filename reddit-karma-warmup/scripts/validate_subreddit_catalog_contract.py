@@ -26,9 +26,9 @@ def main() -> int:
     errors = []
     checks = {
         ROOT / "SKILL.md": [
-            "subreddit-catalog-taxonomy.md",
+            "[subreddit catalog](references/subreddit-catalog-taxonomy.md)",
             "subreddit-profile-index.csv",
-            "Load only filtered rows needed for the current account direction",
+            "never load an archive by default",
         ],
         ROOT / "references" / "account-direction.md": [
             "direction_tags",

@@ -1,6 +1,12 @@
 # Bootstrap Profile And Community Setup
 
-Use only in `Reddit 主页台` during first-account bootstrap or an explicit setup/repair mission. This lane covers profile/homepage upkeep, target-based Join/subscribe, truthful Flair/tag, and membership review. It normally terminates after one verified slot; when the user explicitly requested later presence work, this task creates and owns its own recurring Heartbeat. Numeric ceilings and bootstrap targets come only from `operation-defaults.json`.
+Use only in `Reddit 主页台` during first-account bootstrap or an explicit
+setup/repair mission. Follow the progressive current-slot runtime map in
+`SKILL.md`. This lane covers profile/homepage upkeep, target-based
+Join/subscribe, truthful Flair/tag, and membership review. It normally
+terminates after one verified slot; when the user explicitly requested later
+presence work, this task creates and owns its own recurring Heartbeat. Numeric
+ceilings and bootstrap targets come only from `operation-defaults.json`.
 
 ## Presence State
 

@@ -32,10 +32,9 @@ if defaults.get("thread_reuse") != expected:
 require(
     ROOT / "SKILL.md",
     [
-        "exact present, unarchived, healthy account+lane tasks",
-        "An archived task is never healthy or reusable",
-        "Ordinary distributor dispatch never auto-unarchives a task",
-        "explicit user request to resume that exact archived task",
+        "An archived task is never healthy/reusable",
+        "Reuse only an exact present,\n   unarchived, account-matched task that accepts delivery; otherwise replace it.",
+        "[thread runtime](references/thread-supervision-runtime.md) only for task create/reuse semantics",
     ],
 )
 require(

@@ -53,7 +53,7 @@ documents = {
 }
 joined = "\n".join(documents.values())
 required = (
-    "gpt-5.6-luna/high -> gpt-5.6-terra/high -> gpt-5.5/high -> gpt-5.4/high",
+    "Use one ordered model/effort fallback chain",
     "LUNA_CONFIRMED",
     "LUNA_REQUESTED_UNVERIFIED",
     "LUNA_UNAVAILABLE_FALLBACK",
@@ -65,9 +65,9 @@ required = (
     "send the new mission with a Luna/high per-turn override",
     "never infer confirmation from message acceptance",
     "Model choice is not a Chrome-recovery mechanism",
-    "request gpt-5.6-luna/high for the distributor",
-    "only when it is explicitly confirmed non-Luna",
-    "Never create a duplicate from unknown model state",
+    "Apply the same chain to the distributor",
+    "If the current task is explicitly confirmed non-Luna",
+    "If the current model is unknown, do not create a speculative duplicate",
 )
 missing = [item for item in required if item not in joined]
 assert not missing, missing

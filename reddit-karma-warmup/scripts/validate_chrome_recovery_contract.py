@@ -37,9 +37,9 @@ if backoff != sorted(set(backoff)) or not backoff or backoff[-1] > 60:
 
 required = {
     "SKILL.md": [
-        "Recovery is mission-persistent but wake-bounded",
-        "chrome-recovery-edge-cases.md",
-        "Never use a later wake to replay an uncertain mutation",
+        "[network recovery](references/chrome-network-recovery.md) only after a failure",
+        "[Chrome edge cases](references/chrome-recovery-edge-cases.md)",
+        "Do not duplicate an uncertain Reddit mutation",
     ],
     "references/chrome-network-recovery.md": [
         "Apply `chrome-atomic-command-runtime.md` first",

@@ -12,9 +12,9 @@ defaults = json.loads((ROOT / "references" / "operation-defaults.json").read_tex
 
 required = {
     ROOT / "SKILL.md": [
-        "community-selection-funnel.md",
-        "action authority",
-        "Load only filtered rows",
+        "[selection funnel](references/community-selection-funnel.md) while widening",
+        "[subreddit catalog](references/subreddit-catalog-taxonomy.md)",
+        "Filter\n`subreddit-profile-index.csv`",
     ],
     ROOT / "references" / "community-selection-funnel.md": [
         "mission_identity_focus",

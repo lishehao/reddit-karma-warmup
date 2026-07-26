@@ -14,9 +14,7 @@ def read(relative: str) -> str:
 
 required = {
     "SKILL.md": [
-        "Recover stale tabs",
-        "One lane fault affects only that lane",
-        "Pending-review own posts are withdrawn immediately",
+        "Each lane owns only its own tab, checkpoint, Heartbeat, history, and report",
     ],
     "references/risk-escalation.md": [
         "Default: Continue Locally",
@@ -29,6 +27,9 @@ required = {
     ],
     "references/chrome-network-recovery.md": [
         "Multiple unsuccessful recovery wakes remain `lane_recovering`",
+    ],
+    "references/publish-consistency.md": [
+        "For pending approval, immediately delete/withdraw without asking",
     ],
 }
 

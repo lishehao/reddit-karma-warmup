@@ -28,8 +28,11 @@
     "archived_task_policy": "REPLACE_NEVER_AUTO_UNARCHIVE",
     "readable_archived_is_liveness": false,
     "registry_update_after_acceptance_only": true,
-    "transient_liveness_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
-    "unknown_archive_capability_policy": "ROUTING_UNVERIFIED_NO_REPLACEMENT",
+    "transient_liveness_policy": "CREATE_FRESH_REPLACEMENT_ONCE_PER_LANE_MISSION",
+    "unknown_archive_capability_policy": "CREATE_FRESH_REPLACEMENT_ONCE_PER_LANE_MISSION",
+    "not_loaded_policy": "CREATE_FRESH_REPLACEMENT_ONCE_PER_LANE_MISSION",
+    "replacement_creation_cap_per_lane_mission": 1,
+    "old_unavailable_task_policy": "NEVER_AUTO_UNARCHIVE_OR_OPERATE",
     "explicit_missing_task_policy": "REPLACE",
     "permanent_delivery_rejection_policy": "REPLACE",
     "delivery_uncertain_policy": "DELIVERY_UNCERTAIN_NO_REPLACEMENT"

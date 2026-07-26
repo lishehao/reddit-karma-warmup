@@ -58,13 +58,15 @@ Treat these states differently:
 - `ARCHIVED_EXACT`, `MISSING_EXACT`, or a permanent exact-task delivery
   rejection: replacement is eligible; never auto-unarchive the old task.
 - `LIVENESS_UNVERIFIED` (`notLoaded`, empty/partial inventory, host/tool timeout,
-  or unknown archive result): the task is not reusable **and is not proven
-  absent**. Mark only this lane `routing_unverified`, retry one readback when
-  safe, then return a partial dispatch. Do not create a duplicate or mutate
-  archive state to probe it.
+  or unknown archive result): the task is not reusable. For this direct new
+  mission, create one fresh same-lane replacement immediately; do not message,
+  unarchive, or otherwise operate the old task. Persist the old ID as
+  `UNAVAILABLE_SUPERSEDED_PENDING_ACCEPTANCE`, then overwrite the registry only
+  after the replacement has `DELIVERY_ACCEPTED`.
 - a host that never exposes archive state or a usable current inventory:
-  `ROUTING_CAPABILITY_BLOCKED` at bootstrap. Do not create a replacement based
-  on that missing capability.
+  apply the same fresh-replacement policy once per lane+mission. The missing
+  capability is not proof that the old task is absent and never authorizes
+  archive mutation.
 
 A registry written before `last_known_archive_state` existed remains readable,
 but its task still needs the same current proof.
@@ -83,11 +85,16 @@ For every requested lane, use this order:
    Never auto-unarchive it. Restore the canonical title only for a currently
    unarchived reusable task, keep it unpinned, and apply a model override only
    when the current user command explicitly authorizes one.
-2. **Routing uncertainty:** if the exact registered task is `notLoaded`, absent
+2. **Unavailable routing:** if the exact registered task is `notLoaded`, absent
    from an incomplete/empty inventory, produces a transient tool failure, or
-   has unknown archive state, do not adopt, replace, or message a second task.
-   Record `routing_unverified`, retry one exact readback when safe, then return
-   that lane as a partial dispatch. `DELIVERY_UNCERTAIN` follows the same rule.
+   has unknown archive state, do not message, adopt, or revive that old task.
+   Create one fresh same-lane replacement for this mission. Use a deterministic
+   `replacement_key=<account>/<lane>/<mission_id>` and record it before create;
+   a second create is forbidden for the same key. If create returns only a
+   queued ID, or handoff delivery is uncertain, return
+   `replacement_creation_uncertain`/`delivery_uncertain` and do not create
+   again. `DELIVERY_UNCERTAIN` for an otherwise healthy selected task follows
+   the same no-second-send rule.
 3. **One-time legacy adoption:** only when the lane has no registry entry and a
    current reliable unarchived inventory is available, perform one bounded
    lookup among current present/unarchived tasks for the exact canonical title.
@@ -100,9 +107,9 @@ For every requested lane, use this order:
    recency alone.
 4. **Create or replace:** create one new persistent projectless task when there
    is no registry entry after reliable legacy-adoption resolution, or replace
-   only after `ARCHIVED_EXACT`, `MISSING_EXACT`, or
-   `PERMANENT_DELIVERY_REJECTION` proof for the registered exact task. Leave an
-   archived task untouched. Put the lane identity, Reddit account, and
+   after `ARCHIVED_EXACT`, `MISSING_EXACT`, `PERMANENT_DELIVERY_REJECTION`, or
+   the unavailable-routing state above. Leave every prior task untouched. Put
+   the lane identity, Reddit account, and
    same-turn assignment expectation in the initial prompt, capture the returned
    identifier, rename the ready task to the canonical title, keep it unpinned,
    send the complete mission immediately, and atomically register it only after
@@ -115,7 +122,8 @@ For every requested lane, use this order:
    evidence state separately only for an explicit model request.
 
 Do not create a duplicate when a healthy present/unarchived registered task has
-`DELIVERY_ACCEPTED`. A readable task, successful rename, accessible archived
+`DELIVERY_ACCEPTED`, or when this mission already holds the lane's
+`replacement_key`. A readable task, successful rename, accessible archived
 history, or model metadata is neither archive-state nor delivery proof. Do not
 search archives, select by title alone, choose by recency alone, or adopt a task
 from another Reddit account. Do not revive a completed mission or old
@@ -156,8 +164,8 @@ The generic restore exception remains separate: restore an archived task only wh
    `last_mission_id`, timestamp, exact `task_id`, optional `host_id`, and
    `reused|adopted|created|replaced` only after this receipt.
 5. Call a requested first dispatch complete only when comments, posts, and
-   follow-up each have `DELIVERY_ACCEPTED`. If any lane is unavailable,
-   `routing_unverified`, or `delivery_uncertain`, call it a partial dispatch,
+   follow-up each have `DELIVERY_ACCEPTED`. If any lane has
+   `replacement_creation_uncertain` or `delivery_uncertain`, call it a partial dispatch,
    name that lane, and never claim that all first-round missions were sent.
 6. Return the exact accepted titles and any failed lane, then release launcher ownership.
 

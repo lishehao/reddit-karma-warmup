@@ -48,7 +48,8 @@ require(
         "never treat a queued `clientThreadId` as a ready `threadId`",
         "omit model and reasoning overrides unless the current user command explicitly",
         "model choice\n  never proves liveness, delivery, archive state, or replacement eligibility",
-        "LIVENESS_UNVERIFIED", "ROUTING_CAPABILITY_BLOCKED",
+        "LIVENESS_UNVERIFIED", "UNAVAILABLE_SUPERSEDED_PENDING_ACCEPTANCE",
+        "replacement_key=<account>/<lane>/<mission_id>",
         "`DELIVERY_ACCEPTED` is the Reddit domain gate",
         "no-callback lane topology",
         "no shared version lock with the TikTok",
@@ -78,7 +79,7 @@ require(
         "independent account-scoped lane tasks",
         "[thread runtime](references/thread-supervision-runtime.md)",
         "An archived task is never healthy/reusable",
-        "unknown liveness blocks that lane without",
+        "unknown liveness create",
     ],
 )
 

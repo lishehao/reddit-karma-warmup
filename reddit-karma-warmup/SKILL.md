@@ -65,7 +65,7 @@ account risk.
    “high/low frequency” as a profile shorthand, never as a timer change.
 2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
 3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
-   work remains. Align normal unit rechecks to that grid. A trigger within ±5
+   work remains, ending at `operation_stop_at + cleanup-grace`. Align normal unit rechecks to that grid. A trigger within ±5
    minutes is ordinary; later triggers record the delay and recompute from
    actual time without catch-up. A wake with nothing due is a fast NOOP: do not
    open Chrome or rewrite the timer. Never use a one-shot self-rescheduling

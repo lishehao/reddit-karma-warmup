@@ -4,6 +4,15 @@ Choose one primary business goal. Supporting units may run only when the
 recorded evidence graph arms them; selecting a goal does not grant outward
 authority.
 
+## Three-question startup normalization
+
+After bootstrap, obtain the three-answer artifact defined in
+[startup intake](startup-intake.md), then normalize it into the canonical
+fields below. Do not ask for an account: use only the later same-Chrome live
+account proof. A concise answer may carry a named-community list, topic,
+audience, truthful materials, and custom operating limits in its second and
+third answers.
+
 | Goal | Required user input | Primary result |
 | --- | --- | --- |
 | `community_discovery` | topic/audience | current community-route and candidate packs |

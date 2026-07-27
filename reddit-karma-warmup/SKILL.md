@@ -10,10 +10,12 @@ description: Run authorized Reddit research, browsing, native posts, comments, f
 If the user asks to install/upgrade from the HTTPS README and says not to enter
 target mode, do only bootstrap. Verify raw/codeload origin, package layout,
 manifest, offline validator, installed tree, current-task presence, and required
-tool availability. Report `BOOTSTRAP_READY` and wait for a later direction,
-duration, account, and explicit action authority. Do not open Chrome or Reddit,
-run Web Search/API, create a mission envelope/queue/Heartbeat, or create unit
-tasks in this phase.
+tool availability. Then report `BOOTSTRAP_READY` and ask the exactly three
+startup-intake questions in [startup intake](references/startup-intake.md).
+Do not ask for an account: resolve it only through the later same-Chrome live
+account gate. Do not ask the user for a second free-form mission prompt. Do
+not open Chrome or Reddit, run Web Search/API, create a mission
+envelope/queue/Heartbeat, or create unit tasks until all three answers arrive.
 
 ## Default: one task, five internal units
 
@@ -119,6 +121,7 @@ rule or invent a project, metric, link, experience, or claim.
 | Chrome setup, surface routing, read/action boundaries, timeout recovery | [Chrome and actions](references/chrome-and-actions.md) |
 | selected `browsing`, `comments`, `posts`, `follow-up`, or `presence` unit | [unit guides](references/unit-guides.md) |
 | business goal, coverage, threshold, KPI, or community-scope choice | [mission goals and profiles](references/mission-goals-and-profiles.md) |
+| bootstrap has passed and the user needs to define a mission | [startup intake](references/startup-intake.md) |
 | numeric defaults or script configuration | [operation defaults](references/operation-defaults.json) |
 
 Do not load historical lane, dispatcher, worker, callback, catalog-snapshot, or

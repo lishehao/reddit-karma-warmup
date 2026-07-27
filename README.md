@@ -1,13 +1,13 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.13`
+Protocol version: `2026.07.27.14`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
 ## Send this prompt
 
 ```text
-请完整读取并执行 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md：通过 HTTPS 安装或升级 reddit-karma-warmup，完成安装完整性与本机能力预检，并完成启动交接；不要进入目标模式。此阶段不得打开 Reddit/Chrome、运行 Web Search/API、创建 mission envelope/queue/Heartbeat，或创建浏览/评论/发帖/跟进/主页任务。完成后仅报告 `BOOTSTRAP_READY`、已验证版本和等待的下一条方向/时长/账号/授权指令。
+请完整读取并执行 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md：通过 HTTPS 安装或升级 reddit-karma-warmup，完成安装完整性与本机能力预检，并完成启动交接；不要进入目标模式。此阶段不得打开 Reddit/Chrome、运行 Web Search/API、创建 mission envelope/queue/Heartbeat，或创建浏览/评论/发帖/跟进/主页任务。预检通过后报告 `BOOTSTRAP_READY` 和已验证版本，并直接提出 README 定义的三个启动问题；不要要求我再写一段完整任务 Prompt，也不要询问账号。
 ```
 
 ## Bootstrap-only boundary
@@ -19,17 +19,28 @@ presence, and required tool availability. It may rename the current task to
 queue, timer, Chrome binding, or Reddit tab, and must not search, read, or
 mutate Reddit.
 
-Stop at `BOOTSTRAP_READY`. A later user message moves the same present task
-into the `Reddit 运营台` mission sequence only when it gives an account,
-business goal, duration, and explicit action authority. It may use this compact
-shape:
+After `BOOTSTRAP_READY`, ask exactly these three questions in one request.
+The user can answer all three as three short lines. Do not ask for an account:
+resolve the actual `u/<name>` only through the same-Chrome live gate after the
+answers are complete.
 
-```text
-Reddit 运营：目标=<找社区/参与讨论/获得反馈/发布项目/维护已有内容/完善主页>；
-素材=<真实链接、项目或“无”>；主题=<受众或话题>；范围=<发现新社区/指定社区>；
-时长=<…>；覆盖=<窄/标准/广>；行动门槛=<高/标准/低>；
-授权=<浏览、评论、发帖、跟进、主页>。
-```
+1. **运行多久？** `2 小时 / 4 小时 / 8 小时` are the preset choices; accept
+   an explicit custom duration as `其他`.
+2. **目标、主题与范围？** The preset choices are `找社区`、`参与讨论/获得反馈`、
+   `发布项目/维护内容`. In the same answer require the topic/audience, whether
+   discovery or named communities are in scope, and truthful links, project
+   facts, lived observations, or `无`.
+3. **允许做什么，以及节奏？** The preset choices are `研究优先`、`评论优先`、
+   `项目运营`. They map to explicit unit authority and default
+   coverage/threshold/action-budget profiles. Accept `其他` only when the user
+   names the exact allowed units and any intended override.
+
+The complete mapping, defaults, and custom-answer rules are in
+[`startup-intake.md`](reddit-karma-warmup/references/startup-intake.md). Once
+all three answers arrive, normalize them into the immutable mission envelope,
+run the same-Chrome account gate, and start the mission. Do not ask a fourth
+clarification merely because posts lack truthful material: compile that unit as
+`MATERIAL_REQUIRED` while other authorized units may proceed.
 
 “高频/低频”是兼容性简称，不改变 15 分钟 Heartbeat：它会被解释为
 覆盖面、软行动门槛和动作预算的组合。版规、真实性、当前账号/表单状态、

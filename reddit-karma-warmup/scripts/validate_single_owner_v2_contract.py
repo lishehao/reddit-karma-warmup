@@ -16,6 +16,7 @@ INDEX = ROOT / "scripts" / "community_index.py"
 COMPILER = ROOT / "scripts" / "compile_single_owner_mission.py"
 QUEUE = ROOT / "scripts" / "single_owner_queue.py"
 BROWSER_LEDGER = ROOT / "scripts" / "validate_browser_step_ledger.py"
+STARTUP_INTAKE = ROOT / "references" / "startup-intake.md"
 
 
 def run(*args: str) -> dict:
@@ -51,7 +52,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.13"
+    assert version == "2026.07.27.14"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -80,7 +81,7 @@ def main() -> None:
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -90,9 +91,13 @@ def main() -> None:
     for phrase in ("browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "MUTATION_INTENT"):
         assert phrase in installed_text, phrase
     assert "legacy_multi_lane_compat" not in text
-    required = {"single-owner-runtime.md", "research-and-community-index.md", "chrome-and-actions.md", "unit-guides.md", "mission-goals-and-profiles.md", "operation-defaults.json"}
+    required = {"single-owner-runtime.md", "research-and-community-index.md", "chrome-and-actions.md", "unit-guides.md", "mission-goals-and-profiles.md", "startup-intake.md", "operation-defaults.json"}
     actual = {path.name for path in (ROOT / "references").iterdir()}
     assert actual == required, actual
+    intake = STARTUP_INTAKE.read_text(encoding="utf-8")
+    assert intake.count("## Question ") == 3
+    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "community discovery", "discussion or feedback", "project operation", "MATERIAL_REQUIRED", "no fourth question"):
+        assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
     assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
     assert run(str(BROWSER_LEDGER), "--self-test")["status"] == "PASS"

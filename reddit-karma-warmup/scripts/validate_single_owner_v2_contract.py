@@ -14,6 +14,7 @@ SKILL = ROOT / "SKILL.md"
 DEFAULTS = ROOT / "references" / "operation-defaults.json"
 INDEX = ROOT / "scripts" / "community_index.py"
 COMPILER = ROOT / "scripts" / "compile_single_owner_mission.py"
+INTAKE_COMPILER = ROOT / "scripts" / "compile_startup_intake.py"
 QUEUE = ROOT / "scripts" / "single_owner_queue.py"
 BROWSER_LEDGER = ROOT / "scripts" / "validate_browser_step_ledger.py"
 STARTUP_INTAKE = ROOT / "references" / "startup-intake.md"
@@ -53,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.18"
+    assert version == "2026.07.27.19"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -63,13 +64,15 @@ def main() -> None:
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v11"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v12"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
     assert intake_defaults["completion"] == "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER"
     assert intake_defaults["unanswered_or_partial"] == "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH"
     assert intake_defaults["silence"] == "NEVER_IMPLICITLY_CANCELLED"
+    assert intake_defaults["compiler"] == "scripts/compile_startup_intake.py"
+    assert intake_defaults["compiler_success"] == "STARTUP_ANSWERS_COMPLETE"
     direction_defaults = defaults["direction_intake"]
     assert direction_defaults["question"] == "ACCOUNT_DIRECTION_AND_COMMUNITY_DISCOVERY_NOT_OPERATING_AUTHORITY"
     assert direction_defaults["primary_presets"] == [
@@ -81,7 +84,8 @@ def main() -> None:
     assert direction_defaults["material_refs"] == "OPTIONAL_AT_STARTUP_MISSING_MATERIAL_PARKS_POSTS_LATER"
     startup_transition = defaults["startup_transition"]
     assert startup_transition["question_two_completion"] == "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP"
-    assert startup_transition["missing_optional_defaults"] == "COMMUNITY_SCOPE_DISCOVER_MATERIAL_REFS_EMPTY"
+    assert startup_transition["missing_optional_defaults"] == "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY"
+    assert startup_transition["answer_compilation"] == "LOCAL_THREE_ANSWER_COMPILER_BEFORE_RUNTIME_FENCE_NO_SECOND_ROUND"
     assert startup_transition["after_three_answers"] == "RUNTIME_FENCE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_PACKET_SAME_TASK_TURN"
     assert startup_transition["initial_packet"] == "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER"
     assert startup_transition["technical_gates"] == "REQUIRED_BUT_NOT_A_SEPARATE_USER_DECISION_STAGE"
@@ -105,7 +109,7 @@ def main() -> None:
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "INITIAL formal packet", "preview or pre-filter"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL formal packet", "preview or pre-filter"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -122,10 +126,11 @@ def main() -> None:
     assert actual == required, actual
     intake = STARTUP_INTAKE.read_text(encoding="utf-8")
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "account direction", "Question 3", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "silence never does", "do not ask a second-round question", "INITIAL formal packet", "not a preview, pre-filter, or separate planning round"):
+    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "account direction", "Question 3", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL formal packet", "not a preview, pre-filter, or separate planning round"):
         assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
-    assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
+    assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
+    assert run(str(INTAKE_COMPILER), "--self-test")["status"] == "PASS"
     assert run(str(BROWSER_LEDGER), "--self-test")["status"] == "PASS"
     assert run(str(RUNTIME_FENCE), "--self-test")["status"] == "PASS"
     with tempfile.TemporaryDirectory() as temporary:
@@ -134,6 +139,66 @@ def main() -> None:
         assert status["status"] == "READY" and status["community_count"] == 0
         unavailable = run(str(INDEX), "--root", str(work / "index"), "refresh", "--subreddit", "r/SideProject")
         assert unavailable["status"] == "UNCONFIGURED_OFFICIAL_REDDIT_API"
+        # Full startup path: exactly three answers -> normalized intake ->
+        # immutable envelope -> scheduler receipt -> first formal packet.
+        # No Chrome or Reddit call is performed by this simulation.
+        startup_answers = work / "three-answers.json"
+        startup_normalized = work / "startup-normalized.json"
+        startup_answers.write_text(json.dumps({
+            "duration_hours": 2,
+            "direction": "个人创作与独立项目",
+            "authority_profile": "discussion first",
+        }), encoding="utf-8")
+        compiled_intake = run(str(INTAKE_COMPILER), "--input", str(startup_answers), "--output", str(startup_normalized))
+        assert compiled_intake["status"] == "STARTUP_ANSWERS_COMPLETE"
+        assert compiled_intake["normalized"]["mission_strategy"]["community_scope"] == "discover"
+        assert compiled_intake["normalized"]["mission_strategy"]["material_refs"] == []
+        assert compiled_intake["normalized"]["requested_work_types"] == ["browsing", "comments"]
+        partial_answers = work / "partial-answers.json"
+        partial_answers.write_text(json.dumps({"duration_hours": 2}), encoding="utf-8")
+        assert run(str(INTAKE_COMPILER), "--input", str(partial_answers))["status"] == "WAITING_FOR_STARTUP_INPUT"
+        stale_evidence = work / "stale-runtime.json"
+        stale_evidence.write_text(json.dumps({
+            "owner_task_id": "019fa29e-2cb5-70d0-9519-b6d993fe7e71",
+            "mission_id": "old-reddit-contract",
+            "queue_state": "ACTIVE",
+            "operation_stop_at": "2026-07-27T06:00:00Z",
+            "task_state": "notLoaded",
+            "heartbeat_state": "absent",
+            "lock_state": "unheld",
+        }), encoding="utf-8")
+        fenced = run(str(RUNTIME_FENCE), "--input", str(stale_evidence), "--now-utc", "2026-07-27T08:00:00Z", "--reconcile", "--registry-root", str(work / "runtime-fence"))
+        assert fenced["status"] == "STALE_RUNTIME" and fenced["reconciliation"] == "RECORDED"
+        startup_source = work / "startup-mission.json"
+        startup_envelope = work / "startup-envelope.json"
+        startup_payload = dict(compiled_intake["normalized"])
+        startup_payload.update({
+            "mission_id": "three-answer-contract",
+            "account": "u/example",
+            "operation_start_at": "2026-07-27T08:00:00Z",
+            "source_prompt": "three explicit startup answers",
+        })
+        startup_source.write_text(json.dumps(startup_payload), encoding="utf-8")
+        startup_mission = run(str(COMPILER), "--input", str(startup_source), "--output", str(startup_envelope))
+        assert startup_mission["selected_units"] == ["browsing", "comments"]
+        startup_shared = ("--root", str(work / "startup-queue"), "--scope", "three-answer-contract", "--owner-task-id", "owner-startup", "--mission-envelope", str(startup_envelope))
+        assert run(str(QUEUE), "bootstrap", *startup_shared, "--now-utc", "2026-07-27T08:00:00Z")["status"] == "BOOTSTRAPPED"
+        startup_proof = "1" * 64
+        assert promote(startup_shared, "2026-07-27T08:00:00Z", startup_proof)["status"] == "PRESENTATION_PROMOTED"
+        assert run(str(QUEUE), "canary-pass", *startup_shared, "--proof-sha256", startup_proof)["status"] == "CANARY_PASSED"
+        assert heartbeat_record(startup_shared, "2026-07-27T08:00:00Z", "2026-07-27T10:25:00Z", "2026-07-27T08:15:00Z", "owner-startup", startup_proof)["status"] == "HEARTBEAT_VERIFIED"
+        initial_wake = run(str(QUEUE), "wake-open", *startup_shared, "--wake-source", "INITIAL", "--expected-at-utc", "2026-07-27T08:00:00Z", "--now-utc", "2026-07-27T08:01:00Z")
+        assert initial_wake["status"] == "WAKE_OPEN" and initial_wake["due_units"] == ["browsing", "comments"]
+        assert run(str(QUEUE), "decide", *startup_shared, "--unit", "browsing", "--decision", "RUN", "--reason", "first formal community research packet", "--now-utc", "2026-07-27T08:01:01Z")["status"] == "DECISION_RECORDED"
+        assert run(str(QUEUE), "decide", *startup_shared, "--unit", "comments", "--decision", "DEFER", "--reason", "requires real upstream candidate evidence", "--now-utc", "2026-07-27T08:01:02Z")["status"] == "DECISION_RECORDED"
+        first_packet = run(str(QUEUE), "start", *startup_shared, "--now-utc", "2026-07-27T08:01:03Z")
+        assert first_packet["status"] == "PACKET_STARTED" and first_packet["unit"] == "browsing"
+        assert run(str(QUEUE), "boundary-open", *startup_shared, "--boundary-id", "initial-read-1", "--boundary-kind", "DOM_READ", "--now-utc", "2026-07-27T08:01:04Z")["status"] == "BOUNDARY_OPEN"
+        assert run(str(QUEUE), "boundary-settle", *startup_shared, "--boundary-id", "initial-read-1", "--boundary-outcome", "READ_OK", "--now-utc", "2026-07-27T08:01:05Z")["status"] == "BOUNDARY_SETTLED"
+        initial_completed = run(str(QUEUE), "finish", *startup_shared, "--outcome", "COMPLETED", "--objective-state", "CANDIDATES_READY", "--objective-reason", "real first-packet community evidence", "--candidate-ref", "pack:initial:1", "--now-utc", "2026-07-27T08:01:06Z")
+        assert initial_completed["status"] == "COMPLETED"
+        assert initial_completed["objective_state"]["browsing"] == "CANDIDATES_READY"
+        assert initial_completed["timer_policy"] == "CONTINUE_STABLE_RECURRENCE"
         source = work / "mission.json"
         envelope = work / "envelope.json"
         source.write_text(json.dumps({"mission_id": "v2-contract", "account": "u/example", "direction": "truthful research", "operation_start_at": "2026-07-27T00:00:00Z", "duration_hours": 2, "requested_work_types": ["browsing", "posts"], "unit_authority": {"posts": "POST_AUTHORIZED"}, "authorization_receipt": "explicit post authority", "mission_strategy": {"business_goal": "project_distribution", "community_scope": "discover", "frequency": "high", "action_threshold": "high", "material_refs": ["https://example.test/project"], "planning_targets": {"eligible_routes": 1, "verified_actions": 1}}, "source_prompt": "compact one task"}), encoding="utf-8")

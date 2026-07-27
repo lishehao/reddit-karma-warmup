@@ -19,9 +19,13 @@ envelope/queue/Heartbeat, or create unit tasks until all three answers arrive.
 For this required intake, omit `request_user_input.autoResolutionMs`: unanswered
 or partial input stays `WAITING_FOR_STARTUP_INPUT`, and only an explicit user
 cancellation may end intake without a mission.
-Once all three answers are explicit, do not ask another startup question. A
-direction/IP answer is complete without a community list or material reference:
-default to `discover` and empty material refs. In the same task turn run
+Once all three answers are explicit, persist exactly those answers and run
+`scripts/compile_startup_intake.py`. Only
+`STARTUP_ANSWERS_COMPLETE` may continue; do not ask another startup question.
+A direction/IP answer is complete without a community list or material
+reference: default to `discover` (or `seeded_expandable` when the user
+voluntarily supplies community seeds) and empty material refs. In the same task
+turn run
 `runtime fence -> envelope -> technical live gates -> Heartbeat readback ->
 INITIAL formal packet`. Treat that first packet as round one, never as a
 preview or pre-filter.
@@ -76,7 +80,7 @@ account risk.
 
 ## Required mission sequence
 
-1. After the three-answer intake, inspect every pre-existing Reddit runtime
+1. After `compile_startup_intake.py` returns `STARTUP_ANSWERS_COMPLETE`, inspect every pre-existing Reddit runtime
    record before compiling a new envelope. Use exact task state, Heartbeat
    readback, local lock ownership, and operation cutoff. A proven
    `STALE_RUNTIME` must be non-destructively reconciled and ignored; only an

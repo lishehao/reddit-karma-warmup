@@ -1,11 +1,15 @@
 {
-  "schema": "reddit_single_owner_defaults/v11",
+  "schema": "reddit_single_owner_defaults/v12",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
     "completion": "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER",
     "unanswered_or_partial": "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH",
-    "silence": "NEVER_IMPLICITLY_CANCELLED"
+    "silence": "NEVER_IMPLICITLY_CANCELLED",
+    "compiler": "scripts/compile_startup_intake.py",
+    "compiler_success": "STARTUP_ANSWERS_COMPLETE",
+    "compiler_wait": "WAITING_FOR_STARTUP_INPUT",
+    "compiler_cancelled": "STARTUP_CANCELLED_BY_USER"
   },
   "direction_intake": {
     "question": "ACCOUNT_DIRECTION_AND_COMMUNITY_DISCOVERY_NOT_OPERATING_AUTHORITY",
@@ -16,7 +20,8 @@
   },
   "startup_transition": {
     "question_two_completion": "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP",
-    "missing_optional_defaults": "COMMUNITY_SCOPE_DISCOVER_MATERIAL_REFS_EMPTY",
+    "missing_optional_defaults": "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY",
+    "answer_compilation": "LOCAL_THREE_ANSWER_COMPILER_BEFORE_RUNTIME_FENCE_NO_SECOND_ROUND",
     "after_three_answers": "RUNTIME_FENCE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_PACKET_SAME_TASK_TURN",
     "initial_packet": "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER",
     "technical_gates": "REQUIRED_BUT_NOT_A_SEPARATE_USER_DECISION_STAGE"

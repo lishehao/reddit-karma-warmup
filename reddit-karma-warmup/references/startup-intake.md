@@ -52,13 +52,15 @@ Ask: **账号想往什么方向找社区，并塑造成怎样的 IP？请写主�
 This answer selects a community-discovery direction and account/IP
 positioning; it grants no action authority and does not select a business
 goal. Preserve the user's exact direction in `direction`, and record a
-compact `account_direction` plus `direction_tags` when useful. A named
-community list is `closed`; a starting list that may expand is
-`seeded_expandable`; a direction without named communities is `discover`.
+compact `account_direction` plus `direction_tags` when useful. Named
+communities are optional *seeds* and therefore default to
+`seeded_expandable`; only an explicit request to stay within that exact list
+creates `closed`. A direction without named communities is `discover`.
 Choosing a preset or supplying custom direction/IP text completes Question 2:
 do not ask a second-round question for community scope, a project link, facts,
-or lived observations. Default omitted scope to `discover` and omitted
-material refs to `[]`. If posts later lack material, park only `posts` as
+or lived observations. Default omitted scope to `discover` when no community
+seeds were volunteered (otherwise `seeded_expandable`), and material refs to
+`[]`. If posts later lack material, park only `posts` as
 `MATERIAL_REQUIRED`; do not ask another startup question or invent facts.
 
 ## Question 3 — authority and operating profile
@@ -78,18 +80,29 @@ profile is not a quota.
 
 Accept `Other` only when the user explicitly names permitted units, one
 business goal, and optional `narrow|standard|broad` coverage plus
-`high|standard|low` threshold. Never infer a write authorization or business
-goal from Question 2. Preserve the exact third answer as the authorization
-receipt.
+`high|standard|low` threshold. Record that free-text answer as
+`authority_profile` and extract it into the compiler's structured
+`custom_authority` object; otherwise the compiler returns
+`INVALID_STARTUP_INPUT` rather than inferring a write authorization. Never
+infer a write authorization or business goal from Question 2. Preserve the
+exact third answer as the authorization receipt.
 
 ## Completion rule
 
-Once all three answers are complete, normalize Question 2 into `direction`,
-`account_direction`, `direction_tags`, and `community_scope`; normalize
-Question 3 into `business_goal`, `coverage_budget`, `action_threshold`,
-`action_budget`, selected units, and authority. `material_refs` are optional
-at startup and `planning_targets` remain evidence/output targets, never forced
-actions. Then, without another user prompt, complete this same-task transition:
+Once all three answers are complete, record them in one local JSON artifact and
+run `scripts/compile_startup_intake.py --input <answers.json> --output
+<normalized.json>`. Only `STARTUP_ANSWERS_COMPLETE` may proceed; partial input
+stays `WAITING_FOR_STARTUP_INPUT`, and explicit cancellation stays
+`STARTUP_CANCELLED_BY_USER`. The compiler is local-only and creates no queue,
+Heartbeat, Chrome binding, or Reddit action. It normalizes Question 2 into
+`direction`, `account_direction`, `direction_tags`, and `community_scope`; it
+normalizes Question 3 into `business_goal`, `coverage_budget`,
+`action_threshold`, `action_budget`, selected units, and authority.
+`material_refs` are optional at startup and `planning_targets` remain
+evidence/output targets, never forced actions. Merge only this completed
+normalized artifact with system-provided mission ID, live account, start time,
+and source-prompt evidence, then, without another user prompt, complete this
+same-task transition:
 
 `runtime fence -> immutable envelope -> neutral canary + same-Chrome account
 gate -> Heartbeat create/readback -> INITIAL formal packet`
@@ -98,4 +111,5 @@ The `INITIAL` packet is round one of the mission. If it runs `browsing`, it
 must perform the mission's real community/candidate work and record its real
 evidence; it is not a preview, pre-filter, or separate planning round. Technical
 gates remain required, but a passing gate must continue directly into that first
-packet. No fourth question is required.
+packet. No fourth question is required, including for a community list,
+project link, material facts, or a candidate preview.

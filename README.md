@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.18`
+Protocol version: `2026.07.27.19`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -37,8 +37,9 @@ answers are complete.
 
 The complete mapping, defaults, and custom-answer rules are in
 [`startup-intake.md`](reddit-karma-warmup/references/startup-intake.md). Once
-all three answers arrive, normalize them into the immutable mission envelope,
-run the same-Chrome account gate, and start the mission. Do not ask a fourth
+all three answers arrive, compile them through the local deterministic startup
+compiler into immutable mission-envelope inputs, run the same-Chrome account
+gate, and start the mission. Do not ask a fourth
 clarification merely because posts lack truthful material: compile that unit as
 `MATERIAL_REQUIRED` while other authorized units may proceed.
 

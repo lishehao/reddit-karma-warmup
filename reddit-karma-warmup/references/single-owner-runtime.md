@@ -1,111 +1,52 @@
-# Single-owner Reddit Runtime
-
-This is the production runtime for `execution_topology=single_owner_v1`.
-One present, unarchived user-visible `Reddit 运营台` owns the mission and all
-Chrome control. It is not a dispatcher, a parent task, or a coordinator for
-sibling executors.
+# Single-owner runtime
 
 ## Ownership
 
-```text
-one user prompt
-  -> one pinned Reddit 运营台
-       -> one immutable mission envelope / revision chain
-       -> one durable decision ledger: browsing, comments, posts, follow-up, presence
-       -> one Chrome binding + one primary Reddit tab
-       -> optional <=2 public read tabs after a neutral canary
-```
+One current, unarchived `Reddit 运营台` owns the entire mission. It has one
+mission envelope, one append-only queue, one recurring Heartbeat, one Chrome
+binding, and one primary Reddit tab. The five units are internal decisions; do
+not create a launcher, executor, worker, lane, callback registry, browser
+proxy, or second Chrome task.
 
-No other task may own a Reddit tab or Chrome mutation for this mission. The
-local queue script is a durable state record, not a daemon, scheduler, lock
-server, browser client, or permission source.
+## Start
 
-## Bootstrap
+1. Verify the current task is present and unarchived; name/pin it only as a
+   presentation step.
+2. Compile the input with `scripts/compile_single_owner_mission.py`, then
+   bootstrap `scripts/single_owner_queue.py` using the exact current task ID.
+3. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated
+   primary tab only after it passes.
+4. If work remains, create and read back one recurring task Heartbeat. The
+   Heartbeat belongs to this task, never a unit.
 
-1. Rename/pin the current healthy operating task `Reddit 运营台`.
-2. Resolve the current Chrome runtime path and perform only the required
-   read-only preflight. Do not create a test Heartbeat.
-3. Compile `reddit_single_owner_mission/v1` with
-   `scripts/compile_single_owner_mission.py`; atomically persist it outside the
-   managed Skill directory.
-4. Bootstrap `reddit_single_owner_queue/v2` with
-   `scripts/single_owner_queue.py bootstrap`. The initial record marks every
-   selected active unit due for a decision; it does not enqueue five Chrome
-   packets.
-5. Run a neutral, agent-owned `https://example.com/` canary before Reddit work:
-   new tab, navigation, then minimal page proof are separate boundaries.
-6. Persist canary proof, open the first decision round, record a decision for
-   every due unit, then start at most one `RUN` packet. Create/read back one
-   mission-level recurring Heartbeat only when unfinished work remains.
+## Wake and units
 
-The task may request Luna/High only when the host supports it. A request or
-metadata readback does not create a successor, prove liveness, or modify the
-mission owner.
+For every due enabled unit, persist one `RUN`, `WATCH`, `SKIP`, or `DEFER`
+decision. Select at most one `RUN`; it gets one Chrome packet and at most one
+public action. The unit may complete, skip, block, or yield. A yielded unit
+resumes before a later unit.
 
-## Unit execution
+Default recheck intervals are browsing 40 minutes, comments 60, posts 180,
+follow-up 90 (20 for an active known chain), and presence 24 hours. They are
+recheck timings, never action quotas. The Heartbeat runs every 20 minutes;
+an actual trigger within ±5 minutes is ordinary. A later trigger recomputes
+from actual time and never catches up missed actions.
 
-Each Heartbeat first records `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due
-unit, then starts at most one selected `RUN` packet. `browsing` can use a bounded two-tab,
-public, read-only batch after the canary. All serial boundaries stay serial:
+## Permission and uncertainty
 
-- tab creation/claim, focus, scrolling, input, click, submit, result readback;
-- mutation preparation and verification;
-- recovery, tab close, finalization, and Chrome release.
+The compiler accepts only `browsing`, `comments`, `posts`, `follow-up`, and
+`presence`. Explicit authority is required for every non-read action and does
+not override current rules, account state, truthful evidence, composer state,
+or pacing. Persist `MUTATION_INTENT` / `action_key` before an outward action.
+Unknown submit state freezes that exact key forever.
 
-Each unit loads only its route-specific references. The five units are policy
-boundaries, not five threads. Unit order can be amended only by a hashed
-revision; no unit can self-enable another unit's action authority.
+Apply a revision only at a safe boundary: no active unit, open wake, read batch,
+or Chrome boundary. It can add, pause, remove, resume, or change scoped
+authority without erasing history. A new direct authorization is always needed
+for an authority increase.
 
-## Mission envelope and authority
+## End
 
-The compiler accepts only the fixed five unit IDs. Its default authority is:
-
-| Unit | Default | Explicit action authority |
-| --- | --- | --- |
-| browsing | `READ_ONLY` | `VOTE_AUTHORIZED` |
-| comments | `RESEARCH_ONLY` | `COMMENT_AUTHORIZED` |
-| posts | `RESEARCH_ONLY` | `POST_AUTHORIZED` |
-| follow-up | `RESEARCH_ONLY` | `FOLLOWUP_AUTHORIZED` |
-| presence | `RESEARCH_ONLY` | `PRESENCE_AUTHORIZED` |
-
-Any non-default authority requires a direct user authorization receipt in the
-compiled input. It is still only a scope gate: current rules, account state,
-truthful evidence, anti-spam/pacing constraints, and exact submit state can
-block the action. `VOTE_AUTHORIZED` is valid only for `browsing` and requires
-`vote_policy=BROWSING_ONLY`.
-
-## Safe unit hot-plug protocol
-
-Never edit a current envelope. Compile revision `n+1` with its exact parent
-hash and full desired unit plan, then apply it with `single_owner_queue.py
-apply-revision`.
-
-| Change | Safe-boundary behavior |
-| --- | --- |
-| `ADD` | mark the unit due for the next decision round; do not enqueue Chrome work |
-| `PAUSE` | move only a queued/yielded unit to append-only history; preserve its cursor and evidence |
-| `REMOVE` | same as pause, but mark it removed for this mission revision; never delete history |
-| `RESUME` | mark the unit due for a new decision; never rewrite paused/removed/completed evidence |
-| authority / vote policy | retain the five-unit plan, record exact `from`/`to` values, and require a new direct receipt before any authority increase |
-
-The queue rejects a revision if a unit is `RUNNING`, a decision round is open,
-a read batch is open, a browser boundary is in flight, the mission is retired,
-the parent hash/revision does not match, or the new authority is malformed. A frozen `action_key` is a
-settled uncertainty record: it cannot be retried or erased, but it does not
-force unrelated read-only units to stop.
-
-Read [decision rounds and Heartbeat](decision-round-and-heartbeat.md) for the
-default packet sizes, persisted due times, and recurring timer behavior.
-
-## Recovery and retirement
-
-When a recoverable Chrome/read failure persists beyond one bounded same-wake
-pass, `YIELD` the active unit with its cursor, remaining budget, exact frozen
-keys, and failure class. The next mission Heartbeat resumes that same unit
-before any later queued unit. A human repair condition stops browser work but
-does not create a replacement Chrome task.
-
-Only after every unit is terminal, paused, or removed; no batch is open; and
-agent-owned tabs are proven released, may the task delete its Heartbeat and
-retire its queue. Do not archive the user-visible `Reddit 运营台` merely because
-one mission ended; keep it ready for a fresh mission.
+At deadline stop new Reddit work. Settle boundaries, release only agent-owned
+tabs, delete the exact Heartbeat, and retire the queue. Keep the task itself
+available for the next mission.

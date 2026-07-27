@@ -1,141 +1,94 @@
 ---
 name: reddit-karma-warmup
-description: Run authorized Reddit community operations through the user's logged-in Chrome session. Use for Reddit account setup, community research, browsing, comments, native posts, follow-up replies, profile/community presence, and safe single-owner mission operations.
+description: Run authorized Reddit research, browsing, native posts, comments, follow-up, and profile/community work through one persistent user-visible Reddit operating task and the user's logged-in Chrome. Use when a user asks to operate, warm up, publish to, research, or monitor a Reddit account or community.
 ---
 
 # Reddit Community Operations
 
-## Default topology: one task, five units
+## Default: one task, five internal units
 
-The production default is one user-visible, pinned `Reddit 运营台`. It owns the
-complete mission, one Chrome binding, one primary Reddit tab, its Heartbeat,
-and a durable decision ledger for five work units:
+Run one present, unarchived, user-visible `Reddit 运营台` for a mission. It owns
+one durable mission record, one Heartbeat, one logged-in Chrome binding, and
+one primary Reddit tab. Do not create unit tasks, a Chrome dispatcher, a lock
+daemon, a callback tree, or a second Chrome owner.
 
-| Unit | May do | Never does |
+| Unit | Owns | Never owns |
 | --- | --- | --- |
-| `browsing` | authorized reading; only explicitly authorized Upvote/Downvote | text publishing, replies, profile/community changes |
-| `comments` | candidate research and proactive comments | vote control inspection, posts, inbound replies, profile/community changes |
-| `posts` | community audit, native post preparation and publication | vote control inspection, comments, inbound replies, profile/community changes |
-| `follow-up` | known inbound-chain review and eligible replies | vote control inspection, proactive discovery, new posts, profile/community changes |
-| `presence` | truthful profile, community membership, flair/tag work | vote control inspection, text publishing, replies |
+| `browsing` | qualified reads; an explicitly authorized Upvote/Downvote | text publication, replies, profile/community changes |
+| `comments` | candidate research and proactive comments | vote controls, posts, inbound replies, profile/community changes |
+| `posts` | community audit, native post research and publication | vote controls, comments, inbound replies, profile/community changes |
+| `follow-up` | known post/comment chains, notifications, and explicitly authorized replies | vote controls, unrelated discovery, new posts, profile/community changes |
+| `presence` | explicitly authorized truthful profile, membership, flair, or tag changes | vote controls, text publication, replies |
 
-Do not create one Chrome-owning task per unit. Do not create a Chrome dispatcher,
-baton holder, cross-task lock daemon, sibling worker, or callback tree. The
-`Reddit 运营台` serializes every focus, input, click, submit, verification,
-tab-claim, tab-close, and finalization boundary itself. It may use at most two
-agent-owned public read tabs only after a healthy canary; this never permits
-parallel mutations or shared user tabs.
+The units are policy boundaries inside one task, not lanes or threads. Default
+authority is research-only. Votes are disabled unless the mission explicitly
+authorizes `browsing` with `VOTE_AUTHORIZED`; every other unit has vote cap zero
+and must not inspect a vote locator.
 
-`execution_topology=legacy_multi_lane_compat` is an explicit migration-only
-compatibility mode. Never select it from a broad or ordinary Reddit request.
+## Surface contract
 
-## Non-negotiable invariants
+Use each surface only for the work it can prove.
 
-1. Compile and hash one immutable mission envelope before Chrome work. The
-   envelope names the exact account, duration, selected units, per-unit
-   authority, vote policy, model request state, and source-prompt hash.
-2. Default authority is research-only. A text publish, reply, profile/community
-   change, or vote requires the matching explicit unit authorization **and** all
-   current live Reddit/rule/account/submit gates. No target count forces an
-   action.
-   For posts, apply **hard compliance -> truthful minimum content floor ->
-   secondary ranking**. A writing score may improve a compliant candidate but
-   must not block an otherwise compliant, truthful native discussion.
-3. Only `browsing` may inspect or operate Upvote/Downvote controls. Every other
-   unit has `vote_policy=DISABLED_BY_LANE`, `vote_cap=0`, and never loads a vote
-   locator.
-4. Before an outward action, persist one deterministic `MUTATION_INTENT` /
-   `action_key`. A timeout or ambiguous result freezes that exact key forever;
-   do not duplicate an uncertain Reddit mutation, retry, reopen, or use another
-   unit to test it.
-5. A Chrome browser binding, tab metadata, page content channel, route, and
-   account state are separate health layers. `openTabs`/claim/title success does
-   not prove a readable page; content timeout is not a disconnection or account
-   risk.
-6. A Heartbeat belongs only to the single `Reddit 运营台`. Timing within the
-   configured ±5-minute tolerance is ordinary; continue without repair or
-   notification. Do not use `COUNT=1` self-rescheduling for a mission.
-7. Prefer Luna/High for this user-authorized operating task when the host exposes
-   a model request. Record requested, actual, and evidence state separately.
-   Never create a duplicate task merely because model metadata is missing or a
-   model change cannot be verified.
-
-## Safe hot-plugging
-
-All five units are hot-pluggable, but only at a **safe boundary**:
-
-```text
-no RUNNING unit
-AND no open decision round
-AND no open read batch
-AND no browser boundary in flight
-AND every uncertain mutation has a frozen exact action_key
-AND mission is not retired
-```
-
-Use a new, fully hashed mission revision rather than editing the prior envelope.
-`ADD`, `PAUSE`, `REMOVE`, `RESUME`, and a scoped authority/vote-policy change
-create an append-only revision record. An authority increase still requires a
-new direct user receipt; a hot-plug never manufactures permission.
-An active unit must finish or yield first; a paused/removed unit retains history
-and is never silently deleted. Resuming schedules a fresh decision; a new unit
-generation exists only if that decision selects `RUN`, never as a rewrite of
-old evidence. Read [single-owner runtime](references/single-owner-runtime.md)
-and [one-prompt runtime](references/one-prompt-runtime.md) before applying a
-revision.
-
-## Progressive route
-
-| Situation | Load now | Load only when needed |
+| Surface | Allowed use | Never use it for |
 | --- | --- | --- |
-| install / first preflight | [single-owner runtime](references/single-owner-runtime.md), [model runtime](references/model-runtime.md), [operation defaults](references/operation-defaults.json) | [community audit pool](references/community-audit-pool.md) for local public-cache setup |
-| every mission or revision | [single-owner runtime](references/single-owner-runtime.md), [unit ownership](references/lane-action-ownership.md), [Chrome atomic runtime](references/chrome-atomic-command-runtime.md) | [network recovery](references/chrome-network-recovery.md) only after a failure |
-| every Heartbeat / decision round | [decision rounds and Heartbeat](references/decision-round-and-heartbeat.md) | unit playbook only when that unit is selected `RUN` |
-| browsing unit | [browse/vote playbook](references/browse-vote-playbook.md) | vote policy only when the envelope authorizes browsing votes |
-| comments unit | [comments playbook](references/comments-playbook.md), [Web Search preflight](references/web-search-preflight.md) | [outbound copy gate](references/outbound-copy-gate.md) immediately before a draft/submission |
-| posts unit | [posts playbook](references/posts-playbook.md), [post KPI](references/post-coverage-and-kpi.md), [Web Search preflight](references/web-search-preflight.md) | [selection funnel](references/community-selection-funnel.md), [copy gate](references/outbound-copy-gate.md) only when relevant |
-| follow-up unit | [follow-up playbook](references/followup-playbook.md) | copy gate only for an eligible reply |
-| presence unit | [presence playbook](references/community-presence-playbook.md), [account direction](references/account-direction.md) | no text-publishing or vote playbook |
-| live rule/account/action issue | [risk escalation](references/risk-escalation.md) | [Chrome edge cases](references/chrome-recovery-edge-cases.md) only when classified |
-| explicit legacy migration | [legacy multi-lane compatibility](references/thread-supervision-runtime.md) | never load for a default mission |
+| Built-in Web Search | broad current discovery, terminology, primary sources, duplicate/FAQ risk | current Reddit permissions, account state, composer state, action proof |
+| Official Reddit API via `scripts/community_index.py` | optional GET-only public index: community metadata, rules, and up to three hot-item pointers | content browsing, account endpoints, any Reddit write, a Chrome-failure fallback, publishing permission |
+| Logged-in Chrome | every actual Reddit read, current community context/rules, account gate, composer, submit/reply/vote, and result verification | parallel multi-task control, evasion or fake-human techniques |
 
-## Community evidence
+API is optional: use it during bootstrap or community expansion only when the
+official OAuth token and truthful User-Agent are configured. Missing credentials
+are normal; continue with Web Search plus Chrome. API output is an index, not a
+publish gate. TikHub is not part of the default path.
 
-Use the shared [community audit pool](references/community-audit-pool.md) for
-public rule/metadata cache only. Filter `subreddit-profile-index.csv`, then
-apply `organization-community-denylist.md` and
-`community-action-routing-overrides.md`. Historical audits, traffic snapshots,
-and API pointers are discovery evidence; never treat them as publishing
-permission or load an archive by default. For a candidate expansion, use
-[subreddit catalog](references/subreddit-catalog-taxonomy.md) and the
-[selection funnel](references/community-selection-funnel.md) only for the
-active comments/posts unit. Current Chrome rules and submit state remain final.
+Use Old Reddit first for ordinary text communities; make one semantic current-
+Reddit fallback only when the required live capability is unavailable. Keep the
+same account and primary tab. A content-channel timeout is
+`CHROME_CONTENT_CHANNEL_TIMEOUT`, not a browser disconnect, missing tab, or
+account risk.
 
-Web Search is mandatory before comment and post candidate narrowing:
-`research_brief -> query_plan -> evidence_synthesis -> Chrome live gate`.
-Built-in Web Search supplies discovery and factual research; logged-in Chrome is
-the final authority for Reddit rules, eligibility, composer state, and action
-success.
+## Required mission sequence
 
-## Runtime sequence
+1. Compile one immutable mission envelope and bootstrap its single-owner queue.
+   Bind it to the exact current task ID before Chrome work.
+2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
+3. Create one recurring mission Heartbeat only while unfinished work remains.
+   A trigger within ±5 minutes is ordinary; later triggers recompute from actual
+   time without catch-up. Never use a one-shot self-rescheduling timer.
+4. At each wake decide `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due enabled
+   unit. Run at most one Chrome packet and one public action in that wake.
+5. For `comments` or `posts`, complete:
+   `research brief -> purpose-labelled query plan -> evidence synthesis -> Chrome live gate`.
+   Use 4–6 distinct Web Search questions for a comment candidate pack and 8–12
+   for a post candidate pack. Add an exact final query for the selected item and
+   a source/objection query whenever the intended text contains a factual claim.
+6. Before each public action persist a deterministic `MUTATION_INTENT` /
+   `action_key`. Submit once. If acknowledgement or verification is uncertain,
+   freeze that exact key permanently and do not reopen or retry it.
+7. At completion or deadline, settle all boundaries, release only agent-owned
+   tabs, delete the mission Heartbeat, and retire the queue. Keep the visible
+   `Reddit 运营台` available for a future mission.
+
+Hard compliance and truthful evidence decide whether an action is possible.
+Content quality is a secondary ranking aid, never a reason to bypass a current
+rule or invent a project, metric, link, experience, or claim.
+
+## Load only what the current decision needs
+
+| Situation | Required reference |
+| --- | --- |
+| bootstrap, mission revision, timer, recovery, retirement | [single-owner runtime](references/single-owner-runtime.md) |
+| Web Search, public API index, community shortlist, candidate evidence | [research and community index](references/research-and-community-index.md) |
+| Chrome setup, surface routing, read/action boundaries, timeout recovery | [Chrome and actions](references/chrome-and-actions.md) |
+| selected `browsing`, `comments`, `posts`, `follow-up`, or `presence` unit | [unit guides](references/unit-guides.md) |
+| numeric defaults or script configuration | [operation defaults](references/operation-defaults.json) |
+
+Do not load historical lane, dispatcher, worker, callback, catalog-snapshot, or
+legacy migration documents: they are not part of this production Skill.
+
+## Compact receipt
 
 ```text
-COMPILE ENVELOPE -> BOOTSTRAP QUEUE -> NEUTRAL CANARY ->
-HEARTBEAT DECIDES EVERY DUE UNIT -> RUN AT MOST ONE PACKET ->
-ACT/VERIFY -> COMPLETE or YIELD -> NEXT HEARTBEAT -> RELEASE -> RETIRE
-```
-
-One decision round is not a mandatory five-unit sweep. Each due unit receives a
-durable `RUN`, `WATCH`, `SKIP`, or `DEFER` decision; only one `RUN` packet may
-cross the Chrome boundary in that wake. `YIELDED` is a same-mission recovery state. It blocks later queued units until
-the same unit is resumed or an explicitly accepted safe-boundary revision pauses
-or removes it. Do not create another task, reset its budget, or duplicate an
-uncertain action.
-
-## Output
-
-```text
-本轮完成：<已完成/暂停/阻塞的单元、有效阅读和已验证动作>。
+本轮完成：<完成/暂停/阻塞的单元、有效阅读、已验证动作>。
 下轮时间：<当地时间与 UTC；终止则“无（Heartbeat 已删除）”>。
-下轮计划：<下一个队列单元或恢复动作，以及真实风险>。
+下轮计划：<下一个单元或恢复动作，以及真实风险>。
 ```

@@ -16,8 +16,9 @@ proxy, or second Chrome task.
    bootstrap `scripts/single_owner_queue.py` using the exact current task ID.
 3. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated
    primary tab only after it passes.
-4. If work remains, create and read back one recurring task Heartbeat. The
-   Heartbeat belongs to this task, never a unit.
+4. If work remains, create and read back one recurring task Heartbeat with an
+   `UNTIL` at `operation_stop_at + cleanup_grace`. The Heartbeat belongs to this
+   task, never a unit. It is not an unbounded recurring timer.
 
 ## Objective graph
 
@@ -64,7 +65,10 @@ history, and one verified submission. The threshold only ranks candidates that
 already pass those gates.
 
 When an enabled comment/post/follow-up/presence unit becomes `ACTION_ELIGIBLE`
-for the business goal, schedule it before more exploratory browsing. If a
+for the business goal, schedule it before more exploratory browsing. A browsing
+packet that establishes a dated route plus the truthful contribution boundary
+must explicitly arm the relevant comment/post objective before it finishes; do
+not use a pause/resume revision merely to make that action unit due. If a
 post is parked as `MATERIAL_REQUIRED` or `RULE_BLOCKED`, do not keep repeating
 the same route sweep. Record the unmet goal honestly; a planning target is not
 permission to force an action.
@@ -78,13 +82,18 @@ an objective state as well as the packet outcome whenever the unit has outward
 authority. A yielded unit resumes before a later unit.
 
 The task creates one stable 15-minute recurring Heartbeat through the mission
-window; it is not reconfigured for ordinary unit changes. Unit rechecks align
+window plus one cleanup grace; it is not reconfigured for ordinary unit changes.
+Read back the recurrence and its `UNTIL` before claiming the Heartbeat healthy.
+Unit rechecks align
 to its 15-minute grid: browsing 30 minutes, comments 45, posts 180, follow-up
 90 (15 for an active known chain), and presence 24 hours. They are recheck
 timings, never action quotas. Coverage and action threshold do not alter this
 timer; they change what a bounded packet studies and which eligible candidate
-it prefers. Rechecks apply only to objective states that remain runnable. A
-packet must never schedule a unit after the mission cutoff. A wake
+it prefers. Rechecks apply only to objective states that remain runnable. For
+an action-oriented goal, an authorized pending/candidate-ready `comments` or
+`posts` unit may not be deferred beyond the cutoff: the queue records an
+`ACTION_WINDOW_CLAMPED_TO_NEXT_GRID` adjustment instead. A packet must never
+schedule a unit after the mission cutoff. A wake
 with no due unit records `NOOP` and does
 not claim, open, or read Chrome. An actual trigger within ±5 minutes is
 ordinary. A later trigger records `LATE_WAKE`, recomputes from actual time,

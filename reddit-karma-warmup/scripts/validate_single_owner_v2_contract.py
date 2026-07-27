@@ -26,7 +26,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.8"
+    assert version == "2026.07.27.9"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -52,8 +52,12 @@ def main() -> None:
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal"):
+    for phrase in ("user-visible `Reddit 运营台`", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace"):
         assert phrase in text, phrase
+    runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
+    guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
+    assert "ACTION_WINDOW_CLAMPED_TO_NEXT_GRID" in runtime
+    assert "live_gate_checkpoint" in guides
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "MUTATION_INTENT"):
         assert phrase in installed_text, phrase
@@ -71,7 +75,7 @@ def main() -> None:
         assert unavailable["status"] == "UNCONFIGURED_OFFICIAL_REDDIT_API"
         source = work / "mission.json"
         envelope = work / "envelope.json"
-        source.write_text(json.dumps({"mission_id": "v2-contract", "account": "u/example", "direction": "truthful research", "operation_start_at": "2026-07-27T00:00:00Z", "duration_hours": 2, "requested_work_types": ["browsing", "posts"], "mission_strategy": {"business_goal": "project_distribution", "community_scope": "discover", "frequency": "high", "action_threshold": "high", "material_refs": ["https://example.test/project"], "planning_targets": {"eligible_routes": 1, "verified_actions": 1}}, "source_prompt": "compact one task"}), encoding="utf-8")
+        source.write_text(json.dumps({"mission_id": "v2-contract", "account": "u/example", "direction": "truthful research", "operation_start_at": "2026-07-27T00:00:00Z", "duration_hours": 2, "requested_work_types": ["browsing", "posts"], "unit_authority": {"posts": "POST_AUTHORIZED"}, "authorization_receipt": "explicit post authority", "mission_strategy": {"business_goal": "project_distribution", "community_scope": "discover", "frequency": "high", "action_threshold": "high", "material_refs": ["https://example.test/project"], "planning_targets": {"eligible_routes": 1, "verified_actions": 1}}, "source_prompt": "compact one task"}), encoding="utf-8")
         compiled = run(str(COMPILER), "--input", str(source), "--output", str(envelope))
         assert compiled["selected_units"] == ["browsing", "posts"]
         assert compiled["mission_strategy"]["business_goal"] == "project_distribution"
@@ -100,11 +104,16 @@ def main() -> None:
         assert completed["timer_policy"] == "CONTINUE_STABLE_RECURRENCE"
         assert completed["objective_state"]["browsing"] == "CANDIDATES_READY"
         assert completed["next_due_at_utc"]["browsing"] == "2026-07-27T00:45:00Z"
-        assert completed["next_due_at_utc"]["posts"] is None
+        assert completed["next_due_at_utc"]["posts"] == "2026-07-27T00:15:00Z"
         assert completed["mission_strategy"]["action_budget"] == "active"
-        no_work = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:15:00Z", "--now-utc", "2026-07-27T00:15:00Z")
+        action_due = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:15:00Z", "--now-utc", "2026-07-27T00:15:00Z")
+        assert action_due["status"] == "WAKE_OPEN" and action_due["due_units"] == ["posts"]
+        action_defer = run(str(QUEUE), "decide", *shared, "--unit", "posts", "--decision", "DEFER", "--reason", "candidate packet first", "--now-utc", "2026-07-27T00:15:01Z")
+        assert action_defer["scheduler_adjustment"] == "ACTION_WINDOW_CLAMPED_TO_NEXT_GRID"
+        assert run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:15:02Z")["status"] == "NO_PACKET"
+        no_work = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:20:00Z", "--now-utc", "2026-07-27T00:20:00Z")
         assert no_work["status"] == "WAKE_OPEN" and no_work["due_units"] == []
-        assert run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:15:01Z")["status"] == "NO_PACKET"
+        assert run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:20:01Z")["status"] == "NO_PACKET"
         action_source = work / "action-mission.json"
         action_envelope = work / "action-envelope.json"
         action_source.write_text(json.dumps({

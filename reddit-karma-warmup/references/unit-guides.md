@@ -18,6 +18,14 @@ packet, not the Heartbeat. Do not rescan a route parked as `RULE_BLOCKED` or a
 post goal parked as `MATERIAL_REQUIRED` unless a revision or fresh material
 explicitly re-arms it.
 
+If the pack establishes an exact route and a truthful contribution boundary for
+an authorized comment or post, record that target unit as `ACTION_ELIGIBLE`
+before the browsing packet finishes. This only arms its next bounded packet;
+it does not bypass that packet's research, live-rule, duplicate, account, or
+composer gate. If no truthful boundary exists, leave the target `PENDING` or
+park it with the evidence reason—never create a pause/resume revision merely
+to alter its cadence.
+
 ## Comments
 
 Complete the research/index SOP, then open only candidates with a specific,
@@ -41,6 +49,16 @@ native post and verify it once. Never cross-post a template to force a KPI. If
 the truthful subject/artifact/relationship is absent, record
 `MATERIAL_REQUIRED` after the first full live audit. Do not repeat the same
 community sweep or schedule the post unit after the mission cutoff.
+
+Persist a compact `live_gate_checkpoint` once the final target route is known:
+target URL, account proof, relevant rule/format proof, duplicate proof,
+composer proof, and capture time. If the same packet resumes after context
+compaction and the tab remains on the target, do not rerun the broad Web Search
+or navigate away and back just to recreate the checkpoint. Take one fresh,
+minimal account/composer snapshot immediately before `MUTATION_INTENT`; rerun
+the full gate only after a tab rebind, login change, route change, or stale
+checkpoint. Every actual submission still has one deterministic action key and
+one attempt.
 
 ## Follow-up
 

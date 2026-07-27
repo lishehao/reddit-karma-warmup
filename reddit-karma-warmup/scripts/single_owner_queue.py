@@ -85,6 +85,14 @@ GOAL_UNIT_PRIORITY = {
     "relationship_maintenance": ("follow-up", "browsing", "comments", "posts", "presence"),
     "profile_readiness": ("presence", "browsing", "comments", "posts", "follow-up"),
 }
+ACTION_ORIENTED_GOALS = {
+    "conversation_entry",
+    "feedback_validation",
+    "project_distribution",
+    "relationship_maintenance",
+    "profile_readiness",
+}
+ACTION_WINDOW_UNITS = {"comments", "posts"}
 
 
 def outward_authority(unit, authority):
@@ -125,6 +133,22 @@ def initial_objective(unit, plan, authority):
 
 def due_objective(value):
     return value not in PARKED_OBJECTIVE_STATES
+
+
+def next_grid_epoch(now):
+    return int(now // HEARTBEAT_GRID_SECONDS + 1) * HEARTBEAT_GRID_SECONDS
+
+
+def action_window_guard(state, unit, decision):
+    """True when deferring this authorized action would strand it after cutoff."""
+    value = state["units"][unit]
+    return (
+        decision != "RUN"
+        and unit in ACTION_WINDOW_UNITS
+        and state["mission_strategy"]["business_goal"] in ACTION_ORIENTED_GOALS
+        and outward_authority(unit, value["authority"])
+        and value["objective"]["state"] in {"PENDING", "CANDIDATES_READY"}
+    )
 
 
 def utc(epoch):
@@ -370,10 +394,7 @@ def due_units(state, now):
     ]
     goal_priority = GOAL_UNIT_PRIORITY[state["mission_strategy"]["business_goal"]]
     order = {unit: index for index, unit in enumerate(goal_priority)}
-    action_goal = state["mission_strategy"]["business_goal"] in {
-        "conversation_entry", "feedback_validation", "project_distribution",
-        "relationship_maintenance", "profile_readiness",
-    }
+    action_goal = state["mission_strategy"]["business_goal"] in ACTION_ORIENTED_GOALS
     return sorted(
         candidates,
         key=lambda unit: (
@@ -436,6 +457,15 @@ def reschedule(state, unit, now, minutes):
     state["units"][unit]["next_due_at_utc"] = utc(aligned)
 
 
+def schedule_next_grid(state, unit, now):
+    aligned = next_grid_epoch(now)
+    if aligned >= state["operation_stop_epoch"]:
+        return False
+    state["units"][unit]["next_due_epoch"] = aligned
+    state["units"][unit]["next_due_at_utc"] = utc(aligned)
+    return True
+
+
 def clear_schedule(state, unit):
     state["units"][unit]["next_due_epoch"] = None
     state["units"][unit]["next_due_at_utc"] = None
@@ -485,12 +515,8 @@ def schedule_objective(state, unit, now, normal_minutes):
     if value["plan"] != "ACTIVE" or not due_objective(value["objective"]["state"]):
         clear_schedule(state, unit)
     elif value["objective"]["state"] == "ACTION_ELIGIBLE":
-        aligned = int(now // HEARTBEAT_GRID_SECONDS + 1) * HEARTBEAT_GRID_SECONDS
-        if aligned >= state["operation_stop_epoch"]:
+        if not schedule_next_grid(state, unit, now):
             clear_schedule(state, unit)
-        else:
-            value["next_due_epoch"] = aligned
-            value["next_due_at_utc"] = utc(aligned)
     else:
         reschedule(state, unit, now, normal_minutes)
 
@@ -585,12 +611,24 @@ def command(args):
             minutes = args.next_due_minutes if args.next_due_minutes is not None else DEFAULT_RECHECK_MINUTES[unit]
             if not isinstance(minutes, int) or isinstance(minutes, bool) or not 15 <= minutes <= 10080:
                 raise ValueError("invalid next_due_minutes")
-            wake["decisions"][unit] = {"decision": args.decision, "reason": require_text("reason", args.reason, 512), "next_due_minutes": minutes, "decided_at_utc": utc(now)}
+            adjustment = None
+            if action_window_guard(state, unit, args.decision):
+                proposed = int((now + minutes * 60 + HEARTBEAT_GRID_SECONDS - 1) // HEARTBEAT_GRID_SECONDS) * HEARTBEAT_GRID_SECONDS
+                if proposed >= state["operation_stop_epoch"]:
+                    if not schedule_next_grid(state, unit, now):
+                        return public(state, "ACTION_WINDOW_EXPIRED", now, {"unit": unit})
+                    minutes = HEARTBEAT_INTERVAL_MINUTES
+                    adjustment = "ACTION_WINDOW_CLAMPED_TO_NEXT_GRID"
+            decision_record = {"decision": args.decision, "reason": require_text("reason", args.reason, 512), "next_due_minutes": minutes, "decided_at_utc": utc(now)}
+            if adjustment is not None:
+                decision_record["scheduler_adjustment"] = adjustment
+            wake["decisions"][unit] = decision_record
             state["units"][unit]["last_decision"] = args.decision
             state["units"][unit]["last_reason"] = args.reason
             if args.decision != "RUN":
-                reschedule(state, unit, now, minutes)
-            return write_and_return(state_path, state, "DECISION_RECORDED", now)
+                if adjustment is None:
+                    reschedule(state, unit, now, minutes)
+            return write_and_return(state_path, state, "DECISION_RECORDED", now, {"unit": unit, "scheduler_adjustment": adjustment})
         if args.command == "start":
             wake = state.get("wake")
             if wake is None or set(wake["decisions"]) != set(wake["due_units"]):

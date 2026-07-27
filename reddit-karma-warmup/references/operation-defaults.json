@@ -18,13 +18,14 @@
     "heartbeat_interval_minutes": 15,
     "ordinary_trigger_tolerance_seconds": 300,
     "cleanup_grace_minutes": 25,
-    "timer_policy": "ONE_STABLE_RECURRING_MISSION_HEARTBEAT_NO_PHASE_REWRITE",
+    "timer_policy": "ONE_STABLE_RECURRING_MISSION_HEARTBEAT_WITH_UNTIL_CLEANUP_GRACE_NO_PHASE_REWRITE",
     "unit_recheck_grid_minutes": 15,
     "no_work_wake": "FAST_NOOP_NO_CHROME",
     "late_wake": "RECORD_AND_RECOMPUTE_FROM_ACTUAL_NO_CATCH_UP",
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
-    "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440}
+    "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440},
+    "action_window_guard": "AUTHORIZED_PENDING_OR_CANDIDATE_READY_COMMENTS_POSTS_CLAMP_TO_NEXT_GRID_IF_DEFAULT_RECHECK_WOULD_CROSS_CUTOFF"
   },
   "objective_linking": {
     "packet_outcome_is_not_objective_completion": true,

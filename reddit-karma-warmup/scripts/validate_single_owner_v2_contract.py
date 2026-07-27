@@ -53,7 +53,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.16"
+    assert version == "2026.07.27.17"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -63,13 +63,22 @@ def main() -> None:
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v9"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v10"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
     assert intake_defaults["completion"] == "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER"
     assert intake_defaults["unanswered_or_partial"] == "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH"
     assert intake_defaults["silence"] == "NEVER_IMPLICITLY_CANCELLED"
+    direction_defaults = defaults["direction_intake"]
+    assert direction_defaults["question"] == "ACCOUNT_DIRECTION_AND_COMMUNITY_DISCOVERY_NOT_OPERATING_AUTHORITY"
+    assert direction_defaults["primary_presets"] == [
+        "SOCIAL_AND_COMMUNITY",
+        "PERSONAL_CREATION_AND_INDEPENDENT_PROJECTS",
+        "SPATIAL_GAMES_AND_CO_CREATION",
+    ]
+    assert direction_defaults["business_goal_source"] == "QUESTION_3_AUTHORITY_AND_OPERATING_PROFILE"
+    assert direction_defaults["material_refs"] == "OPTIONAL_AT_STARTUP_MISSING_MATERIAL_PARKS_POSTS_LATER"
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
     assert defaults["scheduler"]["packet_lease_seconds"] == 900
     assert "HEARTBEAT" in defaults["scheduler"]["heartbeat_receipt"]
@@ -107,7 +116,7 @@ def main() -> None:
     assert actual == required, actual
     intake = STARTUP_INTAKE.read_text(encoding="utf-8")
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "community discovery", "discussion or feedback", "project operation", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "silence never does"):
+    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "account direction", "Question 3", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "silence never does"):
         assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
     assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts

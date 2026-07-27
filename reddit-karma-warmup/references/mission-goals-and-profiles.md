@@ -1,26 +1,27 @@
 # Mission goals and profiles
 
-Choose one primary business goal. Supporting units may run only when the
-recorded evidence graph arms them; selecting a goal does not grant outward
-authority.
+Question 2 supplies account direction and community-discovery vectors.
+Question 3 supplies the primary business goal and action authority. Supporting
+units may run only when the recorded evidence graph arms them; neither answer
+alone bypasses a live action gate.
 
 ## Three-question startup normalization
 
 After bootstrap, obtain the three-answer artifact defined in
 [startup intake](startup-intake.md), then normalize it into the canonical
 fields below. Do not ask for an account: use only the later same-Chrome live
-account proof. A concise answer may carry a named-community list, topic,
-audience, truthful materials, and custom operating limits in its second and
-third answers.
+account proof. Question 2 carries account direction/IP, audience, and optional
+community seeds. Question 3 carries business goal, authority, and operating
+limits. Truthful materials are optional at startup and required only for the
+specific action that needs them.
 
-| Goal | Required user input | Primary result |
+| Goal | Derived from Question 3 | Primary result |
 | --- | --- | --- |
-| `community_discovery` | topic/audience | current community-route and candidate packs |
-| `conversation_entry` | topic, truthful contribution boundary | context-fit discussion opportunities |
-| `feedback_validation` | real question, project, or proposition | eligible feedback routes and verified actions when authorized |
-| `project_distribution` | real artifact/link and relationship disclosure | one verified native publication only if a route passes |
-| `relationship_maintenance` | verified own permalink or supplied target | useful reply/monitoring result |
-| `profile_readiness` | exact truthful profile/community change | verified presence result |
+| `community_discovery` | `research first` | current community-route and candidate packs |
+| `conversation_entry` | `discussion first` | context-fit discussion opportunities |
+| `project_distribution` | `project operation` | eligible native publication only when a route and material pass |
+| `relationship_maintenance` | explicit `Other` / follow-up only | useful reply/monitoring result |
+| `profile_readiness` | explicit `Other` / presence only | verified presence result |
 
 ## User prompt compilation
 
@@ -28,6 +29,9 @@ Accept natural language, then record these canonical fields:
 
 ```text
 business_goal: one table value
+direction: exact Question 2 answer
+account_direction: compact account/IP positioning
+direction_tags: one or more community-discovery vectors
 community_scope: closed | seeded_expandable | discover
 coverage_budget: narrow | standard | broad
 action_threshold: high | standard | low
@@ -36,7 +40,10 @@ material_refs: real URLs, artifacts, observations, or []
 planning_targets: evidence/output targets, never forced action counts
 ```
 
-If the user only says “low frequency”, map it to
+Question 2 determines `community_scope`: named communities are `closed`,
+expandable seeds are `seeded_expandable`, and a direction-only answer is
+`discover`. It does not determine `business_goal` or grant a write. If the
+user only says “low frequency”, map it to
 `standard/high/minimal`; “high frequency” maps to `broad/standard/active`.
 State that mapping in the envelope. If they say “broad but strict”, preserve
 `broad/high/<chosen budget>` instead. Do not change the 15-minute Heartbeat.

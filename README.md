@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.16`
+Protocol version: `2026.07.27.17`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -26,14 +26,14 @@ answers are complete.
 
 1. **运行多久？** `2 小时 / 4 小时 / 8 小时` are the preset choices; accept
    an explicit custom duration as `其他`.
-2. **目标、主题与范围？** The preset choices are `找社区`、`参与讨论/获得反馈`、
-   `发布项目/维护内容`. In the same answer require the topic/audience, whether
-   discovery or named communities are in scope, and truthful links, project
-   facts, lived observations, or `无`.
+2. **账号想往什么方向找社区，并塑造成怎样的 IP？** The preset choices are
+   `社交与社区`、`个人创作与独立项目`、`3D/游戏/共创`. In the same answer
+   require the desired account direction/IP and target audience; named
+   communities are optional seeds, otherwise search expands from that direction.
 3. **允许做什么，以及节奏？** The preset choices are `研究优先`、`评论优先`、
-   `项目运营`. They map to explicit unit authority and default
-   coverage/threshold/action-budget profiles. Accept `其他` only when the user
-   names the exact allowed units and any intended override.
+   `项目运营`. They map to the business goal, explicit unit authority, and
+   default coverage/threshold/action-budget profiles. Accept `其他` only when
+   the user names the exact allowed units and any intended override.
 
 The complete mapping, defaults, and custom-answer rules are in
 [`startup-intake.md`](reddit-karma-warmup/references/startup-intake.md). Once

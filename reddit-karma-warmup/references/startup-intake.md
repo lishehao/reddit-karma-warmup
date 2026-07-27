@@ -38,50 +38,54 @@ Ask: **How long should this mission run?**
 Accept `Other` only as an explicit duration from more than zero through 168
 hours. The duration never changes the 15-minute Heartbeat interval.
 
-## Question 2 — goal, topic, and scope
+## Question 2 — account direction and community discovery
 
-Ask: **What is the goal, topic, and scope? Include target audience, discovery
-or named communities, and any truthful material; write `none` for no material.**
+Ask: **账号想往什么方向找社区，并塑造成怎样的 IP？请写主方向、目标受众和
+希望呈现的账号感；已有社区可一并写，没有则按方向探索。**
 
-| Choice | Default business goal | Default scope |
+| Choice | Community-discovery vector | Account/IP intent |
 | --- | --- | --- |
-| `community discovery` | `community_discovery` | `discover` |
-| `discussion or feedback` | `conversation_entry` | `seeded_expandable` |
-| `project operation` | `project_distribution` | `discover` |
+| `社交与社区` | low-pressure connection, friendship, community UX, city/campus/offline social life | a thoughtful, human-scale community participant |
+| `个人创作与独立项目` | solo building, side projects, creative tools, maker practice | a curious builder who shares useful work and process |
+| `3D/游戏/共创` | spatial interaction, games, UGC, virtual worlds, co-creation | a playful systems-and-worlds creator |
 
-The same answer must carry the actual topic and audience. A named community
-list changes scope to `closed`; a starting list that may expand changes it to
-`seeded_expandable`. If the user explicitly asks only for a verified own
-permalink or a concrete profile change, normalize to `relationship_maintenance`
-or `profile_readiness` instead. If a `project operation` answer includes no
-truthful publishable material, posts later become `MATERIAL_REQUIRED`; do not
-ask another question and do not invent facts.
+This answer selects a community-discovery direction and account/IP
+positioning; it grants no action authority and does not select a business
+goal. Preserve the user's exact direction in `direction`, and record a
+compact `account_direction` plus `direction_tags` when useful. A named
+community list is `closed`; a starting list that may expand is
+`seeded_expandable`; a direction without named communities is `discover`.
+Project links and other truthful material are optional here. If posts later
+lack material, park only `posts` as `MATERIAL_REQUIRED`; do not ask another
+startup question or invent facts.
 
 ## Question 3 — authority and operating profile
 
 Ask: **What may the task do, and how selective should it be?**
 
-| Choice | Explicit units | Default profile |
+| Choice | Business goal | Explicit units | Default profile |
 | --- | --- | --- |
-| `research first` | `browsing=READ_ONLY` | `standard / high / minimal` |
-| `discussion first` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED` | `standard / standard / standard` |
-| `project operation` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED`, `posts=POST_AUTHORIZED`, `follow-up=FOLLOWUP_AUTHORIZED`, `presence=PRESENCE_AUTHORIZED` | `broad / standard / active` |
+| `research first` | `community_discovery` | `browsing=READ_ONLY` | `standard / high / minimal` |
+| `discussion first` | `conversation_entry` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED` | `standard / standard / standard` |
+| `project operation` | `project_distribution` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED`, `posts=POST_AUTHORIZED`, `follow-up=FOLLOWUP_AUTHORIZED`, `presence=PRESENCE_AUTHORIZED` | `broad / standard / active` |
 
 The three profile values are `coverage_budget / action_threshold / action_budget`.
 Every outward action remains subject to live rules, truthful evidence, account
 and composer state, duplicate checks, and independent verification. The
 profile is not a quota.
 
-Accept `Other` only when the user explicitly names permitted units and optional
-`narrow|standard|broad` coverage plus `high|standard|low` threshold. Never
-infer a write authorization from Question 2. Preserve the exact third answer
-as the authorization receipt.
+Accept `Other` only when the user explicitly names permitted units, one
+business goal, and optional `narrow|standard|broad` coverage plus
+`high|standard|low` threshold. Never infer a write authorization or business
+goal from Question 2. Preserve the exact third answer as the authorization
+receipt.
 
 ## Completion rule
 
-Once all three answers are complete, normalize them into the existing canonical
-mission fields: `business_goal`, `community_scope`, `coverage_budget`,
-`action_threshold`, `action_budget`, `material_refs`, `planning_targets`,
-selected units, and authority. Then perform the same-Chrome live account gate,
-compile the immutable envelope, and begin the single-owner mission. No fourth
-question is required.
+Once all three answers are complete, normalize Question 2 into `direction`,
+`account_direction`, `direction_tags`, and `community_scope`; normalize
+Question 3 into `business_goal`, `coverage_budget`, `action_threshold`,
+`action_budget`, selected units, and authority. `material_refs` are optional
+at startup and `planning_targets` remain evidence/output targets, never forced
+actions. Then perform the same-Chrome live account gate, compile the immutable
+envelope, and begin the single-owner mission. No fourth question is required.

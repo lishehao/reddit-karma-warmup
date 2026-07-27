@@ -26,11 +26,14 @@ decision. Select at most one `RUN`; it gets one Chrome packet and at most one
 public action. The unit may complete, skip, block, or yield. A yielded unit
 resumes before a later unit.
 
-Default recheck intervals are browsing 40 minutes, comments 60, posts 180,
-follow-up 90 (20 for an active known chain), and presence 24 hours. They are
-recheck timings, never action quotas. The Heartbeat runs every 20 minutes;
-an actual trigger within ±5 minutes is ordinary. A later trigger recomputes
-from actual time and never catches up missed actions.
+The task creates one stable 15-minute recurring Heartbeat through the mission
+window; it is not reconfigured for ordinary unit changes. Unit rechecks align
+to its 15-minute grid: browsing 30 minutes, comments 45, posts 180, follow-up
+90 (15 for an active known chain), and presence 24 hours. They are recheck
+timings, never action quotas. A wake with no due unit records `NOOP` and does
+not claim, open, or read Chrome. An actual trigger within ±5 minutes is
+ordinary. A later trigger records `LATE_WAKE`, recomputes from actual time,
+and never catches up missed actions or creates a second timer.
 
 ## Permission and uncertainty
 

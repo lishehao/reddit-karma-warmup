@@ -1,4 +1,4 @@
 interface:
   display_name: "Reddit Community Operations"
   short_description: "Run one durable Reddit operating task"
-  default_prompt: "Use $reddit-karma-warmup to run one Reddit 运营台. Keep one Chrome owner, use optional GET-only public API indexing plus Web Search for research, and use Chrome for all real browsing and actions."
+  default_prompt: "Use $reddit-karma-warmup to run one Reddit 运营台. Keep one Chrome owner and a stable 15-minute mission Heartbeat; use optional GET-only public API indexing plus Web Search for research, and use Chrome for all real browsing and actions."

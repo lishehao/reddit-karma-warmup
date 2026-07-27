@@ -51,9 +51,12 @@ account risk.
 1. Compile one immutable mission envelope and bootstrap its single-owner queue.
    Bind it to the exact current task ID before Chrome work.
 2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
-3. Create one recurring mission Heartbeat only while unfinished work remains.
-   A trigger within ±5 minutes is ordinary; later triggers recompute from actual
-   time without catch-up. Never use a one-shot self-rescheduling timer.
+3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
+   work remains. Align normal unit rechecks to that grid. A trigger within ±5
+   minutes is ordinary; later triggers record the delay and recompute from
+   actual time without catch-up. A wake with nothing due is a fast NOOP: do not
+   open Chrome or rewrite the timer. Never use a one-shot self-rescheduling
+   timer or phase-switching timer updates.
 4. At each wake decide `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due enabled
    unit. Run at most one Chrome packet and one public action in that wake.
 5. For `comments` or `posts`, complete:

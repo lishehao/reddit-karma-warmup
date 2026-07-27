@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.4`
+Protocol version: `2026.07.27.5`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -28,8 +28,10 @@ This repository contains one production Skill: `reddit-karma-warmup/`.
    current rules, account, submit state, truthful evidence, pacing, and one
    verified result. Persist an `action_key` before submission; freeze uncertain
    results and never retry them.
-6. Use one 20-minute mission Heartbeat. ±5 minutes is normal. Each wake decides
-   every due unit and runs at most one Chrome packet plus one public action.
+6. Use one stable 15-minute mission Heartbeat. Align normal unit rechecks to
+   that grid; a no-work wake is a fast NOOP with no Chrome call. ±5 minutes is
+   normal; a later wake records the delay and continues from actual time without
+   catch-up. Each work wake runs at most one Chrome packet plus one public action.
    At deadline: release owned tabs, delete the Heartbeat, retire the queue.
 
 ## Release rule

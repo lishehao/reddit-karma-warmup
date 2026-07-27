@@ -22,11 +22,13 @@ CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
 SCHEMA = "reddit_single_owner_queue/v3"
+HEARTBEAT_INTERVAL_MINUTES = 15
+HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 DECISIONS = ("RUN", "WATCH", "SKIP", "DEFER")
 OUTCOMES = ("COMPLETED", "SKIPPED", "BLOCKED", "YIELDED")
 DEFAULT_RECHECK_MINUTES = {
-    "browsing": 40,
-    "comments": 60,
+    "browsing": 30,
+    "comments": 45,
     "posts": 180,
     "follow-up": 90,
     "presence": 1440,
@@ -274,6 +276,8 @@ def public(state, status, now, detail=None):
         "active_unit": (state.get("active_packet") or {}).get("unit"),
         "due_units": due_units(state, now),
         "frozen_action_key_count": len(state["frozen_action_keys"]),
+        "heartbeat_interval_minutes": HEARTBEAT_INTERVAL_MINUTES,
+        "timer_policy": "CONTINUE_STABLE_RECURRENCE",
         "next_due_at_utc": {unit: state["units"][unit]["next_due_at_utc"] for unit in UNIT_ORDER},
         "updated_at_utc": utc(now),
     }
@@ -298,10 +302,12 @@ def settle_wake(state, outcome, now):
 
 
 def reschedule(state, unit, now, minutes):
-    if not isinstance(minutes, int) or isinstance(minutes, bool) or not 20 <= minutes <= 10080:
+    if not isinstance(minutes, int) or isinstance(minutes, bool) or not 15 <= minutes <= 10080:
         raise ValueError("invalid next_due_minutes")
-    state["units"][unit]["next_due_epoch"] = now + minutes * 60
-    state["units"][unit]["next_due_at_utc"] = utc(now + minutes * 60)
+    target = now + minutes * 60
+    aligned = int((target + HEARTBEAT_GRID_SECONDS - 1) // HEARTBEAT_GRID_SECONDS) * HEARTBEAT_GRID_SECONDS
+    state["units"][unit]["next_due_epoch"] = aligned
+    state["units"][unit]["next_due_at_utc"] = utc(aligned)
 
 
 def apply_envelope_revision(state, envelope, now):
@@ -377,7 +383,7 @@ def command(args):
             if args.decision == "RUN" and any(item["decision"] == "RUN" for item in wake["decisions"].values()):
                 return public(state, "RUN_ALREADY_SELECTED", now)
             minutes = args.next_due_minutes if args.next_due_minutes is not None else DEFAULT_RECHECK_MINUTES[unit]
-            if not isinstance(minutes, int) or isinstance(minutes, bool) or not 20 <= minutes <= 10080:
+            if not isinstance(minutes, int) or isinstance(minutes, bool) or not 15 <= minutes <= 10080:
                 raise ValueError("invalid next_due_minutes")
             wake["decisions"][unit] = {"decision": args.decision, "reason": require_text("reason", args.reason, 512), "next_due_minutes": minutes, "decided_at_utc": utc(now)}
             state["units"][unit]["last_decision"] = args.decision

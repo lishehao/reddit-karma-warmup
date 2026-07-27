@@ -15,12 +15,16 @@
     "presence": {"default_authority": "RESEARCH_ONLY", "explicit_authority": "PRESENCE_AUTHORIZED", "votes": "DISABLED"}
   },
   "scheduler": {
-    "heartbeat_interval_minutes": 20,
+    "heartbeat_interval_minutes": 15,
     "ordinary_trigger_tolerance_seconds": 300,
     "cleanup_grace_minutes": 25,
+    "timer_policy": "ONE_STABLE_RECURRING_MISSION_HEARTBEAT_NO_PHASE_REWRITE",
+    "unit_recheck_grid_minutes": 15,
+    "no_work_wake": "FAST_NOOP_NO_CHROME",
+    "late_wake": "RECORD_AND_RECOMPUTE_FROM_ACTUAL_NO_CATCH_UP",
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
-    "recheck_minutes": {"browsing": 40, "comments": 60, "posts": 180, "follow-up": 90, "presence": 1440}
+    "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440}
   },
   "research": {
     "web_search": {

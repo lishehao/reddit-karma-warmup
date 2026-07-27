@@ -26,10 +26,14 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.4"
+    assert version == "2026.07.27.5"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
+    assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
+    assert defaults["scheduler"]["unit_recheck_grid_minutes"] == 15
+    assert defaults["scheduler"]["no_work_wake"] == "FAST_NOOP_NO_CHROME"
+    assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["research"]["community_index"]["methods"] == ["GET"]
     assert defaults["research"]["community_index"]["account_or_write_endpoints"] == "FORBIDDEN"
     assert defaults["research"]["web_search"]["posts_query_min"] >= 8
@@ -38,8 +42,8 @@ def main() -> None:
     repository_readme = ROOT.parent / "README.md"
     if repository_readme.is_file():
         documents.append(repository_readme)
-    text = "\n".join(path.read_text(encoding="utf-8") for path in documents)
-    for phrase in ("user-visible `Reddit 运营台`", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes"):
+    text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
+    for phrase in ("user-visible `Reddit 运营台`", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP"):
         assert phrase in text, phrase
     assert "legacy_multi_lane_compat" not in text
     required = {"single-owner-runtime.md", "research-and-community-index.md", "chrome-and-actions.md", "unit-guides.md", "operation-defaults.json"}
@@ -71,7 +75,14 @@ def main() -> None:
         assert started["status"] == "PACKET_STARTED" and started["unit"] == "browsing"
         assert run(str(QUEUE), "boundary-open", *shared, "--boundary-id", "read-1", "--boundary-kind", "DOM_READ", "--now-utc", "2026-07-27T00:05:03Z")["status"] == "BOUNDARY_OPEN"
         assert run(str(QUEUE), "boundary-settle", *shared, "--boundary-id", "read-1", "--boundary-outcome", "READ_OK", "--now-utc", "2026-07-27T00:05:04Z")["status"] == "BOUNDARY_SETTLED"
-        assert run(str(QUEUE), "finish", *shared, "--outcome", "COMPLETED", "--now-utc", "2026-07-27T00:05:05Z")["status"] == "COMPLETED"
+        completed = run(str(QUEUE), "finish", *shared, "--outcome", "COMPLETED", "--now-utc", "2026-07-27T00:05:05Z")
+        assert completed["status"] == "COMPLETED"
+        assert completed["heartbeat_interval_minutes"] == 15
+        assert completed["timer_policy"] == "CONTINUE_STABLE_RECURRENCE"
+        assert completed["next_due_at_utc"]["browsing"] == "2026-07-27T00:45:00Z"
+        no_work = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:15:00Z", "--now-utc", "2026-07-27T00:15:00Z")
+        assert no_work["status"] == "WAKE_OPEN" and no_work["due_units"] == []
+        assert run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:15:01Z")["status"] == "NO_PACKET"
     print(json.dumps({"status": "PASS", "version": version, "single_owner": True, "api_get_only_optional": True, "chrome_live_gate_required": True, "legacy_files_removed": True}, sort_keys=True))
 
 

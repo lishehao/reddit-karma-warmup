@@ -10,17 +10,42 @@ proxy, or second Chrome task.
 
 ## Start
 
-1. Verify the current task is present and unarchived. After binding its mission
+1. After the three-answer intake and before creating a new envelope, inspect
+   every pre-existing local Reddit runtime record. This is local-only: do not
+   open Chrome, Reddit, or an old task just to settle a stale file. Use
+   `scripts/runtime_fence.py` with four independently obtained facts:
+
+   - exact owner task state from `read_thread` (`running`, `idle`, `notLoaded`,
+     `archived`, `absent`, or `unknown`);
+   - exact Heartbeat state (`future`, `absent`, `expired`, or `unknown`);
+   - current local lock state (`held`, `unheld`, or `unknown`);
+   - recorded operation cutoff and queue state.
+
+   `notLoaded`, an empty task read, `ACTIVE` in JSON, and
+   `chrome_release=PENDING` are each insufficient by themselves. Classify:
+
+   | Result | Required evidence | Startup behavior |
+   | --- | --- | --- |
+   | `ACTIVE_OWNER` | running task, held lock, or future Heartbeat | block new mission |
+   | `STALE_RUNTIME` | cutoff passed, task not running, Heartbeat absent/expired, and lock unheld | run `runtime_fence.py --reconcile`; keep old evidence, do not touch task/Chrome/automation, then continue |
+   | `UNCERTAIN` | any needed fact unknown or conflicting | block and report exact missing fact |
+   | `NO_FENCE` | already retired/released record with no live owner evidence | continue |
+
+   Reconciliation writes an immutable local marker rather than rewriting an
+   old queue. It must never request user permission, archive an old task,
+   delete an old automation, or claim a historical Chrome tab. A new mission
+   will create/claim its own dedicated tab only after its own canary.
+2. Verify the current task is present and unarchived. After binding its mission
    envelope, rename that exact task from `Reddit 启动台` to `Reddit 运营台`, read
    the exact ID/title back, and record `presentation-promote` with the readback
    proof. Do not pass the canary while the task still presents as a launcher.
-2. Compile the input with `scripts/compile_single_owner_mission.py`, then
+3. Compile the input with `scripts/compile_single_owner_mission.py`, then
    bootstrap `scripts/single_owner_queue.py` using the exact current task ID
    and the envelope's unique `mission_id` as its queue scope. Never reuse a
    prior mission scope.
-3. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated
+4. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated
    primary tab only after it passes.
-4. If work remains, create and read back one recurring task Heartbeat with an
+5. If work remains, create and read back one recurring task Heartbeat with an
    `UNTIL` at `operation_stop_at + cleanup_grace`. The Heartbeat belongs to this
    task, never a unit. It is not an unbounded recurring timer. Persist the
    `automation_id`, exact owner task ID, RRULE, `UNTIL`, next occurrence,

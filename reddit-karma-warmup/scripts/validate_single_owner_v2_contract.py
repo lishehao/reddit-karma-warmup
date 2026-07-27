@@ -17,6 +17,7 @@ COMPILER = ROOT / "scripts" / "compile_single_owner_mission.py"
 QUEUE = ROOT / "scripts" / "single_owner_queue.py"
 BROWSER_LEDGER = ROOT / "scripts" / "validate_browser_step_ledger.py"
 STARTUP_INTAKE = ROOT / "references" / "startup-intake.md"
+RUNTIME_FENCE = ROOT / "scripts" / "runtime_fence.py"
 
 
 def run(*args: str) -> dict:
@@ -52,7 +53,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.14"
+    assert version == "2026.07.27.15"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -62,7 +63,7 @@ def main() -> None:
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v7"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v8"
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
     assert defaults["scheduler"]["packet_lease_seconds"] == 900
     assert "HEARTBEAT" in defaults["scheduler"]["heartbeat_receipt"]
@@ -75,17 +76,21 @@ def main() -> None:
     assert defaults["research"]["community_index"]["methods"] == ["GET"]
     assert defaults["research"]["community_index"]["account_or_write_endpoints"] == "FORBIDDEN"
     assert defaults["research"]["web_search"]["posts_query_min"] >= 8
+    assert defaults["runtime_fence"]["pending_chrome_release"] == "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF"
+    assert defaults["runtime_fence"]["stale_reconciliation"] == "LOCAL_IMMUTABLE_MARKER_NO_OLD_TASK_CHROME_OR_AUTOMATION_MUTATION"
     assert set(defaults["units"]) == {"browsing", "comments", "posts", "follow-up", "presence"}
     documents = [SKILL]
     repository_readme = ROOT.parent / "README.md"
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "STALE_RUNTIME", "ACTIVE_OWNER"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
     assert "ACTION_WINDOW_CLAMPED_TO_NEXT_GRID" in runtime
+    for phrase in ("notLoaded", "chrome_release=PENDING", "runtime_fence.py --reconcile", "UNCERTAIN"):
+        assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "MUTATION_INTENT"):
@@ -99,8 +104,9 @@ def main() -> None:
     for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "community discovery", "discussion or feedback", "project operation", "MATERIAL_REQUIRED", "no fourth question"):
         assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
-    assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
+    assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
     assert run(str(BROWSER_LEDGER), "--self-test")["status"] == "PASS"
+    assert run(str(RUNTIME_FENCE), "--self-test")["status"] == "PASS"
     with tempfile.TemporaryDirectory() as temporary:
         work = Path(temporary)
         status = run(str(INDEX), "--root", str(work / "index"), "status")

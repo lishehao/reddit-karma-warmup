@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.14`
+Protocol version: `2026.07.27.15`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -54,6 +54,11 @@ clarification merely because posts lack truthful material: compile that unit as
    after the mission envelope is bound. Read back the exact title and store its
    proof before the canary, then let that one operating task own one queue, one
    Heartbeat, one Chrome binding, and one primary Reddit tab.
+   Before starting a new mission, classify any old local runtime record. A
+   stale `ACTIVE` JSON value or `chrome_release=PENDING` does not itself block:
+   only a running owner, held lock, or future Heartbeat does. A record whose
+   cutoff has passed, task is not running, Heartbeat is absent/expired, and
+   lock is unheld is reconciled locally and does not require user confirmation.
 3. Built-in Web Search performs broad current research. The optional
    `scripts/community_index.py` uses official OAuth GET calls only for public
    community rules, metadata, and small hot-pointer indexes. It never writes,

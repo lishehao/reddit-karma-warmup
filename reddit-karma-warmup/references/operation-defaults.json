@@ -1,11 +1,19 @@
 {
-  "schema": "reddit_single_owner_defaults/v7",
+  "schema": "reddit_single_owner_defaults/v8",
   "topology": {
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",
     "chrome_owners": 1,
     "primary_reddit_tabs": 1,
     "auxiliary_read_tabs_after_canary": 1,
     "cross_task_dispatch": "FORBIDDEN"
+  },
+  "runtime_fence": {
+    "preflight": "CLASSIFY_EVERY_PREEXISTING_LOCAL_REDDIT_RUNTIME_BEFORE_NEW_ENVELOPE",
+    "active_owner_evidence": ["TASK_RUNNING", "LOCK_HELD", "HEARTBEAT_FUTURE"],
+    "stale_runtime_requires": ["OPERATION_CUTOFF_PASSED", "TASK_NOT_RUNNING", "HEARTBEAT_ABSENT_OR_EXPIRED", "LOCK_UNHELD"],
+    "pending_chrome_release": "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF",
+    "stale_reconciliation": "LOCAL_IMMUTABLE_MARKER_NO_OLD_TASK_CHROME_OR_AUTOMATION_MUTATION",
+    "uncertain_runtime": "BLOCK_WITH_EXACT_MISSING_OR_CONFLICTING_EVIDENCE"
   },
   "units": {
     "browsing": {"default_authority": "READ_ONLY", "explicit_authority": "VOTE_AUTHORIZED", "votes": "BROWSING_ONLY"},

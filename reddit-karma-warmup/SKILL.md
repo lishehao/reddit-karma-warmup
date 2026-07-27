@@ -17,6 +17,13 @@ account gate. Do not ask the user for a second free-form mission prompt. Do
 not open Chrome or Reddit, run Web Search/API, create a mission
 envelope/queue/Heartbeat, or create unit tasks until all three answers arrive.
 
+Before a post-intake mission starts, classify any pre-existing local Reddit
+runtime record with `scripts/runtime_fence.py`. An `ACTIVE` word in an old
+JSON file or `chrome_release=PENDING` alone is never a blocker. Treat only a
+verified `ACTIVE_OWNER` as occupied. Reconcile a proven `STALE_RUNTIME`
+locally without asking the user, without modifying the old task, and without
+touching Chrome or an automation. Treat `UNCERTAIN` as a real block.
+
 ## Default: one task, five internal units
 
 Run one present, unarchived, user-visible `Reddit 运营台` for a mission. It owns
@@ -60,7 +67,12 @@ account risk.
 
 ## Required mission sequence
 
-1. Compile one immutable mission envelope and bootstrap its single-owner queue.
+1. After the three-answer intake, inspect every pre-existing Reddit runtime
+   record before compiling a new envelope. Use exact task state, Heartbeat
+   readback, local lock ownership, and operation cutoff. A proven
+   `STALE_RUNTIME` must be non-destructively reconciled and ignored; only an
+   `ACTIVE_OWNER` or `UNCERTAIN` record blocks a new mission. Then compile one
+   immutable mission envelope and bootstrap its single-owner queue.
    Bind it to the exact current task ID and use its unique `mission_id` as the
    queue scope before Chrome work. Rename the same task to `Reddit 运营台`, read
    it back, and record `presentation-promote` before the canary. Include a business
@@ -117,6 +129,7 @@ rule or invent a project, metric, link, experience, or claim.
 | Situation | Required reference |
 | --- | --- |
 | bootstrap, mission revision, timer, recovery, retirement | [single-owner runtime](references/single-owner-runtime.md) |
+| existing local queue appears active before a new mission | [single-owner runtime](references/single-owner-runtime.md) and `scripts/runtime_fence.py` |
 | Web Search, public API index, community shortlist, candidate evidence | [research and community index](references/research-and-community-index.md) |
 | Chrome setup, surface routing, read/action boundaries, timeout recovery | [Chrome and actions](references/chrome-and-actions.md) |
 | selected `browsing`, `comments`, `posts`, `follow-up`, or `presence` unit | [unit guides](references/unit-guides.md) |

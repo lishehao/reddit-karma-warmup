@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.28.2`
+Protocol version: `2026.07.28.3`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 

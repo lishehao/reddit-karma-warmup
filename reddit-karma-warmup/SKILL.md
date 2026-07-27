@@ -22,9 +22,10 @@ cancellation may end intake without a mission.
 Once all three answers are explicit, persist exactly those answers and run
 `scripts/compile_startup_intake.py`. Only
 `STARTUP_ANSWERS_COMPLETE` may continue; do not ask another startup question.
-A direction/IP answer is complete without a community list or material
-reference: default to `discover` (or `seeded_expandable` when the user
-voluntarily supplies community seeds) and empty material refs. In the same task
+A single account-direction answer is complete without separately supplying an
+audience, topic list, community list, or material reference: default to
+`discover` (or `seeded_expandable` when the user voluntarily supplies community
+seeds) and empty material refs. In the same task
 turn run
 `runtime fence -> envelope -> technical live gates -> Heartbeat readback ->
 INITIAL formal packet`. Treat that first packet as round one, never as a

@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v5",
+  "schema": "reddit_single_owner_defaults/v6",
   "topology": {
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",
     "chrome_owners": 1,
@@ -18,10 +18,14 @@
     "heartbeat_interval_minutes": 15,
     "ordinary_trigger_tolerance_seconds": 300,
     "cleanup_grace_minutes": 25,
+    "wake_lease_seconds": 900,
+    "packet_lease_seconds": 900,
     "timer_policy": "ONE_STABLE_RECURRING_MISSION_HEARTBEAT_WITH_UNTIL_CLEANUP_GRACE_NO_PHASE_REWRITE",
+    "heartbeat_receipt": "REQUIRE_HEARTBEAT_AUTOMATION_ID_TARGET_TASK_RRULE_UNTIL_NEXT_RUN_AND_READBACK_PROOF",
+    "terminal_cleanup": "FINALIZE_ONLY_AFTER_STOP_OR_ALL_OBJECTIVES_TERMINAL_RELEASE_TABS_DELETE_HEARTBEAT_RETIRE",
     "unit_recheck_grid_minutes": 15,
     "no_work_wake": "FAST_NOOP_NO_CHROME",
-    "late_wake": "RECORD_AND_RECOMPUTE_FROM_ACTUAL_NO_CATCH_UP",
+    "late_wake": "RECORD_SIGNED_EARLY_OR_LATE_DELTA_RECOMPUTE_FROM_ACTUAL_NO_CATCH_UP",
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
     "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440},

@@ -18,7 +18,9 @@ proxy, or second Chrome task.
    primary tab only after it passes.
 4. If work remains, create and read back one recurring task Heartbeat with an
    `UNTIL` at `operation_stop_at + cleanup_grace`. The Heartbeat belongs to this
-   task, never a unit. It is not an unbounded recurring timer.
+   task, never a unit. It is not an unbounded recurring timer. Persist the
+   `automation_id`, exact owner task ID, RRULE, `UNTIL`, next occurrence,
+   readback time, and readback proof in the queue before declaring it healthy.
 
 ## Objective graph
 
@@ -83,7 +85,10 @@ authority. A yielded unit resumes before a later unit.
 
 The task creates one stable 15-minute recurring Heartbeat through the mission
 window plus one cleanup grace; it is not reconfigured for ordinary unit changes.
-Read back the recurrence and its `UNTIL` before claiming the Heartbeat healthy.
+Read back its exact ID, target task, recurrence, `UNTIL`, and a future next
+occurrence before claiming it healthy. After every closed wake, refresh that
+receipt before the next work wake. An unfinished mission with no verifiable
+future occurrence is `MISSION_SCHEDULER_UNVERIFIED`, not healthy.
 Unit rechecks align
 to its 15-minute grid: browsing 30 minutes, comments 45, posts 180, follow-up
 90 (15 for an active known chain), and presence 24 hours. They are recheck
@@ -93,11 +98,21 @@ it prefers. Rechecks apply only to objective states that remain runnable. For
 an action-oriented goal, an authorized pending/candidate-ready `comments` or
 `posts` unit may not be deferred beyond the cutoff: the queue records an
 `ACTION_WINDOW_CLAMPED_TO_NEXT_GRID` adjustment instead. A packet must never
-schedule a unit after the mission cutoff. A wake
-with no due unit records `NOOP` and does
-not claim, open, or read Chrome. An actual trigger within ±5 minutes is
-ordinary. A later trigger records `LATE_WAKE`, recomputes from actual time,
-and never catches up missed actions or creates a second timer.
+schedule a unit after the mission cutoff. A wake with no due unit atomically
+records `NOOP` and does not claim, open, or read Chrome. An actual trigger
+within ±5 minutes is ordinary. A trigger beyond that window records
+`EARLY_WAKE` or `LATE_WAKE` with its signed delta; an early wake does no work,
+and a late wake recomputes from actual time. Neither catches up missed actions
+or creates a second timer.
+
+Every open wake and running packet has one 15-minute lease. If the owning task
+returns after that lease, or after the operation deadline, it must run one
+bounded recovery: settle the stale boundary, preserve lower-bound evidence,
+freeze a supplied uncertain `action_key`, and yield the same unit for a later
+wake. It must not replay a mutation, create another Heartbeat, or create a new
+mission. A no-work wake never creates an open wake. If an action-window defer
+cannot fit another grid before cutoff, record `ACTION_WINDOW_EXPIRED`, clear
+that unit's schedule, and close the wake normally; do not leave it open.
 
 ## Permission and uncertainty
 
@@ -114,6 +129,11 @@ for an authority increase.
 
 ## End
 
-At deadline stop new Reddit work. Settle boundaries, release only agent-owned
-tabs, delete the exact Heartbeat, and retire the queue. Keep the task itself
-available for the next mission.
+At deadline stop new Reddit work. Enter `FINALIZE_ONLY`; it may not browse,
+publish, vote, or make another Reddit mutation. It may only recover a stale
+boundary, release agent-owned tabs, delete the exact Heartbeat, and retire the
+queue. The cleanup grace gives the recurring timer time to reach this state; it
+does not extend permission for Reddit work. Retirement requires a finalize
+state, no open wake/packet, tab-release proof, and Heartbeat-deletion proof.
+If all enabled objectives become terminal earlier, the same finalization order
+is allowed early. Keep the task itself available for the next mission.

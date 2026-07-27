@@ -65,11 +65,13 @@ account risk.
    “high/low frequency” as a profile shorthand, never as a timer change.
 2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
 3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
-   work remains, ending at `operation_stop_at + cleanup-grace`. Align normal unit rechecks to that grid. A trigger within ±5
-   minutes is ordinary; later triggers record the delay and recompute from
-   actual time without catch-up. A wake with nothing due is a fast NOOP: do not
-   open Chrome or rewrite the timer. Never use a one-shot self-rescheduling
-   timer or phase-switching timer updates.
+   work remains, ending at `operation_stop_at + cleanup-grace`. Persist and read
+   back its exact automation ID, target task, RRULE, `UNTIL`, next run, and proof;
+   refresh that receipt after every completed wake. Align normal unit rechecks to
+   that grid. A trigger within ±5 minutes is ordinary; earlier/later triggers
+   retain their signed delay and never cause catch-up. A wake with nothing due is
+   an atomic fast NOOP: do not open Chrome or rewrite the timer. Never use a
+   one-shot self-rescheduling timer or phase-switching timer updates.
 4. At each wake decide `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due enabled
    unit. Run at most one Chrome packet and one public action in that wake.
    Record both the packet outcome and the unit objective state. `COMPLETED`
@@ -93,9 +95,10 @@ account risk.
 7. Before each public action persist a deterministic `MUTATION_INTENT` /
    `action_key`. Submit once. If acknowledgement or verification is uncertain,
    freeze that exact key permanently and do not reopen or retry it.
-8. At completion or deadline, settle all boundaries, release only agent-owned
-   tabs, delete the mission Heartbeat, and retire the queue. Keep the visible
-   `Reddit 运营台` available for a future mission.
+8. At completion or deadline, stop Reddit work and enter `FINALIZE_ONLY`.
+   Recover or freeze any stale boundary first, then release only agent-owned
+   tabs, delete the exact Heartbeat with proof, and retire the queue. Keep the
+   visible `Reddit 运营台` available for a future mission.
 
 Hard compliance and truthful evidence decide whether an action is possible.
 Content quality is a secondary ranking aid, never a reason to bypass a current

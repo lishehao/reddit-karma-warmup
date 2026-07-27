@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.10`
+Protocol version: `2026.07.27.11`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -67,13 +67,15 @@ Reddit 运营：目标=<找社区/参与讨论/获得反馈/发布项目/维护�
    unit and removes its recurring wake until a new mission revision or upstream
    evidence changes it.
 8. Use one stable 15-minute mission Heartbeat with an explicit cleanup-grace
-   `UNTIL`. Align normal unit rechecks to that grid; a no-work wake is a fast
-   NOOP with no Chrome call. An authorized pending comment/post is clamped to
-   the next grid if its default recheck would otherwise cross the mission
-   cutoff; it never needs a pause/resume workaround. ±5 minutes is
-   normal; a later wake records the delay and continues from actual time without
-   catch-up. Each work wake runs at most one Chrome packet plus one public action.
-   At deadline: release owned tabs, delete the Heartbeat, retire the queue.
+   `UNTIL`. Persist/read back its ID, target, RRULE, `UNTIL`, and future next run
+   before work; refresh that receipt after each wake. Align normal unit rechecks
+   to that grid; a no-work wake is an atomic fast NOOP with no Chrome call. An
+   authorized pending comment/post is clamped to the next grid if its default
+   recheck would otherwise cross the mission cutoff; when no grid remains, it
+   settles as `ACTION_WINDOW_EXPIRED` rather than wedging the wake. ±5 minutes
+   is normal; outside it, record an early/late signed delta without catch-up.
+   At deadline enter finalization only: recover stale work, release owned tabs,
+   delete the Heartbeat with proof, then retire the queue.
 
 ## Release rule
 

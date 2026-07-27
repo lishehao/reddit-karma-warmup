@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v14",
+  "schema": "reddit_single_owner_defaults/v15",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
@@ -28,8 +28,8 @@
     "question_two_completion": "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP",
     "missing_optional_defaults": "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY",
     "answer_compilation": "LOCAL_THREE_ANSWER_COMPILER_BEFORE_RUNTIME_FENCE_NO_SECOND_ROUND",
-    "after_three_answers": "RUNTIME_FENCE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_PACKET_SAME_TASK_TURN",
-    "initial_packet": "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER",
+    "after_three_answers": "RUNTIME_FENCE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_DIRECT_PACKET_AND_CONTINUATION_SAME_TASK_TURN",
+    "initial_packet": "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER_WITH_ATOMIC_HANDOFF",
     "technical_gates": "REQUIRED_BUT_NOT_A_SEPARATE_USER_DECISION_STAGE"
   },
   "topology": {
@@ -65,16 +65,17 @@
     "heartbeat_observation": "RECORD_EACH_DELIVERED_HEARTBEAT_SIGNED_DELTA_AND_SUSPECT_GAPS_WITHOUT_CATCH_UP",
     "terminal_cleanup": "FINALIZE_ONLY_AFTER_STOP_OR_ALL_OBJECTIVES_TERMINAL_RELEASE_TABS_DELETE_HEARTBEAT_RETIRE",
     "unit_recheck_grid_minutes": 15,
-    "no_work_wake": "FAST_NOOP_NO_CHROME",
+    "no_work_wake": "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER",
     "late_wake": "RECORD_SIGNED_EARLY_OR_LATE_DELTA_RECOMPUTE_FROM_ACTUAL_NO_CATCH_UP",
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
     "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440},
+    "continuation_policy": "ACTION_ELIGIBLE_HANDOFF_TO_NEXT_VERIFIED_HEARTBEAT_ACTIVE_ACTION_BUDGET_BROWSING_TO_NEXT_VERIFIED_HEARTBEAT",
     "action_window_guard": "AUTHORIZED_PENDING_OR_CANDIDATE_READY_COMMENTS_POSTS_CLAMP_TO_NEXT_GRID_IF_DEFAULT_RECHECK_WOULD_CROSS_CUTOFF"
   },
   "objective_linking": {
     "packet_outcome_is_not_objective_completion": true,
-    "candidate_handoff": "browsing_candidate_pack_to_comments_or_posts",
+    "candidate_handoff": "ATOMIC_HANDOFF_DURING_BROWSING_PACKET_TO_COMMENTS_OR_POSTS_NEXT_VERIFIED_HEARTBEAT",
     "follow_up_handoff": "verified_own_permalink_to_follow_up",
     "presence_requires": "explicit_concrete_change",
     "parked_states": ["MATERIAL_REQUIRED", "RULE_BLOCKED", "SUBMISSION_UNCERTAIN", "NOT_APPLICABLE"],

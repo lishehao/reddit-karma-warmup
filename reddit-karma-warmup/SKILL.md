@@ -95,7 +95,10 @@ account risk.
    “high/low frequency” as a profile shorthand, never as a timer change.
    Immediately continue through the technical gates and first formal
    `INITIAL` packet in this task turn; do not return a standalone
-   plan/preview/candidate-filter stage.
+   plan/preview/candidate-filter stage. When that packet finds a concrete,
+   authorized route, record its `handoff` to the target action unit before the
+   browsing packet closes. The next verified Heartbeat must run that target
+   unit rather than wait for its generic recheck cadence.
 2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
 3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
    work remains, ending at `operation_stop_at + cleanup-grace`. Persist and read
@@ -104,18 +107,24 @@ account risk.
    suspected gap never authorizes catch-up. Refresh the receipt after every
    completed wake. Only the first packet may use `wake-source=INITIAL` within
    the first five minutes; every later packet requires the observed Heartbeat.
-   Align normal unit rechecks to
-   that grid. A trigger within ±5 minutes is ordinary; earlier/later triggers
+   Align normal unit rechecks to that grid, but schedule an evidence-backed
+   `ACTION_ELIGIBLE` handoff for the task's next verified Heartbeat occurrence,
+   not an unrelated wall-clock grid. For `全面推进` / active action-budget
+   missions, keep browsing due at the next verified Heartbeat while coverage
+   remains open. A trigger within ±5 minutes is ordinary; earlier/later triggers
    retain their signed delay and never cause catch-up. A wake with nothing due is
-   an atomic fast NOOP: do not open Chrome or rewrite the timer. Never use a
-   one-shot self-rescheduling timer or phase-switching timer updates.
+   an atomic fast NOOP: do not open Chrome or rewrite the timer. Treat it as a
+   terminal, duplicate/early, or recovery condition—not normal spacing between
+   an eligible candidate and its next action packet. Never use a one-shot
+   self-rescheduling timer or phase-switching timer updates.
 4. At each wake decide `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due enabled
    unit. Run at most one Chrome packet and one public action in that wake.
    Record both the packet outcome and the unit objective state. `COMPLETED`
    only means that bounded packet ended; it never proves a public action or
    closes the objective.
 5. Link units only through recorded evidence:
-   `browsing candidate pack -> comments/posts ACTION_ELIGIBLE` and
+   `browsing candidate pack -> comments/posts ACTION_ELIGIBLE` through the
+   queue's atomic `handoff` command before the browsing packet closes, and
    `verified own permalink -> follow-up ACTION_ELIGIBLE`. Do not poll a
    follow-up unit without a verified own permalink or a presence unit without a
    concrete requested change. Park `MATERIAL_REQUIRED`, `RULE_BLOCKED`,

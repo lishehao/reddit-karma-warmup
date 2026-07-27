@@ -22,7 +22,7 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-SCHEMA = "reddit_single_owner_queue/v7"
+SCHEMA = "reddit_single_owner_queue/v8"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 ORDINARY_TRIGGER_TOLERANCE_SECONDS = 300
@@ -101,6 +101,9 @@ ACTION_ORIENTED_GOALS = {
     "profile_readiness",
 }
 ACTION_WINDOW_UNITS = {"comments", "posts"}
+UPSTREAM_HANDOFFS = {
+    "browsing": {"comments", "posts"},
+}
 
 
 def outward_authority(unit, authority):
@@ -700,6 +703,18 @@ def schedule_next_grid(state, unit, now):
     return True
 
 
+def schedule_next_heartbeat(state, unit, now):
+    """Schedule the next concrete mission turn, never an unrelated wall-clock grid."""
+    next_run = state["heartbeat"].get("next_run_at_utc")
+    if isinstance(next_run, str):
+        scheduled = parse_utc("heartbeat_next_run_at_utc", next_run)
+        if scheduled > now and scheduled < state["operation_stop_epoch"]:
+            state["units"][unit]["next_due_epoch"] = scheduled
+            state["units"][unit]["next_due_at_utc"] = utc(scheduled)
+            return True
+    return schedule_next_grid(state, unit, now)
+
+
 def clear_schedule(state, unit):
     state["units"][unit]["next_due_epoch"] = None
     state["units"][unit]["next_due_at_utc"] = None
@@ -749,7 +764,13 @@ def schedule_objective(state, unit, now, normal_minutes):
     if value["plan"] != "ACTIVE" or not due_objective(value["objective"]["state"]):
         clear_schedule(state, unit)
     elif value["objective"]["state"] == "ACTION_ELIGIBLE":
-        if not schedule_next_grid(state, unit, now):
+        if not schedule_next_heartbeat(state, unit, now):
+            clear_schedule(state, unit)
+    elif (
+        unit == "browsing"
+        and state["mission_strategy"]["action_budget"] == "active"
+    ):
+        if not schedule_next_heartbeat(state, unit, now):
             clear_schedule(state, unit)
     else:
         reschedule(state, unit, now, normal_minutes)
@@ -947,7 +968,13 @@ def command(args):
             state["units"][unit]["last_reason"] = args.reason
             if args.decision != "RUN":
                 if adjustment is None:
-                    reschedule(state, unit, now, minutes)
+                    if (
+                        unit == "browsing"
+                        and state["mission_strategy"]["action_budget"] == "active"
+                    ):
+                        schedule_next_heartbeat(state, unit, now)
+                    else:
+                        reschedule(state, unit, now, minutes)
             return write_and_return(state_path, state, "DECISION_RECORDED", now, {"unit": unit, "scheduler_adjustment": adjustment})
         if args.command == "start":
             wake = state.get("wake")
@@ -995,6 +1022,43 @@ def command(args):
             state["frozen_action_keys"].append(key)
             active["frozen_action_keys"].append(key)
             return write_and_return(state_path, state, "ACTION_KEY_FROZEN", now)
+        if args.command == "handoff":
+            active = state.get("active_packet")
+            if active is None or active.get("boundary") is not None:
+                return public(state, "HANDOFF_UNAVAILABLE", now)
+            source_unit = active["unit"]
+            target_unit = require_text("target_unit", args.target_unit, 32)
+            if target_unit not in UPSTREAM_HANDOFFS.get(source_unit, set()):
+                return public(state, "HANDOFF_ROUTE_INVALID", now)
+            if state["units"][target_unit]["plan"] != "ACTIVE":
+                return public(state, "HANDOFF_TARGET_UNAVAILABLE", now)
+            if not outward_authority(target_unit, state["units"][target_unit]["authority"]):
+                return public(state, "HANDOFF_TARGET_UNAUTHORIZED", now)
+            objective_state = require_text("objective_state", args.objective_state, 64)
+            if objective_state != "ACTION_ELIGIBLE":
+                return public(state, "HANDOFF_OBJECTIVE_INVALID", now)
+            source_ref = objective_reference("source_ref", args.source_ref)
+            if source_ref is None:
+                return public(state, "HANDOFF_SOURCE_REFERENCE_REQUIRED", now)
+            update_objective(
+                state,
+                target_unit,
+                objective_state,
+                args.objective_reason,
+                now,
+                args.objective_evidence_sha256,
+                args.candidate_ref,
+                source_ref,
+            )
+            schedule_objective(state, target_unit, now, DEFAULT_RECHECK_MINUTES[target_unit])
+            active.setdefault("handoffs", []).append({
+                "source_unit": source_unit,
+                "target_unit": target_unit,
+                "objective_state": objective_state,
+                "source_ref": source_ref,
+                "recorded_at_utc": utc(now),
+            })
+            return write_and_return(state_path, state, "HANDOFF_RECORDED", now, {"source_unit": source_unit, "target_unit": target_unit})
         if args.command == "objective-set":
             unit = require_text("unit", args.unit, 32)
             if unit not in UNIT_ORDER or state["units"][unit]["plan"] != "ACTIVE":
@@ -1108,7 +1172,7 @@ def command(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "presentation-promote", "canary-pass", "heartbeat-record", "heartbeat-observe", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "objective-set", "finish", "recover", "cleanup-open", "release-tabs", "heartbeat-delete", "retire"))
+    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "presentation-promote", "canary-pass", "heartbeat-record", "heartbeat-observe", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "handoff", "objective-set", "finish", "recover", "cleanup-open", "release-tabs", "heartbeat-delete", "retire"))
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--scope", required=True)
     parser.add_argument("--owner-task-id", required=True)
@@ -1123,6 +1187,7 @@ def main():
     parser.add_argument("--expected-at-utc")
     parser.add_argument("--wake-source")
     parser.add_argument("--unit")
+    parser.add_argument("--target-unit")
     parser.add_argument("--decision")
     parser.add_argument("--reason")
     parser.add_argument("--next-due-minutes", type=int)

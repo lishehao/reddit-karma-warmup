@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.28.3`
+Protocol version: `2026.07.28.4`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -50,8 +50,11 @@ clarification merely because posts lack truthful material: compile that unit as
 Answer completion starts the mission directly: classify the local runtime,
 compile the envelope, perform the technical canary/account gate, create and
 read back the Heartbeat, then run the first formal `INITIAL` packet in the
-same task turn. Those technical gates are not a preview, candidate-filter, or
-second user-decision stage.
+same task turn. An INITIAL candidate that can truthfully support an authorized
+comment or post must atomically hand off its next work unit before browsing
+closes, so the next verified Heartbeat continues the work rather than idling on
+a generic recheck. Those technical gates are not a preview, candidate-filter,
+or second user-decision stage.
 
 The three answers are a hard wait. When the task uses `request_user_input`,
 it must omit `autoResolutionMs`; no answer or partial answer remains
@@ -107,7 +110,10 @@ Only an explicit user cancellation ends this intake.
    earlier delivery occurred: record a suspected scheduler gap and enter
    recovery/finalization on the next available task turn rather than inventing
    catch-up work. Align normal unit rechecks
-   to that grid; a no-work wake is an atomic fast NOOP with no Chrome call. An
+   to that grid; an evidence-backed action handoff runs at the next verified
+   Heartbeat, and active full-progression browsing stays due while coverage is
+   open. A no-work wake is an atomic fast NOOP with no Chrome call only for an
+   early/duplicate delivery, recovery, or genuinely exhausted frontier. An
    authorized pending comment/post is clamped to the next grid if its default
    recheck would otherwise cross the mission cutoff; when no grid remains, it
    settles as `ACTION_WINDOW_EXPIRED` rather than wedging the wake. ±5 minutes

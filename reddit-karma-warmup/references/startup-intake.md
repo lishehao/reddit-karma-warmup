@@ -112,11 +112,14 @@ and source-prompt evidence, then, without another user prompt, complete this
 same-task transition:
 
 `runtime fence -> immutable envelope -> neutral canary + same-Chrome account
-gate -> Heartbeat create/readback -> INITIAL formal packet`
+gate -> Heartbeat create/readback -> INITIAL direct packet -> recorded next-work
+continuation`
 
 The `INITIAL` packet is round one of the mission. If it runs `browsing`, it
 must perform the mission's real community/candidate work and record its real
-evidence; it is not a preview, pre-filter, or separate planning round. Technical
-gates remain required, but a passing gate must continue directly into that first
-packet. No fourth question is required, including for a community list,
-project link, material facts, or a candidate preview.
+evidence; it is not a preview, pre-filter, or separate planning round. If it
+produces an authorized, concrete comment/post route, record the queue `handoff`
+before closing the packet so the next verified Heartbeat runs the target unit.
+Technical gates remain required, but a passing gate must continue directly into
+that first packet. No fourth question is required, including for a community
+list, project link, material facts, or a candidate preview.

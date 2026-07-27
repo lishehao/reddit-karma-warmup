@@ -58,7 +58,7 @@ objective state. `COMPLETED` is only a packet outcome. It does not mean a
 comment/post/reply/profile change exists, and it must not close an action goal.
 
 ```text
-browsing candidate pack ──> comments/posts ACTION_ELIGIBLE
+browsing candidate pack ──> atomic `handoff` ──> comments/posts ACTION_ELIGIBLE
 verified own post/comment permalink ──> follow-up ACTION_ELIGIBLE
 explicit requested profile change ──> presence ACTION_ELIGIBLE
 ```
@@ -98,11 +98,14 @@ already pass those gates.
 When an enabled comment/post/follow-up/presence unit becomes `ACTION_ELIGIBLE`
 for the business goal, schedule it before more exploratory browsing. A browsing
 packet that establishes a dated route plus the truthful contribution boundary
-must explicitly arm the relevant comment/post objective before it finishes; do
-not use a pause/resume revision merely to make that action unit due. If a
-post is parked as `MATERIAL_REQUIRED` or `RULE_BLOCKED`, do not keep repeating
-the same route sweep. Record the unmet goal honestly; a planning target is not
-permission to force an action.
+must call `single_owner_queue.py handoff` before it finishes. The handoff is
+the only cross-unit path permitted while a packet is active; it records the
+source reference, arms the target, and schedules that target for the task's
+next verified Heartbeat occurrence. Do not close browsing and then leave its
+candidate to a generic 30/45/180-minute recheck. If a post is parked as
+`MATERIAL_REQUIRED` or `RULE_BLOCKED`, do not keep repeating the same route
+sweep. Record the unmet goal honestly; a planning target is not permission to
+force an action.
 
 ## Wake and units
 
@@ -129,17 +132,23 @@ Only a first packet inside the opening five-minute tolerance may declare
 `wake-source=INITIAL`; every later `wake-open` requires an observation from the
 same Heartbeat turn. This prevents a manually resumed task from silently
 calling overdue work a healthy scheduler delivery.
-Unit rechecks align
-to its 15-minute grid: browsing 30 minutes, comments 45, posts 180, follow-up
-90 (15 for an active known chain), and presence 24 hours. They are recheck
-timings, never action quotas. Coverage and action threshold do not alter this
-timer; they change what a bounded packet studies and which eligible candidate
-it prefers. Rechecks apply only to objective states that remain runnable. For
-an action-oriented goal, an authorized pending/candidate-ready `comments` or
-`posts` unit may not be deferred beyond the cutoff: the queue records an
+Normal unit rechecks align to its 15-minute grid: browsing 30 minutes, comments
+45, posts 180, follow-up 90 (15 for an active known chain), and presence 24
+hours. They are recheck timings, never action quotas. An `ACTION_ELIGIBLE`
+handoff is different: it is a continuation and must be due on the next
+verified task Heartbeat, not the next absolute grid boundary. For an active
+action-budget mission, runnable browsing likewise remains due on the next
+verified Heartbeat until its coverage frontier is exhausted or an action
+handoff supersedes it. Coverage and action threshold determine what a bounded
+packet studies and which eligible candidate it prefers. Rechecks apply only to
+objective states that remain runnable. For an action-oriented goal, an
+authorized pending/candidate-ready `comments` or `posts` unit may not be
+deferred beyond the cutoff: the queue records an
 `ACTION_WINDOW_CLAMPED_TO_NEXT_GRID` adjustment instead. A packet must never
 schedule a unit after the mission cutoff. A wake with no due unit atomically
-records `NOOP` and does not claim, open, or read Chrome. An actual trigger
+records `NOOP` and does not claim, open, or read Chrome. It is valid only for
+an early/duplicate delivery, recovery, or a genuinely exhausted/parked
+frontier; it is not normal spacing after an eligible handoff. An actual trigger
 within ±5 minutes is ordinary. A trigger beyond that window records
 `EARLY_WAKE` or `LATE_WAKE` with its signed delta; an early wake does no work,
 and a late wake recomputes from actual time. Neither catches up missed actions

@@ -19,8 +19,9 @@ post goal parked as `MATERIAL_REQUIRED` unless a revision or fresh material
 explicitly re-arms it.
 
 If the pack establishes an exact route and a truthful contribution boundary for
-an authorized comment or post, record that target unit as `ACTION_ELIGIBLE`
-before the browsing packet finishes. This only arms its next bounded packet;
+an authorized comment or post, call the queue's atomic `handoff` with the
+target unit, `ACTION_ELIGIBLE`, and a compact source reference before the
+browsing packet finishes. This arms the target's next verified Heartbeat packet;
 it does not bypass that packet's research, live-rule, duplicate, account, or
 composer gate. If no truthful boundary exists, leave the target `PENDING` or
 park it with the evidence reason—never create a pause/resume revision merely

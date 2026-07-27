@@ -14,11 +14,11 @@ daemon, a callback tree, or a second Chrome owner.
 
 | Unit | Owns | Never owns |
 | --- | --- | --- |
-| `browsing` | qualified reads; an explicitly authorized Upvote/Downvote | text publication, replies, profile/community changes |
-| `comments` | candidate research and proactive comments | vote controls, posts, inbound replies, profile/community changes |
-| `posts` | community audit, native post research and publication | vote controls, comments, inbound replies, profile/community changes |
-| `follow-up` | known post/comment chains, notifications, and explicitly authorized replies | vote controls, unrelated discovery, new posts, profile/community changes |
-| `presence` | explicitly authorized truthful profile, membership, flair, or tag changes | vote controls, text publication, replies |
+| `browsing` | qualified reads and candidate packs; an explicitly authorized Upvote/Downvote | text publication, replies, profile/community changes |
+| `comments` | consume a candidate pack; research and proactive comments | vote controls, posts, inbound replies, profile/community changes |
+| `posts` | consume a community/candidate pack plus truthful material; native publication | vote controls, comments, inbound replies, profile/community changes |
+| `follow-up` | consume a verified own permalink; notifications and explicitly authorized replies | vote controls, unrelated discovery, new posts, profile/community changes |
+| `presence` | an explicitly authorized, concrete truthful profile/membership/flair/tag change | vote controls, text publication, replies |
 
 The units are policy boundaries inside one task, not lanes or threads. Default
 authority is research-only. Votes are disabled unless the mission explicitly
@@ -59,15 +59,25 @@ account risk.
    timer or phase-switching timer updates.
 4. At each wake decide `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due enabled
    unit. Run at most one Chrome packet and one public action in that wake.
-5. For `comments` or `posts`, complete:
+   Record both the packet outcome and the unit objective state. `COMPLETED`
+   only means that bounded packet ended; it never proves a public action or
+   closes the objective.
+5. Link units only through recorded evidence:
+   `browsing candidate pack -> comments/posts ACTION_ELIGIBLE` and
+   `verified own permalink -> follow-up ACTION_ELIGIBLE`. Do not poll a
+   follow-up unit without a verified own permalink or a presence unit without a
+   concrete requested change. Park `MATERIAL_REQUIRED`, `RULE_BLOCKED`,
+   `SUBMISSION_UNCERTAIN`, and `NOT_APPLICABLE` units until a mission revision
+   or fresh upstream evidence explicitly re-arms them.
+6. For `comments` or `posts`, complete:
    `research brief -> purpose-labelled query plan -> evidence synthesis -> Chrome live gate`.
    Use 4–6 distinct Web Search questions for a comment candidate pack and 8–12
    for a post candidate pack. Add an exact final query for the selected item and
    a source/objection query whenever the intended text contains a factual claim.
-6. Before each public action persist a deterministic `MUTATION_INTENT` /
+7. Before each public action persist a deterministic `MUTATION_INTENT` /
    `action_key`. Submit once. If acknowledgement or verification is uncertain,
    freeze that exact key permanently and do not reopen or retry it.
-7. At completion or deadline, settle all boundaries, release only agent-owned
+8. At completion or deadline, settle all boundaries, release only agent-owned
    tabs, delete the mission Heartbeat, and retire the queue. Keep the visible
    `Reddit 运营台` available for a future mission.
 

@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v3",
+  "schema": "reddit_single_owner_defaults/v4",
   "topology": {
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",
     "chrome_owners": 1,
@@ -25,6 +25,15 @@
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
     "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440}
+  },
+  "objective_linking": {
+    "packet_outcome_is_not_objective_completion": true,
+    "candidate_handoff": "browsing_candidate_pack_to_comments_or_posts",
+    "follow_up_handoff": "verified_own_permalink_to_follow_up",
+    "presence_requires": "explicit_concrete_change",
+    "parked_states": ["MATERIAL_REQUIRED", "RULE_BLOCKED", "SUBMISSION_UNCERTAIN", "NOT_APPLICABLE"],
+    "rearm_only_by": ["MISSION_REVISION", "RECORDED_UPSTREAM_EVIDENCE"],
+    "never_schedule_after_mission_cutoff": true
   },
   "research": {
     "web_search": {

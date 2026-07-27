@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.5`
+Protocol version: `2026.07.27.6`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -28,7 +28,14 @@ This repository contains one production Skill: `reddit-karma-warmup/`.
    current rules, account, submit state, truthful evidence, pacing, and one
    verified result. Persist an `action_key` before submission; freeze uncertain
    results and never retry them.
-6. Use one stable 15-minute mission Heartbeat. Align normal unit rechecks to
+6. Separate a bounded packet from its unit objective. A completed research
+   packet never means a post, comment, follow-up, or presence objective is
+   complete. Candidate packs explicitly arm the next eligible unit; verified
+   own permalinks explicitly arm follow-up. Missing truthful material, a live
+   rule block, an uncertain submission, or no applicable target parks only that
+   unit and removes its recurring wake until a new mission revision or upstream
+   evidence changes it.
+7. Use one stable 15-minute mission Heartbeat. Align normal unit rechecks to
    that grid; a no-work wake is a fast NOOP with no Chrome call. ±5 minutes is
    normal; a later wake records the delay and continues from actual time without
    catch-up. Each work wake runs at most one Chrome packet plus one public action.

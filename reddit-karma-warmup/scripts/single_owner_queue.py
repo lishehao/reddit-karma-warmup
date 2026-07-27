@@ -21,11 +21,29 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-SCHEMA = "reddit_single_owner_queue/v3"
+SCHEMA = "reddit_single_owner_queue/v4"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 DECISIONS = ("RUN", "WATCH", "SKIP", "DEFER")
 OUTCOMES = ("COMPLETED", "SKIPPED", "BLOCKED", "YIELDED")
+OBJECTIVE_STATES = (
+    "RESEARCH_ONLY",
+    "PENDING",
+    "CANDIDATES_READY",
+    "ACTION_ELIGIBLE",
+    "ACTION_VERIFIED",
+    "MATERIAL_REQUIRED",
+    "RULE_BLOCKED",
+    "SUBMISSION_UNCERTAIN",
+    "NOT_APPLICABLE",
+)
+PARKED_OBJECTIVE_STATES = {
+    "ACTION_VERIFIED",
+    "MATERIAL_REQUIRED",
+    "RULE_BLOCKED",
+    "SUBMISSION_UNCERTAIN",
+    "NOT_APPLICABLE",
+}
 DEFAULT_RECHECK_MINUTES = {
     "browsing": 30,
     "comments": 45,
@@ -47,6 +65,26 @@ ALLOWED_AUTHORITY = {
     "follow-up": ("RESEARCH_ONLY", "FOLLOWUP_AUTHORIZED"),
     "presence": ("RESEARCH_ONLY", "PRESENCE_AUTHORIZED"),
 }
+
+
+def outward_authority(unit, authority):
+    return authority != DEFAULT_AUTHORITY[unit]
+
+
+def initial_objective(unit, plan, authority):
+    if plan != "ACTIVE":
+        return "NOT_APPLICABLE"
+    if unit == "browsing":
+        return "PENDING"
+    if not outward_authority(unit, authority):
+        return "RESEARCH_ONLY"
+    if unit in ("follow-up", "presence"):
+        return "NOT_APPLICABLE"
+    return "PENDING"
+
+
+def due_objective(value):
+    return value not in PARKED_OBJECTIVE_STATES
 
 
 def utc(epoch):
@@ -185,11 +223,22 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
         plan = "REMOVED"
         if unit in envelope["selected_units"]:
             plan = "PAUSED" if unit in envelope["paused_units"] else "ACTIVE"
+        authority = envelope["unit_authority"].get(unit, DEFAULT_AUTHORITY[unit])
+        objective_state = initial_objective(unit, plan, authority)
+        scheduled = plan == "ACTIVE" and due_objective(objective_state)
         units[unit] = {
             "plan": plan,
-            "authority": envelope["unit_authority"].get(unit, DEFAULT_AUTHORITY[unit]),
-            "next_due_epoch": envelope["operation_start_epoch"],
-            "next_due_at_utc": utc(envelope["operation_start_epoch"]),
+            "authority": authority,
+            "objective": {
+                "state": objective_state,
+                "reason": "INITIALIZED",
+                "evidence_sha256": None,
+                "candidate_ref": None,
+                "source_ref": None,
+                "updated_at_utc": utc(now),
+            },
+            "next_due_epoch": envelope["operation_start_epoch"] if scheduled else None,
+            "next_due_at_utc": utc(envelope["operation_start_epoch"]) if scheduled else None,
             "last_decision": None,
             "last_reason": None,
         }
@@ -234,8 +283,17 @@ def validate_state(state, scope, owner_task_id):
             raise ValueError("invalid unit plan")
         if value.get("authority") not in ALLOWED_AUTHORITY[unit]:
             raise ValueError("invalid authority")
-        if not isinstance(value.get("next_due_epoch"), (int, float)):
+        objective = value.get("objective")
+        if not isinstance(objective, dict) or objective.get("state") not in OBJECTIVE_STATES:
+            raise ValueError("invalid objective")
+        if not isinstance(objective.get("reason"), str):
+            raise ValueError("invalid objective reason")
+        schedule = value.get("next_due_epoch")
+        should_schedule = value.get("plan") == "ACTIVE" and due_objective(objective["state"])
+        if schedule is not None and not isinstance(schedule, (int, float)):
             raise ValueError("invalid unit schedule")
+        if not should_schedule and schedule is not None:
+            raise ValueError("parked unit scheduled")
     active = state.get("active_packet")
     if active is not None:
         if active.get("unit") not in UNIT_ORDER or active.get("state") != "RUNNING":
@@ -254,12 +312,17 @@ def validate_state(state, scope, owner_task_id):
 
 
 def due_units(state, now):
+    if now >= state["operation_stop_epoch"]:
+        return []
     resumed = state.get("resume_unit")
     if resumed:
         return [resumed]
     return [
         unit for unit in UNIT_ORDER
-        if state["units"][unit]["plan"] == "ACTIVE" and state["units"][unit]["next_due_epoch"] <= now
+        if state["units"][unit]["plan"] == "ACTIVE"
+        and due_objective(state["units"][unit]["objective"]["state"])
+        and state["units"][unit]["next_due_epoch"] is not None
+        and state["units"][unit]["next_due_epoch"] <= now
     ]
 
 
@@ -279,6 +342,7 @@ def public(state, status, now, detail=None):
         "heartbeat_interval_minutes": HEARTBEAT_INTERVAL_MINUTES,
         "timer_policy": "CONTINUE_STABLE_RECURRENCE",
         "next_due_at_utc": {unit: state["units"][unit]["next_due_at_utc"] for unit in UNIT_ORDER},
+        "objective_state": {unit: state["units"][unit]["objective"]["state"] for unit in UNIT_ORDER},
         "updated_at_utc": utc(now),
     }
     if detail:
@@ -306,8 +370,71 @@ def reschedule(state, unit, now, minutes):
         raise ValueError("invalid next_due_minutes")
     target = now + minutes * 60
     aligned = int((target + HEARTBEAT_GRID_SECONDS - 1) // HEARTBEAT_GRID_SECONDS) * HEARTBEAT_GRID_SECONDS
+    if aligned >= state["operation_stop_epoch"]:
+        state["units"][unit]["next_due_epoch"] = None
+        state["units"][unit]["next_due_at_utc"] = None
+        return
     state["units"][unit]["next_due_epoch"] = aligned
     state["units"][unit]["next_due_at_utc"] = utc(aligned)
+
+
+def clear_schedule(state, unit):
+    state["units"][unit]["next_due_epoch"] = None
+    state["units"][unit]["next_due_at_utc"] = None
+
+
+def objective_reference(name, value):
+    if value is None:
+        return None
+    return require_text(name, value, 512)
+
+
+def update_objective(state, unit, objective_state, reason, now, evidence_sha256=None, candidate_ref=None, source_ref=None):
+    if objective_state not in OBJECTIVE_STATES:
+        raise ValueError("invalid objective_state")
+    value = state["units"][unit]
+    previous_state = value["objective"]["state"]
+    if objective_state in ("CANDIDATES_READY", "ACTION_ELIGIBLE"):
+        candidate = objective_reference("candidate_ref", candidate_ref) or value["objective"].get("candidate_ref")
+        source = objective_reference("source_ref", source_ref) or value["objective"].get("source_ref")
+        if not (candidate or source):
+            raise ValueError("candidate_or_source_reference_required")
+    if objective_state == "ACTION_ELIGIBLE" and unit != "browsing" and not outward_authority(unit, value["authority"]):
+        raise ValueError("action_authority_required")
+    if objective_state == "ACTION_VERIFIED":
+        if unit == "browsing" or not outward_authority(unit, value["authority"]):
+            raise ValueError("action_authority_required")
+        if evidence_sha256 is None:
+            raise ValueError("verified_action_evidence_required")
+        if not (objective_reference("source_ref", source_ref) or value["objective"].get("source_ref")):
+            raise ValueError("verified_permalink_required")
+    if previous_state in PARKED_OBJECTIVE_STATES and due_objective(objective_state) and source_ref is None:
+        raise ValueError("recorded_rearm_evidence_required")
+    objective = value["objective"]
+    objective["state"] = objective_state
+    objective["reason"] = require_text("objective_reason", reason, 512)
+    if evidence_sha256 is not None:
+        objective["evidence_sha256"] = sha256_value("objective_evidence_sha256", evidence_sha256)
+    if candidate_ref is not None:
+        objective["candidate_ref"] = objective_reference("candidate_ref", candidate_ref)
+    if source_ref is not None:
+        objective["source_ref"] = objective_reference("source_ref", source_ref)
+    objective["updated_at_utc"] = utc(now)
+
+
+def schedule_objective(state, unit, now, normal_minutes):
+    value = state["units"][unit]
+    if value["plan"] != "ACTIVE" or not due_objective(value["objective"]["state"]):
+        clear_schedule(state, unit)
+    elif value["objective"]["state"] == "ACTION_ELIGIBLE":
+        aligned = int(now // HEARTBEAT_GRID_SECONDS + 1) * HEARTBEAT_GRID_SECONDS
+        if aligned >= state["operation_stop_epoch"]:
+            clear_schedule(state, unit)
+        else:
+            value["next_due_epoch"] = aligned
+            value["next_due_at_utc"] = utc(aligned)
+    else:
+        reschedule(state, unit, now, normal_minutes)
 
 
 def apply_envelope_revision(state, envelope, now):
@@ -324,9 +451,21 @@ def apply_envelope_revision(state, envelope, now):
             plan = "PAUSED" if unit in envelope["paused_units"] else "ACTIVE"
         state["units"][unit]["plan"] = plan
         state["units"][unit]["authority"] = envelope["unit_authority"].get(unit, DEFAULT_AUTHORITY[unit])
-        if plan == "ACTIVE" and before[unit]["plan"] != "ACTIVE":
-            state["units"][unit]["next_due_epoch"] = now
-            state["units"][unit]["next_due_at_utc"] = utc(now)
+        value = state["units"][unit]
+        if plan != "ACTIVE":
+            clear_schedule(state, unit)
+            if plan == "REMOVED":
+                update_objective(state, unit, "NOT_APPLICABLE", "UNIT_REMOVED", now)
+            continue
+        previous_authority = before[unit]["authority"]
+        if before[unit]["plan"] != "ACTIVE":
+            initial = initial_objective(unit, plan, value["authority"])
+            update_objective(state, unit, initial, "UNIT_REACTIVATED", now)
+        elif not outward_authority(unit, previous_authority) and outward_authority(unit, value["authority"]) and value["objective"]["state"] == "RESEARCH_ONLY":
+            update_objective(state, unit, "PENDING", "NEW_DIRECT_AUTHORITY", now)
+        if due_objective(value["objective"]["state"]) and value["next_due_epoch"] is None:
+            value["next_due_epoch"] = now
+            value["next_due_at_utc"] = utc(now)
     state["vote_policy"] = envelope["vote_policy"]
     state["mission_revision"] = envelope["mission_revision"]
     state["mission_envelope_sha256"] = envelope["mission_envelope_sha256"]
@@ -366,6 +505,8 @@ def command(args):
         if args.command == "wake-open":
             if state["state"] != "ACTIVE" or state.get("active_packet") or state.get("wake"):
                 return public(state, "WAKE_UNAVAILABLE", now)
+            if now >= state["operation_stop_epoch"]:
+                return public(state, "MISSION_STOPPED", now)
             if state["canary"]["state"] != "PASSED":
                 return public(state, "CANARY_REQUIRED", now)
             expected = parse_utc("expected_at_utc", args.expected_at_utc)
@@ -428,6 +569,25 @@ def command(args):
             state["frozen_action_keys"].append(key)
             active["frozen_action_keys"].append(key)
             return write_and_return(state_path, state, "ACTION_KEY_FROZEN", now)
+        if args.command == "objective-set":
+            unit = require_text("unit", args.unit, 32)
+            if unit not in UNIT_ORDER or state["units"][unit]["plan"] != "ACTIVE":
+                return public(state, "OBJECTIVE_UNAVAILABLE", now)
+            active = state.get("active_packet")
+            if active is not None and active["unit"] != unit:
+                return public(state, "OBJECTIVE_BUSY", now)
+            update_objective(
+                state,
+                unit,
+                require_text("objective_state", args.objective_state, 64),
+                args.objective_reason,
+                now,
+                args.objective_evidence_sha256,
+                args.candidate_ref,
+                args.source_ref,
+            )
+            schedule_objective(state, unit, now, DEFAULT_RECHECK_MINUTES[unit])
+            return write_and_return(state_path, state, "OBJECTIVE_RECORDED", now, {"unit": unit})
         if args.command == "finish":
             active = state.get("active_packet")
             if active is None or active.get("boundary") is not None:
@@ -436,16 +596,33 @@ def command(args):
             if outcome not in OUTCOMES:
                 return public(state, "OUTCOME_INVALID", now)
             unit = active["unit"]
+            if outward_authority(unit, state["units"][unit]["authority"]) and args.objective_state is None:
+                return public(state, "OBJECTIVE_STATE_REQUIRED", now, {"unit": unit})
+            if args.objective_state is not None:
+                update_objective(
+                    state,
+                    unit,
+                    require_text("objective_state", args.objective_state, 64),
+                    args.objective_reason,
+                    now,
+                    args.objective_evidence_sha256,
+                    args.candidate_ref,
+                    args.source_ref,
+                )
             active["outcome"] = outcome
             active["finished_at_utc"] = utc(now)
             state["history"].append({"kind": "PACKET", **active})
             state["active_packet"] = None
             if outcome == "YIELDED":
-                state["resume_unit"] = unit
-                settle_wake(state, "YIELDED", now)
+                if due_objective(state["units"][unit]["objective"]["state"]):
+                    state["resume_unit"] = unit
+                    settle_wake(state, "YIELDED", now)
+                else:
+                    state["resume_unit"] = None
+                    settle_wake(state, "PARKED", now)
             else:
                 state["resume_unit"] = None
-                reschedule(state, unit, now, active["next_due_minutes"])
+                schedule_objective(state, unit, now, active["next_due_minutes"])
                 settle_wake(state, outcome, now)
             return write_and_return(state_path, state, outcome, now, {"unit": unit})
         if args.command == "release-tabs":
@@ -463,7 +640,7 @@ def command(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "canary-pass", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "finish", "release-tabs", "retire"))
+    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "canary-pass", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "objective-set", "finish", "release-tabs", "retire"))
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--scope", required=True)
     parser.add_argument("--owner-task-id", required=True)
@@ -479,6 +656,11 @@ def main():
     parser.add_argument("--boundary-outcome")
     parser.add_argument("--action-key")
     parser.add_argument("--outcome")
+    parser.add_argument("--objective-state")
+    parser.add_argument("--objective-reason")
+    parser.add_argument("--objective-evidence-sha256")
+    parser.add_argument("--candidate-ref")
+    parser.add_argument("--source-ref")
     parser.add_argument("--now-utc")
     args = parser.parse_args()
     try:

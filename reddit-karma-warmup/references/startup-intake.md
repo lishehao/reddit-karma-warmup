@@ -38,28 +38,32 @@ Ask: **How long should this mission run?**
 Accept `Other` only as an explicit duration from more than zero through 168
 hours. The duration never changes the 15-minute Heartbeat interval.
 
-## Question 2 — account direction and community discovery
+## Question 2 — account direction
 
-Ask: **账号想往什么方向找社区，并塑造成怎样的 IP？请写主方向、目标受众和
-希望呈现的账号感；已有社区可一并写，没有则按方向探索。**
+Ask: **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/社区被看见？**
+You may answer through the account persona, people you hope to reach, topic
+cluster, or seed communities. They are all evidence for one account direction;
+one clear expression is enough.
 
-| Choice | Community-discovery vector | Account/IP intent |
-| --- | --- | --- |
-| `社交与社区` | low-pressure connection, friendship, community UX, city/campus/offline social life | a thoughtful, human-scale community participant |
-| `个人创作与独立项目` | solo building, side projects, creative tools, maker practice | a curious builder who shares useful work and process |
-| `3D/游戏/共创` | spatial interaction, games, UGC, virtual worlds, co-creation | a playful systems-and-worlds creator |
+| Choice | Example direction |
+| --- | --- |
+| `社交与社区` | a thoughtful, human-scale participant around low-pressure connection, friendship, and community UX |
+| `个人创作与独立项目` | a curious builder around solo projects, creative tools, and maker practice |
+| `3D/游戏/共创` | a playful systems-and-worlds creator around spatial interaction, games, and co-creation |
 
-This answer selects a community-discovery direction and account/IP
-positioning; it grants no action authority and does not select a business
-goal. Preserve the user's exact direction in `direction`, and record a
-compact `account_direction` plus `direction_tags` when useful. Named
-communities are optional *seeds* and therefore default to
+This one answer sets the account direction; account persona, target people,
+topic cluster, and community seeds are not separate required fields. It grants
+no action authority and does not select a business goal. Preserve the user's
+exact wording in `direction`, and record a compact `account_direction` plus
+`direction_tags` only as normalizations of that same answer. Named communities
+are optional *seeds* and therefore default to
 `seeded_expandable`; only an explicit request to stay within that exact list
 creates `closed`. A direction without named communities is `discover`.
-Choosing a preset or supplying custom direction/IP text completes Question 2:
-do not ask a second-round question for community scope, a project link, facts,
-or lived observations. Default omitted scope to `discover` when no community
-seeds were volunteered (otherwise `seeded_expandable`), and material refs to
+Choosing a preset or supplying any clear account-direction text completes
+Question 2: do not ask a second-round question for audience, topic, community
+scope, a project link, facts, or lived observations. Default omitted scope to
+`discover` when no community seeds were volunteered (otherwise
+`seeded_expandable`), and material refs to
 `[]`. If posts later lack material, park only `posts` as
 `MATERIAL_REQUIRED`; do not ask another startup question or invent facts.
 
@@ -97,7 +101,8 @@ run `scripts/compile_startup_intake.py --input <answers.json> --output
 stays `WAITING_FOR_STARTUP_INPUT`, and explicit cancellation stays
 `STARTUP_CANCELLED_BY_USER`. The compiler is local-only and creates no queue,
 Heartbeat, Chrome binding, or Reddit action. It normalizes Question 2 into
-`direction`, `account_direction`, `direction_tags`, and `community_scope`; it
+`direction`, `account_direction`, `direction_tags`, and `community_scope`; the
+first two are the exact and compact forms of one answer, not separate inputs. It
 normalizes Question 3 into `business_goal`, `coverage_budget`,
 `action_threshold`, `action_budget`, selected units, and authority.
 `material_refs` are optional at startup and `planning_targets` remain

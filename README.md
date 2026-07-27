@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.28.1`
+Protocol version: `2026.07.28.2`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -26,10 +26,12 @@ answers are complete.
 
 1. **运行多久？** `2 小时 / 4 小时 / 8 小时` are the preset choices; accept
    an explicit custom duration as `其他`.
-2. **账号想往什么方向找社区，并塑造成怎样的 IP？** The preset choices are
-   `社交与社区`、`个人创作与独立项目`、`3D/游戏/共创`. In the same answer
-   require the desired account direction/IP and target audience; named
-   communities are optional seeds, otherwise search expands from that direction.
+2. **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/社区被看见？** The
+   preset choices are `社交与社区`、`个人创作与独立项目`、`3D/游戏/共创`. This is
+   one direction setting: the user may describe the desired account persona,
+   people they hope to reach, topic cluster, or seed communities—any one of
+   those is sufficient. Communities remain optional seeds; otherwise search
+   expands from that one direction.
 3. **这轮希望账号做到哪一步？** The preset choices are `模拟浏览`、`参与讨论`、
    `全面推进`. They mean, respectively: read-only community/content discovery;
    discovery plus natural, context-fit comments; or all five units, including

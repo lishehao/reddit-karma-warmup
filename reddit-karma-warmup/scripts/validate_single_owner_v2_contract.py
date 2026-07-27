@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.28.1"
+    assert version == "2026.07.28.2"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -64,7 +64,7 @@ def main() -> None:
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v13"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v14"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
@@ -74,12 +74,13 @@ def main() -> None:
     assert intake_defaults["compiler"] == "scripts/compile_startup_intake.py"
     assert intake_defaults["compiler_success"] == "STARTUP_ANSWERS_COMPLETE"
     direction_defaults = defaults["direction_intake"]
-    assert direction_defaults["question"] == "ACCOUNT_DIRECTION_AND_COMMUNITY_DISCOVERY_NOT_OPERATING_AUTHORITY"
+    assert direction_defaults["question"] == "ONE_ACCOUNT_DIRECTION_PERSONA_AUDIENCE_TOPICS_AND_COMMUNITY_SEEDS_NOT_SEPARATE_FIELDS"
     assert direction_defaults["primary_presets"] == [
         "SOCIAL_AND_COMMUNITY",
         "PERSONAL_CREATION_AND_INDEPENDENT_PROJECTS",
         "SPATIAL_GAMES_AND_CO_CREATION",
     ]
+    assert direction_defaults["community_scope"] == "OPTIONAL_SEED_COMMUNITIES_CLOSED_ONLY_IF_EXPLICIT_OTHERWISE_EXPANDABLE_OR_DISCOVER"
     assert direction_defaults["business_goal_source"] == "QUESTION_3_ACTION_SCOPE"
     assert direction_defaults["material_refs"] == "OPTIONAL_AT_STARTUP_MISSING_MATERIAL_PARKS_POSTS_LATER"
     action_scope_defaults = defaults["action_scope_intake"]
@@ -132,7 +133,7 @@ def main() -> None:
     assert actual == required, actual
     intake = STARTUP_INTAKE.read_text(encoding="utf-8")
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "account direction", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL formal packet", "not a preview, pre-filter, or separate planning round"):
+    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "one account direction", "not separate required fields", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL formal packet", "not a preview, pre-filter, or separate planning round"):
         assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
     assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts

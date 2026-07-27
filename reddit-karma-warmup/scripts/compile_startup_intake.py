@@ -175,10 +175,13 @@ def normalize(raw):
         return {"schema": "reddit_startup_intake/v1", "status": "STARTUP_CANCELLED_BY_USER"}
     if raw.get("cancelled") not in (None, False):
         fail("cancelled must be boolean")
+    direction_value = raw.get("direction")
+    if direction_value in (None, ""):
+        direction_value = raw.get("account_direction")
     missing = []
     if raw.get("duration_hours", raw.get("duration")) in (None, ""):
         missing.append("duration_hours")
-    if raw.get("direction") in (None, ""):
+    if direction_value in (None, ""):
         missing.append("direction")
     if raw.get("authority_profile") in (None, ""):
         missing.append("authority_profile")
@@ -186,7 +189,7 @@ def normalize(raw):
         return {"schema": "reddit_startup_intake/v1", "status": "WAITING_FOR_STARTUP_INPUT", "missing": missing}
 
     duration = duration_hours(raw.get("duration_hours", raw.get("duration")))
-    direction = text(raw["direction"], "direction", 3, 2000)
+    direction = text(direction_value, "direction", 3, 2000)
     profile_name, profile = resolve_profile(raw["authority_profile"], raw.get("custom_authority"))
     named_communities = normalized_list(raw.get("named_communities"), "named_communities", 64, "r/")
     supplied_scope = raw.get("community_scope")
@@ -280,6 +283,12 @@ def self_test():
     })
     assert browse_only["normalized"]["authority_profile"] == "simulate_browsing"
     assert browse_only["normalized"]["requested_work_types"] == ["browsing"]
+    account_direction_only = normalize({
+        "duration_hours": 4,
+        "account_direction": "a practical builder around personal creative tools",
+        "authority_profile": "模拟浏览",
+    })
+    assert account_direction_only["normalized"]["direction"] == "a practical builder around personal creative tools"
     custom = normalize({
         "duration_hours": 2,
         "direction": "custom direction",

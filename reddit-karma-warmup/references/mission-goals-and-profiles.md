@@ -11,15 +11,15 @@ After bootstrap, obtain the three-answer artifact defined in
 [startup intake](startup-intake.md), then normalize it into the canonical
 fields below. Do not ask for an account: use only the later same-Chrome live
 account proof. Question 2 carries account direction/IP, audience, and optional
-community seeds. Question 3 carries business goal, authority, and operating
-limits. Truthful materials are optional at startup and required only for the
+community seeds. Question 3 carries the user-visible action scope, business
+goal, authority, and operating limits. Truthful materials are optional at startup and required only for the
 specific action that needs them.
 
 | Goal | Derived from Question 3 | Primary result |
 | --- | --- | --- |
-| `community_discovery` | `research first` | current community-route and candidate packs |
-| `conversation_entry` | `discussion first` | context-fit discussion opportunities |
-| `project_distribution` | `project operation` | eligible native publication only when a route and material pass |
+| `community_discovery` | `模拟浏览` | current community-route and candidate packs |
+| `conversation_entry` | `参与讨论` | context-fit discussion opportunities |
+| `project_distribution` | `全面推进` | eligible native publication only when a route and material pass |
 | `relationship_maintenance` | explicit `Other` / follow-up only | useful reply/monitoring result |
 | `profile_readiness` | explicit `Other` / presence only | verified presence result |
 

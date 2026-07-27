@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.19"
+    assert version == "2026.07.28.1"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -64,7 +64,7 @@ def main() -> None:
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v12"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v13"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
@@ -80,8 +80,14 @@ def main() -> None:
         "PERSONAL_CREATION_AND_INDEPENDENT_PROJECTS",
         "SPATIAL_GAMES_AND_CO_CREATION",
     ]
-    assert direction_defaults["business_goal_source"] == "QUESTION_3_AUTHORITY_AND_OPERATING_PROFILE"
+    assert direction_defaults["business_goal_source"] == "QUESTION_3_ACTION_SCOPE"
     assert direction_defaults["material_refs"] == "OPTIONAL_AT_STARTUP_MISSING_MATERIAL_PARKS_POSTS_LATER"
+    action_scope_defaults = defaults["action_scope_intake"]
+    assert action_scope_defaults["question"] == "USER_VISIBLE_ACTION_SCOPE_NOT_FREQUENCY_QUOTA_OR_INTERNAL_PROFILE"
+    assert action_scope_defaults["primary_presets"] == [
+        "SIMULATE_BROWSING", "DISCUSSION_PARTICIPATION", "FULL_PROGRESSION",
+    ]
+    assert action_scope_defaults["legacy_aliases"] == "INPUT_COMPATIBILITY_ONLY_NEVER_DISPLAY_IN_NEW_INTAKE"
     startup_transition = defaults["startup_transition"]
     assert startup_transition["question_two_completion"] == "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP"
     assert startup_transition["missing_optional_defaults"] == "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY"
@@ -126,7 +132,7 @@ def main() -> None:
     assert actual == required, actual
     intake = STARTUP_INTAKE.read_text(encoding="utf-8")
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "account direction", "Question 3", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL formal packet", "not a preview, pre-filter, or separate planning round"):
+    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "account direction", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL formal packet", "not a preview, pre-filter, or separate planning round"):
         assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
     assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
@@ -147,12 +153,13 @@ def main() -> None:
         startup_answers.write_text(json.dumps({
             "duration_hours": 2,
             "direction": "个人创作与独立项目",
-            "authority_profile": "discussion first",
+            "authority_profile": "参与讨论",
         }), encoding="utf-8")
         compiled_intake = run(str(INTAKE_COMPILER), "--input", str(startup_answers), "--output", str(startup_normalized))
         assert compiled_intake["status"] == "STARTUP_ANSWERS_COMPLETE"
         assert compiled_intake["normalized"]["mission_strategy"]["community_scope"] == "discover"
         assert compiled_intake["normalized"]["mission_strategy"]["material_refs"] == []
+        assert compiled_intake["normalized"]["authority_profile"] == "discussion_participation"
         assert compiled_intake["normalized"]["requested_work_types"] == ["browsing", "comments"]
         partial_answers = work / "partial-answers.json"
         partial_answers.write_text(json.dumps({"duration_hours": 2}), encoding="utf-8")

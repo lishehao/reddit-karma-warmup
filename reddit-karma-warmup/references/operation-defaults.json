@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v12",
+  "schema": "reddit_single_owner_defaults/v13",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
@@ -15,8 +15,14 @@
     "question": "ACCOUNT_DIRECTION_AND_COMMUNITY_DISCOVERY_NOT_OPERATING_AUTHORITY",
     "primary_presets": ["SOCIAL_AND_COMMUNITY", "PERSONAL_CREATION_AND_INDEPENDENT_PROJECTS", "SPATIAL_GAMES_AND_CO_CREATION"],
     "community_scope": "NAMED_COMMUNITIES_CLOSED_SEEDS_EXPANDABLE_OTHERWISE_DISCOVER",
-    "business_goal_source": "QUESTION_3_AUTHORITY_AND_OPERATING_PROFILE",
+    "business_goal_source": "QUESTION_3_ACTION_SCOPE",
     "material_refs": "OPTIONAL_AT_STARTUP_MISSING_MATERIAL_PARKS_POSTS_LATER"
+  },
+  "action_scope_intake": {
+    "question": "USER_VISIBLE_ACTION_SCOPE_NOT_FREQUENCY_QUOTA_OR_INTERNAL_PROFILE",
+    "primary_presets": ["SIMULATE_BROWSING", "DISCUSSION_PARTICIPATION", "FULL_PROGRESSION"],
+    "mapping": "SIMULATE_BROWSING_TO_BROWSING_ONLY_DISCUSSION_PARTICIPATION_TO_BROWSING_AND_COMMENTS_FULL_PROGRESSION_TO_ALL_FIVE_UNITS",
+    "legacy_aliases": "INPUT_COMPATIBILITY_ONLY_NEVER_DISPLAY_IN_NEW_INTAKE"
   },
   "startup_transition": {
     "question_two_completion": "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP",

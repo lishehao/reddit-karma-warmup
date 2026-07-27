@@ -63,20 +63,20 @@ seeds were volunteered (otherwise `seeded_expandable`), and material refs to
 `[]`. If posts later lack material, park only `posts` as
 `MATERIAL_REQUIRED`; do not ask another startup question or invent facts.
 
-## Question 3 — authority and operating profile
+## Question 3 — action scope
 
-Ask: **What may the task do, and how selective should it be?**
+Ask: **这轮希望账号做到哪一步？**
 
-| Choice | Business goal | Explicit units | Default profile |
-| --- | --- | --- |
-| `research first` | `community_discovery` | `browsing=READ_ONLY` | `standard / high / minimal` |
-| `discussion first` | `conversation_entry` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED` | `standard / standard / standard` |
-| `project operation` | `project_distribution` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED`, `posts=POST_AUTHORIZED`, `follow-up=FOLLOWUP_AUTHORIZED`, `presence=PRESENCE_AUTHORIZED` | `broad / standard / active` |
+| Choice | What the user will see | Business goal | Explicit units | Default profile |
+| --- | --- | --- | --- | --- |
+| `模拟浏览` | 只读探索社区和内容，不公开互动 | `community_discovery` | `browsing=READ_ONLY` | `standard / high / minimal` |
+| `参与讨论` | 在有真实具体贡献时自然评论；不发项目帖 | `conversation_entry` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED` | `standard / standard / standard` |
+| `全面推进` | 在符合版规和真实性前提下，可评论、发真实项目帖、跟进已有互动，并做明确的主页/社区维护 | `project_distribution` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED`, `posts=POST_AUTHORIZED`, `follow-up=FOLLOWUP_AUTHORIZED`, `presence=PRESENCE_AUTHORIZED` | `broad / standard / active` |
 
 The three profile values are `coverage_budget / action_threshold / action_budget`.
 Every outward action remains subject to live rules, truthful evidence, account
 and composer state, duplicate checks, and independent verification. The
-profile is not a quota.
+choice controls action scope, not a frequency, quota, or promise of publication.
 
 Accept `Other` only when the user explicitly names permitted units, one
 business goal, and optional `narrow|standard|broad` coverage plus
@@ -85,7 +85,9 @@ business goal, and optional `narrow|standard|broad` coverage plus
 `custom_authority` object; otherwise the compiler returns
 `INVALID_STARTUP_INPUT` rather than inferring a write authorization. Never
 infer a write authorization or business goal from Question 2. Preserve the
-exact third answer as the authorization receipt.
+exact third answer as the authorization receipt. Legacy answer labels remain
+accepted by the local compiler only for already-written prompts; do not show
+them in a new intake.
 
 ## Completion rule
 

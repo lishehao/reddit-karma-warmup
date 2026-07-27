@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.19`
+Protocol version: `2026.07.28.1`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -30,9 +30,11 @@ answers are complete.
    `社交与社区`、`个人创作与独立项目`、`3D/游戏/共创`. In the same answer
    require the desired account direction/IP and target audience; named
    communities are optional seeds, otherwise search expands from that direction.
-3. **允许做什么，以及节奏？** The preset choices are `研究优先`、`评论优先`、
-   `项目运营`. They map to the business goal, explicit unit authority, and
-   default coverage/threshold/action-budget profiles. Accept `其他` only when
+3. **这轮希望账号做到哪一步？** The preset choices are `模拟浏览`、`参与讨论`、
+   `全面推进`. They mean, respectively: read-only community/content discovery;
+   discovery plus natural, context-fit comments; or all five units, including
+   eligible project posts, follow-up, and concrete presence work. The choice
+   sets action scope, not a quota or operating tempo. Accept `其他` only when
    the user names the exact allowed units and any intended override.
 
 The complete mapping, defaults, and custom-answer rules are in

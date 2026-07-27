@@ -12,22 +12,22 @@ import tempfile
 
 LANE_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
 AUTHORITY = {
-    "research_first": {
-        "aliases": {"research_first", "research first", "研究优先"},
+    "simulate_browsing": {
+        "aliases": {"simulate_browsing", "simulate browsing", "模拟浏览", "research_first", "research first", "研究优先"},
         "business_goal": "community_discovery",
         "requested_work_types": ["browsing"],
         "unit_authority": {"browsing": "READ_ONLY"},
         "profile": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},
     },
-    "discussion_first": {
-        "aliases": {"discussion_first", "discussion first", "评论优先"},
+    "discussion_participation": {
+        "aliases": {"discussion_participation", "discussion participation", "参与讨论", "discussion_first", "discussion first", "评论优先"},
         "business_goal": "conversation_entry",
         "requested_work_types": ["browsing", "comments"],
         "unit_authority": {"browsing": "READ_ONLY", "comments": "COMMENT_AUTHORIZED"},
         "profile": {"coverage_budget": "standard", "action_threshold": "standard", "action_budget": "standard"},
     },
-    "project_operation": {
-        "aliases": {"project_operation", "project operation", "项目运营"},
+    "full_progression": {
+        "aliases": {"full_progression", "full progression", "全面推进", "project_operation", "project operation", "项目运营"},
         "business_goal": "project_distribution",
         "requested_work_types": list(LANE_ORDER),
         "unit_authority": {
@@ -258,19 +258,28 @@ def self_test():
     result = normalize({
         "duration": "2 小时",
         "direction": "个人创作与独立项目",
-        "authority_profile": "项目运营",
+        "authority_profile": "全面推进",
     })
     assert result["status"] == "STARTUP_ANSWERS_COMPLETE"
     assert result["normalized"]["mission_strategy"]["community_scope"] == "discover"
+    assert result["normalized"]["authority_profile"] == "full_progression"
     assert result["normalized"]["requested_work_types"] == list(LANE_ORDER)
     assert result["normalized"]["mission_strategy"]["material_refs"] == []
     seeded = normalize({
         "duration_hours": 4,
         "direction": "custom direction",
-        "authority_profile": "discussion first",
+        "authority_profile": "参与讨论",
         "named_communities": ["r/SideProject"],
     })
+    assert seeded["normalized"]["authority_profile"] == "discussion_participation"
     assert seeded["normalized"]["mission_strategy"]["community_scope"] == "seeded_expandable"
+    browse_only = normalize({
+        "duration_hours": 4,
+        "direction": "社交与社区",
+        "authority_profile": "模拟浏览",
+    })
+    assert browse_only["normalized"]["authority_profile"] == "simulate_browsing"
+    assert browse_only["normalized"]["requested_work_types"] == ["browsing"]
     custom = normalize({
         "duration_hours": 2,
         "direction": "custom direction",

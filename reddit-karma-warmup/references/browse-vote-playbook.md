@@ -1,6 +1,6 @@
 # Browse And Vote Playbook
 
-Load only in `Reddit 浏览台`, after the current-slot runtime documents named in
+Load only in the `browsing` unit of the single `Reddit 运营台`, after the current-unit runtime documents named in
 `SKILL.md`. Comments, posts, follow-up, and presence must not load this file or
 use any vote control. Numeric read targets, vote caps, and score thresholds
 come only from `operation-defaults.json`.
@@ -67,6 +67,6 @@ Upvote and Downvote remain separate report counters even when both are zero.
 
 Normal completion requires the hard qualified-read target and any explicit hard vote target. Without an explicit vote target, do not keep scanning after the read target solely to cast a vote. Finish below an explicit target only at deadline or a current concrete blocker after eligible expansion; never lower the score gate.
 
-For continuing explicit browsing, choose the next whole-minute delay from `browsing.default_cadence_minutes` after the slot completes, convert to exact local/UTC time, and update the browsing task's own Heartbeat. Do not catch up missed slots.
+For continuing explicit browsing, record the next whole-minute desired delay from `browsing.default_cadence_minutes` after the unit completes. The single mission-level Heartbeat owns the actual wake; do not create a browsing-specific timer or catch up missed work.
 
 Report qualified reads/target, Upvote count, Downvote count, hard cap, optional explicit target progress, key links, next verified wake, and next scope.

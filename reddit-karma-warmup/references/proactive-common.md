@@ -1,6 +1,6 @@
 # Proactive Common Policy
 
-Load in `Reddit 评论台` and `Reddit 发帖台` before the lane-specific playbook. This file owns account bands, community retirement, and the active destination pool. Numeric defaults come only from `operation-defaults.json`.
+Load in the active `comments` or `posts` unit of the single `Reddit 运营台` before its unit-specific playbook. This file owns account bands, community retirement, and the active destination pool. Numeric defaults come only from `operation-defaults.json`.
 
 ## Account Bands
 
@@ -18,7 +18,7 @@ Use `new-account-bootstrap.md` for K0 bootstrap and unlock evidence. Use `risk-e
 
 ## Community Retirement
 
-A current native mod/Automod removal, new-item moderation lock, confirmed filter/invisibility, subreddit ban, invalidating parent deletion, or explicit community warning retires that exact subreddit for relevant outward actions. Record evidence, notify the user once in the affected lane, and continue elsewhere without confirmation or account-wide slowdown.
+A current native mod/Automod removal, new-item moderation lock, confirmed filter/invisibility, subreddit ban, invalidating parent deletion, or explicit community warning retires that exact subreddit for relevant outward actions. Record evidence, notify the user once in the affected unit, and continue elsewhere without confirmation or account-wide slowdown.
 
 Multiple retired communities remain a set of community outcomes. Do not infer an account penalty, cooldown, lower tier, generic rate reduction, or mission stop unless Reddit separately exposes an active account-wide state. Reopen a retired subreddit only after an explicit user decision backed by a clear moderator/rule explanation.
 

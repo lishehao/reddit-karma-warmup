@@ -1,246 +1,143 @@
 # Reddit Karma Warmup
 
-通过用户已登录的 Chrome 会话执行授权的 Reddit 社区运营。架构是“临时启动台 -> 可重复使用的分发台 + 按账号长期沿用的独立执行台”，没有长期主控台。
+Protocol version: `2026.07.27.2`
 
-## 最常用流程
+Run authorized Reddit operations through one persistent, user-visible `Reddit
+运营台`. It owns a durable five-unit queue—browsing, comments, posts, follow-up,
+and presence—rather than creating five Chrome-contending tasks.
 
-1. **安装预检：**当前任务临时成为 `Reddit 启动台`，安装 Skill 并完成只读环境检查。
-2. **一次提问：**健康后优先由同一任务成为 `Reddit 分发台`；若它被明确证实不是 Luna 且不能原地切换，只允许一个经验证的 Luna/High 分发台接替。最终分发台只询问运营方向和时长；用户已经给出时直接进入下一步。
-3. **立即分发：**分发台只沿用当前仍存在、未归档、账号与 lane 匹配且能接收任务的已登记执行台；精确任务已归档、明确缺失、永久投递拒绝，或处于 `notLoaded`、空/不完整库存、超时或归档状态未知时，均直接为当前 mission 新建一个同 lane 替代台。旧台不自动反归档、不发送任务；同一账号+lane+mission 只允许一次替代创建，且仅在 `DELIVERY_ACCEPTED` 后更新登记。
-4. **独立执行：**每个执行台立即开始浏览器工作，并保留一个专属、持久化的 Reddit 主标签；只管理自己的标签、任务状态和 Heartbeat，不 callback、不读取或暂停其他执行台。
-5. **完成复用：**目标完成后执行台删除自己的 Heartbeat，但保留任务本身；以后从置顶的分发台下达新指令时继续复用。
-
-执行台默认采用 `Old Reddit 优先、当前 Reddit 按能力回退`：列表、正文、
-评论树、规则和简单文本互动优先使用 Old Reddit；画廊/视频、Chat、复杂
-Flair/媒体发帖和设置使用当前 Reddit。两种页面只是同一目标的不同视图，
-切换页面不会重复计算阅读，也不会重试或重复提交状态不确定的动作。
-
-通用 `thread-supervisor` Skill 不是安装依赖。Reddit Skill 已内置与其当前身份/创建契约对齐的最小子集：使用精确 `task ID + hostId`、区分可立即使用的 `threadId` 和仍在排队的 `clientThreadId`，并且本安装 Prompt 已明确授权为分发台与执行台请求 `gpt-5.6-luna/high`；只有实际运行元数据可读且匹配时才算切换成功。
-
-## 发布与维护默认
-
-已验证的 Reddit Skill 改动默认进入 GitHub 发布闭环：clean checkout 校验、版本/ZIP、公开 codeload 回读与发布记录。只有用户明确要求“仅本地”或存在活跃运行时热升级围栏时才暂缓；运行中任务不会被强制覆盖。
-
-## 直接安装
-
-把下面一句发送给普通 Codex 任务：
+## Send this one prompt
 
 ```text
-请先将当前任务重命名为“Reddit 启动台”，再通过 HTTPS 打开并完整遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成只读预检；我明确授权为当前分发台、后续分发台 successor 和所有新建或继续执行台请求 `gpt-5.6-luna/high`。预检成功后优先把同一任务重命名为“Reddit 分发台”并置顶；如果当前任务明确不是 Luna 且无法可验证地原地切换，可以只创建一个 Luna/high 分发台 successor，完成精确交接、置顶和读回后再归档旧启动台；如果当前模型不可读，不要为了猜测而创建重复分发台。如果我还没有给出方向和时长，只返回 README 规定的“运营方向 + 运营时长”提问，不显示版本、校验器、账号、预检清单、NOOP、改名置顶或无操作报告，也不要创建测试 Heartbeat。健康提问后我回复“继续”时，立即把默认 3 小时首轮 mission 投递给评论台、发帖台和跟进台；只有精确投递被接受后才回报已分发，并提醒后续所有 Reddit 运营任务仍可在这个分发台下达。后续运营指令优先沿用同一 Reddit 账号已经登记、当前仍存在、未归档、可接收任务的执行台；已归档、明确缺失、永久投递拒绝、`notLoaded`、空/不完整库存、超时或归档状态未知时，直接为当前 mission 创建一个新的同 lane 替代台。旧台不自动反归档、不接收任务；同一账号+lane+mission 只创建一次，创建或投递不确定时不再二次创建。投递后回到 pinned idle；执行台不返回分发台。不要进入目标模式。
+请完整读取并执行 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md：通过 HTTPS 安装或升级 reddit-karma-warmup，先完成只读预检；成功后把当前任务命名并置顶为“Reddit 运营台”，不要创建评论/发帖/跟进/浏览/主页的独立 Chrome 任务。为当前任务请求 gpt-5.6-luna/high（仅在宿主支持时；记录实际模型证据，不因不可读或不可切换而创建替代任务）。我会在同一任务中给出账号、方向、时长、五个单元和逐单元授权；默认所有外部动作只研究、投票关闭。不要进入目标模式。
 ```
 
-## Codex 安装协议
+## Runtime contract
 
-当前 README 是唯一安装协议。只读取一次并直接执行，不寻找其他 installer，不进入 Goal Mode。
+### 1. Install and preflight
 
-### 0. 启动与分发
+1. Download only from this repository's HTTPS archive and install the complete
+   `reddit-karma-warmup/` directory atomically under
+   `${CODEX_HOME:-$HOME/.codex}/skills/`.
+2. Compare `manifest.json` versions. Back up before replacement; same version
+   with different content is a conflict; do not downgrade or merge files.
+3. Rename the current healthy task `Reddit 运营台` and pin it. Rename failure is
+   presentation-only; do not create a successor merely to obtain a title.
+4. Request `gpt-5.6-luna/high` only if the host exposes a model request. Store
+   `requested`, `actual`, and `evidence_state`; absent/unknown model metadata
+   keeps the same task.
+5. Do read-only Chrome, account, task/automation, local time, and public audit
+   cache preflight. Do not create a test Heartbeat, a test Reddit task, or any
+   Reddit mutation during bootstrap.
 
-收到 setup/安装命令后，第一个可用展示动作是把当前任务临时命名为 `Reddit 启动台`，早于下载、预检或解释。启动台只负责安装和只读预检。全部必要预检通过后，先执行 Luna/high 模型 gate：确认当前任务是否已是 Luna/high；可验证原地切换时只尝试一次；明确不是 Luna 且无法原地切换时，只有在安装 Prompt 已授权的情况下才创建一个 Luna/high successor；当前模型不可读时保留当前任务，不创建重复分发台。最终通过的分发台被命名为 `Reddit 分发台` 并置顶。分发台负责：
+Chrome preflight must distinguish browser control, tab metadata, page content,
+route, and account state. `openTabs`/claim/title success plus content timeout is
+`CHROME_CONTENT_CHANNEL_TIMEOUT`, not a disconnect, missing tab, or account
+risk. Use separate calls for tab creation, navigation, and page read; a
+navigation timeout requires a metadata readback before any recovery. Never use
+`Promise.race` to fake cancellation.
 
-- 解析用户当前这一次运营指令；
-- 为每条新指令生成新 mission，只沿用该 Reddit 账号已登记且当前仍存在、未归档、可接收任务的对应执行台；
-- 为尚未登记的 lane 创建执行台；对已登记 lane，精确任务已归档、明确缺失、永久投递拒绝或 `notLoaded`/空库存/超时/归档未知时均创建一次同 lane 替代，状态不明也不操作旧台；
-- 完成投递后进入 idle。
+### 2. Start one mission
 
-启动台和分发台都不操作 Reddit、不创建或管理运营 Heartbeat、不接收 callback、不汇总风险或结果，也不晋升为 `Reddit 主控台`。分发台只在用户直接下达分发命令时读取登记执行台的身份和可用性；两次命令之间不读取执行台状态。
-
-用户以后可以随时从置顶区回到同一个 `Reddit 分发台` 再发一条运营指令。分发台会优先把新 mission 投递给当前仍存在且未归档的原评论台、发帖台和跟进台；对应执行台已归档、明确缺失、永久投递拒绝、`notLoaded`、空/不完整库存、超时或未知归档状态时，直接创建一个新的同 lane 替代台，并在 `DELIVERY_ACCEPTED` 后更新登记。每个账号+lane+mission 只有一个替代创建 key；创建或投递不确定时停止于该 key，不再重复创建。普通分发不得自动反归档；只有用户明确要求恢复某一个精确的归档任务时，才走单独的恢复路径。执行任务始终不会返回分发台。用户也可以直接在某个未归档执行台继续当前 mission。执行台保持不置顶。
-
-### 1. 下载与校验
-
-固定来源：
-
-- Repository: `https://github.com/lishehao/reddit-karma-warmup`
-- Archive: `https://codeload.github.com/lishehao/reddit-karma-warmup/zip/refs/heads/main`
-- Skill directory: `reddit-karma-warmup/`
-- Install target: `${CODEX_HOME:-$HOME/.codex}/skills/reddit-karma-warmup`
-
-通过 HTTPS 下载并安全解压。确认唯一 Skill 根目录，校验 `SKILL.md` frontmatter、`manifest.json`、`agents/openai.yaml`、references、scripts 和所有引用路径。
-
-Git、GitHub CLI、Python、Node.js、包管理器和 API Key 都不是运行依赖。存在 validator 时可使用；不存在时完成等价结构检查。
-
-### 2. 安装与升级
-
-按 `manifest.json` 数字段比较版本：
-
-- 未安装：安装完整目录。
-- legacy：先完整备份再升级。
-- GitHub 版本更高：备份后原子替换整个受管目录。
-- 同版本同内容：NOOP。
-- 同版本不同内容：停止为冲突。
-- GitHub 版本更低：不自动降级。
-- 替换后校验失败：恢复旧目录。
-
-不要逐文件混合版本。备份放入 `${CODEX_HOME:-$HOME/.codex}/skill-backups/`。
-
-### 3. 只读预检
-
-安装完成后先不修改 Reddit，只检查：
-
-1. Chrome Browser control 可连接并能在掉线后重连。
-2. 通过 Chrome 确认 Reddit 已登录和准确账号；不处理密码。优先使用现有
-   Reddit 标签：`openTabs()` + `claimTab()` + URL/title 只证明扩展和标签元数据
-   健康；账号预检还需要一个最便宜的页面状态证明（DOM snapshot、截图或有界
-   read-only projection 之一即可），不要默认同时要求 DOM 和截图。
-3. Codex 能列出、读取、创建并向独立用户任务发送指令，且能读取或从当前任务库存证明 archive state；能保留工具返回的 `hostId`，并区分 ready `threadId` 与 queued `clientThreadId`。反归档不是普通运营预检条件，只在用户明确要求恢复某一个精确归档任务时使用。
-4. Automation/Heartbeat 工具 schema 支持 repeat-on、显式 `targetThreadId`，并能按返回的 automation ID 读回目标任务 ID。Bootstrap 不创建测试 Heartbeat；第一个真实执行台负责首次创建和读回验证。
-5. 能读取真实当地时间、时区、UTC offset 和 UTC。
-
-Skill 发布包自带 `Reddit 社区审计服务` 脚本；只有启动台会初始化并检查它唯一的本地
-缓存。它只是一个受锁保护的
-GET-only 缓存脚本，不是 Codex 任务，不拥有 Chrome、账号、Heartbeat 或任何 Reddit
-mutation 权限。启动台可在配置了官方 Reddit OAuth 凭据时请求一次限速刷新；分发台和
-所有 lane 永远只读取已完成的缓存。该缓存只保存公共版规、结构化提交限制和最多三个
-热点指针，不能替代 Chrome 中的实际内容阅读、账号可见状态或最终提交页 gate。TikHub
-仅可在后续字段校准后作为可选补充，不能覆盖官方规则快照或提升发布权限。
-
-Chrome Browser control 是 Reddit 写操作依赖。Computer Use、内置 Browser、Playwright 和普通 Web Search 不能替代。屏幕录制、系统音频录制和辅助功能权限不是本 Skill 依赖。每个 fresh Node session 必须从**当前加载的 Chrome Skill 根目录**解析并验证 `scripts/browser-client.mjs`，绝不沿用任务、checkpoint 或旧插件缓存版本里的路径；入口缺失是 `STALE_CHROME_RUNTIME_PATH`，不是 Chrome/Reddit 登录失败。预检复用原生 Plugin 的 Chrome browser binding；空列表、旧标签或页面超时不会重新选择浏览器。纯 `openTabs/claimTab/URL/title` 元数据事务可在一个 30 秒调用内完成；导航、DOM/截图/evaluate、交互和 mutation 各自在单独调用中使用 120 秒预算。现成 Reddit 标签只有在其精确 ID 未被其他启动台或执行台的 checkpoint 记录为占用时才可认领。若当前窗口不支持创建/分组新标签且没有可证明未占用的 Reddit 标签，启动台请用户手动打开 Reddit，绝不拿无关用户、启动台或 sibling lane 标签改道。
-
-若 `openTabs()`、精确 `claimTab()`、URL/title 成功，但一次最便宜的 DOM、截图或 read-only projection 在完整 Chrome 页面预算后仍无响应，记录 `CHROME_METADATA_HEALTHY + CHROME_TAB_CLAIMED + CHROME_CONTENT_CHANNEL_TIMEOUT + REDDIT_PAGE_UNVERIFIED`，canonical error class 为 `chrome_content_channel_timeout`。这不是 Chrome 断连、目标标签丢失、Reddit 登录失败或账号风险；无草稿/写入时最多用一个临时中性 HTTPS 内容探针区分 Reddit 路径和全局内容通道。元数据已成功时不建议重装或重新启用扩展，除非随后出现明确的 extension/native-messaging/disconnected 错误。启动台只返回一个证据匹配的修复/重检动作，并保持 `Reddit 启动台`。
-
-隐藏 `next_run_at` 只记录 `created_unreadable`，不阻断第一轮；目标任务 ID 隐藏或不匹配则不能算绑定成功。若 Chrome 或登录需要用户修复，记录 `BOOTSTRAP_REPAIR_REQUIRED` 并只返回一个具体动作；此状态下用户回复“继续”仅重查缺失项，不启动运营。
-
-### 4. 可重复的一键分配
-
-首次健康后，先按当前 Reddit 用户名静默读取 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/account-directions/<username>.json`。这是 Skill 目录之外的用户配置，升级不得覆盖，也不得把一个账号的配置自动套给另一个账号。
-
-- 已有匹配配置：作为默认方向静默复用，仍在成功 Bootstrap 提问里询问本轮方向和时长。
-- 首次账号：准备默认方向，不单独要求确认；用户对成功 Bootstrap 提问的回答同时完成方向确认和本轮启动。
-- 用户明确提供方向和时长：规范并保存方向，立即启动。
-- 只给方向：默认 `3 小时`；只给时长：使用已有方向或默认方向。
-- 健康提问后的回复 `继续`、`开始`、`默认` 或 `没想法`：使用已有方向或默认方向，直接运行 `3 小时`；故障提示后的 `继续` 只复检故障。
-
-首次 Bootstrap 成功时只返回：
+Interpret one direct user instruction into a structured input, then compile it
+before Chrome with `scripts/compile_single_owner_mission.py`. The default is:
 
 ```text
-你希望这个 Reddit 账号往什么方向运营，先运营多久？
-
-- 方向：指账号接下来主要参与的主题范围，例如移动产品、3D/AR、游戏与 UGC、摄影与地点体验。可以给 1–3 个相邻方向；没有想法就使用默认方向。
-- 时长：指本轮自动运营持续多久。期间电脑需要保持开机且不要休眠，Chrome 保持登录，网络尽量稳定；关机、休眠、关闭 Chrome 或断网会影响后续轮次。
-
-请直接回复，例如：`3D/AR、地点体验，先运营 3 小时。`
-没有特别要求也可以回复：`继续`（按已有或默认方向运营 3 小时）。
+账号 u/<name>; 方向 <topic/context>; 时长 <N hours>;
+单元=浏览、评论、发帖、跟进、主页; 授权=只研究; 投票=关闭
 ```
 
-成功时不要在这段提问前后追加版本、安装/NOOP、validator、账号、预检、schema、改名/置顶、未执行动作、来源链接或 probe 信息。只有真实失败时才返回一个最小修复动作。
+The compiler writes a canonical immutable envelope with account, duration,
+selected/paused units, per-unit authority, vote policy, source-prompt hash,
+model-request state, and revision hash. It does not open Chrome or infer user
+authorization.
 
-健康 Bootstrap 提问后，用户回复“继续”即默认标准强度、混合探索、3 小时，并立即把首轮 mission 投递给评论台、发帖台和跟进台。只有三条精确任务消息都被对应执行台接受后，才能说“第一轮已分发”；部分失败时必须写“本轮部分分发”并点名未确认 lane。后续新 mission 优先沿用同一 Reddit 账号原有的执行台：
-
-- `Reddit 评论台`
-- `Reddit 发帖台`
-- `Reddit 跟进台`
-- `Reddit 浏览台`，仅在用户明确要求纯浏览/投票时
-- `Reddit 主页台`，仅在首次主页基础未完成或用户明确要求时
-
-K0 新号（combined Karma 少于 50）仍会收到发帖台，但该台只做选址和只读预检，主帖目标/上限固定为 `0/0`。只有账号进入 K1：至少 50 combined Karma、账号满 7 天、至少 10 条可见评论分布在 3 个合格社区、当前状态干净，并且候选 subreddit 的门槛审计与当天 Chrome 复核都通过后，才开始解锁首帖。K1 解锁后仍最多每 24 小时 1 篇。50 Karma 是本 Skill 的最低内部门槛，不是 Reddit 全站发帖许可，也不会覆盖目标社区更高、local/community Karma 或隐藏的要求。
-
-分发台按当前 Reddit 账号读取 Skill 外部的 lane registry，通过精确 Task ID 沿用已有执行台，并为每个新 mission 设置 `worker_task_id=<精确目标任务 ID>`、明确动作目标/上限、硬有效阅读目标、`first_due=now`、`heartbeat_owner=self`、`launcher_callback=none` 和本任务的 checkpoint 路径。所有数值默认值以 `references/operation-defaults.json` 为机器权威；README 只展示当前值，并由 defaults-alignment validator 对齐。同一账号同时启用多个执行台时，按评论、跟进、发帖、浏览、主页的顺序，把首次写入依次错开约 `0/10/20/30...` 分钟；所有执行台仍会立刻读帖和准备，后续保持相对相位并允许 `2-4` 分钟浮动，错过窗口就顺延而不补发突刺。这里没有共享锁或跨线程账本。每个真实候选在内容可读后至少停留 `30` 秒才可计为有效阅读、投票、评论或切换下一条；评论/回复从内容可读到提交至少 `45` 秒，输入后再等 `5-12` 秒，页面内独立点击间隔 `1-4` 秒。评论簇中相邻两条发布再额外保留变化的 `3-5` 分钟间隔。五分钟以内的等待使用本地短 `sleep`，更长等待才用 Heartbeat。评论台、发帖台、跟进台和主页台固定 `vote_policy=DISABLED_BY_LANE`、`vote_cap=0`，不读取或点击任何 Upvote/Downvote 控件；只有用户明确要求纯浏览/投票时才由 Reddit 浏览台处理。浏览台投票默认是阅读过程中的机会动作，没有默认数量目标；低/标准/高强度的硬上限分别为 `1/1/2`。只有用户明确给出投票数量时，它才成为硬目标。Upvote/Downvote 始终分开统计，不强制各一次，也不会降低评分门槛补数。
-
-Heartbeat 实际触发时间相对预计 UTC 在 `±5 分钟` 内一律视为正常并直接继续，不提示、不重排、不降级；只有绝对偏差超过 5 分钟才进入提前或迟到处理。该容忍窗口不延长任务截止时间。
-
-新建分发台或执行台默认依次尝试 `gpt-5.6-luna/high`、`gpt-5.6-terra/high`、`gpt-5.5/high`、`gpt-5.4/high`，使用目标机器实际支持的第一组；显式用户模型覆盖该链。健康的既有执行台不会因为 Luna 覆盖请求未读回就重建，但每次新 mission 都会在目标工具支持时携带 Luna/high per-turn override。当前启动台不能把“请求了 Luna”说成“本轮已切 Luna”；只有任务实际运行元数据确认后才算切换成功。模型不可读时记录未验证并继续，不创建猜测性重复任务。模型选择不替代 Chrome 故障恢复。每个执行台的持久状态位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-state/<username>/<lane>/<task_id>.json`，历史位于相邻 `lane-history/`；升级 Skill 不覆盖这些用户状态。
-
-评论或发帖 mission 下发前，分发台会结合已确认账号方向和本轮重点，从本地 subreddit Reference 中广泛筛选。标准发帖任务评估最多 150 个匹配社区、下发最多 30 个低摩擦候选，并用 Chrome 深查排名前 12–20 个社区的当天版规、账号门槛、近期存活内容和提交页；这是一项研究覆盖 KPI，不等于在短时间内机械打开全部社区。
-
-普通发帖默认使用 `preferred_expandable` 候选池：任务给出的社区是优先起点，不是默认封闭上限。只要用户没有明确 `target_pool_exact_and_closed=true`，发帖台会在每次具体拒绝后转向下一个已过滤、动作路由可用的社区；每个扩展目标仍必须通过当天规则、账号、提交页和重复帖检查。用户明确封闭池才停止扩展，并如实记录 `closed_pool_exhausted`，不会把 1 篇发布目标偷偷改成 0。
-
-主帖 KPI 分成两条：覆盖 KPI 要完成筛选、深查、近期内容/存活帖读取和 3 个候选包；发布 KPI 是“条件性 1 篇”。候选先过当天版规、动作路由、账号/提交资格、flair/megathread、重复帖和审批等硬合规门；只有合规后才检查最低真实性、非垃圾、非 FAQ/重复和社区原生格式。内容质量只用于该底线及合规候选间的排序，不能用高分文案绕规则，也不能把合规候选卡在高分门槛外。禁止为了数字编造经历、项目、数据或绕规则。没有合格候选时仍报告 `0/1` 与具体阻塞证据，而不是宣称完成。
-
-默认发帖是 `native_discussion`，不是项目宣传：可使用真实、社区原生的观察、工作流摩擦、工具取舍或可回答的问题，不要求项目链接、指标或 artifact；但仍要求真实 premise、当天规则通过、无重复/FAQ 和最低社区原生适配。标准讨论需要至少抽样 15 条近期本地讨论帖，并通过 `discussion_potential_score >=50` 的最低内容底线：识别度、答案多样性、故事空间、低回复成本、当前社区证据和非 FAQ；它只在版规合规后使用，不是追求高互动的发帖障碍。`artifact` 模式同样先过合规与最低内容底线，并逐项核验项目/数据证据。问题不能伪装新手、伪造使用经历或故意写错；也不能把同一模板只替换社区名后批量发送。
-
-社区路由 Reference `loci-subreddit-pool-v1.md` 同步自飞书《Loci Reddit Subreddit 档案总表》，包含 144 个社区的主要用户、常见痛点、版规边界、可发内容、账号适配和近期信号。Loci 全组织永久禁入项单独保存在 `organization-community-denylist.md`，必须在打开候选社区前先排除；它约束自有、员工、代理和其他协调账号。社区总表按 subreddit 行或关键词候选集渐进读取，不应整表无条件加载；其中规则是历史证据，发帖前仍以 Reddit 当天规则和提交页为准。
-
-启动时会把已确认的账号方向映射到 `subreddit-profile-index.csv` 的主题、受众、需求、内容形态和风险标签，先生成已过滤候选并按规则摩擦排序。只有已缓存且不少于 5,000 weekly visitors 的社区可进入 operating shortlist；流量未知或过期的匹配只进入待复核队列。画像匹配和流量达标都不是发布许可，执行台仍需读取动作级覆盖和当天版规。
-
-2026-07-14 的扩展把标签索引从 174 个增加到 254 个社区：80 个新增社区覆盖年轻人/轻社交、泛游戏、电影电视、动漫、音乐、摄影、艺术设计、旅行地点、效率工具、AI 陪伴、移动产品和空间 3D；38 个既有社区补齐了实时周流量。原始只读搜索快照保存在 `reddit-community-search-snapshot-2026-07-14.json`，筛选结果保存在 `subreddit-catalog-expansion-2026-07-14.csv`。新增行全部保持 `research_only`，不能因为达到 5K 流量门槛而直接评论、发帖或提及产品。
-
-最新复核结论保存在 `community-action-routing-overrides.md`。它不再用一个等级同时代表全部动作，而是分别判断普通评论、主帖和产品提及；例如技术评论可用不代表 Loci 主帖可发。路由顺序是永久禁入表、动作级覆盖表、历史社区总表、当天版规与账号状态。
-
-`community-live-audit-30-2026-07-13.md` 保存本轮 30 个社区的 Chrome 只读 live 证据和关键门槛；对应动作已同步进覆盖表。该证据表只用于解释和当天复核，不能把可见提交页或存活帖子当作发布许可。
-
-`posting-account-gates-audit-2026-07-14.csv` 单独记录每个社区公开可见的账号年龄、combined/post/comment/community Karma、verified email、参与历史、Flair、megathread 和 mod approval 门槛。当前 254 行中，普通社区仅 22 个完成了本轮门槛判断，229 个仍为 unknown，另有 1 个 blocked 和 2 个组织级 deny；因此这项审计尚未完成。K0 不发主帖；对 K1 主帖，unknown 直接关闭候选。`no_public_gate_found` 也不代表没有隐藏 Automod 门槛，仍须当天 Chrome 复核。
-
-凡最新复核明确“降级”的社区一律进入 `research-only`：后续不发表评论、不发主帖、不回复、不投票，也不做产品提及。只有未降级但按动作受限的社区，才保留技术评论可用、主帖关闭等拆分权限。
-
-扩展研究 `community-expansion-pending-review-2026-07-13.md` 也随 Skill 打包，包含 18 个 suspension 后需要重新 preflight 的候选和 29 个新增名称级候选。它只用于候选发现：没有当天 live 版规、账号资格、New/Hot 和提交页证据时，不能据此评论、发帖、投票或 Join。
-
-公开动作审计 `community-action-expansion-public-audit-2026-07-13.md` 进一步记录 30 个候选，其中 14 个有当前或近期公开规则证据、3 个只有较弱信号、13 个仍是名称级。它只能决定 suspension 结束后的 live preflight 顺序，不会直接扩大可执行社区池。
+Bootstrap `scripts/single_owner_queue.py` with the exact envelope. The one task
+owns one Chrome binding and one primary Reddit tab. After a neutral canary, it
+runs only one unit at a time in this order:
 
 ```text
-第一轮已分发：Reddit 评论台、Reddit 发帖台、Reddit 跟进台已收到任务。
-
-后续所有 Reddit 运营任务都可以继续在这个 Reddit 分发台下达；告诉我方向、时长或具体动作即可，我会优先沿用已有执行台。
-
-进行中的评论、发帖或跟进，请直接到对应执行台查看或调整。
+browsing -> comments -> posts -> follow-up -> presence
 ```
 
-后续完整分发把第一行改成 `本轮已分发：<实际接受任务的执行台>已收到任务。`；部分分发写 `本轮部分分发：<已接受执行台>已收到任务；<未确认 lane>未确认投递。`。不要把“已解析任务”或“已准备消息”写成“已分发”。
+At most two agent-owned, public read tabs may be used after a healthy canary.
+They are an optimization inside the same owner only. All focus/input/click,
+submit, verification, tab claim/close, recovery, and finalization calls remain
+globally serial. Never claim or alter a user tab.
 
-lane registry 位于 `${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/lane-registry/<username>.json`，按 Reddit 账号隔离并在升级时保留。后续分发读取登记的精确 ready Task ID 和可选 `hostId`，但每次都必须从当前产品状态重新证明该任务仍存在且未归档；可读取历史、精确 ID 或标题并不等于健康。`clientThreadId` 只代表任务仍在创建队列，不能登记成可用执行台。若旧版没有登记，可仅在第一次对当前未归档任务做一次有限查找，最多检查三个最新同名候选，并且只有一个候选的 lane 与当前 Reddit 账号都明确匹配时才收编。不能搜索归档记录、仅凭标题猜测或仅按最新时间猜测。登记任务已归档、明确缺失、永久投递拒绝、`notLoaded`、空/不完整库存、超时或归档状态未知时，为当前 mission 创建一个新的同 lane 替代台；写入确定的账号+lane+mission 替代 key 后，不论 create/send 结果是否不确定都不得为相同 key 再创建。仅在替代台 `DELIVERY_ACCEPTED` 后覆盖该 lane 的登记。普通分发不得自动反归档；只有用户明确要求恢复某一个精确归档任务时例外。
+### 3. Unit authority
 
-### 5. 执行台自治
+| Unit | Default | Explicit action authority | Votes |
+| --- | --- | --- | --- |
+| browsing | `READ_ONLY` | `VOTE_AUTHORIZED` | only this unit, with `BROWSING_ONLY` policy |
+| comments | `RESEARCH_ONLY` | `COMMENT_AUTHORIZED` | disabled |
+| posts | `RESEARCH_ONLY` | `POST_AUTHORIZED` | disabled |
+| follow-up | `RESEARCH_ONLY` | `FOLLOWUP_AUTHORIZED` | disabled |
+| presence | `RESEARCH_ONLY` | `PRESENCE_AUTHORIZED` | disabled |
 
-每个执行台：
+Every non-default authority needs a direct user authorization receipt in the
+new envelope. It never overrides current live community rules, account gates,
+truthful evidence, submit state, pacing, or mutation uncertainty. Comments and
+posts require built-in Web Search as `research_brief -> query_plan ->
+evidence_synthesis -> Chrome live gate` before candidate narrowing. Chrome is
+the final authority for Reddit-specific live facts.
 
-- 立即执行自己的首轮，不等 Heartbeat；
-- 先确定动作数量目标和有效阅读目标；两者都是独立的硬完成条件。动作目标未满足时继续读取真实最新帖子和评论并扩展合格社区，不因第一批候选不足而提前结束；
-- 只有动作剩余量和有效阅读剩余量都归零、跟进台完成全部必查界面时，文本 lane 才算完成；只有浏览台还会把用户显式投票目标纳入完成条件。任一未完成数量跨 Heartbeat 原样续跑，不得重置或把候选不足报告为已完成；
-- 每个候选独立评分，达到门槛才执行 lane 自己拥有的动作；增加阅读量不能降低评论、发帖或浏览台投票阈值；
-- 评论台、发帖台、跟进台和主页台不加载投票 playbook，不检查、不点击、不验证 Upvote/Downvote，相关显式请求拆给 Reddit 浏览台。只有浏览台把 Upvote/Downvote 分开记账；默认 `vote_target_mode=opportunity`，没有投票数量目标，低/标准/高硬上限为 `1/1/2`。用户明确指定总数或方向数量时才成为浏览台的硬目标；
-- 每个执行台在任何 Reddit 写操作前读取自己的 checkpoint；每次有效阅读、已验证 lane 动作、定时变化或恢复结果后原子更新，只有浏览台额外写入投票状态。Heartbeat 必须携带 checkpoint 路径、schema、mission ID 和本任务 ID，唤醒后先恢复状态再继续；
-- 始终拥有一个专属 Reddit 主标签：用三次浏览器调用完成首次创建，第一次只创建并持久记录 tab ID，第二次只执行 `tab.goto(...)`，第三次只读取一次页面状态；纯 `openTabs/claimTab/URL/title` 元数据事务使用 30 秒预算且最多 4 个调用，导航、DOM、点击、输入、等待和验证等潜在阻塞页面/动作命令各自在单独调用中使用 120 秒外层预算。20–60 秒后成功返回属于慢成功，不是断线；可选 Statsig/`ab.chatgpt.com` 遥测超时也不是 Reddit 或账号风险。页面理解遵循原生 Chrome 插件原则：选择能回答下一步问题的最便宜状态检查，DOM snapshot、截图和 targeted projection 不默认叠加。受控输入优先从 fresh visible DOM 获取字符串 `node_id`，点击、输入和递归 Shadow DOM 实值读回必须分开；动作确认不是文本证明。locator 单独在内部截止时间失败而 DOM/页面读取健康时，切换 DOM CUA，不误判掉线或重复 locator。完整 120 秒后仍无确认才进入恢复。不得删除主标签、另建重复标签或抢用户/其他任务的标签；后续心跳只重领这个标签，非终态以 `handoff` 保留，任务终态关闭/释放；
-- 只从当前任务上下文读取自己的精确 Task ID；定时前核对 mission 的 `worker_task_id`，创建/更新时显式绑定自身，创建后按 automation ID 读回目标并再次核对；每次唤醒还会复核一次；
-- 自己处理网络恢复、规则复核、重试、候选替换和用户修复；
-- Chrome/网络失败采用“任务级持续、单次唤醒有界”的恢复：同一轮最多执行配置内的诊断与重试，仍失败则用同一个 Heartbeat 按 `5/10/20/40/60` 分钟退避并带少量浮动继续复查；连续相同故障进入静默恢复，避免重复提醒。恢复后先重验账号和页面，再从原剩余目标继续，不补发突刺；提交结果不确定的同一动作永不自动重试；
-- 在自己的任务里汇报，用户后续直接和该任务沟通；
-- 不读取、不 callback、不暂停、不修改其他执行台。
+Before every outward action, persist a deterministic `MUTATION_INTENT` /
+`action_key`. If acknowledgement or verification is uncertain, freeze that exact
+key forever. Do not retry it, reopen it, or ask another unit to verify it.
 
-评论台和跟进台在每条评论前执行短检查：快速确认相关版规，读完整帖子/父评论及附近回复，记录一个具体细节、一个重复观点和当前社区的本地语气样本，再从 micro、one-liner、two-beat 三个内部版本中选择最短且有信息量的版本。主动评论簇内每一条都必须重新执行这套门控并生成新的 `per_comment_gate_id`，禁止一次写完整簇或复用第一条的长度/黑话决定。普通簇内评论默认不超过 25 个英文词；每簇最多一条可因真实信息需求放宽到 26–45 词。评论应高频使用当前社区自然出现的缩写、碎句和 Reddit 口吻，但每条通常只放一个、最多两个，不得机械堆黑话或复制别人的表达。
+### 4. Hot-plug the five units safely
 
-主动评论强制按簇执行：除非用户明确只要求总共 1 条评论，否则每个完成的评论窗口至少发布并验证 2 条。发完 1 条不能结束该轮、不能把窗口记为完成，也不能直接安排下一次 Heartbeat；应继续寻找第 2 条。只有用户停止、截止时间到达或当前硬阻塞才能留下 `cluster_incomplete`，其余数量原样续跑。
-
-当前 Heartbeat 承载的整份用户任务目标一旦完成，执行台必须先删除自己的 Heartbeat、清空下一次运行时间，再回报任务完成；不能因为授权时长仍有剩余而保留空转 Heartbeat。单个评论簇、每小时配额或只完成动作/阅读中的一项都只是中间进度，不会误触发终止。
-
-`reddit-us-voice-patterns.md` 提供美国 Reddit 常见的赞同、反对、修正、建议、追问、轻吐槽和技术判断句型，并区分稳定表达、语境表达和陈旧 Reddit 梗。该表只作回退；当前帖子附近真实回复始终优先。
-
-同一 Chrome profile 或同一 Reddit 账号不是冲突。某个执行台失败只影响它自己，其他任务继续运行。
-
-## Requirements
-
-- Codex 本地 Skill 支持
-- ChatGPT Chrome Extension 提供的 Chrome Browser control
-- 用户已在同一 Chrome profile 登录 Reddit
-- 多轮任务需要 repeat-on Heartbeat、显式 `targetThreadId` 和按 automation ID 读回目标任务的能力
-- 首次分配需要独立任务创建及向本次新任务发送指令的能力
-- GitHub HTTPS archive 可访问
-
-## Repository Layout
+All five units can be added, paused, removed, resumed, or have their scoped
+authority/vote policy revised without creating a new Chrome owner. This is a
+revision, not an in-place mutation of the current mission:
 
 ```text
-README.md
-LICENSE
-reddit-karma-warmup/
-  SKILL.md
-  manifest.json
-  agents/
-  references/
-  scripts/
+current envelope hash -> compile full revision n+1 -> apply queue revision
 ```
 
-## Boundaries
+The queue accepts a revision only when there is no running unit, no open read
+batch, no browser boundary in flight, and the mission has not retired. It keeps
+append-only history:
 
-仅操作用户明确授权的账号和浏览器会话。实时 subreddit 规则约束具体动作。登录/CAPTCHA/账号锁只暂停受影响执行台；明确 HTTP `429`/`Too Many Requests` 会立刻结束该执行台的当前轮次，保留任务与 Heartbeat，并在下一正常轮次或更晚的服务端指定时间自动复查，不会取消长期运营或集中补发；明确社区禁止则换社区；网络和页面故障由当前执行台及其 Heartbeat 继续恢复。
+- `ADD`: enqueue a fresh generation;
+- `PAUSE`: preserve a queued/yielded unit and its evidence in history;
+- `REMOVE`: preserve history, mark removed for this revision;
+- `RESUME`: enqueue a fresh generation, never rewrite old evidence.
+- authority/vote-policy change: record exact `from`/`to` values; an increase
+  still requires a fresh direct authorization receipt.
 
-## 反馈与贡献
+If a unit is active, return `HOTPLUG_DEFERRED_UNSAFE_BOUNDARY`; finish or yield
+the current unit first. A yielded unit resumes before later queued units unless
+a safe revision pauses/removes it.
 
-这是公开仓库，但公开不代表任何人都能直接修改 `main`。未获得仓库写权限的用户可以：
+### 5. Heartbeat, recovery, and retirement
 
-- 提交 [Issue](https://github.com/lishehao/reddit-karma-warmup/issues) 报告问题或提出建议；
-- 在已有 Issue 或 Pull Request 下评论；
-- fork 仓库、修改后提交 Pull Request，等待维护者审阅和合并。
+One mission-level recurring Heartbeat belongs only to `Reddit 运营台`. It wakes
+the same task, preserves the same queue, and continues a yielded unit before
+starting later work. A real trigger deviation within ±5 minutes is acceptable;
+continue normally. Do not use a `COUNT=1` self-rescheduling timer.
 
-只有仓库所有者或被授予写权限的协作者可以直接推送。完整要求见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+At mission end, prove all units terminal/paused/removed, settle all browser
+boundaries, release only agent-owned tabs, delete that one Heartbeat, and retire
+the queue. Keep the visible `Reddit 运营台` available for a new mission.
 
-## License
+### 6. Public community-audit cache
 
-MIT
+The bundled audit-pool script is a local, GET-only, locked public-rule cache.
+It is not a Codex task, does not own Chrome, and never publishes. It can reduce
+repeated public rule reads, but never replaces live Chrome checks for current
+rules, account eligibility, composer state, content context, or publication.
+
+### 7. Legacy compatibility
+
+`execution_topology=legacy_multi_lane_compat` exists only for an explicit,
+bounded migration of an already-running legacy mission. It is never the default
+for a new account direction or a broad “start Reddit operation” request.
+
+## Release rule
+
+Skill changes default to direct GitHub `main` publication: version bump,
+validators, ZIP integrity, public codeload readback, and atomic local install.
+If a live runtime fence proves an active old mission, publish the new package but
+defer only the local managed-directory replacement until that runtime releases.

@@ -1,12 +1,11 @@
 # Chrome Atomic Command Runtime
 
-Load in the Reddit launcher and every Chrome-backed Reddit execution task before
-the first page command. The installed Chrome Plugin is the transport authority:
-initialize its runtime once per fresh Node session, reuse `agent.browsers` when
-present, select Chrome once, read its full documentation once, and reuse the
-browser binding. This reference adds Reddit-specific command
-granularity and timeout budgets; `chrome-network-recovery.md` owns failures after
-these rules are applied.
+Load in the single `Reddit 运营台` before its first page command. The installed
+Chrome Plugin is the transport authority: initialize its runtime once per fresh
+Node session, reuse `agent.browsers` when present, select Chrome once, read its
+full documentation once, and reuse the browser binding. This reference adds
+Reddit-specific command granularity and timeout budgets;
+`chrome-network-recovery.md` owns failures after these rules are applied.
 
 ## Runtime Entry Resolution
 
@@ -45,7 +44,7 @@ Read `operation-defaults.json.chrome_command_runtime` and pass the tool's real
 
 - A metadata-only transaction uses `metadata_timeout_ms`.
 - Navigation, DOM/screenshot/evaluate/projection reads, locator work, CUA,
-  interactions, and mutations use `outer_timeout_ms`.
+  interactions, and mutations use `outer_timeout_ms` (`120000` ms by default).
 - A locator action may additionally set its supported inner `timeoutMs` to
   `locator_action_timeout_ms`.
 
@@ -59,38 +58,33 @@ telemetry delay. A browser command that returns successfully after the configure
 `slow_success_threshold_ms` is slow success, not a timeout, disconnect, page
 failure, or account risk.
 
-## Task Tab And Control-Slot Leases
+## One Owner, One Primary Tab
 
-Read `operation-defaults.json.chrome_command_runtime` before the first Chrome
-boundary. The task first takes the short control slot and creates its tab as one
-browser action, then creates exactly one active `chrome_tab_lease/v1` through
-`scripts/chrome_surface_lease.py` before page work. Persist exact
-`owner_task_id`, lane, mission ID, tab creation nonce, control scope, lease ID,
-and extension/provider tab identity when exposed. A tab may be claimed only
-when its active lease matches the current task and exact recorded tab identity.
-A matching URL, title, or exposed tab ID is not ownership proof.
+Read `operation-defaults.json.execution_topology` and
+`single_owner_runtime` before the first Chrome boundary. The current
+`Reddit 运营台` is the only Chrome owner for the mission, so it does **not**
+acquire a cross-task `chrome_control_slot`, a baton, or a sibling lease. It
+creates one primary agent-owned Reddit tab as one browser action, persists its
+exact extension/provider identity and creation nonce in the mission record, and
+claims only that exact tab on later wakes. A URL, title, or numeric tab ID alone
+is not ownership proof.
 
-The tab lease scope combines the control scope, exact provider tab identity,
-and creation nonce. On each later reclaim, renew that exact existing lease with
-the same owner and lease ID before page work. Expiry never makes a visible tab
-adoptable: if exact reclaim fails, discard only that lane binding and follow the
-fresh dedicated-tab path.
+One task still must serialize its own Chrome calls. Before every page boundary,
+write `browser_boundary=OPEN` to `single_owner_queue.py`; settle it only after
+the browser call returns or is classified unknown. An unclosed boundary blocks
+hot-plugging, later unit starts, release, and retirement. This turns a crash or
+timeout into an explicit recovery record rather than permission to open another
+owner task.
 
-Tabs isolate page state, but all tasks using the local Chrome extension still
-share one control/content transport. Before each Chrome boundary call, acquire a
-short `chrome_control_slot/v1` with
-`control_slot_scope=chrome-default-control`, wait no more than
-`control_slot_wait_ms`, execute one browser boundary, and release the slot as
-soon as the call acknowledges. The `control_slot_ttl_seconds` is crash cleanup,
-not a normal hold duration. A successful call returns immediately; the
-`outer_timeout_ms=120000` budget is a ceiling, not a fixed wait.
+After a healthy neutral canary, the same owner may create at most two temporary,
+agent-owned public read tabs. They may run only bounded read-only discovery
+boundaries and must settle before any mutation, focus-sensitive action, recovery,
+tab close, or finalization. The primary tab remains the only tab for logged-in
+account work and every write.
 
-If the slot stays busy, record `CHROME_CONTROL_SLOT_BUSY`, keep the current tab
-lease, and yield/retry through this lane's Heartbeat. It is never Chrome
-disconnect evidence, permission to inspect the holder, or permission to reuse a
-sibling/user tab. Local parsing, scoring, hash/ledger writes, and Web Search may
-continue outside the control slot. The only allowed browser-call batch remains a
-metadata-only transaction.
+`chrome_control_slot/v1` and `chrome_tab_lease/v1` remain legacy compatibility
+mechanisms only for `execution_topology=legacy_multi_lane_compat`; they are not
+loaded or created by the production single-owner runtime.
 
 ## Native Chrome Plugin Alignment
 

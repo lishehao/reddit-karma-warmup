@@ -2,8 +2,8 @@
 """Maintain one local, read-only Reddit community audit cache.
 
 This script intentionally has no Reddit mutation endpoints. It is invoked only
-by the temporary Reddit launcher during bootstrap; lane tasks consume its output
-as read-only evidence.
+by the single Reddit operating task during bootstrap or later research; active
+units consume its output as read-only evidence.
 """
 
 from __future__ import annotations

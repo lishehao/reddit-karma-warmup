@@ -63,7 +63,7 @@ This breadth supports several adjacent communities without turning the account i
 - Only after a healthy Bootstrap has emitted its direction-and-duration prompt, `继续`, `开始`, `默认`, or `没想法` accepts the matching saved direction or broad default and starts `3h`. A repair-state `继续` never reaches direction resolution or dispatch.
 - A direction-only answer defaults to `3h`; a duration-only answer uses the matching saved direction or broad default. Dispatch immediately after this one answer rather than asking a second confirmation or operation question.
 
-After direction confirmation, select one or two truthful pillars as `mission_identity_focus` and load `community-selection-funnel.md`. For each enabled proactive lane, run lane-specific retrieval. This is local catalog retrieval, not Reddit browsing:
+After direction confirmation, select one or two truthful pillars as `mission_identity_focus` and load `community-selection-funnel.md`. For each enabled proactive unit, run unit-specific retrieval. This is local catalog retrieval, not Reddit browsing:
 
 ```text
 scripts/query_subreddit_profile_index.py --direction <resolved pillars + mission focus> --lane comments --reference-sweep-limit 100 --limit 20 --include-traffic-probes
@@ -81,7 +81,9 @@ Use `research_matches` only to summarize account-direction coverage. Keep only t
 
 If the index or query script is unavailable, do not block setup. Preserve the confirmed direction, report `社区索引暂不可用`, and let each worker use the existing exact rule references without an indexed shortlist.
 
-Use the Bootstrap Success Prompt from `runtime-and-setup.md`; do not emit another direction confirmation block from this reference. Its direction explanation is intentionally user-facing while the durable `3-5` pillar normalization remains internal.
+Do not emit a separate bootstrap success prompt from this reference. The
+single-owner runtime keeps the confirmed `3-5` pillar normalization in the
+immutable mission envelope; use it only to guide the active unit's research.
 
 Legacy clients may still send `确认` or `确认并开始`; accept them as default direction plus `3h`, but never advertise those commands in the successful Bootstrap output.
 

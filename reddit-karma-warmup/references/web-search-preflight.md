@@ -1,6 +1,6 @@
 # Built-in Web Search Preflight
 
-Load before any Chrome candidate discovery in `Reddit 评论台` or `Reddit 发帖台`.
+Load before any Chrome candidate discovery in the `comments` or `posts` unit of the single `Reddit 运营台`.
 Use the host's built-in Web Search, not a Chrome search page, for broad current
 discovery. It is intentionally query-rich because parallel Web Search is much
 faster than opening many candidate pages in Chrome. Its output narrows Chrome

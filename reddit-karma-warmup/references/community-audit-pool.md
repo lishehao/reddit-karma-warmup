@@ -1,20 +1,20 @@
 # Shared Community Audit Pool
 
-Load this reference only during `Reddit 启动台` bootstrap, catalog expansion,
+Load this reference only during `Reddit 运营台` bootstrap, catalog expansion,
 or when interpreting an existing cache row. It governs public API audit data;
-it does not govern Chrome browsing or any Reddit mutation.
+it never publishes and never replaces live Chrome checks for browsing or any
+Reddit mutation.
 
 ## Identity And Ownership
 
 `Reddit 社区审计服务` is a local script/service, not a user-visible Codex task,
-not a lane, and not an account identity. The released Skill ships the script;
-`Reddit 启动台` alone initializes/checks its local cache during install/preflight
-before becoming `Reddit 分发台`. No operating lane creates the script, database,
-or a second pool.
+not a work unit, and not an account identity. The released Skill ships the
+script; the one `Reddit 运营台` initializes/checks its local cache during
+install/preflight. No unit creates a second script, database, pool, or writer.
 
-- The bootstrap alone may run `init`, `status`, or one read-only `refresh`.
-- `Reddit 分发台` and every lane only read completed cache snapshots. They never
-  call a provider, wait for a refresh lock, or communicate with another lane.
+- The bootstrap phase alone may run `init`, `status`, or one read-only
+  `refresh`. Active units only read completed cache snapshots. They never call
+  a provider, wait for a refresh lock, or communicate with another task.
 - The service has no Chrome tab, cookies, OAuth account identity for publishing,
   task registry, Heartbeat, or Reddit write endpoint.
 - One lock and one `rate_state` row per provider/OAuth client make the pool the
@@ -76,9 +76,9 @@ automatically merely because a worker wants a fresher row.
 | `public_rules` | completed official rule snapshot | no |
 | `public_rules_enriched` | official snapshot plus TikHub enrichment | no |
 | `live_rules` | current visible Chrome clarification plus current route | no, still account-specific checks remain |
-| `action_verified` | live Chrome account, submit controls, placement, and mutation verification | only when every lane gate passes |
+| `action_verified` | live Chrome account, submit controls, placement, and mutation verification | only when every active-unit gate passes |
 
-Actual content browsing remains Chrome-only. A lane opens visible Reddit pages,
+Actual content browsing remains Chrome-only. An active unit opens visible Reddit pages,
 reads the post plus needed context/comments, and records qualified-read evidence
 before moving on. API item pointers only tell Chrome where a small number of
 public current items may be worth opening. Never use timing randomness, hidden

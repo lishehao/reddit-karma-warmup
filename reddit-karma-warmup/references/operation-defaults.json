@@ -1,5 +1,45 @@
 {
   "schema_version": 1,
+  "execution_topology": {
+    "default": "single_owner_v1",
+    "legacy_compatibility_only": "legacy_multi_lane_compat",
+    "owner_title": "Reddit 运营台",
+    "five_unit_order": [
+      "browsing",
+      "comments",
+      "posts",
+      "follow-up",
+      "presence"
+    ],
+    "cross_task_chrome_owner_count": 1,
+    "primary_reddit_tab_count": 1,
+    "public_read_tab_cap_after_canary": 2,
+    "chrome_boundary_parallelism": 1,
+    "chrome_mutation_parallelism": 1,
+    "hotplug_safe_boundary": [
+      "NO_RUNNING_UNIT",
+      "NO_OPEN_READ_BATCH",
+      "NO_BROWSER_BOUNDARY_IN_FLIGHT",
+      "MISSION_NOT_RETIRED"
+    ]
+  },
+  "single_owner_runtime": {
+    "schema": "reddit_single_owner_queue/v1",
+    "state_root": "${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/single-owner/queues",
+    "mission_root": "${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/single-owner/missions",
+    "revision_policy": "IMMUTABLE_HASH_CHAIN",
+    "hotplug_actions": [
+      "ADD",
+      "PAUSE",
+      "REMOVE",
+      "RESUME",
+      "AUTHORITY_CHANGE",
+      "VOTE_POLICY_CHANGE"
+    ],
+    "heartbeat_interval_minutes": 15,
+    "yielded_unit_blocks_later_units": true,
+    "unknown_mutation_policy": "FREEZE_EXACT_ACTION_KEY_NO_RETRY"
+  },
   "default_duration_hours": 3,
   "default_intensity": "standard",
   "default_style": "mixed",
@@ -10,10 +50,10 @@
       {"model": "gpt-5.5", "reasoning_effort": "high"},
       {"model": "gpt-5.4", "reasoning_effort": "high"}
     ],
-    "default_policy": "INHERIT_HOST_RUNTIME_NO_OVERRIDE",
-    "explicit_user_override_required": true,
-    "fallback_requires_explicit_user_consent": true,
-    "launcher_and_workers_use_same_chain_when_explicitly_requested": true,
+    "default_policy": "PREFER_LUNA_HIGH_WHEN_HOST_SUPPORTS_REQUEST",
+    "explicit_user_override_required": false,
+    "fallback_requires_explicit_user_consent": false,
+    "single_owner_uses_preferred_pair_when_supported": true,
     "unavailable_model_never_blocks_operation": true,
     "request_preferred_pair_on_create": false,
     "request_preferred_pair_on_existing_task_dispatch": false,
@@ -23,18 +63,18 @@
     "unverified_override_is_success": false,
     "model_selection_is_liveness_or_replacement_evidence": false
   },
-  "thread_reuse": {
+  "single_owner_task_liveness": {
     "require_present_unarchived": true,
-    "archived_task_policy": "REPLACE_NEVER_AUTO_UNARCHIVE",
+    "archived_task_policy": "NOT_HEALTHY_REQUIRE_FRESH_USER_OWNED_OWNER",
     "readable_archived_is_liveness": false,
     "registry_update_after_acceptance_only": true,
-    "transient_liveness_policy": "CREATE_FRESH_REPLACEMENT_ONCE_PER_LANE_MISSION",
-    "unknown_archive_capability_policy": "CREATE_FRESH_REPLACEMENT_ONCE_PER_LANE_MISSION",
-    "not_loaded_policy": "CREATE_FRESH_REPLACEMENT_ONCE_PER_LANE_MISSION",
-    "replacement_creation_cap_per_lane_mission": 1,
+    "transient_liveness_policy": "KEEP_SAME_OWNER_AND_YIELD",
+    "unknown_archive_capability_policy": "REQUIRE_USER_REFRESH_NO_REPLACEMENT",
+    "not_loaded_policy": "REQUIRE_USER_REFRESH_NO_REPLACEMENT",
+    "automatic_replacement_creation_cap_per_mission": 0,
     "old_unavailable_task_policy": "NEVER_AUTO_UNARCHIVE_OR_OPERATE",
-    "explicit_missing_task_policy": "REPLACE",
-    "permanent_delivery_rejection_policy": "REPLACE",
+    "explicit_missing_task_policy": "REQUIRE_FRESH_USER_OWNED_OWNER",
+    "permanent_delivery_rejection_policy": "REQUIRE_FRESH_USER_OWNED_OWNER",
     "delivery_uncertain_policy": "DELIVERY_UNCERTAIN_NO_REPLACEMENT"
   },
   "comments": {

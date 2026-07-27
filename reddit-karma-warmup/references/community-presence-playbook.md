@@ -1,11 +1,11 @@
 # Bootstrap Profile And Community Setup
 
-Use only in `Reddit 主页台` during first-account bootstrap or an explicit
-setup/repair mission. Follow the progressive current-slot runtime map in
-`SKILL.md`. This lane covers profile/homepage upkeep, target-based
+Use only in the `presence` unit of the single `Reddit 运营台` during first-account bootstrap or an explicit
+setup/repair mission. Follow the progressive current-unit runtime map in
+`SKILL.md`. This unit covers profile/homepage upkeep, target-based
 Join/subscribe, truthful Flair/tag, and membership review. It normally
-terminates after one verified slot; when the user explicitly requested later
-presence work, this task creates and owns its own recurring Heartbeat. Numeric
+terminates after one verified unit; later presence work is queued by the same
+mission-level Heartbeat. Numeric
 ceilings and bootstrap targets come only from `operation-defaults.json`.
 
 ## Presence State
@@ -64,7 +64,7 @@ Use ordinary truthful flair such as `Beginner`, `Hobbyist`, `Indie Dev`, `VR Use
 2. Compute remaining cadence capacity.
 3. Inspect profile and high-fit membership candidates.
 4. Run membership gate.
-5. Reselect `Reddit 主页台`'s dedicated tab before each edit/join/flair action, verify account/target, and verify final state.
+5. Reselect the `Reddit 运营台`'s primary agent-owned tab before each edit/join/flair action, verify account/target, and verify final state.
 6. Update timestamps and set the next review only when another action is genuinely due.
 
-Record verified changed state or exact inspected surfaces plus the valid no-action gate. For the usual one-slot bootstrap mission, report completion in this task and create no recurring timer. Keep watched/skipped candidates, scores, reasons, and remaining cadence local unless they explain no action.
+Record verified changed state or exact inspected surfaces plus the valid no-action gate. For the usual one-unit bootstrap mission, report completion and create no unit timer. Keep watched/skipped candidates, scores, reasons, and remaining cadence in the durable mission record unless they explain no action.

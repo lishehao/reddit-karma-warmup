@@ -1,7 +1,8 @@
 # Reddit Surface Routing
 
 This is the single authority for choosing among Old Reddit and current Reddit
-web surfaces. Load it in launcher preflight and every execution lane. The goal
+web surfaces. Load it in owner preflight and whenever an activated unit needs a
+route. The goal
 is stable, auditable work on the same logged-in Chrome profile, not forcing an
 account-wide preference or treating one host as permanently superior.
 
@@ -67,7 +68,7 @@ once.
    `canonical_target_key`, and current mutation phase.
 2. Confirm there is no `submission_uncertain` or mutation whose click/send may
    already have been issued.
-3. Navigate the same lane-owned primary tab to one semantically equivalent
+3. Navigate the same agent-owned primary tab to one semantically equivalent
    native route. Use a new auxiliary tab only when the role playbook genuinely
    requires simultaneous read-only context; close it in the same turn.
 4. Obtain a fresh page-state proof and verify the same canonical target,

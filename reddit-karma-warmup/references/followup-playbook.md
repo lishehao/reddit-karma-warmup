@@ -1,9 +1,9 @@
 # Follow-Up Playbook
 
-Use only in `Reddit 跟进台` for notifications, supplied Reddit URLs, replies to
+Use only in the `follow-up` unit of the single `Reddit 运营台` for notifications, supplied Reddit URLs, replies to
 the account's own recent posts/comments, and mod/Automod follow-up. Follow the
-progressive current-slot runtime map in `SKILL.md`; load
-`scheduler-and-heartbeats.md` only when unfinished work needs a later wake.
+progressive current-unit runtime map in `SKILL.md`; the single mission-level
+Heartbeat handles any later wake.
 This lane uses `vote_policy=DISABLED_BY_LANE`: never load
 `browse-vote-playbook.md` or inspect/click Upvote or Downvote.
 
@@ -41,7 +41,7 @@ Score each exact inbound item:
 
 Session-level authorization covers `Act` replies. Do not request per-reply confirmation.
 
-Reading an inbound chain exists only to triage and write a safe, useful reply. Vote controls are out of scope even on another user's reply. An explicit vote request belongs to `Reddit 浏览台` and never changes this lane's authorization.
+Reading an inbound chain exists only to triage and write a safe, useful reply. Vote controls are out of scope even on another user's reply. An explicit vote request belongs only to the `browsing` unit and never changes this unit's authorization.
 
 This lane has no artificial reply quota. Its completion target is one full required-surface sweep plus every passing `Act` available in that sweep. Continue through Notifications, supplied/known permalinks, recent own posts, and recent own comments even when the first surface is quiet; never report a partial sweep as completion.
 
@@ -63,7 +63,7 @@ Avoid customer-support boilerplate, repeated thanks, essays, links outside scope
 - Never argue with moderators.
 - If Automod/moderators removed or filtered content, retire that subreddit, send `SUBREDDIT_RETIRED`, do not repost there, and continue other follow-up work.
 - If an own recent post shows `Post is awaiting moderator approval`, `Waiting for approval`, or equivalent pending-review UI, treat it as pre-authorized cleanup: immediately open its own controls, choose Delete/Withdraw, confirm the deletion dialog when shown, and accept one visible `Post deleted`/missing-own-post result as cleanup proof. Retire that subreddit, send the non-blocking notice, close the item, and continue the sweep. Never ask the user whether to delete, wait for moderator review, or pause any lane.
-- If the cleanup route is temporarily blocked, record the exact permalink in this lane's cleanup queue, run `chrome-network-recovery.md`, and retry on the next due follow-up wake. The post and subreddit remain closed for engagement immediately; the follow-up lane continues other items, and every sibling lane remains unchanged.
+- If the cleanup route is temporarily blocked, record the exact permalink in this unit's queue checkpoint, run `chrome-network-recovery.md`, and yield the current unit. The mission-level Heartbeat resumes this unit before later units. The post and subreddit remain closed for engagement immediately.
 - If the author deletes/locks the parent of an active own comment or reply, retire that subreddit and send the same non-blocking notice. A random old/removed item discovered during scanning is only `Skip` and does not retire a community.
 - If a mod requests an edit, summarize it and act only when the current authorization clearly covers that edit.
 - Currently active account warnings, captcha, rate limit, or login mismatch pause the actions they prevent. Explicit HTTP `429` ends the whole current follow-up wake and resumes on the next normal round or later displayed expiry; another timed rate limit resumes at expiry. Historical/cleared states do not stop follow-up.
@@ -77,13 +77,13 @@ On a direct user command or execution-heartbeat resume, complete the current Not
 - quiet queue: `followup.quiet_queue_cadence_minutes`
 - several replies or uncertainty: `followup.uncertain_queue_cadence_minutes`
 
-Choose from state, not random imitation. Compute one exact local/UTC next due time and update/reuse this follow-up task's own logical Heartbeat.
+Choose from state, not random imitation. Record one exact local/UTC desired next due time; the one mission-level Heartbeat remains the only scheduler.
 
-The follow-up lane owns its execution state, cleanup queue, and self-targeted recurring Heartbeat. It never inspects or mutates sibling tasks/timers and reports scheduling evidence only in this task.
+The follow-up unit owns only its execution state and cleanup queue within the durable mission record. It never creates or inspects a sibling task/timer.
 
 ## Follow-Up Report
 
-Use the three-line compact report from `orchestration-core.md`:
+Use the three-line compact report from `SKILL.md`:
 
 - `本轮完成`：已检查的 Notifications、本人帖子/评论，以及完成的回复、清理动作和 permalink
 - `下一轮心跳`：核验后的本地日期时间、时区及 UTC

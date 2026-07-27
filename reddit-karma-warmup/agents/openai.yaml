@@ -1,4 +1,4 @@
 interface:
   display_name: "Reddit Community Operations"
-  short_description: "Dispatch compliant, lane-scoped Reddit operations"
-  default_prompt: "Use $reddit-karma-warmup to preflight and dispatch compliant Reddit lane(s): run the required built-in Web Search research before every comment/post action, verify live Reddit state in logged-in Chrome, and keep voting exclusively in Reddit 浏览台."
+  short_description: "Run a single-owner, five-unit Reddit operation"
+  default_prompt: "Use $reddit-karma-warmup to run one Reddit 运营台 with browsing, comments, posts, follow-up, and presence units. Keep one Chrome owner, default to research-only, require built-in Web Search before comments/posts, and allow votes only in the browsing unit when explicitly authorized."

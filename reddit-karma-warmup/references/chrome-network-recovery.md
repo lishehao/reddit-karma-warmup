@@ -1,6 +1,12 @@
 # Chrome Loading And Network Recovery
 
-Load this reference only when Chrome control, navigation, or page loading fails. It applies to every lane. The goal is to recover the existing logged-in Chrome session without duplicating an outward action or misclassifying a network fault as Reddit enforcement. Use `operation-defaults.json.chrome_recovery` for every retry budget, wait, backoff, quiet-mode threshold, and reset threshold; do not invent a larger local loop.
+Load this reference only when Chrome control, navigation, or page loading fails.
+It applies to the active unit inside the single `Reddit 运营台`; it never starts a
+second Chrome owner. The goal is to recover the existing logged-in Chrome
+session without duplicating an outward action or misclassifying a network fault
+as Reddit enforcement. Use `operation-defaults.json.chrome_recovery` for every
+retry budget, wait, backoff, quiet-mode threshold, and reset threshold; do not
+invent a larger local loop.
 
 Always follow the installed Chrome control Skill. For extension/native-messaging/discovery failures, load its Chrome/bootstrap troubleshooting documentation before resetting any runtime or claiming Chrome is unavailable.
 
@@ -16,15 +22,22 @@ or tab binding to recover.
 
 - Use `tab.goto(url)` for a known destination and a DOM-supported link click plus navigation wait for an in-page transition. Page-side evaluation is read-only and is not a navigation fallback.
 - `CUA` keypress/type acts on the focused webpage, not reliably on the Chrome omnibox. Never use `Meta+L` address-bar simulation as recovery.
-- `openTabs()` returning a Reddit URL/title proves only tab metadata visibility. After claiming the exact recorded lane tab, require one successful DOM, screenshot, or equivalent page-state read before declaring control healthy.
+- `openTabs()` returning a Reddit URL/title proves only tab metadata visibility. After claiming the exact recorded agent-owned primary tab, require one successful DOM, screenshot, or equivalent page-state read before declaring control healthy.
 - Inventory or `tabs.new()` success proves only browser metadata/control reachability. If exact-object claim or URL/title metadata times out, classify `page_control_partial`; keep the browser binding and recorded tab ID, consume the current recovery cycle, and do not immediately repeat the same control call in that wake. If claim plus URL/title succeed but DOM, screenshot, evaluate, or a bounded projection times out after the full outer budget, classify `chrome_content_channel_timeout`; the browser and tab metadata bindings remain healthy while Reddit/page content is unverified.
-- Each lane keeps one persistent dedicated Reddit primary tab through a matching active `chrome_tab_lease/v1`. Use a three-call creation transaction: one completed browser call creates the tab and returns/persists `own_tab_id` plus creation nonce/lease proof; the next browser call performs only the first `goto`; a third browser call performs one page-state read. Never combine `tabs.new()`, `goto`, and page-state reading, and never recover by claiming an arbitrary existing Reddit tab. A nonterminal turn preserves its controllable primary tab as `handoff`; terminal cleanup closes/releases it.
+- The single owner keeps one persistent agent-owned Reddit primary tab recorded
+  in its mission queue. Use a three-call creation transaction: one completed
+  browser call creates the tab and returns/persists exact identity plus creation
+  nonce; the next browser call performs only the first `goto`; a third browser
+  call performs one page-state read. Never combine `tabs.new()`, `goto`, and
+  page-state reading, and never recover by claiming an arbitrary user tab. A
+  nonterminal turn preserves the controllable primary tab; terminal cleanup
+  closes/releases it.
 - Apply `chrome-atomic-command-runtime.md` first. Give a pure metadata transaction its configured `30 sec` budget and each atomic `tab.goto(...)`, page read, locator action, or mutation cell the configured `120 sec` outer timeout. A timeout or REPL reset after the applicable full budget makes the acknowledgement uncertain because a page transition or action may already have completed. Reuse the current Chrome control/session and enumerate tabs; invalidate/reconnect the browser binding only after an explicit browser-disconnected result. Reclaim the exact `own_tab_id` and run one separate post-timeout page-state check before classifying failure.
 
 - A page/content/action command that returns successfully after 20-60 seconds is `slow_success`, not `page_control_partial`. If stderr also shows `Statsig` or `ab.chatgpt.com` timeout logs, record `ambient_network_degraded`; do not infer Reddit/network/account failure and do not reconnect or retry the successful command. The 120-second outer timeout is a ceiling, not a fixed sleep; only one potentially blocking browser operation may consume it.
 - A locator can become stale because its own action changed the control's accessible name or DOM identity. After input, clear, toggle, or state-changing click, take fresh evidence. For controlled text prefer a fresh DOM CUA string node and shadow-aware live-value projection. Successful action plus old-locator mismatch is `locator_identity_changed`; an internal locator-only deadline with healthy DOM/page reads is `locator_backend_deadline`. Neither is a transport, network, or page-control failure.
-- `openTabs()` returning no tabs is not proof that the browser disconnected. Retry inventory once within the wake budget. Replace the lane tab only when the healthy browser binding confirms the exact ID is absent, and never exceed `tab_replacement_cap_per_wake`.
-- Only when that same-tab check and the configured bounded same-tab retry still show `about:blank` or an unreadable page may the lane classify a page-control/control-channel failure. Never call `finalize({keep: []})` for this nonterminal condition, never create replacement tabs in a loop, and never claim a user/launcher/sibling tab. Keep the lane mission, Heartbeat, and controllable primary tab as `handoff` for the next wake.
+- `openTabs()` returning no tabs is not proof that the browser disconnected. Retry inventory once within the wake budget. Replace the primary agent-owned tab only when the healthy browser binding confirms the exact ID is absent, and never exceed `tab_replacement_cap_per_wake`.
+- Only when that same-tab check and the configured bounded same-tab retry still show `about:blank` or an unreadable page may the owner classify a page-control/content-channel failure. Never call `finalize({keep: []})` for this nonterminal condition, never create replacement tabs in a loop, and never claim a user tab. Keep the same mission, Heartbeat, queue cursor, and controllable primary tab for the next wake.
 
 ## Evidence First
 
@@ -32,7 +45,7 @@ Immediately stop the current click/type sequence and record:
 
 ```text
 time_local + UTC
-lane + mission_id
+unit + mission_id
 URL + tab_id
 exact browser/tool error code or visible message
 phase = before_input | after_input_before_submit | submit_uncertain | after_submit_before_verify | read_only
@@ -66,16 +79,16 @@ When several causes remain possible, give at most the two strongest based on the
 | Class | Typical evidence | Initial interpretation | Required behavior |
 |-|-|-|-|
 | `control_channel` | explicit browser disconnected/extension/native messaging error | Chrome control binding failed, not a Reddit/network verdict | Reconnect Chrome control; preserve the existing Chrome profile. |
-| `page_control_partial` | tab inventory/creation succeeds, but claim or URL/title metadata times out | browser inventory is reachable while exact tab binding/metadata is unknown; not a Reddit, account, DNS, or disconnect verdict | Preserve the browser binding and exact lane tab ID. After one bounded inventory reconciliation, end page work for the wake and continue through Heartbeat recovery without opening more tabs. |
-| `chrome_control_slot_busy` | another active local task owns the short control slot | shared transport is occupied; own page/tab lease remains valid | release no tab, do not inspect the holder, and yield/retry later through the lane Heartbeat |
+| `page_control_partial` | tab inventory/creation succeeds, but claim or URL/title metadata times out | browser inventory is reachable while exact tab binding/metadata is unknown; not a Reddit, account, DNS, or disconnect verdict | Preserve the browser binding and exact primary tab ID. After one bounded inventory reconciliation, end page work for the wake and continue through mission-Heartbeat recovery without opening more tabs. |
+| `chrome_control_slot_busy` | legacy compatibility mode only: another active local task owns the short control slot | not a valid default single-owner state | do not enter legacy slot recovery from `single_owner_v1`; inspect the single-owner queue boundary instead |
 | `chrome_content_channel_timeout` | `openTabs`, exact claim, URL, and title succeed, but DOM/screenshot/evaluate/projection receives no acknowledgement after the full page budget | browser and tab metadata are healthy while page content is unreadable; Reddit account remains unverified | Preserve browser/tab identity. Run at most one neutral HTTPS content probe when mutation state is safe, scope the failure, then end page work for the wake. Do not diagnose disconnect or reinstall the extension from this evidence. |
-| `stale_tab` | tab missing/closed/not in session, while browser binding remains connected | Only this tab binding is stale | Discard only the tab binding and open/reclaim a fresh lane tab from the existing Chrome binding. Do not reconnect the whole browser. |
+| `stale_tab` | tab missing/closed/not in session, while browser binding remains connected | Only this tab binding is stale | Discard only the tab binding and open/reclaim a fresh primary tab from the existing Chrome binding. Do not reconnect the whole browser. |
 | `dns_or_offline` | `ERR_NAME_NOT_RESOLVED`, `ERR_INTERNET_DISCONNECTED` | bad hostname, DNS, or device/network outage | Validate the URL, then run the scope probes below. |
 | `transient_network` | `ERR_NETWORK_CHANGED`, `ERR_CONNECTION_TIMED_OUT`, `ERR_TIMED_OUT`, `ERR_CONNECTION_RESET`, `ERR_CONNECTION_CLOSED`, `ERR_EMPTY_RESPONSE` | unstable network, VPN/proxy transition, busy/down site, or middlebox | Bounded retry and scope probes; do not infer account enforcement. |
 | `proxy_or_tls` | `ERR_PROXY_CONNECTION_FAILED`, `ERR_TUNNEL_CONNECTION_FAILED`, `ERR_CERT_*`, `ERR_SSL_*` | proxy/VPN/TLS path problem | Never bypass a certificate warning or change proxy/VPN settings. Probe scope, then escalate if persistent. |
 | `site_or_http` | HTTP `500-599`, persistent `403`, `ERR_CONNECTION_REFUSED` | site/server/WAF/route issue; `403` is not automatically an account ban | Probe Reddit home and another route. Retry only when mutation state is safe. |
 | `rate_or_account` | current HTTP `429`, Reddit `Too Many Requests`, or rate-limit/captcha/challenge/login/lock/warning UI | possible platform/account enforcement | An explicit `429` enters `429_ROUND_PAUSE` below. Other displayed timed limits preserve the mission and re-probe automatically at expiry; escalate only a state that needs user repair. Do not use network retries to bypass either state. |
-| `client_block` | `ERR_BLOCKED_BY_CLIENT` | route blocked by client/extension/filter; not proof of Reddit restriction | Reconnect only if control also dropped; otherwise use a clean lane tab and native Reddit entry route. Skip one persistently blocked deep route. |
+| `client_block` | `ERR_BLOCKED_BY_CLIENT` | route blocked by client/extension/filter; not proof of Reddit restriction | Reconnect only if control also dropped; otherwise use the same agent-owned primary tab and a clean native Reddit entry route. Skip one persistently blocked deep route. |
 | `form_replay` | `ERR_CACHE_MISS`, resubmit warning, submit result unknown | replay could duplicate an action | Never reload/resubmit blindly. Inspect target thread/profile/history first. |
 | `page_runtime` | `Aw, Snap!`, blank/white page, endless loading, script/selector failure without network code | renderer, memory, page script, stale DOM, or unknown loading fault | Re-read stale DOM without reload; otherwise one safe same-tab reload/native navigation. Replace the tab once only when its binding is confirmed stale or unusable. |
 | `locator_identity_changed` | action succeeded, then the old state-sensitive locator no longer resolves; fresh snapshot shows the same control under a new identity | expected UI state transition, not Chrome instability | Rebuild once from fresh evidence and perform a targeted property read. Do not consume a network retry or reconnect Chrome. |
@@ -95,8 +108,8 @@ that stage cannot repair or verify a broken logged-in Reddit surface.
 2. If awaited navigation times out, reacquire the same Chrome control/session, reconnect the browser binding only on an explicit disconnected result, reclaim the exact recorded `own_tab_id`, and run one atomic post-timeout page-state read. If that returned evidence proves the URL moved and the page is readable, continue as recovered without another navigation.
    - If reclaiming that exact tab or URL/title metadata times out, record `page_control_partial`. If metadata succeeds but the first content read times out, record `chrome_content_channel_timeout` and proceed directly to the one safe neutral content probe in step 5; do not cycle through DOM, screenshot, and evaluate on the same Reddit page. Do not immediately repeat claim/read/navigation or infer browser disconnect.
 3. If the same tab remains blank or unreadable, wait within `chrome_recovery.short_wait_seconds` and retry the current read-only navigation no more than `same_url_retry_cap_per_wake` in that tab. Do not repeat a mutation and do not create a second primary tab.
-4. In the lane's dedicated primary tab, open the preferred native surface from `reddit-surface-routing.md`: Old Reddit for ordinary text/listing/context work, or current Reddit for a capability that requires it. If that route fails while the equivalent capability remains available on the other surface, perform its single bounded cross-surface fallback. Only if the recorded tab is absent from the current tab inventory is its binding stale and replaceable once.
-5. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session, at most `neutral_probe_cap_per_wake` times. When the primary tab contains a draft or uncertain state, use at most one temporary lane-owned diagnostic tab under `diagnostic_tab_cap_per_wake`, give it a distinct temporary tab lease, and close/release it in the same wake; never persist it as a second primary tab.
+4. In the primary agent-owned tab, open the preferred native surface from `reddit-surface-routing.md`: Old Reddit for ordinary text/listing/context work, or current Reddit for a capability that requires it. If that route fails while the equivalent capability remains available on the other surface, perform its single bounded cross-surface fallback. Only if the recorded tab is absent from the current tab inventory is its binding stale and replaceable once.
+5. If Reddit still fails, open one neutral public page such as `https://example.com/` in that same Chrome session, at most `neutral_probe_cap_per_wake` times. When the primary tab contains a draft or uncertain state, use at most one temporary agent-owned diagnostic tab under `diagnostic_tab_cap_per_wake` and close/release it in the same wake; never persist it as a second primary tab.
 6. Classify the scope:
    - neutral page and Reddit both fail: device/network/proxy/Chrome path
    - neutral page works, Reddit home fails: Reddit/site/domain path
@@ -122,11 +135,10 @@ requires user involvement when genuinely needed.
 
 Recovery is persistent at mission scope and bounded at wake scope. A technical failure never creates an unbounded local reload loop, and a later Heartbeat never resets mutation certainty.
 
-`chrome_control_slot_busy` is local scheduling, not a Chrome-control fault. It
-does not increment `consecutive_failure_wakes` toward
-`control_user_repair_after_consecutive_wakes`, does not ask the user, and does
-not invalidate the lane's primary tab lease; retain the same remainders and use
-the next permitted lane wake.
+`chrome_control_slot_busy` belongs only to the explicit legacy compatibility
+path. A production single-owner mission has no sibling control-slot holder; an
+unexpected busy/unknown state is recorded as an unclosed queue boundary and the
+active unit yields without creating a new task or taking a second tab.
 
 ### Stable Recovery Record
 
@@ -151,23 +163,25 @@ When the current Chrome surface or response explicitly shows HTTP `429`, `Too Ma
 
 1. Record the exact code/message, URL, local/UTC time, lane, mission ID, remaining target, and any exposed `Retry-After` or expiry.
 2. End the current wake immediately. Perform no more Reddit navigation, reload, comment, reply, post, vote, Join, profile edit, or submit attempt in this round.
-3. Preserve the mission, remaining target, draft state, and the lane's existing Heartbeat. Never delete, deactivate, or mark the mission complete.
-4. Compute `resume_due` as the later of this lane's next normal round and any explicit `Retry-After`/displayed expiry. If no normal next round exists, use `30m` as the one-round fallback. Set `next_due=min(resume_due, operation_stop_at)`; when clamped to `operation_stop_at`, that wake performs terminal cleanup only and never probes Reddit.
+3. Preserve the mission, remaining target, draft state, and the mission-level Heartbeat. Never delete, deactivate, or mark the mission complete.
+4. Compute `resume_due` as the later of the active unit's next normal round and any explicit `Retry-After`/displayed expiry. If no normal next round exists, use `30m` as the one-round fallback. Set `next_due=min(resume_due, operation_stop_at)`; when clamped to `operation_stop_at`, that wake performs terminal cleanup only and never probes Reddit.
 5. On that wake, probe one read-only Reddit surface once. If healthy, reconfirm account/context and resume normally without catch-up. If `429` remains, repeat one round pause.
 
-`429_ROUND_PAUSE` is lane-local because tasks do not share runtime state. Another lane pauses only if it independently receives the same explicit response. Do not create cross-task locks, callbacks, or pause messages.
+`429_ROUND_PAUSE` applies to the active unit in the same mission. Preserve the
+other unit plans, but do not start them in the same wake: record the pause in
+the single queue and resume the active unit first at the next eligible wake.
 
 `attempt 0` is the original failure.
 
 1. Within the current wake, preserve mutation state and perform at most `same_wake_recovery_cycle_cap` recovery cycles. A cycle may include the class-specific repair, one current-domain read, and the bounded scope probes. The individual URL, tab replacement, and neutral-probe caps still apply. Explicit `429` bypasses every same-wake cycle and uses `429_ROUND_PAUSE`.
-2. If still failing and no user-repair state exists, keep this lane's recurring Heartbeat active. Select the indexed delay from `recovery_backoff_minutes`, add the configured bounded jitter, and compute `proposed_recovery_due`. Set `next_recovery_at=min(proposed_recovery_due, operation_stop_at)`; a wake clamped to the deadline performs terminal cleanup only. Persist local and UTC times, update the same self-targeted timer, and end the wake. Never schedule earlier than an explicit `Retry-After` unless the earlier wake is the deadline-only cleanup described above.
+2. If still failing and no user-repair state exists, keep the mission-level recurring Heartbeat active. Select the indexed delay from `recovery_backoff_minutes`, add the configured bounded jitter, and compute `proposed_recovery_due`. Set `next_recovery_at=min(proposed_recovery_due, operation_stop_at)`; a wake clamped to the deadline performs terminal cleanup only. Persist local and UTC times, update the same mission timer, and end the wake. Never schedule earlier than an explicit `Retry-After` unless the earlier wake is the deadline-only cleanup described above.
 3. On the next wake, rerun one bounded read-only recovery cycle. If the fingerprint persists, increment the wake counter and advance the backoff index up to the configured maximum. Continue through later wakes until recovery or mission deadline.
 4. At `quiet_mode_after_consecutive_wakes`, set `quiet_recovery=true`: perform only one read-only recovery cycle per due wake, suppress duplicate notices for `user_notice_suppression_minutes`, and keep the Heartbeat active. An explicit control-channel failure may become user-repair eligible at `control_user_repair_after_consecutive_wakes`; ordinary network, route, site, or client-block failures never do by themselves.
 5. Recovery is proven only after `healthy_read_proofs_to_reset` fresh readable page-state proofs plus expected-account confirmation when required. Reset the fingerprint/backoff/counters only then, resume persisted remainders without catch-up, and do not recreate the mission or timer.
 
-Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The worker relies on its own recurring Heartbeat for later recovery and may update that timer when the recovery time changes. For explicit `429`, do not retry, probe, or continue Reddit work again in the same wake. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision. When `operation_stop_at` arrives during recovery, perform terminal timer/tab cleanup without a last-minute probe or mutation.
+Do not ask the user before or between retryable technical attempts. A known timed rate limit does not require approval. The active unit relies on the mission-level recurring Heartbeat for later recovery and may update that one timer when the recovery time changes. For explicit `429`, do not retry, probe, or continue Reddit work again in the same wake. Never compress missed work after recovery. A pending-review cleanup remains queued and automatically retried; it never becomes a user decision. When `operation_stop_at` arrives during recovery, perform terminal timer/tab cleanup without a last-minute probe or mutation.
 
-Never delete, deactivate, or pause this lane's Heartbeat because a Chrome, network, page, route, client-block, or recovery attempt failed. Multiple unsuccessful recovery wakes remain `lane_recovering` and continue on the existing timer until the deadline, explicit user stop, terminal proof, or verified timer replacement. An explicit account blocker may withhold the mutations it prevents, but this task's Heartbeat stays active for timed re-probe unless the user stops the operation. `submit_uncertain` withholds only that exact mutation; it does not stop other safe work in this task.
+Never delete, deactivate, or pause the mission-level Heartbeat because a Chrome, network, page, route, client-block, or recovery attempt failed. Multiple unsuccessful recovery wakes remain `unit_recovering` and continue on the existing timer until the deadline, explicit user stop, terminal proof, or verified timer replacement. An explicit account blocker may withhold the mutations it prevents, but the mission Heartbeat stays active for timed re-probe unless the user stops the operation. `submit_uncertain` withholds only that exact mutation; it does not stop other safe work in the mission.
 
 ## Mutation Integrity
 
@@ -193,7 +207,7 @@ next_recovery_at_local + next_recovery_at_utc
 result = recovered | skipped_route | heartbeat_recheck | round_paused_429 | lane_recovering | escalated
 ```
 
-A recovered transient error stays local and the worker continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. Explicit `429` reports `round_paused_429`, the verified next-round time, and no same-wake retry. A persistent retryable lane fault stays `lane_recovering` with its Heartbeat active and does not request a user decision. Only an allowlisted hard user-repair state is shown directly to the user in this task. Ordinary Heartbeat output still uses only:
+A recovered transient error stays local and the active unit continues. Its next normal three-line report briefly names the exact code, likely cause, and successful automatic recovery in `本轮完成`; do not create a separate alert. Explicit `429` reports `round_paused_429`, the verified next-round time, and no same-wake retry. A persistent retryable unit fault stays `unit_recovering` with the mission Heartbeat active and does not request a user decision. Only an allowlisted hard user-repair state is shown directly to the user in the `Reddit 运营台`. Ordinary Heartbeat output still uses only:
 
 ```text
 本轮完成：<exact code；可能原因；已自动重试/恢复结果，或 429 已暂停本轮；action result>

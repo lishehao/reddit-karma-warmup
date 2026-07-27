@@ -1,6 +1,6 @@
 # Native Posts Playbook
 
-Load only in `Reddit 发帖台`, after the common current-slot runtime documents
+Load only in the `posts` unit of the single `Reddit 运营台`, after the common current-unit runtime documents
 from `SKILL.md`. Load `web-search-preflight.md` before Chrome candidate
 discovery. Load `post-coverage-and-kpi.md` when the mission includes a
 publication KPI; load `community-selection-funnel.md` only while widening a
@@ -74,7 +74,7 @@ Ordinary native posts are drafted directly from current subreddit context. Do no
    synthesis's `draft_constraints`; run the post section of
    `outbound-copy-gate.md` and Double-Check B. Any unsupported factual claim
    still present requires `rewrite` or `retarget`, never submission.
-4. Persist `mutation_state=prepared` through `lane-state-checkpoint.md`, reselect the dedicated tab, recheck account/target/live submit state, click Post once, and record verified or uncertain submission before another candidate.
+4. Persist `mutation_state=prepared` through the durable mission record, reselect the primary agent-owned tab, recheck account/target/live submit state, click Post once, and record verified or uncertain submission before another candidate.
 5. If the post is awaiting moderator approval, delete/withdraw it immediately, retire that subreddit, record the result, and retarget without confirmation.
 
 A failed candidate, pending-review cleanup, weak premise, completed timebox, or completed read target does not satisfy a required post action. Continue eligible finalist search while time remains. Maintain the conditional publication KPI and coverage packet evidence from `post-coverage-and-kpi.md`; verified publication normally completes a one-post action target.
@@ -83,8 +83,8 @@ A failed candidate, pending-review cleanup, weak premise, completed timebox, or 
 
 The live deep-read target is a hard research objective; the coverage packet target is a second hard research objective. If publication succeeds before the read target, finish the remaining qualified survivor/rule research without another post. If research finishes first, continue toward the conditional publication target; do not silently zero it because coverage has finished.
 
-External research samples are read only for rules, survivor patterns, audience fit, and post design. Vote controls are out of scope even when visible. An explicit vote request belongs to `Reddit 浏览台` and never changes this lane's authorization.
+External research samples are read only for rules, survivor patterns, audience fit, and post design. Vote controls are out of scope even when visible. An explicit vote request belongs only to the `browsing` unit and never changes this unit's authorization.
 
 ## Diversity And Report
 
-For multiple posts, vary community cluster and native angle only when candidates pass; diversity never justifies a weak destination. Use the shared three-line receipt with publication/read progress, permalink, exact remainder, next verified wake, and next post-lane plan. Do not include Upvote/Downvote counters.
+For multiple posts, vary community cluster and native angle only when candidates pass; diversity never justifies a weak destination. Use the shared three-line receipt with publication/read progress, permalink, exact remainder, next mission wake, and next posts-unit plan. Do not include Upvote/Downvote counters.

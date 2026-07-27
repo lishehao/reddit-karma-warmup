@@ -1,7 +1,7 @@
 # Proactive Comments Playbook
 
-Load only in `Reddit 评论台`. Follow the progressive load map in `SKILL.md`:
-load common runtime documents for the current slot, then load this playbook.
+Load only in the `comments` unit of the single `Reddit 运营台`. Follow the progressive load map in `SKILL.md`:
+load common runtime documents for the current unit, then load this playbook.
 Load `web-search-preflight.md` before Chrome candidate discovery. Load
 `outbound-copy-gate.md`, `reddit-us-voice-patterns.md`, and
 `publish-consistency.md` only after one exact comment candidate has passed
@@ -62,17 +62,17 @@ For every individual comment, including every item in one cluster:
 4. Run `outbound-copy-gate.md`; generate internal micro, one-liner, and two-beat alternatives and choose the shortest passing version.
 5. Use short native speech and high-frequency locally supported Reddit/internet markers across the session. Normally use one marker, never more than two; no percentage quota, forced slang, or copied phrasing.
 6. Enter only the final draft, then use the controlled-input contract in `chrome-atomic-command-runtime.md`: resolve one fresh visible-DOM string node, separate focus and typing, and verify the exact live value through the focused control's open Shadow DOM before Double-Check B. A successful action acknowledgement or light-DOM-only empty result cannot advance to submit. Satisfy the canonical pacing clocks, then use a local wait, one click-only submit cell, and one separate targeted result read. Never combine typing, submit, or verification.
-7. Persist the mutation result and measured text/read fields to `lane-state-checkpoint.md` before the next candidate.
+7. Persist the mutation result and measured text/read fields to the durable mission record before the next candidate.
 8. Keep the resolved `comments.proactive_submit_gap_seconds_*`, then restart this full loop for the next item. Never prewrite a cluster.
 
 Ordinary proactive comments use `comments.routine_word_cap` and remain mostly micro/fragment/one-liner. One two-beat exception within `voice.two_beat_word_range` may appear in a routine cluster only when the exact target earns it. Do not use routine compact paragraphs, polished two-sentence templates, generic praise, post summaries, repeated top comments, or product links outside explicit rule-compliant scope.
 
 ## Reading Without Voting
 
-The action target and qualified-read target are separate hard completion conditions. If comments reach target first, continue lane-local qualified reading without publishing beyond the action target. If reading reaches target first, continue candidate discovery toward the remaining comment target. Deadline, explicit stop, or a current concrete blocker may produce a shortfall; candidate scarcity alone produces an interim checkpoint and later retry.
+The action target and qualified-read target are separate hard completion conditions. If comments reach target first, continue unit-local qualified reading without publishing beyond the action target. If reading reaches target first, continue candidate discovery toward the remaining comment target. Deadline, explicit stop, or a current concrete blocker may produce a shortfall; candidate scarcity alone produces an interim checkpoint and later retry.
 
-Qualified reading exists only to understand, score, and safely comment on candidates. Vote controls are out of scope even when visible. An explicit vote request belongs to `Reddit 浏览台` and never changes this lane's authorization.
+Qualified reading exists only to understand, score, and safely comment on candidates. Vote controls are out of scope even when visible. An explicit vote request belongs only to the `browsing` unit and never changes this unit's authorization.
 
 ## Report
 
-Use the shared three-line receipt. Report verified comments/target, qualified reads/target, links, exact remainder, next verified wake, and the next lane-local plan. Do not include Upvote/Downvote counters.
+Use the shared three-line receipt. Report verified comments/target, qualified reads/target, links, exact remainder, the next mission-level wake, and the next unit-local plan. Do not include Upvote/Downvote counters.

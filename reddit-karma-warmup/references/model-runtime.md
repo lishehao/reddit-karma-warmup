@@ -1,52 +1,26 @@
 # Model Runtime
 
-The default is **inheritance**, not automatic migration: omit `model` and
-`reasoning_effort` on task creation and continuation unless the current user
-explicitly supplies a model request. Do not silently upgrade a task or copy a
-previous task's execution profile. Role separation comes from exact task
-ownership and lane prompts, not model-family differences.
+The default single-owner operating profile prefers `gpt-5.6-luna / high`.
+This is a **request preference**, not proof that the host switched the current
+task. The configured fallback chain is `gpt-5.6-luna / high`,
+`gpt-5.6-terra / high`, `gpt-5.5 / high`, then `gpt-5.4 / high`.
 
-The optional fallback chain in `operation-defaults.json` is available only when
-the user explicitly asks for a preferred model **and** permits fallback:
+## Record, do not guess
+
+When the host exposes model selection or runtime metadata, record all three:
 
 ```text
-1. gpt-5.6-luna / high
-2. gpt-5.6-terra / high
-3. gpt-5.5 / high
-4. gpt-5.4 / high
+requested_model / requested_reasoning_effort
+actual_model / actual_reasoning_effort when exposed
+evidence_state = ACTUAL_CONFIRMED | REQUESTED_NOT_RUNTIME_PROOF | INHERITED
 ```
 
-## Explicit Request Forms
+If the host cannot switch or cannot expose the actual pair, keep the same
+`Reddit 运营台`; do not create a successor, a parallel task, or a duplicate
+mission. Model metadata is never Chrome, archive, account, delivery, or action
+success evidence.
 
-- **Absent:** send no model override; record `MODEL_INHERITED`. Host/default
-  runtime is valid and needs no model readback.
-- **Exact pair:** request only the user-specified pair. If unavailable, record
-  `MODEL_REQUEST_UNAVAILABLE`; do not silently substitute a different model.
-- **Preferred pair with fallback:** use the user-authorized chain, record the
-  requested pair and the actual pair when exposed, and use
-  `MODEL_FALLBACK_CONFIRMED` only after runtime readback.
-
-For an explicit request, `MODEL_REQUESTED_UNVERIFIED` means the host accepted
-the request but did not expose actual runtime metadata. It is never confirmation.
-No model request, accepted send, title, pin, or model readback is task-liveness,
-archive, delivery, or replacement evidence.
-
-## New And Existing Tasks
-
-For a new task, pass a model pair only under an explicit request form. For an
-existing present/unarchived lane, apply a per-turn override only when the same
-current user command explicitly authorizes it and the host supports it. A
-missing/unchanged readback preserves the exact lane; it never causes recreation.
-
-The current `Reddit 启动台` normally becomes the distributor in place. Create a
-successor for a model reason only when the user explicitly requests a model
-migration, the host cannot update the current task in place, and the ordinary
-exact-ID handoff gate succeeds. Unknown model metadata always keeps the current
-task. Never transfer an in-flight Reddit mutation or Heartbeat to a successor.
-
-Model choice is not a Chrome-recovery mechanism. A selector deadline,
-transport error, stale tab, or page-content timeout follows the Chrome runtime
-contract on every model. Do not use `ultra` by default.
-
-Keep model metadata internal unless an explicit request is unavailable or
-materially changes the current task.
+The configured fallback chain is only a host request policy. It may be used
+when the host explicitly supports a preferred-model request; the queue and
+mission envelope remain unchanged across any supported fallback. Do not use a
+model switch as Chrome recovery or as a reason to replay a mutation.

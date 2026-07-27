@@ -42,8 +42,9 @@ planning_targets: evidence/output targets, never forced action counts
 
 Question 2 determines `community_scope`: named communities are `closed`,
 expandable seeds are `seeded_expandable`, and a direction-only answer is
-`discover`. It does not determine `business_goal` or grant a write. If the
-user only says “low frequency”, map it to
+`discover`. Do not request material or a community list after Question 2;
+they default to `[]` and `discover` respectively. It does not determine
+`business_goal` or grant a write. If the user only says “low frequency”, map it to
 `standard/high/minimal`; “high frequency” maps to `broad/standard/active`.
 State that mapping in the envelope. If they say “broad but strict”, preserve
 `broad/high/<chosen budget>` instead. Do not change the 15-minute Heartbeat.

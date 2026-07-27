@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.17`
+Protocol version: `2026.07.27.18`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -41,6 +41,12 @@ all three answers arrive, normalize them into the immutable mission envelope,
 run the same-Chrome account gate, and start the mission. Do not ask a fourth
 clarification merely because posts lack truthful material: compile that unit as
 `MATERIAL_REQUIRED` while other authorized units may proceed.
+
+Answer completion starts the mission directly: classify the local runtime,
+compile the envelope, perform the technical canary/account gate, create and
+read back the Heartbeat, then run the first formal `INITIAL` packet in the
+same task turn. Those technical gates are not a preview, candidate-filter, or
+second user-decision stage.
 
 The three answers are a hard wait. When the task uses `request_user_input`,
 it must omit `autoResolutionMs`; no answer or partial answer remains

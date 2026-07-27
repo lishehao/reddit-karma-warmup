@@ -19,6 +19,12 @@ envelope/queue/Heartbeat, or create unit tasks until all three answers arrive.
 For this required intake, omit `request_user_input.autoResolutionMs`: unanswered
 or partial input stays `WAITING_FOR_STARTUP_INPUT`, and only an explicit user
 cancellation may end intake without a mission.
+Once all three answers are explicit, do not ask another startup question. A
+direction/IP answer is complete without a community list or material reference:
+default to `discover` and empty material refs. In the same task turn run
+`runtime fence -> envelope -> technical live gates -> Heartbeat readback ->
+INITIAL formal packet`. Treat that first packet as round one, never as a
+preview or pre-filter.
 
 Before a post-intake mission starts, classify any pre-existing local Reddit
 runtime record with `scripts/runtime_fence.py`. An `ACTIVE` word in an old
@@ -82,6 +88,9 @@ account risk.
    goal, community scope, coverage budget, soft action threshold, action
    budget, truthful material references, and evidence/output targets. Treat
    “high/low frequency” as a profile shorthand, never as a timer change.
+   Immediately continue through the technical gates and first formal
+   `INITIAL` packet in this task turn; do not return a standalone
+   plan/preview/candidate-filter stage.
 2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
 3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
    work remains, ending at `operation_stop_at + cleanup-grace`. Persist and read

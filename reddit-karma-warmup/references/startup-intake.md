@@ -55,9 +55,11 @@ goal. Preserve the user's exact direction in `direction`, and record a
 compact `account_direction` plus `direction_tags` when useful. A named
 community list is `closed`; a starting list that may expand is
 `seeded_expandable`; a direction without named communities is `discover`.
-Project links and other truthful material are optional here. If posts later
-lack material, park only `posts` as `MATERIAL_REQUIRED`; do not ask another
-startup question or invent facts.
+Choosing a preset or supplying custom direction/IP text completes Question 2:
+do not ask a second-round question for community scope, a project link, facts,
+or lived observations. Default omitted scope to `discover` and omitted
+material refs to `[]`. If posts later lack material, park only `posts` as
+`MATERIAL_REQUIRED`; do not ask another startup question or invent facts.
 
 ## Question 3 — authority and operating profile
 
@@ -87,5 +89,13 @@ Once all three answers are complete, normalize Question 2 into `direction`,
 Question 3 into `business_goal`, `coverage_budget`, `action_threshold`,
 `action_budget`, selected units, and authority. `material_refs` are optional
 at startup and `planning_targets` remain evidence/output targets, never forced
-actions. Then perform the same-Chrome live account gate, compile the immutable
-envelope, and begin the single-owner mission. No fourth question is required.
+actions. Then, without another user prompt, complete this same-task transition:
+
+`runtime fence -> immutable envelope -> neutral canary + same-Chrome account
+gate -> Heartbeat create/readback -> INITIAL formal packet`
+
+The `INITIAL` packet is round one of the mission. If it runs `browsing`, it
+must perform the mission's real community/candidate work and record its real
+evidence; it is not a preview, pre-filter, or separate planning round. Technical
+gates remain required, but a passing gate must continue directly into that first
+packet. No fourth question is required.

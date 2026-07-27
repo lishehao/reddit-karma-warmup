@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v10",
+  "schema": "reddit_single_owner_defaults/v11",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
@@ -13,6 +13,13 @@
     "community_scope": "NAMED_COMMUNITIES_CLOSED_SEEDS_EXPANDABLE_OTHERWISE_DISCOVER",
     "business_goal_source": "QUESTION_3_AUTHORITY_AND_OPERATING_PROFILE",
     "material_refs": "OPTIONAL_AT_STARTUP_MISSING_MATERIAL_PARKS_POSTS_LATER"
+  },
+  "startup_transition": {
+    "question_two_completion": "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP",
+    "missing_optional_defaults": "COMMUNITY_SCOPE_DISCOVER_MATERIAL_REFS_EMPTY",
+    "after_three_answers": "RUNTIME_FENCE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_PACKET_SAME_TASK_TURN",
+    "initial_packet": "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER",
+    "technical_gates": "REQUIRED_BUT_NOT_A_SEPARATE_USER_DECISION_STAGE"
   },
   "topology": {
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",

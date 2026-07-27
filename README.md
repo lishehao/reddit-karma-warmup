@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.15`
+Protocol version: `2026.07.27.16`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -41,6 +41,11 @@ all three answers arrive, normalize them into the immutable mission envelope,
 run the same-Chrome account gate, and start the mission. Do not ask a fourth
 clarification merely because posts lack truthful material: compile that unit as
 `MATERIAL_REQUIRED` while other authorized units may proceed.
+
+The three answers are a hard wait. When the task uses `request_user_input`,
+it must omit `autoResolutionMs`; no answer or partial answer remains
+`WAITING_FOR_STARTUP_INPUT`, not permission to choose defaults or start work.
+Only an explicit user cancellation ends this intake.
 
 “高频/低频”是兼容性简称，不改变 15 分钟 Heartbeat：它会被解释为
 覆盖面、软行动门槛和动作预算的组合。版规、真实性、当前账号/表单状态、

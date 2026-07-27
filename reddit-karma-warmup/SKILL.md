@@ -16,6 +16,9 @@ Do not ask for an account: resolve it only through the later same-Chrome live
 account gate. Do not ask the user for a second free-form mission prompt. Do
 not open Chrome or Reddit, run Web Search/API, create a mission
 envelope/queue/Heartbeat, or create unit tasks until all three answers arrive.
+For this required intake, omit `request_user_input.autoResolutionMs`: unanswered
+or partial input stays `WAITING_FOR_STARTUP_INPUT`, and only an explicit user
+cancellation may end intake without a mission.
 
 Before a post-intake mission starts, classify any pre-existing local Reddit
 runtime record with `scripts/runtime_fence.py`. An `ACTIVE` word in an old

@@ -1,5 +1,12 @@
 {
-  "schema": "reddit_single_owner_defaults/v8",
+  "schema": "reddit_single_owner_defaults/v9",
+  "startup_intake": {
+    "question_count": 3,
+    "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
+    "completion": "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER",
+    "unanswered_or_partial": "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH",
+    "silence": "NEVER_IMPLICITLY_CANCELLED"
+  },
   "topology": {
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",
     "chrome_owners": 1,

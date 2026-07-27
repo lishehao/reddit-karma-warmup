@@ -53,7 +53,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.15"
+    assert version == "2026.07.27.16"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -63,7 +63,13 @@ def main() -> None:
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v8"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v9"
+    intake_defaults = defaults["startup_intake"]
+    assert intake_defaults["question_count"] == 3
+    assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
+    assert intake_defaults["completion"] == "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER"
+    assert intake_defaults["unanswered_or_partial"] == "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH"
+    assert intake_defaults["silence"] == "NEVER_IMPLICITLY_CANCELLED"
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
     assert defaults["scheduler"]["packet_lease_seconds"] == 900
     assert "HEARTBEAT" in defaults["scheduler"]["heartbeat_receipt"]
@@ -84,7 +90,7 @@ def main() -> None:
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "STALE_RUNTIME", "ACTIVE_OWNER"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -101,7 +107,7 @@ def main() -> None:
     assert actual == required, actual
     intake = STARTUP_INTAKE.read_text(encoding="utf-8")
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "community discovery", "discussion or feedback", "project operation", "MATERIAL_REQUIRED", "no fourth question"):
+    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "community discovery", "discussion or feedback", "project operation", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "silence never does"):
         assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
     assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts

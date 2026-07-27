@@ -11,9 +11,19 @@ Keep the user's one-line additions as the authorization and source-prompt
 evidence.
 
 When `request_user_input` is available, submit exactly these three questions in
-one request and wait for the user's answers. Otherwise present the same three
-headings in one compact message and wait. Never split them into sequential
-questions or use an automatic timeout to infer an answer. This flow asks no fourth question.
+one request and wait for the user's answers. Omit `autoResolutionMs`: automatic
+resolution is only for nonblocking prompts and is forbidden for this intake.
+Otherwise present the same three headings in one compact message and wait.
+Never split them into sequential questions or use an automatic timeout to infer
+an answer. This flow asks no fourth question.
+
+## Required-answer wait
+
+Treat no response, a partial response, a dismissed form, or a platform-side
+question expiry as `WAITING_FOR_STARTUP_INPUT`. Do not infer missing values,
+compile an envelope, create a queue/Heartbeat, open Chrome, or begin research.
+Resume only when all three answers are explicit. An explicit user cancellation
+ends intake as `STARTUP_CANCELLED_BY_USER`; silence never does.
 
 ## Question 1 — duration
 

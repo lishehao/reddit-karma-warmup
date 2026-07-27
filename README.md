@@ -1,18 +1,31 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.6`
+Protocol version: `2026.07.27.7`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
 ## Send this prompt
 
 ```text
-请完整读取并执行 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md：通过 HTTPS 安装或升级 reddit-karma-warmup。完成只读预检后，创建或继续一个单一、持久化的“Reddit 运营台”，不要创建浏览/评论/发帖/跟进/主页的独立 Chrome 任务。它应在同一任务中处理五个内部单元，默认只研究、投票关闭；API 只用于可选的公开规则/社区索引，所有真实 Reddit 浏览、表单和写操作都走已登录 Chrome。
+请完整读取并执行 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md：通过 HTTPS 安装或升级 reddit-karma-warmup，完成安装完整性与本机能力预检，并完成启动交接；不要进入目标模式。此阶段不得打开 Reddit/Chrome、运行 Web Search/API、创建 mission envelope/queue/Heartbeat，或创建浏览/评论/发帖/跟进/主页任务。完成后仅报告 `BOOTSTRAP_READY`、已验证版本和等待的下一条方向/时长/账号/授权指令。
 ```
+
+## Bootstrap-only boundary
+
+The prompt above is stage one only. Verify the raw/codeload source, package
+layout, manifest version, offline validator, installed tree, current task
+presence, and required tool availability. It may rename the current task to
+`Reddit 启动台` as presentation only. It must not create a mission record,
+queue, timer, Chrome binding, or Reddit tab, and must not search, read, or
+mutate Reddit.
+
+Stop at `BOOTSTRAP_READY`. Only a later user message that supplies a direction,
+duration, account, and explicit action authority may move the same present task
+into the `Reddit 运营台` mission sequence below.
 
 ## Runtime in one page
 
-1. Install the complete Skill atomically under `${CODEX_HOME:-$HOME/.codex}/skills/`.
+1. During bootstrap, install the complete Skill atomically under `${CODEX_HOME:-$HOME/.codex}/skills/`.
    Compare `manifest.json`; never merge versions.
 2. One present, unarchived `Reddit 运营台` owns one mission envelope, one
    queue, one Heartbeat, one Chrome binding, and one primary Reddit tab.

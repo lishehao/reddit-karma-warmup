@@ -5,6 +5,16 @@ description: Run authorized Reddit research, browsing, native posts, comments, f
 
 # Reddit Community Operations
 
+## Bootstrap-only requests
+
+If the user asks to install/upgrade from the HTTPS README and says not to enter
+target mode, do only bootstrap. Verify raw/codeload origin, package layout,
+manifest, offline validator, installed tree, current-task presence, and required
+tool availability. Report `BOOTSTRAP_READY` and wait for a later direction,
+duration, account, and explicit action authority. Do not open Chrome or Reddit,
+run Web Search/API, create a mission envelope/queue/Heartbeat, or create unit
+tasks in this phase.
+
 ## Default: one task, five internal units
 
 Run one present, unarchived, user-visible `Reddit 运营台` for a mission. It owns

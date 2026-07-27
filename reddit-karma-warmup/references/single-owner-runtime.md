@@ -11,7 +11,7 @@ sibling executors.
 one user prompt
   -> one pinned Reddit 运营台
        -> one immutable mission envelope / revision chain
-       -> one durable queue: browsing -> comments -> posts -> follow-up -> presence
+       -> one durable decision ledger: browsing, comments, posts, follow-up, presence
        -> one Chrome binding + one primary Reddit tab
        -> optional <=2 public read tabs after a neutral canary
 ```
@@ -28,12 +28,14 @@ server, browser client, or permission source.
 3. Compile `reddit_single_owner_mission/v1` with
    `scripts/compile_single_owner_mission.py`; atomically persist it outside the
    managed Skill directory.
-4. Bootstrap `reddit_single_owner_queue/v1` with
-   `scripts/single_owner_queue.py bootstrap`. The initial queue contains one
-   generation for every selected active unit in canonical order.
+4. Bootstrap `reddit_single_owner_queue/v2` with
+   `scripts/single_owner_queue.py bootstrap`. The initial record marks every
+   selected active unit due for a decision; it does not enqueue five Chrome
+   packets.
 5. Run a neutral, agent-owned `https://example.com/` canary before Reddit work:
    new tab, navigation, then minimal page proof are separate boundaries.
-6. Persist canary proof, start the first unit, and create/read back one
+6. Persist canary proof, open the first decision round, record a decision for
+   every due unit, then start at most one `RUN` packet. Create/read back one
    mission-level recurring Heartbeat only when unfinished work remains.
 
 The task may request Luna/High only when the host supports it. A request or
@@ -42,7 +44,8 @@ mission owner.
 
 ## Unit execution
 
-The queue starts one unit at a time. `browsing` can use a bounded two-tab,
+Each Heartbeat first records `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due
+unit, then starts at most one selected `RUN` packet. `browsing` can use a bounded two-tab,
 public, read-only batch after the canary. All serial boundaries stay serial:
 
 - tab creation/claim, focus, scrolling, input, click, submit, result readback;
@@ -79,17 +82,20 @@ apply-revision`.
 
 | Change | Safe-boundary behavior |
 | --- | --- |
-| `ADD` | enqueue one fresh unit generation |
+| `ADD` | mark the unit due for the next decision round; do not enqueue Chrome work |
 | `PAUSE` | move only a queued/yielded unit to append-only history; preserve its cursor and evidence |
 | `REMOVE` | same as pause, but mark it removed for this mission revision; never delete history |
-| `RESUME` | enqueue a fresh generation; never rewrite a paused/removed/completed generation |
+| `RESUME` | mark the unit due for a new decision; never rewrite paused/removed/completed evidence |
 | authority / vote policy | retain the five-unit plan, record exact `from`/`to` values, and require a new direct receipt before any authority increase |
 
-The queue rejects a revision if a unit is `RUNNING`, a read batch is open, a
-browser boundary is in flight, the mission is retired, the parent hash/revision
-does not match, or the new authority is malformed. A frozen `action_key` is a
+The queue rejects a revision if a unit is `RUNNING`, a decision round is open,
+a read batch is open, a browser boundary is in flight, the mission is retired,
+the parent hash/revision does not match, or the new authority is malformed. A frozen `action_key` is a
 settled uncertainty record: it cannot be retried or erased, but it does not
 force unrelated read-only units to stop.
+
+Read [decision rounds and Heartbeat](decision-round-and-heartbeat.md) for the
+default packet sizes, persisted due times, and recurring timer behavior.
 
 ## Recovery and retirement
 

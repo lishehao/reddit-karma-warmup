@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.2"
+    assert version == "2026.07.27.3"
     readme_path = ROOT.parent / "README.md"
     readme = readme_path.read_text(encoding="utf-8") if readme_path.is_file() else ""
     agent = (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")

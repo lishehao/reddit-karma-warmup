@@ -1,10 +1,10 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.2`
+Protocol version: `2026.07.27.3`
 
 Run authorized Reddit operations through one persistent, user-visible `Reddit
-运营台`. It owns a durable five-unit queue—browsing, comments, posts, follow-up,
-and presence—rather than creating five Chrome-contending tasks.
+运营台`. It owns a durable five-unit decision ledger—browsing, comments, posts,
+follow-up, and presence—rather than creating five Chrome-contending tasks.
 
 ## Send this one prompt
 
@@ -57,7 +57,7 @@ owns one Chrome binding and one primary Reddit tab. After a neutral canary, it
 runs only one unit at a time in this order:
 
 ```text
-browsing -> comments -> posts -> follow-up -> presence
+decision round -> one selected packet -> next decision round
 ```
 
 At most two agent-owned, public read tabs may be used after a healthy canary.
@@ -96,14 +96,15 @@ revision, not an in-place mutation of the current mission:
 current envelope hash -> compile full revision n+1 -> apply queue revision
 ```
 
-The queue accepts a revision only when there is no running unit, no open read
-batch, no browser boundary in flight, and the mission has not retired. It keeps
+The queue accepts a revision only when there is no running unit, no open
+decision round, no open read batch, no browser boundary in flight, and the
+mission has not retired. It keeps
 append-only history:
 
-- `ADD`: enqueue a fresh generation;
+- `ADD`: mark the unit due for the next decision round, without enqueuing Chrome work;
 - `PAUSE`: preserve a queued/yielded unit and its evidence in history;
 - `REMOVE`: preserve history, mark removed for this revision;
-- `RESUME`: enqueue a fresh generation, never rewrite old evidence.
+- `RESUME`: mark the unit due for a new decision, never rewrite old evidence.
 - authority/vote-policy change: record exact `from`/`to` values; an increase
   still requires a fresh direct authorization receipt.
 
@@ -111,12 +112,19 @@ If a unit is active, return `HOTPLUG_DEFERRED_UNSAFE_BOUNDARY`; finish or yield
 the current unit first. A yielded unit resumes before later queued units unless
 a safe revision pauses/removes it.
 
-### 5. Heartbeat, recovery, and retirement
+### 5. Decision rounds, Heartbeat, recovery, and retirement
 
-One mission-level recurring Heartbeat belongs only to `Reddit 运营台`. It wakes
-the same task, preserves the same queue, and continues a yielded unit before
-starting later work. A real trigger deviation within ±5 minutes is acceptable;
-continue normally. Do not use a `COUNT=1` self-rescheduling timer.
+One mission-level recurring Heartbeat belongs only to `Reddit 运营台`; it runs
+every 20 minutes and wakes the same task. Each wake decides `RUN / WATCH / SKIP
+/ DEFER` for every due unit, then executes at most one Chrome packet and one
+outward action. It does not force a five-unit sweep. A real trigger deviation
+within ±5 minutes is acceptable; continue normally. Later wakes recompute from
+actual time without catch-up. Do not use a `COUNT=1` self-rescheduling timer.
+
+Default decision intervals are browsing 40 min, comments 60 min, posts 180
+min, follow-up 90 min (20 min for an active known chain), and presence 24 h.
+They are recheck cadence, not posting quotas. See
+`references/decision-round-and-heartbeat.md` in the installed Skill.
 
 At mission end, prove all units terminal/paused/removed, settle all browser
 boundaries, release only agent-owned tabs, delete that one Heartbeat, and retire

@@ -10,10 +10,10 @@ For the production default, use one durable record owned by `Reddit 运营台`:
 ${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/single-owner/queues/
 ```
 
-Its schema is `reddit_single_owner_queue/v1`, managed only through
+Its schema is `reddit_single_owner_queue/v2`, managed only through
 `scripts/single_owner_queue.py`. That record keeps the five-unit plan,
-append-only revision history, active/yielded unit, read batch, browser boundary,
-frozen action keys, and Chrome-release proof together. Do not recreate
+append-only decision/wake history, active/yielded unit, read batch, browser
+boundary, frozen action keys, and Chrome-release proof together. Do not recreate
 per-lane checkpoints, per-lane tabs, or per-lane Heartbeats in the production
 topology.
 

@@ -23,6 +23,7 @@ def main():
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     topology = defaults["execution_topology"]
     runtime = defaults["single_owner_runtime"]
+    decision_round = defaults["decision_round"]
     liveness = defaults["single_owner_task_liveness"]
     web = defaults["web_search"]
     posts = defaults["posts"]
@@ -33,7 +34,8 @@ def main():
     assert topology["cross_task_chrome_owner_count"] == 1
     assert topology["public_read_tab_cap_after_canary"] == 2
     assert topology["chrome_boundary_parallelism"] == 1
-    assert runtime["schema"] == "reddit_single_owner_queue/v1"
+    assert runtime["schema"] == "reddit_single_owner_queue/v2"
+    assert runtime["heartbeat_interval_minutes"] == 20
     assert runtime["yielded_unit_blocks_later_units"] is True
     assert runtime["unknown_mutation_policy"] == "FREEZE_EXACT_ACTION_KEY_NO_RETRY"
     assert runtime["hotplug_actions"] == ["ADD", "PAUSE", "REMOVE", "RESUME", "AUTHORITY_CHANGE", "VOTE_POLICY_CHANGE"]
@@ -52,6 +54,15 @@ def main():
     assert chrome["outer_timeout_ms"] >= 120000
     assert chrome["blocking_page_commands_per_cell"] == 1
     assert scheduler["heartbeat_trigger_tolerance_seconds"] == 300
+    assert decision_round["heartbeat_interval_minutes"] == 20
+    assert decision_round["heartbeat_trigger_tolerance_seconds"] == 300
+    assert decision_round["max_chrome_units_per_wake"] == 1
+    assert decision_round["max_outward_actions_per_wake"] == 1
+    assert decision_round["outcomes"] == ["RUN", "WATCH", "SKIP", "DEFER"]
+    assert decision_round["default_recheck_minutes"] == {
+        "browsing": 40, "comments": 60, "posts": 180,
+        "follow-up": 90, "presence": 1440,
+    }
 
     skill = normalized(SKILL)
     atomic = normalized(ATOMIC)
@@ -67,6 +78,8 @@ def main():
         "organization-community-denylist.md",
         "subreddit-profile-index.csv",
         "Timing within the configured ±5-minute tolerance is ordinary",
+        "One decision round is not a mandatory five-unit sweep",
+        "RUN`, `WATCH`, `SKIP`, or `DEFER`",
     ):
         assert phrase in skill, phrase
     for phrase in (
@@ -100,6 +113,7 @@ def main():
         "post_policy": "COMPLIANCE_FIRST",
         "vote_policy": "BROWSING_ONLY",
         "heartbeat_tolerance_seconds": 300,
+        "decision_round": "ONE_PACKET_PER_WAKE",
         "single_owner_chrome_boundaries": True,
         "root_readme": "PRESENT" if README.is_file() else "OPTIONAL_ABSENT",
     }, sort_keys=True))

@@ -23,8 +23,16 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "queues"
 LANE_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-SCHEMA = "reddit_single_owner_queue/v1"
+SCHEMA = "reddit_single_owner_queue/v2"
 HEX_256 = re.compile(r"^[0-9a-f]{64}$")
+DECISIONS = ("RUN", "WATCH", "SKIP", "DEFER")
+DEFAULT_RECHECK_MINUTES = {
+    "browsing": 40,
+    "comments": 60,
+    "posts": 180,
+    "follow-up": 90,
+    "presence": 1440,
+}
 DEFAULT_AUTHORITY = {
     "browsing": "READ_ONLY",
     "comments": "RESEARCH_ONLY",
@@ -43,6 +51,31 @@ ALLOWED_AUTHORITY = {
 
 def utc(epoch):
     return dt.datetime.fromtimestamp(epoch, tz=dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def parse_utc(name, value):
+    value = required(name, value, 64)
+    if not value.endswith("Z"):
+        raise ValueError("invalid " + name)
+    try:
+        parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("invalid " + name) from exc
+    if parsed.tzinfo != dt.timezone.utc:
+        raise ValueError("invalid " + name)
+    return parsed.timestamp()
+
+
+def configured_now(raw):
+    return parse_utc("now_utc", raw) if raw is not None else time.time()
+
+
+def recheck_minutes(raw, lane):
+    if raw is None:
+        return DEFAULT_RECHECK_MINUTES[lane]
+    if not isinstance(raw, int) or isinstance(raw, bool) or not 20 <= raw <= 10080:
+        raise ValueError("invalid next_due_minutes")
+    return raw
 
 
 def required(name, value, maximum=512):
@@ -92,6 +125,12 @@ def load_envelope(path):
         raise ValueError("not a single-owner envelope")
     mission_id = required("mission_id", envelope.get("mission_id"))
     account = required("account", envelope.get("account"))
+    operation_start_at = required("operation_start_at", envelope.get("operation_start_at"), 64)
+    operation_stop_at = required("operation_stop_at", envelope.get("operation_stop_at"), 64)
+    start_epoch = parse_utc("operation_start_at", operation_start_at)
+    stop_epoch = parse_utc("operation_stop_at", operation_stop_at)
+    if stop_epoch <= start_epoch:
+        raise ValueError("invalid mission time range")
     revision = envelope.get("mission_revision")
     if not isinstance(revision, int) or revision < 1:
         raise ValueError("invalid mission_revision")
@@ -140,6 +179,10 @@ def load_envelope(path):
     return {
         "mission_id": mission_id,
         "account": account,
+        "operation_start_at": operation_start_at,
+        "operation_stop_at": operation_stop_at,
+        "operation_start_epoch": start_epoch,
+        "operation_stop_epoch": stop_epoch,
         "mission_revision": revision,
         "mission_envelope_sha256": stored_hash,
         "parent_envelope_sha256": parent_hash,
@@ -220,6 +263,10 @@ def initial(scope, owner_task_id, envelope, now):
         "executor_task_id": owner_task_id,
         "mission_id": envelope["mission_id"],
         "account": envelope["account"],
+        "operation_start_at": envelope["operation_start_at"],
+        "operation_stop_at": envelope["operation_stop_at"],
+        "operation_start_epoch": envelope["operation_start_epoch"],
+        "operation_stop_epoch": envelope["operation_stop_epoch"],
         "mission_revision": envelope["mission_revision"],
         "mission_envelope_sha256": envelope["mission_envelope_sha256"],
         "lane_order": list(LANE_ORDER),
@@ -237,17 +284,75 @@ def initial(scope, owner_task_id, envelope, now):
         "queue": [],
         "active": None,
         "history": [],
+        "unit_schedule": {
+            lane: {
+                "next_due_at_utc": utc(envelope["operation_start_epoch"]),
+                "next_due_epoch": envelope["operation_start_epoch"],
+                "last_decision": None,
+                "last_decision_reason": None,
+            }
+            for lane in LANE_ORDER
+        },
+        "wake": None,
+        "wake_history": [],
         "revision_history": [],
         "updated_at_utc": utc(now),
     }
-    for lane in envelope["selected_units"]:
-        if lane not in envelope["paused_units"]:
-            record["queue"].append(make_unit(record, lane, now, "INITIAL"))
     return record
 
 
 def all_units(record):
     return record["queue"] + record["history"] + ([record["active"]] if record["active"] else [])
+
+
+def due_units(record, now):
+    return [
+        lane for lane in LANE_ORDER
+        if record["unit_plan"][lane] == "ACTIVE"
+        and record["unit_schedule"][lane]["next_due_epoch"] <= now
+    ]
+
+
+def next_due(record, lane, now, minutes=None):
+    delay = recheck_minutes(minutes, lane)
+    record["unit_schedule"][lane]["next_due_epoch"] = now + delay * 60
+    record["unit_schedule"][lane]["next_due_at_utc"] = utc(now + delay * 60)
+    return delay
+
+
+def archive_wake(record, outcome, now):
+    wake = record.get("wake")
+    if wake is None:
+        return
+    wake["outcome"] = outcome
+    wake["closed_at_utc"] = utc(now)
+    record["wake_history"].append(wake)
+    record["wake"] = None
+
+
+def active_yielded_item(record):
+    yielded = [item for item in record["queue"] if item.get("status") == "YIELDED"]
+    return min(yielded, key=lambda item: (LANE_ORDER.index(item["lane"]), item["sequence"])) if yielded else None
+
+
+def decisions_complete(wake):
+    return set(wake["decisions"]) == set(wake["due_units"])
+
+
+def record_decision(record, wake, lane, decision, reason, now, minutes):
+    value = {
+        "decision": decision,
+        "reason": reason,
+        "decided_at_utc": utc(now),
+        "next_due_minutes": minutes,
+    }
+    wake["decisions"][lane] = value
+    schedule = record["unit_schedule"][lane]
+    schedule["last_decision"] = decision
+    schedule["last_decision_reason"] = reason
+    if decision != "RUN":
+        next_due(record, lane, now, minutes)
+    return value
 
 
 def validate_record(record, scope, owner_task_id):
@@ -259,10 +364,39 @@ def validate_record(record, scope, owner_task_id):
         raise ValueError("single owner mismatch")
     if record.get("lane_order") != list(LANE_ORDER):
         raise ValueError("lane order mismatch")
+    if not isinstance(record.get("operation_start_epoch"), (int, float)) or not isinstance(record.get("operation_stop_epoch"), (int, float)) or record["operation_stop_epoch"] <= record["operation_start_epoch"]:
+        raise ValueError("invalid mission time")
     if set(record.get("unit_plan", {})) != set(LANE_ORDER) or any(state not in ("ACTIVE", "PAUSED", "REMOVED") for state in record["unit_plan"].values()):
         raise ValueError("invalid unit plan")
     if not isinstance(record.get("queue"), list) or not isinstance(record.get("history"), list):
         raise ValueError("invalid queue lists")
+    schedule = record.get("unit_schedule")
+    if not isinstance(schedule, dict) or set(schedule) != set(LANE_ORDER):
+        raise ValueError("invalid unit schedule")
+    for lane, state in schedule.items():
+        if not isinstance(state, dict) or not isinstance(state.get("next_due_epoch"), (int, float)) or not isinstance(state.get("next_due_at_utc"), str):
+            raise ValueError("invalid unit schedule")
+    wake = record.get("wake")
+    if wake is not None:
+        if not isinstance(wake, dict) or wake.get("state") not in ("OPEN", "READY_TO_RUN", "RECOVERY_PENDING"):
+            raise ValueError("invalid wake")
+        if not isinstance(wake.get("wake_id"), str) or not isinstance(wake.get("due_units"), list) or any(lane not in LANE_ORDER for lane in wake["due_units"]):
+            raise ValueError("invalid wake")
+        if not isinstance(wake.get("expected_at_utc"), str) or not isinstance(wake.get("actual_at_utc"), str):
+            raise ValueError("invalid wake timing")
+        if not isinstance(wake.get("trigger_delta_seconds"), (int, float)) or wake.get("trigger_state") not in ("WITHIN_TOLERANCE", "RECOMPUTED_FROM_ACTUAL"):
+            raise ValueError("invalid wake trigger state")
+        if not isinstance(wake.get("decisions"), dict) or any(lane not in wake["due_units"] for lane in wake["decisions"]):
+            raise ValueError("invalid wake decisions")
+        for lane, value in wake["decisions"].items():
+            if not isinstance(value, dict) or value.get("decision") not in DECISIONS:
+                raise ValueError("invalid wake decision")
+            if not isinstance(value.get("reason"), str):
+                raise ValueError("invalid wake decision reason")
+        if wake.get("run_unit_id") is not None and not isinstance(wake["run_unit_id"], str):
+            raise ValueError("invalid wake run unit")
+    if not isinstance(record.get("wake_history"), list):
+        raise ValueError("invalid wake history")
     if record.get("canary", {}).get("state") not in ("PENDING", "PASSED"):
         raise ValueError("invalid canary")
     if record.get("chrome_release", {}).get("state") not in ("PENDING", "RELEASED"):
@@ -312,6 +446,13 @@ def public(record, status, now, detail=None):
         "browser_boundary_in_flight": record.get("browser_boundary") is not None,
         "queued_count": len(record["queue"]),
         "history_count": len(record["history"]),
+        "wake_id": (record.get("wake") or {}).get("wake_id"),
+        "wake_state": (record.get("wake") or {}).get("state"),
+        "due_units": due_units(record, now),
+        "unit_next_due_at_utc": {
+            lane: record["unit_schedule"][lane]["next_due_at_utc"]
+            for lane in LANE_ORDER
+        },
         "frozen_action_key_count": len(record["frozen_action_keys"]),
         "updated_at_utc": utc(now),
     }
@@ -364,6 +505,8 @@ def safe_boundary(record):
         return False, "READ_BATCH_ACTIVE"
     if record.get("browser_boundary") is not None:
         return False, "BROWSER_BOUNDARY_IN_FLIGHT"
+    if record.get("wake") is not None:
+        return False, "WAKE_DECISION_OPEN"
     return True, None
 
 
@@ -399,16 +542,20 @@ def apply_revision(record, envelope, now):
     if envelope["vote_policy_change"] != expected_vote_policy_change:
         return "VOTE_POLICY_CHANGE_MISMATCH", {"expected_vote_policy_change": expected_vote_policy_change}
     history_ids = []
-    created_ids = []
+    scheduled_due_units = []
     for lane in LANE_ORDER:
         before, after = record["unit_plan"][lane], desired[lane]
         if before == after:
             continue
         if after == "ACTIVE":
             record["unit_plan"][lane] = "ACTIVE"
-            item = make_unit(record, lane, now, expected_change(before, after))
-            record["queue"].append(item)
-            created_ids.append(item["unit_id"])
+            record["unit_schedule"][lane] = {
+                "next_due_at_utc": utc(now),
+                "next_due_epoch": now,
+                "last_decision": "RESUME" if before == "PAUSED" else "ADD",
+                "last_decision_reason": "REVISION_" + expected_change(before, after),
+            }
+            scheduled_due_units.append(lane)
         elif after == "PAUSED":
             history_ids.extend(archive_open_units(record, lane, "PAUSED_BY_REVISION", now, envelope["mission_revision"]))
             record["unit_plan"][lane] = "PAUSED"
@@ -424,7 +571,7 @@ def apply_revision(record, envelope, now):
         "authority_changes": expected_authority_changes,
         "vote_policy_change": expected_vote_policy_change,
         "archived_unit_ids": history_ids,
-        "created_unit_ids": created_ids,
+        "scheduled_due_units": scheduled_due_units,
         "applied_at_utc": utc(now),
     })
     record["mission_revision"] = envelope["mission_revision"]
@@ -436,7 +583,7 @@ def apply_revision(record, envelope, now):
         "unit_changes": expected,
         "authority_changes": expected_authority_changes,
         "vote_policy_change": expected_vote_policy_change,
-        "created_unit_ids": created_ids,
+        "scheduled_due_units": scheduled_due_units,
         "archived_unit_ids": history_ids,
     }
 
@@ -450,7 +597,7 @@ def command(args):
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("a+") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-        now = time.time()
+        now = configured_now(args.now_utc)
         record = read_record(record_path)
         if record is None:
             if args.command != "bootstrap":
@@ -481,14 +628,116 @@ def command(args):
             record["updated_at_utc"] = utc(now)
             atomic_write(record_path, record)
             return public(record, "CANARY_PASSED", now)
+        if args.command == "wake-open":
+            if record["canary"]["state"] != "PASSED":
+                return public(record, "CANARY_REQUIRED", now)
+            if now >= record["operation_stop_epoch"]:
+                return public(record, "DEADLINE_REACHED", now)
+            if record.get("active") is not None:
+                return public(record, "ACTIVE_UNIT_EXISTS", now)
+            if record.get("wake") is not None:
+                return public(record, "WAKE_ALREADY_OPEN", now)
+            wake_id = required("wake_id", args.wake_id, 256)
+            expected_at = parse_utc("expected_at_utc", args.expected_at_utc)
+            trigger_delta_seconds = now - expected_at
+            trigger_state = "WITHIN_TOLERANCE" if abs(trigger_delta_seconds) <= 300 else "RECOMPUTED_FROM_ACTUAL"
+            timing = {
+                "expected_at_utc": utc(expected_at),
+                "actual_at_utc": utc(now),
+                "trigger_delta_seconds": trigger_delta_seconds,
+                "trigger_state": trigger_state,
+            }
+            yielded = active_yielded_item(record)
+            if yielded is not None:
+                record["wake"] = {
+                    "wake_id": wake_id,
+                    "state": "RECOVERY_PENDING",
+                    "opened_at_utc": utc(now),
+                    **timing,
+                    "due_units": [yielded["lane"]],
+                    "decisions": {
+                        yielded["lane"]: {
+                            "decision": "RUN",
+                            "reason": "YIELDED_RECOVERY_FIRST",
+                            "decided_at_utc": utc(now),
+                            "next_due_minutes": yielded.get("next_due_minutes", DEFAULT_RECHECK_MINUTES[yielded["lane"]]),
+                        }
+                    },
+                    "run_unit_id": yielded["unit_id"],
+                }
+                record["updated_at_utc"] = utc(now)
+                atomic_write(record_path, record)
+                return public(record, "WAKE_RECOVERY_REQUIRED", now, {"unit_id": yielded["unit_id"], "lane": yielded["lane"], "trigger_state": trigger_state, "trigger_delta_seconds": trigger_delta_seconds})
+            due = due_units(record, now)
+            if not due:
+                return public(record, "WAKE_NOT_DUE", now)
+            record["wake"] = {
+                "wake_id": wake_id,
+                "state": "OPEN",
+                "opened_at_utc": utc(now),
+                **timing,
+                "due_units": due,
+                "decisions": {},
+                "run_unit_id": None,
+            }
+            record["updated_at_utc"] = utc(now)
+            atomic_write(record_path, record)
+            return public(record, "WAKE_OPENED", now, {"wake_id": wake_id, "due_units": due, "trigger_state": trigger_state, "trigger_delta_seconds": trigger_delta_seconds})
+        if args.command == "decide":
+            wake = record.get("wake")
+            if wake is None:
+                return public(record, "WAKE_REQUIRED", now)
+            if wake.get("state") != "OPEN":
+                return public(record, "WAKE_NOT_DECIDABLE", now)
+            if required("wake_id", args.wake_id, 256) != wake["wake_id"]:
+                return public(record, "WAKE_ID_MISMATCH", now)
+            lane = required("unit", args.unit, 64)
+            if lane not in wake["due_units"]:
+                return public(record, "UNIT_NOT_DUE", now, {"unit": lane})
+            if lane in wake["decisions"]:
+                return public(record, "UNIT_ALREADY_DECIDED", now, {"unit": lane})
+            decision = required("decision", args.decision, 16)
+            if decision not in DECISIONS:
+                raise ValueError("invalid decision")
+            if decision == "RUN" and wake.get("run_unit_id") is not None:
+                return public(record, "WAKE_RUN_ALREADY_SELECTED", now)
+            reason = required("reason", args.reason, 1024)
+            minutes = recheck_minutes(args.next_due_minutes, lane)
+            result = record_decision(record, wake, lane, decision, reason, now, minutes)
+            if decision == "RUN":
+                item = make_unit(record, lane, now, "DECISION:" + wake["wake_id"])
+                item["next_due_minutes"] = minutes
+                record["queue"].append(item)
+                wake["run_unit_id"] = item["unit_id"]
+                result["unit_id"] = item["unit_id"]
+            wake_closed = False
+            if decisions_complete(wake):
+                if wake.get("run_unit_id") is not None:
+                    wake["state"] = "READY_TO_RUN"
+                else:
+                    archive_wake(record, "NO_RUN", now)
+                    wake_closed = True
+            record["updated_at_utc"] = utc(now)
+            atomic_write(record_path, record)
+            return public(record, "DECISION_RECORDED", now, {
+                "unit": lane,
+                "decision": decision,
+                "wake_closed": wake_closed,
+                "unit_id": result.get("unit_id"),
+            })
         if args.command == "start":
             if record["canary"]["state"] != "PASSED":
                 return public(record, "CANARY_REQUIRED", now)
             if record["active"] is not None:
                 return public(record, "ACTIVE_UNIT_EXISTS", now)
-            item = select_next(record["queue"])
+            wake = record.get("wake")
+            if wake is None:
+                return public(record, "WAKE_REQUIRED", now)
+            if wake.get("state") not in ("READY_TO_RUN", "RECOVERY_PENDING"):
+                return public(record, "WAKE_DECISIONS_INCOMPLETE", now)
+            item = next((candidate for candidate in record["queue"] if candidate["unit_id"] == wake.get("run_unit_id")), None)
             if item is None:
-                return public(record, "QUEUE_EMPTY", now)
+                return public(record, "WAKE_RUN_UNIT_MISSING", now)
             record["queue"].remove(item)
             was_yielded = item["status"] == "YIELDED"
             item["status"] = "RUNNING"
@@ -579,13 +828,16 @@ def command(args):
             active["closed_at_utc"] = utc(now)
             if terminal == "YIELDED":
                 record["queue"].append(active)
+                archive_wake(record, "YIELDED", now)
             else:
                 record["history"].append(active)
+                next_due(record, active["lane"], now, active.get("next_due_minutes"))
+                archive_wake(record, terminal, now)
             record["updated_at_utc"] = utc(now)
             atomic_write(record_path, record)
             return public(record, terminal, now, {"unit_id": active["unit_id"]})
         if args.command == "release-tabs":
-            if record.get("active") is not None or record.get("queue") or record.get("active_read_batch") is not None or record.get("browser_boundary") is not None:
+            if record.get("active") is not None or record.get("queue") or record.get("wake") is not None or record.get("active_read_batch") is not None or record.get("browser_boundary") is not None:
                 return public(record, "WORK_REMAINS", now)
             if record["chrome_release"]["state"] == "RELEASED":
                 return public(record, "TABS_ALREADY_RELEASED", now)
@@ -594,7 +846,7 @@ def command(args):
             atomic_write(record_path, record)
             return public(record, "TABS_RELEASED", now)
         if args.command == "retire":
-            if record.get("active") is not None or record.get("queue") or record.get("active_read_batch") is not None or record.get("browser_boundary") is not None:
+            if record.get("active") is not None or record.get("queue") or record.get("wake") is not None or record.get("active_read_batch") is not None or record.get("browser_boundary") is not None:
                 return public(record, "WORK_REMAINS", now)
             if record["chrome_release"]["state"] != "RELEASED":
                 return public(record, "CHROME_RELEASE_REQUIRED", now)
@@ -608,7 +860,7 @@ def command(args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=(
-        "bootstrap", "inspect", "apply-revision", "canary-pass", "start",
+        "bootstrap", "inspect", "apply-revision", "canary-pass", "wake-open", "decide", "start",
         "boundary-open", "boundary-settle", "read-batch-open", "read-batch-settle",
         "freeze-action", "complete", "skip", "block", "yield", "release-tabs", "retire",
     ))
@@ -624,6 +876,13 @@ def main():
     parser.add_argument("--boundary-kind")
     parser.add_argument("--boundary-outcome")
     parser.add_argument("--action-key")
+    parser.add_argument("--wake-id")
+    parser.add_argument("--unit")
+    parser.add_argument("--decision")
+    parser.add_argument("--reason")
+    parser.add_argument("--next-due-minutes", type=int)
+    parser.add_argument("--now-utc")
+    parser.add_argument("--expected-at-utc")
     args = parser.parse_args()
     try:
         result = command(args)

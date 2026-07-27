@@ -24,7 +24,7 @@
     ]
   },
   "single_owner_runtime": {
-    "schema": "reddit_single_owner_queue/v1",
+    "schema": "reddit_single_owner_queue/v2",
     "state_root": "${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/single-owner/queues",
     "mission_root": "${CODEX_HOME:-$HOME/.codex}/reddit-karma-warmup/single-owner/missions",
     "revision_policy": "IMMUTABLE_HASH_CHAIN",
@@ -36,9 +36,34 @@
       "AUTHORITY_CHANGE",
       "VOTE_POLICY_CHANGE"
     ],
-    "heartbeat_interval_minutes": 15,
+    "heartbeat_interval_minutes": 20,
     "yielded_unit_blocks_later_units": true,
     "unknown_mutation_policy": "FREEZE_EXACT_ACTION_KEY_NO_RETRY"
+  },
+  "decision_round": {
+    "schema": "reddit_decision_round/v1",
+    "heartbeat_interval_minutes": 20,
+    "heartbeat_trigger_tolerance_seconds": 300,
+    "cleanup_grace_minutes": 25,
+    "max_chrome_units_per_wake": 1,
+    "max_outward_actions_per_wake": 1,
+    "due_unit_decision_required": true,
+    "outcomes": ["RUN", "WATCH", "SKIP", "DEFER"],
+    "default_recheck_minutes": {
+      "browsing": 40,
+      "comments": 60,
+      "posts": 180,
+      "follow-up": 90,
+      "presence": 1440
+    },
+    "active_followup_recheck_minutes": 20,
+    "unit_packet_caps": {
+      "browsing": {"qualified_reads_min": 10, "qualified_reads_max": 18, "community_contexts_max": 5, "outward_actions_max": 1},
+      "comments": {"candidate_reads_min": 4, "candidate_reads_max": 8, "outward_actions_max": 1},
+      "posts": {"community_rule_reads_min": 8, "community_rule_reads_max": 12, "outward_actions_max": 1},
+      "follow-up": {"known_chain_checks_max": 10, "outward_actions_max": 1},
+      "presence": {"profile_or_community_changes_max": 1, "outward_actions_max": 1}
+    }
   },
   "default_duration_hours": 3,
   "default_intensity": "standard",

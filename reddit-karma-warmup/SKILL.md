@@ -9,7 +9,7 @@ description: Run authorized Reddit community operations through the user's logge
 
 The production default is one user-visible, pinned `Reddit 运营台`. It owns the
 complete mission, one Chrome binding, one primary Reddit tab, its Heartbeat,
-and a durable queue of five work units:
+and a durable decision ledger for five work units:
 
 | Unit | May do | Never does |
 | --- | --- | --- |
@@ -66,6 +66,7 @@ All five units are hot-pluggable, but only at a **safe boundary**:
 
 ```text
 no RUNNING unit
+AND no open decision round
 AND no open read batch
 AND no browser boundary in flight
 AND every uncertain mutation has a frozen exact action_key
@@ -77,8 +78,9 @@ Use a new, fully hashed mission revision rather than editing the prior envelope.
 create an append-only revision record. An authority increase still requires a
 new direct user receipt; a hot-plug never manufactures permission.
 An active unit must finish or yield first; a paused/removed unit retains history
-and is never silently deleted. Resuming creates a fresh unit generation, not a
-rewrite of old evidence. Read [single-owner runtime](references/single-owner-runtime.md)
+and is never silently deleted. Resuming schedules a fresh decision; a new unit
+generation exists only if that decision selects `RUN`, never as a rewrite of
+old evidence. Read [single-owner runtime](references/single-owner-runtime.md)
 and [one-prompt runtime](references/one-prompt-runtime.md) before applying a
 revision.
 
@@ -88,6 +90,7 @@ revision.
 | --- | --- | --- |
 | install / first preflight | [single-owner runtime](references/single-owner-runtime.md), [model runtime](references/model-runtime.md), [operation defaults](references/operation-defaults.json) | [community audit pool](references/community-audit-pool.md) for local public-cache setup |
 | every mission or revision | [single-owner runtime](references/single-owner-runtime.md), [unit ownership](references/lane-action-ownership.md), [Chrome atomic runtime](references/chrome-atomic-command-runtime.md) | [network recovery](references/chrome-network-recovery.md) only after a failure |
+| every Heartbeat / decision round | [decision rounds and Heartbeat](references/decision-round-and-heartbeat.md) | unit playbook only when that unit is selected `RUN` |
 | browsing unit | [browse/vote playbook](references/browse-vote-playbook.md) | vote policy only when the envelope authorizes browsing votes |
 | comments unit | [comments playbook](references/comments-playbook.md), [Web Search preflight](references/web-search-preflight.md) | [outbound copy gate](references/outbound-copy-gate.md) immediately before a draft/submission |
 | posts unit | [posts playbook](references/posts-playbook.md), [post KPI](references/post-coverage-and-kpi.md), [Web Search preflight](references/web-search-preflight.md) | [selection funnel](references/community-selection-funnel.md), [copy gate](references/outbound-copy-gate.md) only when relevant |
@@ -118,11 +121,13 @@ success.
 
 ```text
 COMPILE ENVELOPE -> BOOTSTRAP QUEUE -> NEUTRAL CANARY ->
-START ONE UNIT -> DISCOVER/QUALIFY -> [DRAFT] -> ACT/VERIFY ->
-COMPLETE or YIELD -> NEXT UNIT -> RELEASE -> RETIRE
+HEARTBEAT DECIDES EVERY DUE UNIT -> RUN AT MOST ONE PACKET ->
+ACT/VERIFY -> COMPLETE or YIELD -> NEXT HEARTBEAT -> RELEASE -> RETIRE
 ```
 
-`YIELDED` is a same-mission recovery state. It blocks later queued units until
+One decision round is not a mandatory five-unit sweep. Each due unit receives a
+durable `RUN`, `WATCH`, `SKIP`, or `DEFER` decision; only one `RUN` packet may
+cross the Chrome boundary in that wake. `YIELDED` is a same-mission recovery state. It blocks later queued units until
 the same unit is resumed or an explicitly accepted safe-boundary revision pauses
 or removes it. Do not create another task, reset its budget, or duplicate an
 uncertain action.

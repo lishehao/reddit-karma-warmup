@@ -15,6 +15,7 @@ DEFAULTS = ROOT / "references" / "operation-defaults.json"
 INDEX = ROOT / "scripts" / "community_index.py"
 COMPILER = ROOT / "scripts" / "compile_single_owner_mission.py"
 QUEUE = ROOT / "scripts" / "single_owner_queue.py"
+BROWSER_LEDGER = ROOT / "scripts" / "validate_browser_step_ledger.py"
 
 
 def run(*args: str) -> dict:
@@ -37,11 +38,20 @@ def heartbeat_record(shared: tuple[str, ...], now: str, until: str, next_run: st
     )
 
 
+def promote(shared: tuple[str, ...], now: str, proof: str) -> dict:
+    return run(
+        str(QUEUE), "presentation-promote", *shared,
+        "--presentation-title", "Reddit 运营台",
+        "--proof-sha256", proof,
+        "--now-utc", now,
+    )
+
+
 def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.12"
+    assert version == "2026.07.27.13"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -51,7 +61,7 @@ def main() -> None:
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v6"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v7"
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
     assert defaults["scheduler"]["packet_lease_seconds"] == 900
     assert "HEARTBEAT" in defaults["scheduler"]["heartbeat_receipt"]
@@ -70,7 +80,7 @@ def main() -> None:
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "browsing candidate pack -> comments/posts ACTION_ELIGIBLE", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -84,7 +94,8 @@ def main() -> None:
     actual = {path.name for path in (ROOT / "references").iterdir()}
     assert actual == required, actual
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
-    assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "validate_single_owner_v2_contract.py"}, scripts
+    assert scripts == {"compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
+    assert run(str(BROWSER_LEDGER), "--self-test")["status"] == "PASS"
     with tempfile.TemporaryDirectory() as temporary:
         work = Path(temporary)
         status = run(str(INDEX), "--root", str(work / "index"), "status")
@@ -108,6 +119,8 @@ def main() -> None:
         bootstrapped = run(str(QUEUE), "bootstrap", *shared, "--now-utc", "2026-07-27T00:00:00Z")
         assert bootstrapped["status"] == "BOOTSTRAPPED" and bootstrapped["due_units"] == ["browsing", "posts"]
         proof = "0" * 64
+        assert run(str(QUEUE), "canary-pass", *shared, "--proof-sha256", proof)["status"] == "PRESENTATION_REQUIRED"
+        assert promote(shared, "2026-07-27T00:00:00Z", proof)["status"] == "PRESENTATION_PROMOTED"
         assert run(str(QUEUE), "canary-pass", *shared, "--proof-sha256", proof)["status"] == "CANARY_PASSED"
         assert run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:00:00Z")["status"] == "MISSION_SCHEDULER_UNVERIFIED"
         bad_timer = run(
@@ -123,7 +136,9 @@ def main() -> None:
         assert bad_timer["status"] == "INVALID" and "heartbeat_rrule" in bad_timer["error"]
         recorded = heartbeat_record(shared, "2026-07-27T00:00:01Z", "2026-07-27T02:25:00Z", "2026-07-27T00:15:00Z", "owner-1", proof)
         assert recorded["status"] == "HEARTBEAT_VERIFIED" and recorded["heartbeat"]["next_run_at_utc"] == "2026-07-27T00:15:00Z"
-        assert run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:04:59Z")["status"] == "WAKE_OPEN"
+        observed = run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:00:02Z")
+        assert observed["status"] == "HEARTBEAT_EARLY_OBSERVED"
+        assert run(str(QUEUE), "wake-open", *shared, "--wake-source", "INITIAL", "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:04:59Z")["status"] == "WAKE_OPEN"
         assert run(str(QUEUE), "decide", *shared, "--unit", "browsing", "--decision", "RUN", "--reason", "read current context", "--now-utc", "2026-07-27T00:05:00Z")["status"] == "DECISION_RECORDED"
         assert run(str(QUEUE), "decide", *shared, "--unit", "posts", "--decision", "DEFER", "--reason", "not due for one packet", "--now-utc", "2026-07-27T00:05:01Z")["status"] == "DECISION_RECORDED"
         started = run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:05:02Z")
@@ -140,12 +155,14 @@ def main() -> None:
         assert completed["mission_strategy"]["action_budget"] == "active"
         assert completed["heartbeat"]["state"] == "NEEDS_READBACK"
         assert heartbeat_record(shared, "2026-07-27T00:05:06Z", "2026-07-27T02:25:00Z", "2026-07-27T00:15:00Z", "owner-1", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:15:00Z")["status"] == "HEARTBEAT_OBSERVED"
         action_due = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:15:00Z", "--now-utc", "2026-07-27T00:15:00Z")
         assert action_due["status"] == "WAKE_OPEN" and action_due["due_units"] == ["posts"]
         action_defer = run(str(QUEUE), "decide", *shared, "--unit", "posts", "--decision", "DEFER", "--reason", "candidate packet first", "--now-utc", "2026-07-27T00:15:01Z")
         assert action_defer["scheduler_adjustment"] == "ACTION_WINDOW_CLAMPED_TO_NEXT_GRID"
         assert run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:15:02Z")["status"] == "NO_PACKET"
         assert heartbeat_record(shared, "2026-07-27T00:15:03Z", "2026-07-27T02:25:00Z", "2026-07-27T00:30:00Z", "owner-1", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:20:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
         no_work = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:20:00Z", "--now-utc", "2026-07-27T00:20:00Z")
         assert no_work["status"] == "NOOP" and no_work["due_units"] == []
         assert no_work["heartbeat"]["state"] == "NEEDS_READBACK"
@@ -168,9 +185,10 @@ def main() -> None:
         assert boot["objective_state"]["posts"] == "PENDING"
         assert boot["objective_state"]["comments"] == "PENDING"
         assert boot["objective_state"]["follow-up"] == "NOT_APPLICABLE"
+        assert promote(action_shared, "2026-07-27T01:00:00Z", proof)["status"] == "PRESENTATION_PROMOTED"
         assert run(str(QUEUE), "canary-pass", *action_shared, "--proof-sha256", proof)["status"] == "CANARY_PASSED"
         assert heartbeat_record(action_shared, "2026-07-27T01:00:00Z", "2026-07-27T03:25:00Z", "2026-07-27T01:15:00Z", "owner-2", proof)["status"] == "HEARTBEAT_VERIFIED"
-        assert run(str(QUEUE), "wake-open", *action_shared, "--expected-at-utc", "2026-07-27T01:00:00Z", "--now-utc", "2026-07-27T01:00:00Z")["status"] == "WAKE_OPEN"
+        assert run(str(QUEUE), "wake-open", *action_shared, "--wake-source", "INITIAL", "--expected-at-utc", "2026-07-27T01:00:00Z", "--now-utc", "2026-07-27T01:00:00Z")["status"] == "WAKE_OPEN"
         assert run(str(QUEUE), "decide", *action_shared, "--unit", "comments", "--decision", "DEFER", "--reason", "post audit first", "--now-utc", "2026-07-27T01:00:01Z")["status"] == "DECISION_RECORDED"
         assert run(str(QUEUE), "decide", *action_shared, "--unit", "posts", "--decision", "RUN", "--reason", "one truthful audit", "--now-utc", "2026-07-27T01:00:02Z")["status"] == "DECISION_RECORDED"
         started = run(str(QUEUE), "start", *action_shared, "--now-utc", "2026-07-27T01:00:03Z")
@@ -208,9 +226,11 @@ def main() -> None:
         run(str(COMPILER), "--input", str(priority_source), "--output", str(priority_envelope))
         priority_shared = ("--root", str(queue_root), "--scope", "priority-contract", "--owner-task-id", "owner-3", "--mission-envelope", str(priority_envelope))
         run(str(QUEUE), "bootstrap", *priority_shared, "--now-utc", "2026-07-27T03:00:00Z")
+        promote(priority_shared, "2026-07-27T03:00:00Z", proof)
         run(str(QUEUE), "canary-pass", *priority_shared, "--proof-sha256", proof)
         assert heartbeat_record(priority_shared, "2026-07-27T03:00:00Z", "2026-07-27T05:25:00Z", "2026-07-27T03:15:00Z", "owner-3", proof)["status"] == "HEARTBEAT_VERIFIED"
         run(str(QUEUE), "objective-set", *priority_shared, "--unit", "posts", "--objective-state", "ACTION_ELIGIBLE", "--objective-reason", "live route plus real material", "--source-ref", "route:verified:1", "--now-utc", "2026-07-27T03:00:01Z")
+        assert run(str(QUEUE), "heartbeat-observe", *priority_shared, "--now-utc", "2026-07-27T03:15:00Z")["status"] == "HEARTBEAT_OBSERVED"
         priority_wake = run(str(QUEUE), "wake-open", *priority_shared, "--expected-at-utc", "2026-07-27T03:15:00Z", "--now-utc", "2026-07-27T03:15:00Z")
         assert priority_wake["due_units"][:2] == ["posts", "browsing"], priority_wake
 
@@ -230,9 +250,11 @@ def main() -> None:
         run(str(COMPILER), "--input", str(expiry_source), "--output", str(expiry_envelope))
         expiry_shared = ("--root", str(queue_root), "--scope", "expiry-contract", "--owner-task-id", "owner-4", "--mission-envelope", str(expiry_envelope))
         run(str(QUEUE), "bootstrap", *expiry_shared, "--now-utc", "2026-07-27T04:00:00Z")
+        promote(expiry_shared, "2026-07-27T04:00:00Z", proof)
         run(str(QUEUE), "canary-pass", *expiry_shared, "--proof-sha256", proof)
         assert heartbeat_record(expiry_shared, "2026-07-27T04:00:00Z", "2026-07-27T05:25:00Z", "2026-07-27T04:15:00Z", "owner-4", proof)["status"] == "HEARTBEAT_VERIFIED"
         assert run(str(QUEUE), "cleanup-open", *expiry_shared, "--cleanup-reason", "work still pending", "--now-utc", "2026-07-27T04:01:00Z")["status"] == "CLEANUP_NOT_DUE"
+        assert run(str(QUEUE), "heartbeat-observe", *expiry_shared, "--now-utc", "2026-07-27T04:45:00Z")["status"] == "SCHEDULER_GAP_SUSPECTED"
         assert run(str(QUEUE), "wake-open", *expiry_shared, "--expected-at-utc", "2026-07-27T04:45:00Z", "--now-utc", "2026-07-27T04:45:00Z")["status"] == "WAKE_OPEN"
         expired = run(str(QUEUE), "decide", *expiry_shared, "--unit", "posts", "--decision", "DEFER", "--reason", "no action window remains", "--now-utc", "2026-07-27T04:45:01Z")
         assert expired["status"] == "DECISION_RECORDED" and expired["scheduler_adjustment"] == "ACTION_WINDOW_EXPIRED"
@@ -261,11 +283,14 @@ def main() -> None:
         run(str(COMPILER), "--input", str(trigger_source), "--output", str(trigger_envelope))
         trigger_shared = ("--root", str(queue_root), "--scope", "trigger-contract", "--owner-task-id", "owner-5", "--mission-envelope", str(trigger_envelope))
         run(str(QUEUE), "bootstrap", *trigger_shared, "--now-utc", "2026-07-27T06:00:00Z")
+        promote(trigger_shared, "2026-07-27T06:00:00Z", proof)
         run(str(QUEUE), "canary-pass", *trigger_shared, "--proof-sha256", proof)
         assert heartbeat_record(trigger_shared, "2026-07-27T06:00:00Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:09:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
         early = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:09:00Z")
         assert early["status"] == "EARLY_WAKE_NOOP" and early["heartbeat"]["state"] == "NEEDS_READBACK"
         assert heartbeat_record(trigger_shared, "2026-07-27T06:09:01Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:21:00Z")["status"] == "HEARTBEAT_LATE_OBSERVED"
         late = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:21:00Z")
         assert late["status"] == "WAKE_OPEN" and late["due_units"] == ["browsing"]
         assert run(str(QUEUE), "decide", *trigger_shared, "--unit", "browsing", "--decision", "RUN", "--reason", "recovery proof", "--now-utc", "2026-07-27T06:21:01Z")["status"] == "DECISION_RECORDED"

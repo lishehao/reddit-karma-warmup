@@ -23,6 +23,12 @@ recovery path.
 - Create/claim a tab, navigate, read DOM/screenshot, fill, click, submit, and
   verify in separate calls. Allow a configurable outer budget (normally up to
   120 seconds) for a slow environment.
+- Record every browser call in the packet's `browser-steps.jsonl` as exactly
+  one `claim`, `metadata`, `navigate`, `read_projection`, `fill`, `click`,
+  `submit`, `verify`, or `finalize` step. `metadata` may read URL and title
+  together, but it must never include navigation or DOM work. Before a public
+  action or packet finish, run `scripts/validate_browser_step_ledger.py` on
+  that file; mixed `url/title/goto` calls are invalid.
 - After a navigation timeout, first read back URL/title/page state because the
   page may have loaded. Do not use `Promise.race` as faux cancellation.
 - Build locators from a fresh snapshot. Act only on one visible, interactive,

@@ -10,8 +10,10 @@ proxy, or second Chrome task.
 
 ## Start
 
-1. Verify the current task is present and unarchived; name/pin it only as a
-   presentation step.
+1. Verify the current task is present and unarchived. After binding its mission
+   envelope, rename that exact task from `Reddit 启动台` to `Reddit 运营台`, read
+   the exact ID/title back, and record `presentation-promote` with the readback
+   proof. Do not pass the canary while the task still presents as a launcher.
 2. Compile the input with `scripts/compile_single_owner_mission.py`, then
    bootstrap `scripts/single_owner_queue.py` using the exact current task ID
    and the envelope's unique `mission_id` as its queue scope. Never reuse a
@@ -88,9 +90,20 @@ authority. A yielded unit resumes before a later unit.
 The task creates one stable 15-minute recurring Heartbeat through the mission
 window plus one cleanup grace; it is not reconfigured for ordinary unit changes.
 Read back its exact ID, target task, recurrence, `UNTIL`, and a future next
-occurrence before claiming it healthy. After every closed wake, refresh that
-receipt before the next work wake. An unfinished mission with no verifiable
-future occurrence is `MISSION_SCHEDULER_UNVERIFIED`, not healthy.
+occurrence before claiming it healthy. At every delivered scheduler turn, run
+`heartbeat-observe` before `wake-open`; it records the signed delivery gap and
+advances the expected occurrence. More than one elapsed interval is
+`SCHEDULER_GAP_SUSPECTED`: it proves only that the expected schedule was not
+observed in this task, not that a platform execution was lost. Do not catch up
+missed actions. Refresh the receipt after every closed wake before the next
+work wake. An unfinished mission with no verifiable future occurrence is
+`MISSION_SCHEDULER_UNVERIFIED`, not healthy. A later manual/task turn that
+finds a suspected gap must recover or finalize; a Skill cannot observe a timer
+delivery that never reaches any task turn.
+Only a first packet inside the opening five-minute tolerance may declare
+`wake-source=INITIAL`; every later `wake-open` requires an observation from the
+same Heartbeat turn. This prevents a manually resumed task from silently
+calling overdue work a healthy scheduler delivery.
 Unit rechecks align
 to its 15-minute grid: browsing 30 minutes, comments 45, posts 180, follow-up
 90 (15 for an active known chain), and presence 24 hours. They are recheck

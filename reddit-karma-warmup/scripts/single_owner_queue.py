@@ -22,7 +22,7 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-SCHEMA = "reddit_single_owner_queue/v6"
+SCHEMA = "reddit_single_owner_queue/v7"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 ORDINARY_TRIGGER_TOLERANCE_SECONDS = 300
@@ -33,6 +33,7 @@ DECISIONS = ("RUN", "WATCH", "SKIP", "DEFER")
 OUTCOMES = ("COMPLETED", "SKIPPED", "BLOCKED", "YIELDED")
 MISSION_STATES = {"ACTIVE", "FINALIZING", "RETIRED"}
 HEARTBEAT_STATES = {"PENDING", "VERIFIED", "NEEDS_READBACK", "DELETED"}
+PRESENTATION_STATES = {"STARTUP", "OPERATING"}
 OBJECTIVE_STATES = (
     "RESEARCH_ONLY",
     "PENDING",
@@ -349,6 +350,12 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
         "vote_policy": envelope["vote_policy"],
         "mission_strategy": envelope["mission_strategy"],
         "units": units,
+        "presentation": {
+            "state": "STARTUP",
+            "title": None,
+            "proof_sha256": None,
+            "verified_at_utc": None,
+        },
         "canary": {"state": "PENDING", "proof_sha256": None},
         "chrome_release": {"state": "PENDING", "proof_sha256": None},
         "heartbeat": {
@@ -360,6 +367,9 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
             "next_run_at_utc": None,
             "readback_at_utc": None,
             "proof_sha256": None,
+            "last_expected_at_utc": None,
+            "last_observed_at_utc": None,
+            "scheduler_gap_count": 0,
             "deleted_at_utc": None,
             "delete_proof_sha256": None,
         },
@@ -381,6 +391,14 @@ def validate_state(state, scope, owner_task_id):
         raise ValueError("scope mismatch")
     if state.get("owner_task_id") != owner_task_id:
         raise ValueError("single owner mismatch")
+    presentation = state.get("presentation")
+    if not isinstance(presentation, dict) or presentation.get("state") not in PRESENTATION_STATES:
+        raise ValueError("invalid presentation state")
+    if presentation["state"] == "OPERATING":
+        if presentation.get("title") != "Reddit 运营台":
+            raise ValueError("invalid operating title")
+        sha256_value("presentation_proof_sha256", presentation.get("proof_sha256"))
+        parse_utc("presentation_verified_at_utc", presentation.get("verified_at_utc"))
     if set(state.get("units", {})) != set(UNIT_ORDER):
         raise ValueError("invalid units")
     validate_strategy(state.get("mission_strategy"))
@@ -393,6 +411,12 @@ def validate_state(state, scope, owner_task_id):
         raise ValueError("invalid heartbeat state")
     if heartbeat.get("target_task_id") != owner_task_id:
         raise ValueError("heartbeat target mismatch")
+    if not isinstance(heartbeat.get("scheduler_gap_count"), int) or heartbeat["scheduler_gap_count"] < 0:
+        raise ValueError("invalid heartbeat scheduler gap count")
+    for key in ("last_expected_at_utc", "last_observed_at_utc"):
+        value = heartbeat.get(key)
+        if value is not None:
+            parse_utc("heartbeat_" + key, value)
     if heartbeat["state"] in {"VERIFIED", "NEEDS_READBACK"}:
         if not all(isinstance(heartbeat.get(key), str) and heartbeat[key] for key in ("automation_id", "rrule", "until_at_utc", "next_run_at_utc", "readback_at_utc", "proof_sha256")):
             raise ValueError("incomplete heartbeat receipt")
@@ -481,6 +505,10 @@ def public(state, status, now, detail=None):
         "mission_id": state["mission_id"],
         "mission_revision": state["mission_revision"],
         "mission_strategy": state["mission_strategy"],
+        "presentation": {
+            "state": state["presentation"]["state"],
+            "title": state["presentation"]["title"],
+        },
         "canary_state": state["canary"]["state"],
         "chrome_release_state": state["chrome_release"]["state"],
         "heartbeat": {
@@ -489,6 +517,9 @@ def public(state, status, now, detail=None):
             "until_at_utc": state["heartbeat"]["until_at_utc"],
             "next_run_at_utc": state["heartbeat"]["next_run_at_utc"],
             "readback_at_utc": state["heartbeat"]["readback_at_utc"],
+            "last_expected_at_utc": state["heartbeat"]["last_expected_at_utc"],
+            "last_observed_at_utc": state["heartbeat"]["last_observed_at_utc"],
+            "scheduler_gap_count": state["heartbeat"]["scheduler_gap_count"],
         },
         "scheduler_health": (
             "HEALTHY" if state["heartbeat"]["state"] == "VERIFIED"
@@ -588,7 +619,32 @@ def heartbeat_receipt(state, args, now):
         "next_run_at_utc": args.heartbeat_next_run_at_utc,
         "readback_at_utc": utc(now),
         "proof_sha256": sha256_value("heartbeat_proof_sha256", args.proof_sha256),
+        "last_expected_at_utc": None,
+        "last_observed_at_utc": None,
     })
+
+
+def observe_heartbeat(state, now):
+    """Record one delivered scheduler event without inventing future delivery."""
+    heartbeat = state["heartbeat"]
+    if heartbeat["state"] != "VERIFIED":
+        return "MISSION_SCHEDULER_UNVERIFIED"
+    expected = parse_utc("heartbeat_next_run_at_utc", heartbeat["next_run_at_utc"])
+    signed_delta = now - expected
+    heartbeat["last_expected_at_utc"] = heartbeat["next_run_at_utc"]
+    heartbeat["last_observed_at_utc"] = utc(now)
+    if signed_delta < -ORDINARY_TRIGGER_TOLERANCE_SECONDS:
+        return "HEARTBEAT_EARLY_OBSERVED"
+    # A later event proves this delivery only. More than one elapsed interval is
+    # a scheduling gap suspicion, not proof of a lost platform execution.
+    elapsed_intervals = max(1, int(max(0, signed_delta) // HEARTBEAT_GRID_SECONDS) + 1)
+    heartbeat["next_run_at_utc"] = utc(expected + elapsed_intervals * HEARTBEAT_GRID_SECONDS)
+    if elapsed_intervals > 1:
+        heartbeat["scheduler_gap_count"] += elapsed_intervals - 1
+        return "SCHEDULER_GAP_SUSPECTED"
+    if signed_delta > ORDINARY_TRIGGER_TOLERANCE_SECONDS:
+        return "HEARTBEAT_LATE_OBSERVED"
+    return "HEARTBEAT_OBSERVED"
 
 
 def recover_stale_work(state, now, reason, action_key=None):
@@ -782,9 +838,24 @@ def command(args):
             return public(state, "ENVELOPE_MISMATCH", now)
         if args.command == "inspect":
             return public(state, "INSPECT", now)
+        if args.command == "presentation-promote":
+            if state["state"] != "ACTIVE" or state.get("active_packet") or state.get("wake"):
+                return public(state, "PRESENTATION_UNAVAILABLE", now)
+            title = require_text("presentation_title", args.presentation_title, 128)
+            if title != "Reddit 运营台":
+                return public(state, "PRESENTATION_TITLE_INVALID", now)
+            state["presentation"] = {
+                "state": "OPERATING",
+                "title": title,
+                "proof_sha256": sha256_value("presentation_proof_sha256", args.proof_sha256),
+                "verified_at_utc": utc(now),
+            }
+            return write_and_return(state_path, state, "PRESENTATION_PROMOTED", now)
         if state["state"] == "FINALIZING" and args.command not in {"recover", "cleanup-open", "release-tabs", "heartbeat-delete", "retire"}:
             return public(state, "FINALIZING", now)
         if args.command == "canary-pass":
+            if state["presentation"]["state"] != "OPERATING":
+                return public(state, "PRESENTATION_REQUIRED", now)
             if state["canary"]["state"] == "PASSED":
                 return public(state, "CANARY_ALREADY_PASSED", now)
             state["canary"] = {"state": "PASSED", "proof_sha256": sha256_value("proof_sha256", args.proof_sha256)}
@@ -794,6 +865,11 @@ def command(args):
                 return public(state, "HEARTBEAT_RECORD_UNAVAILABLE", now)
             heartbeat_receipt(state, args, now)
             return write_and_return(state_path, state, "HEARTBEAT_VERIFIED", now)
+        if args.command == "heartbeat-observe":
+            if state["state"] != "ACTIVE" or state.get("active_packet") or state.get("wake"):
+                return public(state, "HEARTBEAT_OBSERVE_UNAVAILABLE", now)
+            status = observe_heartbeat(state, now)
+            return write_and_return(state_path, state, status, now)
         if args.command == "wake-open":
             if state["state"] != "ACTIVE" or state.get("active_packet") or state.get("wake"):
                 return public(state, "WAKE_UNAVAILABLE", now)
@@ -803,6 +879,14 @@ def command(args):
                 return public(state, "CANARY_REQUIRED", now)
             if state["heartbeat"]["state"] != "VERIFIED":
                 return public(state, "MISSION_SCHEDULER_UNVERIFIED", now)
+            wake_source = args.wake_source or "HEARTBEAT"
+            if wake_source not in {"INITIAL", "HEARTBEAT"}:
+                raise ValueError("invalid wake_source")
+            if wake_source == "INITIAL":
+                if now > state["operation_start_epoch"] + ORDINARY_TRIGGER_TOLERANCE_SECONDS:
+                    return public(state, "INITIAL_WAKE_WINDOW_EXPIRED", now)
+            elif state["heartbeat"]["last_observed_at_utc"] != utc(now):
+                return public(state, "HEARTBEAT_OBSERVATION_REQUIRED", now)
             expected = parse_utc("expected_at_utc", args.expected_at_utc)
             signed_delta = now - expected
             delta = abs(signed_delta)
@@ -1024,18 +1108,20 @@ def command(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "canary-pass", "heartbeat-record", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "objective-set", "finish", "recover", "cleanup-open", "release-tabs", "heartbeat-delete", "retire"))
+    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "presentation-promote", "canary-pass", "heartbeat-record", "heartbeat-observe", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "objective-set", "finish", "recover", "cleanup-open", "release-tabs", "heartbeat-delete", "retire"))
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--scope", required=True)
     parser.add_argument("--owner-task-id", required=True)
     parser.add_argument("--mission-envelope", required=True, type=Path)
     parser.add_argument("--proof-sha256")
+    parser.add_argument("--presentation-title")
     parser.add_argument("--automation-id")
     parser.add_argument("--heartbeat-target-task-id")
     parser.add_argument("--heartbeat-rrule")
     parser.add_argument("--heartbeat-until-at-utc")
     parser.add_argument("--heartbeat-next-run-at-utc")
     parser.add_argument("--expected-at-utc")
+    parser.add_argument("--wake-source")
     parser.add_argument("--unit")
     parser.add_argument("--decision")
     parser.add_argument("--reason")

@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.12`
+Protocol version: `2026.07.27.13`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -39,8 +39,10 @@ Reddit 运营：目标=<找社区/参与讨论/获得反馈/发布项目/维护�
 
 1. During bootstrap, install the complete Skill atomically under `${CODEX_HOME:-$HOME/.codex}/skills/`.
    Compare `manifest.json`; never merge versions.
-2. One present, unarchived `Reddit 运营台` owns one mission envelope, one
-   queue, one Heartbeat, one Chrome binding, and one primary Reddit tab.
+2. Promote the same present task from `Reddit 启动台` to `Reddit 运营台` only
+   after the mission envelope is bound. Read back the exact title and store its
+   proof before the canary, then let that one operating task own one queue, one
+   Heartbeat, one Chrome binding, and one primary Reddit tab.
 3. Built-in Web Search performs broad current research. The optional
    `scripts/community_index.py` uses official OAuth GET calls only for public
    community rules, metadata, and small hot-pointer indexes. It never writes,
@@ -68,7 +70,11 @@ Reddit 运营：目标=<找社区/参与讨论/获得反馈/发布项目/维护�
    evidence changes it.
 8. Use one stable 15-minute mission Heartbeat with an explicit cleanup-grace
    `UNTIL`. Persist/read back its ID, target, RRULE, `UNTIL`, and future next run
-   before work; refresh that receipt after each wake. Align normal unit rechecks
+   before work; record each delivered Heartbeat against that receipt and refresh
+   it after each closed wake. A late observed delivery is not proof that an
+   earlier delivery occurred: record a suspected scheduler gap and enter
+   recovery/finalization on the next available task turn rather than inventing
+   catch-up work. Align normal unit rechecks
    to that grid; a no-work wake is an atomic fast NOOP with no Chrome call. An
    authorized pending comment/post is clamped to the next grid if its default
    recheck would otherwise cross the mission cutoff; when no grid remains, it

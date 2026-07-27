@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v6",
+  "schema": "reddit_single_owner_defaults/v7",
   "topology": {
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",
     "chrome_owners": 1,
@@ -22,6 +22,7 @@
     "packet_lease_seconds": 900,
     "timer_policy": "ONE_STABLE_RECURRING_MISSION_HEARTBEAT_WITH_UNTIL_CLEANUP_GRACE_NO_PHASE_REWRITE",
     "heartbeat_receipt": "REQUIRE_HEARTBEAT_AUTOMATION_ID_TARGET_TASK_RRULE_UNTIL_NEXT_RUN_AND_READBACK_PROOF",
+    "heartbeat_observation": "RECORD_EACH_DELIVERED_HEARTBEAT_SIGNED_DELTA_AND_SUSPECT_GAPS_WITHOUT_CATCH_UP",
     "terminal_cleanup": "FINALIZE_ONLY_AFTER_STOP_OR_ALL_OBJECTIVES_TERMINAL_RELEASE_TABS_DELETE_HEARTBEAT_RETIRE",
     "unit_recheck_grid_minutes": 15,
     "no_work_wake": "FAST_NOOP_NO_CHROME",

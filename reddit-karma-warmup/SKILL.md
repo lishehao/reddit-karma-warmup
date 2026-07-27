@@ -60,15 +60,20 @@ account risk.
 
 1. Compile one immutable mission envelope and bootstrap its single-owner queue.
    Bind it to the exact current task ID and use its unique `mission_id` as the
-   queue scope before Chrome work. Include a business
+   queue scope before Chrome work. Rename the same task to `Reddit 运营台`, read
+   it back, and record `presentation-promote` before the canary. Include a business
    goal, community scope, coverage budget, soft action threshold, action
    budget, truthful material references, and evidence/output targets. Treat
    “high/low frequency” as a profile shorthand, never as a timer change.
 2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
 3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
    work remains, ending at `operation_stop_at + cleanup-grace`. Persist and read
-   back its exact automation ID, target task, RRULE, `UNTIL`, next run, and proof;
-   refresh that receipt after every completed wake. Align normal unit rechecks to
+   back its exact automation ID, target task, RRULE, `UNTIL`, next run, and proof.
+   At every delivered Heartbeat record `heartbeat-observe` before unit work; a
+   suspected gap never authorizes catch-up. Refresh the receipt after every
+   completed wake. Only the first packet may use `wake-source=INITIAL` within
+   the first five minutes; every later packet requires the observed Heartbeat.
+   Align normal unit rechecks to
    that grid. A trigger within ±5 minutes is ordinary; earlier/later triggers
    retain their signed delay and never cause catch-up. A wake with nothing due is
    an atomic fast NOOP: do not open Chrome or rewrite the timer. Never use a

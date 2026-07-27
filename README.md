@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.27.7`
+Protocol version: `2026.07.27.8`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -19,9 +19,21 @@ presence, and required tool availability. It may rename the current task to
 queue, timer, Chrome binding, or Reddit tab, and must not search, read, or
 mutate Reddit.
 
-Stop at `BOOTSTRAP_READY`. Only a later user message that supplies a direction,
-duration, account, and explicit action authority may move the same present task
-into the `Reddit 运营台` mission sequence below.
+Stop at `BOOTSTRAP_READY`. A later user message moves the same present task
+into the `Reddit 运营台` mission sequence only when it gives an account,
+business goal, duration, and explicit action authority. It may use this compact
+shape:
+
+```text
+Reddit 运营：目标=<找社区/参与讨论/获得反馈/发布项目/维护已有内容/完善主页>；
+素材=<真实链接、项目或“无”>；主题=<受众或话题>；范围=<发现新社区/指定社区>；
+时长=<…>；覆盖=<窄/标准/广>；行动门槛=<高/标准/低>；
+授权=<浏览、评论、发帖、跟进、主页>。
+```
+
+“高频/低频”是兼容性简称，不改变 15 分钟 Heartbeat：它会被解释为
+覆盖面、软行动门槛和动作预算的组合。版规、真实性、当前账号/表单状态、
+明确授权与提交验证始终是不可降低的硬门槛。
 
 ## Runtime in one page
 
@@ -41,14 +53,20 @@ into the `Reddit 运营台` mission sequence below.
    current rules, account, submit state, truthful evidence, pacing, and one
    verified result. Persist an `action_key` before submission; freeze uncertain
    results and never retry them.
-6. Separate a bounded packet from its unit objective. A completed research
+6. Compile one business-goal profile: `community_discovery`,
+   `conversation_entry`, `feedback_validation`, `project_distribution`,
+   `relationship_maintenance`, or `profile_readiness`. Store community scope,
+   coverage budget, soft action threshold, action budget, and evidence/output
+   targets in the mission envelope. These are planning controls, never a quota
+   that forces a public action.
+7. Separate a bounded packet from its unit objective. A completed research
    packet never means a post, comment, follow-up, or presence objective is
    complete. Candidate packs explicitly arm the next eligible unit; verified
    own permalinks explicitly arm follow-up. Missing truthful material, a live
    rule block, an uncertain submission, or no applicable target parks only that
    unit and removes its recurring wake until a new mission revision or upstream
    evidence changes it.
-7. Use one stable 15-minute mission Heartbeat. Align normal unit rechecks to
+8. Use one stable 15-minute mission Heartbeat. Align normal unit rechecks to
    that grid; a no-work wake is a fast NOOP with no Chrome call. ±5 minutes is
    normal; a later wake records the delay and continues from actual time without
    catch-up. Each work wake runs at most one Chrome packet plus one public action.

@@ -44,6 +44,31 @@ SAFE_OVERRIDE_TEXT_KEYS = {
     "stop_condition",
 }
 SAFE_OVERRIDE_TEXT_LIST_KEYS = {"direction_tags", "target_communities"}
+BUSINESS_GOALS = (
+    "community_discovery",
+    "conversation_entry",
+    "feedback_validation",
+    "project_distribution",
+    "relationship_maintenance",
+    "profile_readiness",
+)
+COMMUNITY_SCOPE_MODES = ("closed", "seeded_expandable", "discover")
+COVERAGE_BUDGETS = ("narrow", "standard", "broad")
+ACTION_THRESHOLDS = ("high", "standard", "low")
+ACTION_BUDGETS = ("minimal", "standard", "active")
+FREQUENCY_ALIASES = {
+    "low": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},
+    "standard": {"coverage_budget": "standard", "action_threshold": "standard", "action_budget": "standard"},
+    "high": {"coverage_budget": "broad", "action_threshold": "standard", "action_budget": "active"},
+}
+GOAL_DEFAULT_SCOPE = {
+    "community_discovery": "discover",
+    "conversation_entry": "seeded_expandable",
+    "feedback_validation": "discover",
+    "project_distribution": "discover",
+    "relationship_maintenance": "closed",
+    "profile_readiness": "closed",
+}
 MODEL_REQUEST = {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "high",
@@ -123,6 +148,87 @@ def normalize_overrides(raw):
         else:
             fail("unsupported explicit_user_overrides key")
     return normalized
+
+
+def derived_business_goal(selected):
+    if selected == ["presence"]:
+        return "profile_readiness"
+    if selected == ["follow-up"]:
+        return "relationship_maintenance"
+    if "posts" in selected:
+        return "feedback_validation"
+    if "comments" in selected:
+        return "conversation_entry"
+    return "community_discovery"
+
+
+def normalize_material_refs(raw):
+    if raw is None:
+        return []
+    if not isinstance(raw, list) or len(raw) > 32:
+        fail("material_refs must be a list of at most 32 items")
+    return [text_field(item, "material_refs", 1, 512) for item in raw]
+
+
+def normalize_planning_targets(raw):
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict) or len(raw) > 16:
+        fail("planning_targets must be an object with at most 16 keys")
+    normalized = {}
+    for key, value in raw.items():
+        target = text_field(key, "planning_targets key", 1, 64)
+        if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 1000:
+            fail("planning_targets values must be integers from 0 to 1000")
+        normalized[target] = value
+    return dict(sorted(normalized.items()))
+
+
+def normalize_strategy(raw, selected, parent):
+    supplied = raw if raw is not None else {}
+    if not isinstance(supplied, dict):
+        fail("mission_strategy must be object")
+    allowed = {
+        "business_goal", "community_scope", "coverage_budget", "action_threshold",
+        "action_budget", "frequency", "material_refs", "planning_targets",
+    }
+    if set(supplied) - allowed:
+        fail("unsupported mission_strategy key")
+    inherited = parent.get("mission_strategy", {}) if parent else {}
+    if inherited and not isinstance(inherited, dict):
+        fail("invalid parent mission_strategy")
+    frequency_input = supplied.get("frequency")
+    frequency = frequency_input if frequency_input is not None else inherited.get("frequency_alias")
+    if frequency is not None and frequency not in FREQUENCY_ALIASES:
+        fail("mission_strategy.frequency must be low, standard, or high")
+    alias = FREQUENCY_ALIASES.get(frequency_input, {})
+    business_goal = supplied.get("business_goal", inherited.get("business_goal", derived_business_goal(selected)))
+    if business_goal not in BUSINESS_GOALS:
+        fail("invalid mission_strategy.business_goal")
+    community_scope = supplied.get("community_scope", inherited.get("community_scope", GOAL_DEFAULT_SCOPE[business_goal]))
+    if community_scope not in COMMUNITY_SCOPE_MODES:
+        fail("invalid mission_strategy.community_scope")
+    coverage_budget = supplied.get("coverage_budget", alias.get("coverage_budget", inherited.get("coverage_budget", "standard")))
+    if coverage_budget not in COVERAGE_BUDGETS:
+        fail("invalid mission_strategy.coverage_budget")
+    action_threshold = supplied.get("action_threshold", alias.get("action_threshold", inherited.get("action_threshold", "standard")))
+    if action_threshold not in ACTION_THRESHOLDS:
+        fail("invalid mission_strategy.action_threshold")
+    action_budget = supplied.get("action_budget", alias.get("action_budget", inherited.get("action_budget", "standard")))
+    if action_budget not in ACTION_BUDGETS:
+        fail("invalid mission_strategy.action_budget")
+    material_refs = normalize_material_refs(supplied["material_refs"]) if "material_refs" in supplied else list(inherited.get("material_refs", []))
+    planning_targets = normalize_planning_targets(supplied["planning_targets"]) if "planning_targets" in supplied else dict(inherited.get("planning_targets", {}))
+    return {
+        "business_goal": business_goal,
+        "community_scope": community_scope,
+        "coverage_budget": coverage_budget,
+        "action_threshold": action_threshold,
+        "action_budget": action_budget,
+        "frequency_alias": frequency,
+        "material_refs": material_refs,
+        "planning_targets": planning_targets,
+    }
 
 
 def expected_hash(envelope):
@@ -243,6 +349,15 @@ def derive_vote_policy_change(parent, vote_policy):
     return {"from": previous, "to": vote_policy}
 
 
+def derive_strategy_change(parent, strategy):
+    if parent is None:
+        return None
+    previous = parent.get("mission_strategy", {})
+    if previous == strategy:
+        return None
+    return {"from_sha256": canonical_hash(previous), "to_sha256": canonical_hash(strategy)}
+
+
 def atomic_write_json(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -302,13 +417,15 @@ def compile_envelope(raw, parent=None):
             fail("paused_work_types must be selected")
     authority = normalize_authority(raw.get("unit_authority"), requested, parent, receipt)
     vote_policy = normalize_vote_policy(raw.get("vote_policy"), requested, authority, parent, receipt)
+    strategy = normalize_strategy(raw.get("mission_strategy"), requested, parent)
     changes = derive_changes(parent, requested, paused)
     authority_changes = derive_authority_changes(parent, requested, authority)
     vote_policy_change = derive_vote_policy_change(parent, vote_policy)
+    strategy_change = derive_strategy_change(parent, strategy)
     if parent is None:
         changes = {unit: "ADD" for unit in requested}
-    if parent is not None and not (changes or authority_changes or vote_policy_change):
-        fail("hot-plug revision has no unit, authority, or vote-policy change")
+    if parent is not None and not (changes or authority_changes or vote_policy_change or strategy_change):
+        fail("hot-plug revision has no unit, authority, vote-policy, or strategy change")
     envelope = {
         "schema": "reddit_single_owner_mission/v1",
         "execution_topology": "single_owner_v1",
@@ -324,9 +441,11 @@ def compile_envelope(raw, parent=None):
         "paused_units": paused,
         "unit_authority": authority,
         "vote_policy": vote_policy,
+        "mission_strategy": strategy,
         "unit_changes": changes,
         "authority_changes": authority_changes,
         "vote_policy_change": vote_policy_change,
+        "strategy_change": strategy_change,
         "model_request": dict(MODEL_REQUEST),
         "authorization_receipt_sha256": sha256_text(receipt) if receipt else None,
         "explicit_user_overrides": normalize_overrides(raw.get("explicit_user_overrides")),

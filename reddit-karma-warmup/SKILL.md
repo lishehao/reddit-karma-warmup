@@ -59,7 +59,10 @@ account risk.
 ## Required mission sequence
 
 1. Compile one immutable mission envelope and bootstrap its single-owner queue.
-   Bind it to the exact current task ID before Chrome work.
+   Bind it to the exact current task ID before Chrome work. Include a business
+   goal, community scope, coverage budget, soft action threshold, action
+   budget, truthful material references, and evidence/output targets. Treat
+   “high/low frequency” as a profile shorthand, never as a timer change.
 2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
 3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
    work remains. Align normal unit rechecks to that grid. A trigger within ±5
@@ -79,6 +82,9 @@ account risk.
    concrete requested change. Park `MATERIAL_REQUIRED`, `RULE_BLOCKED`,
    `SUBMISSION_UNCERTAIN`, and `NOT_APPLICABLE` units until a mission revision
    or fresh upstream evidence explicitly re-arms them.
+   When the mission goal includes public action, an `ACTION_ELIGIBLE` unit
+   outranks more exploratory browsing. Do not keep scanning the same
+   communities after a passing route and truthful material are ready.
 6. For `comments` or `posts`, complete:
    `research brief -> purpose-labelled query plan -> evidence synthesis -> Chrome live gate`.
    Use 4–6 distinct Web Search questions for a comment candidate pack and 8–12
@@ -103,6 +109,7 @@ rule or invent a project, metric, link, experience, or claim.
 | Web Search, public API index, community shortlist, candidate evidence | [research and community index](references/research-and-community-index.md) |
 | Chrome setup, surface routing, read/action boundaries, timeout recovery | [Chrome and actions](references/chrome-and-actions.md) |
 | selected `browsing`, `comments`, `posts`, `follow-up`, or `presence` unit | [unit guides](references/unit-guides.md) |
+| business goal, coverage, threshold, KPI, or community-scope choice | [mission goals and profiles](references/mission-goals-and-profiles.md) |
 | numeric defaults or script configuration | [operation defaults](references/operation-defaults.json) |
 
 Do not load historical lane, dispatcher, worker, callback, catalog-snapshot, or

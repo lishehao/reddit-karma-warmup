@@ -51,6 +51,24 @@ permalink/source reference before it can arm follow-up.
 Only a mission revision or a recorded upstream evidence handoff may re-arm a
 parked action unit. Do not use a generic cadence to revive it.
 
+## Goal profile and priority
+
+The mission envelope stores one business goal plus community scope, coverage
+budget, soft action threshold, action budget, material references, and planning
+targets. The user may say “high/low frequency”, but that shorthand never
+changes the Heartbeat: it compiles to coverage/threshold/budget only.
+
+Hard action gates are invariant: explicit authority, live rule/format fit,
+truthful material or claim, current account/composer state, duplicate/recent
+history, and one verified submission. The threshold only ranks candidates that
+already pass those gates.
+
+When an enabled comment/post/follow-up/presence unit becomes `ACTION_ELIGIBLE`
+for the business goal, schedule it before more exploratory browsing. If a
+post is parked as `MATERIAL_REQUIRED` or `RULE_BLOCKED`, do not keep repeating
+the same route sweep. Record the unmet goal honestly; a planning target is not
+permission to force an action.
+
 ## Wake and units
 
 For every due enabled unit, persist one `RUN`, `WATCH`, `SKIP`, or `DEFER`
@@ -63,8 +81,10 @@ The task creates one stable 15-minute recurring Heartbeat through the mission
 window; it is not reconfigured for ordinary unit changes. Unit rechecks align
 to its 15-minute grid: browsing 30 minutes, comments 45, posts 180, follow-up
 90 (15 for an active known chain), and presence 24 hours. They are recheck
-timings, never action quotas, and apply only to objective states that remain
-runnable. A packet must never schedule a unit after the mission cutoff. A wake
+timings, never action quotas. Coverage and action threshold do not alter this
+timer; they change what a bounded packet studies and which eligible candidate
+it prefers. Rechecks apply only to objective states that remain runnable. A
+packet must never schedule a unit after the mission cutoff. A wake
 with no due unit records `NOOP` and does
 not claim, open, or read Chrome. An actual trigger within ±5 minutes is
 ordinary. A later trigger records `LATE_WAKE`, recomputes from actual time,

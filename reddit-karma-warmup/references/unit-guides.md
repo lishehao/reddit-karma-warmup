@@ -12,6 +12,12 @@ unless the mission explicitly grants `browsing: VOTE_AUTHORIZED`; only then may
 this unit inspect and operate one visible vote control. No other unit touches
 votes.
 
+For `discover` or `seeded_expandable` scope, prefer communities not already
+audited in the current mission. Coverage budget changes the breadth of this
+packet, not the Heartbeat. Do not rescan a route parked as `RULE_BLOCKED` or a
+post goal parked as `MATERIAL_REQUIRED` unless a revision or fresh material
+explicitly re-arms it.
+
 ## Comments
 
 Complete the research/index SOP, then open only candidates with a specific,
@@ -27,7 +33,8 @@ candidate hunting; a later browsing handoff or mission revision must re-arm it.
 
 Complete the post Web Search pack and Chrome finalist gate. Hard compliance
 comes first; truthful minimum context comes second; quality only ranks passing
-candidates. A native discussion can ask a real, answerable question without a
+candidates. Do not use a quality score as an additional hard lock once rule,
+truth, format, account, duplicate, and submit gates pass. A native discussion can ask a real, answerable question without a
 project link. A project/showcase post requires real artifacts/details and clear
 relationship disclosure. With explicit post authority, publish at most one
 native post and verify it once. Never cross-post a template to force a KPI. If

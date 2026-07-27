@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v4",
+  "schema": "reddit_single_owner_defaults/v5",
   "topology": {
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",
     "chrome_owners": 1,
@@ -34,6 +34,34 @@
     "parked_states": ["MATERIAL_REQUIRED", "RULE_BLOCKED", "SUBMISSION_UNCERTAIN", "NOT_APPLICABLE"],
     "rearm_only_by": ["MISSION_REVISION", "RECORDED_UPSTREAM_EVIDENCE"],
     "never_schedule_after_mission_cutoff": true
+  },
+  "mission_profiles": {
+    "business_goals": {
+      "community_discovery": {"primary_units": ["browsing"], "default_scope": "discover", "planning_targets": ["community_routes", "candidate_packs"]},
+      "conversation_entry": {"primary_units": ["browsing", "comments"], "default_scope": "seeded_expandable", "planning_targets": ["qualified_reads", "eligible_candidates", "verified_actions"]},
+      "feedback_validation": {"primary_units": ["browsing", "comments", "posts"], "default_scope": "discover", "planning_targets": ["community_routes", "eligible_candidates", "verified_actions"]},
+      "project_distribution": {"primary_units": ["browsing", "posts", "comments"], "default_scope": "discover", "planning_targets": ["eligible_routes", "verified_actions"]},
+      "relationship_maintenance": {"primary_units": ["follow-up"], "default_scope": "closed", "planning_targets": ["verified_follow_up_targets", "verified_actions"]},
+      "profile_readiness": {"primary_units": ["presence"], "default_scope": "closed", "planning_targets": ["verified_presence_targets", "verified_actions"]}
+    },
+    "community_scope_modes": ["closed", "seeded_expandable", "discover"],
+    "coverage_budgets": {
+      "narrow": {"community_route_target": 4, "candidate_pack_target": 1},
+      "standard": {"community_route_target": 8, "candidate_pack_target": 2},
+      "broad": {"community_route_target": 12, "candidate_pack_target": 3}
+    },
+    "action_thresholds": {
+      "high": "strong_direct_relevance_and_specific_truthful_value",
+      "standard": "clear_relevance_and_truthful_context_fit",
+      "low": "adequate_relevance_and_truthful_nonduplicative_value"
+    },
+    "action_budgets": ["minimal", "standard", "active"],
+    "frequency_aliases": {
+      "low": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},
+      "standard": {"coverage_budget": "standard", "action_threshold": "standard", "action_budget": "standard"},
+      "high": {"coverage_budget": "broad", "action_threshold": "standard", "action_budget": "active"}
+    },
+    "hard_action_gates": ["explicit_authority", "live_rules_and_format", "truthful_material_or_claim", "account_and_submit_state", "duplicate_and_recent_history", "single_submission_and_verification"]
   },
   "research": {
     "web_search": {

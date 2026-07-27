@@ -21,7 +21,7 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-SCHEMA = "reddit_single_owner_queue/v4"
+SCHEMA = "reddit_single_owner_queue/v5"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 DECISIONS = ("RUN", "WATCH", "SKIP", "DEFER")
@@ -65,10 +65,50 @@ ALLOWED_AUTHORITY = {
     "follow-up": ("RESEARCH_ONLY", "FOLLOWUP_AUTHORIZED"),
     "presence": ("RESEARCH_ONLY", "PRESENCE_AUTHORIZED"),
 }
+BUSINESS_GOALS = {
+    "community_discovery",
+    "conversation_entry",
+    "feedback_validation",
+    "project_distribution",
+    "relationship_maintenance",
+    "profile_readiness",
+}
+COMMUNITY_SCOPE_MODES = {"closed", "seeded_expandable", "discover"}
+COVERAGE_BUDGETS = {"narrow", "standard", "broad"}
+ACTION_THRESHOLDS = {"high", "standard", "low"}
+ACTION_BUDGETS = {"minimal", "standard", "active"}
+GOAL_UNIT_PRIORITY = {
+    "community_discovery": ("browsing", "comments", "posts", "follow-up", "presence"),
+    "conversation_entry": ("browsing", "comments", "posts", "follow-up", "presence"),
+    "feedback_validation": ("browsing", "comments", "posts", "follow-up", "presence"),
+    "project_distribution": ("browsing", "posts", "comments", "follow-up", "presence"),
+    "relationship_maintenance": ("follow-up", "browsing", "comments", "posts", "presence"),
+    "profile_readiness": ("presence", "browsing", "comments", "posts", "follow-up"),
+}
 
 
 def outward_authority(unit, authority):
     return authority != DEFAULT_AUTHORITY[unit]
+
+
+def validate_strategy(value):
+    if not isinstance(value, dict):
+        raise ValueError("invalid mission_strategy")
+    if value.get("business_goal") not in BUSINESS_GOALS:
+        raise ValueError("invalid business_goal")
+    if value.get("community_scope") not in COMMUNITY_SCOPE_MODES:
+        raise ValueError("invalid community_scope")
+    if value.get("coverage_budget") not in COVERAGE_BUDGETS:
+        raise ValueError("invalid coverage_budget")
+    if value.get("action_threshold") not in ACTION_THRESHOLDS:
+        raise ValueError("invalid action_threshold")
+    if value.get("action_budget") not in ACTION_BUDGETS:
+        raise ValueError("invalid action_budget")
+    if value.get("frequency_alias") not in (None, "low", "standard", "high"):
+        raise ValueError("invalid frequency_alias")
+    if not isinstance(value.get("material_refs"), list) or not isinstance(value.get("planning_targets"), dict):
+        raise ValueError("invalid mission_strategy evidence")
+    return value
 
 
 def initial_objective(unit, plan, authority):
@@ -161,6 +201,7 @@ def load_envelope(path):
         raise ValueError("invalid vote policy")
     if (vote_policy == "BROWSING_ONLY") != (authority.get("browsing") == "VOTE_AUTHORIZED"):
         raise ValueError("vote policy mismatch")
+    strategy = validate_strategy(raw.get("mission_strategy"))
     start = parse_utc("operation_start_at", raw.get("operation_start_at"))
     stop = parse_utc("operation_stop_at", raw.get("operation_stop_at"))
     if stop <= start:
@@ -181,6 +222,7 @@ def load_envelope(path):
         "paused_units": paused,
         "unit_authority": authority,
         "vote_policy": vote_policy,
+        "mission_strategy": strategy,
     }
 
 
@@ -256,6 +298,7 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
         "operation_start_epoch": envelope["operation_start_epoch"],
         "operation_stop_epoch": envelope["operation_stop_epoch"],
         "vote_policy": envelope["vote_policy"],
+        "mission_strategy": envelope["mission_strategy"],
         "units": units,
         "canary": {"state": "PENDING", "proof_sha256": None},
         "chrome_release": {"state": "PENDING", "proof_sha256": None},
@@ -278,6 +321,7 @@ def validate_state(state, scope, owner_task_id):
         raise ValueError("single owner mismatch")
     if set(state.get("units", {})) != set(UNIT_ORDER):
         raise ValueError("invalid units")
+    validate_strategy(state.get("mission_strategy"))
     for unit, value in state["units"].items():
         if value.get("plan") not in ("ACTIVE", "PAUSED", "REMOVED"):
             raise ValueError("invalid unit plan")
@@ -317,13 +361,26 @@ def due_units(state, now):
     resumed = state.get("resume_unit")
     if resumed:
         return [resumed]
-    return [
+    candidates = [
         unit for unit in UNIT_ORDER
         if state["units"][unit]["plan"] == "ACTIVE"
         and due_objective(state["units"][unit]["objective"]["state"])
         and state["units"][unit]["next_due_epoch"] is not None
         and state["units"][unit]["next_due_epoch"] <= now
     ]
+    goal_priority = GOAL_UNIT_PRIORITY[state["mission_strategy"]["business_goal"]]
+    order = {unit: index for index, unit in enumerate(goal_priority)}
+    action_goal = state["mission_strategy"]["business_goal"] in {
+        "conversation_entry", "feedback_validation", "project_distribution",
+        "relationship_maintenance", "profile_readiness",
+    }
+    return sorted(
+        candidates,
+        key=lambda unit: (
+            0 if action_goal and state["units"][unit]["objective"]["state"] == "ACTION_ELIGIBLE" else 1,
+            order[unit],
+        ),
+    )
 
 
 def public(state, status, now, detail=None):
@@ -334,6 +391,7 @@ def public(state, status, now, detail=None):
         "owner_task_id": state["owner_task_id"],
         "mission_id": state["mission_id"],
         "mission_revision": state["mission_revision"],
+        "mission_strategy": state["mission_strategy"],
         "canary_state": state["canary"]["state"],
         "chrome_release_state": state["chrome_release"]["state"],
         "active_unit": (state.get("active_packet") or {}).get("unit"),
@@ -467,6 +525,7 @@ def apply_envelope_revision(state, envelope, now):
             value["next_due_epoch"] = now
             value["next_due_at_utc"] = utc(now)
     state["vote_policy"] = envelope["vote_policy"]
+    state["mission_strategy"] = envelope["mission_strategy"]
     state["mission_revision"] = envelope["mission_revision"]
     state["mission_envelope_sha256"] = envelope["mission_envelope_sha256"]
     state["revision_history"].append({"applied_at_utc": utc(now), "from": state["mission_revision"] - 1, "to": state["mission_revision"]})

@@ -756,6 +756,8 @@ def envelope_matches_state(state, envelope):
 def command(args):
     now = now_epoch(args.now_utc)
     envelope = load_envelope(args.mission_envelope)
+    if args.scope != envelope["mission_id"]:
+        return {"schema": SCHEMA, "status": "MISSION_SCOPE_MISMATCH"}
     state_path, lock_path = paths(args.root, args.scope)
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("a+") as lock:

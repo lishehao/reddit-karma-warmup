@@ -59,7 +59,8 @@ account risk.
 ## Required mission sequence
 
 1. Compile one immutable mission envelope and bootstrap its single-owner queue.
-   Bind it to the exact current task ID before Chrome work. Include a business
+   Bind it to the exact current task ID and use its unique `mission_id` as the
+   queue scope before Chrome work. Include a business
    goal, community scope, coverage budget, soft action threshold, action
    budget, truthful material references, and evidence/output targets. Treat
    “high/low frequency” as a profile shorthand, never as a timer change.

@@ -13,7 +13,9 @@ proxy, or second Chrome task.
 1. Verify the current task is present and unarchived; name/pin it only as a
    presentation step.
 2. Compile the input with `scripts/compile_single_owner_mission.py`, then
-   bootstrap `scripts/single_owner_queue.py` using the exact current task ID.
+   bootstrap `scripts/single_owner_queue.py` using the exact current task ID
+   and the envelope's unique `mission_id` as its queue scope. Never reuse a
+   prior mission scope.
 3. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated
    primary tab only after it passes.
 4. If work remains, create and read back one recurring task Heartbeat with an

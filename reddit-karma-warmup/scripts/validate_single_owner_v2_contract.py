@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate the compact single-owner Reddit Skill without network or Chrome."""
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -40,7 +41,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.27.11"
+    assert version == "2026.07.27.12"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
@@ -103,7 +104,7 @@ def main() -> None:
         unchanged = run(str(COMPILER), "--input", str(unchanged_source), "--parent-envelope", str(envelope))
         assert unchanged["status"] == "INVALID" and "strategy change" in unchanged["error"], unchanged
         queue_root = work / "queue"
-        shared = ("--root", str(queue_root), "--scope", "v2", "--owner-task-id", "owner-1", "--mission-envelope", str(envelope))
+        shared = ("--root", str(queue_root), "--scope", "v2-contract", "--owner-task-id", "owner-1", "--mission-envelope", str(envelope))
         bootstrapped = run(str(QUEUE), "bootstrap", *shared, "--now-utc", "2026-07-27T00:00:00Z")
         assert bootstrapped["status"] == "BOOTSTRAPPED" and bootstrapped["due_units"] == ["browsing", "posts"]
         proof = "0" * 64
@@ -162,7 +163,7 @@ def main() -> None:
             "source_prompt": "compact objective graph"
         }), encoding="utf-8")
         run(str(COMPILER), "--input", str(action_source), "--output", str(action_envelope))
-        action_shared = ("--root", str(queue_root), "--scope", "objectives", "--owner-task-id", "owner-2", "--mission-envelope", str(action_envelope))
+        action_shared = ("--root", str(queue_root), "--scope", "objective-contract", "--owner-task-id", "owner-2", "--mission-envelope", str(action_envelope))
         boot = run(str(QUEUE), "bootstrap", *action_shared, "--now-utc", "2026-07-27T01:00:00Z")
         assert boot["objective_state"]["posts"] == "PENDING"
         assert boot["objective_state"]["comments"] == "PENDING"
@@ -205,7 +206,7 @@ def main() -> None:
             "source_prompt": "prioritize an eligible truthful post"
         }), encoding="utf-8")
         run(str(COMPILER), "--input", str(priority_source), "--output", str(priority_envelope))
-        priority_shared = ("--root", str(queue_root), "--scope", "priority", "--owner-task-id", "owner-3", "--mission-envelope", str(priority_envelope))
+        priority_shared = ("--root", str(queue_root), "--scope", "priority-contract", "--owner-task-id", "owner-3", "--mission-envelope", str(priority_envelope))
         run(str(QUEUE), "bootstrap", *priority_shared, "--now-utc", "2026-07-27T03:00:00Z")
         run(str(QUEUE), "canary-pass", *priority_shared, "--proof-sha256", proof)
         assert heartbeat_record(priority_shared, "2026-07-27T03:00:00Z", "2026-07-27T05:25:00Z", "2026-07-27T03:15:00Z", "owner-3", proof)["status"] == "HEARTBEAT_VERIFIED"
@@ -227,7 +228,7 @@ def main() -> None:
             "source_prompt": "deadline action window"
         }), encoding="utf-8")
         run(str(COMPILER), "--input", str(expiry_source), "--output", str(expiry_envelope))
-        expiry_shared = ("--root", str(queue_root), "--scope", "expiry", "--owner-task-id", "owner-4", "--mission-envelope", str(expiry_envelope))
+        expiry_shared = ("--root", str(queue_root), "--scope", "expiry-contract", "--owner-task-id", "owner-4", "--mission-envelope", str(expiry_envelope))
         run(str(QUEUE), "bootstrap", *expiry_shared, "--now-utc", "2026-07-27T04:00:00Z")
         run(str(QUEUE), "canary-pass", *expiry_shared, "--proof-sha256", proof)
         assert heartbeat_record(expiry_shared, "2026-07-27T04:00:00Z", "2026-07-27T05:25:00Z", "2026-07-27T04:15:00Z", "owner-4", proof)["status"] == "HEARTBEAT_VERIFIED"
@@ -258,7 +259,7 @@ def main() -> None:
             "source_prompt": "early late heartbeat"
         }), encoding="utf-8")
         run(str(COMPILER), "--input", str(trigger_source), "--output", str(trigger_envelope))
-        trigger_shared = ("--root", str(queue_root), "--scope", "trigger", "--owner-task-id", "owner-5", "--mission-envelope", str(trigger_envelope))
+        trigger_shared = ("--root", str(queue_root), "--scope", "trigger-contract", "--owner-task-id", "owner-5", "--mission-envelope", str(trigger_envelope))
         run(str(QUEUE), "bootstrap", *trigger_shared, "--now-utc", "2026-07-27T06:00:00Z")
         run(str(QUEUE), "canary-pass", *trigger_shared, "--proof-sha256", proof)
         assert heartbeat_record(trigger_shared, "2026-07-27T06:00:00Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
@@ -273,8 +274,21 @@ def main() -> None:
         recovered = run(str(QUEUE), "recover", *trigger_shared, "--recovery-reason", "task resumed after lease", "--recovery-action-key", "1" * 64, "--now-utc", "2026-07-27T06:36:03Z")
         assert recovered["status"] == "RECOVERED_YIELDED" and recovered["frozen_action_key_count"] == 1 and recovered["due_units"] == ["browsing"]
 
-        mismatch_shared = ("--root", str(queue_root), "--scope", "v2", "--owner-task-id", "owner-1", "--mission-envelope", str(trigger_envelope))
+        revised = work / "v2-revision.json"
+        revised_payload = json.loads(envelope.read_text(encoding="utf-8"))
+        revised_payload["mission_revision"] = 2
+        revised_payload["mission_strategy"] = dict(revised_payload["mission_strategy"])
+        revised_payload["mission_strategy"]["action_budget"] = "minimal"
+        unsigned = dict(revised_payload)
+        unsigned.pop("mission_envelope_sha256")
+        revised_payload["mission_envelope_sha256"] = hashlib.sha256(
+            json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        revised.write_text(json.dumps(revised_payload), encoding="utf-8")
+        mismatch_shared = ("--root", str(queue_root), "--scope", "v2-contract", "--owner-task-id", "owner-1", "--mission-envelope", str(revised))
         assert run(str(QUEUE), "inspect", *mismatch_shared, "--now-utc", "2026-07-27T00:30:00Z")["status"] == "ENVELOPE_MISMATCH"
+        wrong_scope = ("--root", str(queue_root), "--scope", "wrong-scope", "--owner-task-id", "owner-1", "--mission-envelope", str(envelope))
+        assert run(str(QUEUE), "inspect", *wrong_scope, "--now-utc", "2026-07-27T00:30:01Z")["status"] == "MISSION_SCOPE_MISMATCH"
     print(json.dumps({"status": "PASS", "version": version, "single_owner": True, "api_get_only_optional": True, "chrome_live_gate_required": True, "legacy_files_removed": True}, sort_keys=True))
 
 

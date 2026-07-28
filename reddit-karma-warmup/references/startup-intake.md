@@ -13,9 +13,10 @@ evidence.
 When `request_user_input` is available, submit exactly these three questions in
 one request and wait for the user's answers. Omit `autoResolutionMs`: automatic
 resolution is only for nonblocking prompts and is forbidden for this intake.
-Otherwise present the same three headings in one compact message and wait.
-Never split them into sequential questions or use an automatic timeout to infer
-an answer. This flow asks no fourth question.
+Use that interactive form at most once for the bootstrap. Otherwise present the
+same three headings in one compact normal-text message and wait. Never split
+them into sequential questions or use an automatic timeout to infer an answer.
+This flow asks no fourth question.
 
 ## Required-answer wait
 
@@ -24,6 +25,29 @@ question expiry as `WAITING_FOR_STARTUP_INPUT`. Do not infer missing values,
 compile an envelope, create a queue/Heartbeat, open Chrome, or begin research.
 Resume only when all three answers are explicit. An explicit user cancellation
 ends intake as `STARTUP_CANCELLED_BY_USER`; silence never does.
+
+## Text fallback after an unanswered form
+
+After the first interactive form is unanswered, partial, dismissed, or expired,
+do **not** submit `request_user_input` again. Send this direct normal-text
+reminder in the response that follows, even when one or two answers were
+recognized. Always list all three questions so the user can answer in one
+message:
+
+```text
+请先回答以下三个问题（可直接按 `1) … 2) … 3) …` 回复）：
+1) 运行多久？可选：2 小时 / 4 小时 / 8 小时。
+2) 希望账号在 Reddit 上成为什么样的人、围绕什么方向或社区被看见？可选：社交与社区 / 个人创作与独立项目 / 3D/游戏/共创。
+3) 这轮希望账号做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。
+```
+
+Mention any recognized answers and the missing fields, but never replace the
+three-line reminder with only field names such as `duration_hours`. On every
+later incomplete reply, repeat this **text** reminder rather than reopening the
+interactive form. It is the same three-question intake, not a second-round or
+fourth question. The deterministic compiler emits this exact fallback payload
+for `WAITING_FOR_STARTUP_INPUT`; use it instead of improvising a shorter
+message.
 
 ## Question 1 — duration
 

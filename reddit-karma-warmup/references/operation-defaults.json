@@ -1,9 +1,12 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.07.28.6",
+  "runtime_protocol_version": "2026.07.28.7",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
+    "interactive_form_attempts": 1,
+    "unanswered_form_fallback": "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_NO_REQUEST_USER_INPUT_REPEAT",
+    "partial_reply_fallback": "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_WITH_RECOGNIZED_AND_MISSING_FIELDS",
     "completion": "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER",
     "unanswered_or_partial": "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH",
     "silence": "NEVER_IMPLICITLY_CANCELLED",

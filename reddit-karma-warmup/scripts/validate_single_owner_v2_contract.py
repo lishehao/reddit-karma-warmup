@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.28.6"
+    assert version == "2026.07.28.7"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
@@ -78,6 +78,9 @@ def main() -> None:
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
+    assert intake_defaults["interactive_form_attempts"] == 1
+    assert intake_defaults["unanswered_form_fallback"] == "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_NO_REQUEST_USER_INPUT_REPEAT"
+    assert intake_defaults["partial_reply_fallback"] == "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_WITH_RECOGNIZED_AND_MISSING_FIELDS"
     assert intake_defaults["completion"] == "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER"
     assert intake_defaults["unanswered_or_partial"] == "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH"
     assert intake_defaults["silence"] == "NEVER_IMPLICITLY_CANCELLED"
@@ -126,7 +129,7 @@ def main() -> None:
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "single account-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "single account-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -146,7 +149,7 @@ def main() -> None:
     assert actual == required, actual
     intake = STARTUP_INTAKE.read_text(encoding="utf-8")
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "one account direction", "not separate required fields", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round"):
+    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "one account direction", "not separate required fields", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round", "Text fallback after an unanswered form", "do **not** submit `request_user_input` again", "请先回答以下三个问题", "all three questions"):
         assert phrase in intake, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
     assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
@@ -177,7 +180,13 @@ def main() -> None:
         assert compiled_intake["normalized"]["requested_work_types"] == ["browsing", "comments"]
         partial_answers = work / "partial-answers.json"
         partial_answers.write_text(json.dumps({"duration_hours": 2}), encoding="utf-8")
-        assert run(str(INTAKE_COMPILER), "--input", str(partial_answers))["status"] == "WAITING_FOR_STARTUP_INPUT"
+        partial = run(str(INTAKE_COMPILER), "--input", str(partial_answers))
+        assert partial["status"] == "WAITING_FOR_STARTUP_INPUT"
+        assert partial["missing"] == ["direction", "authority_profile"]
+        assert partial["text_fallback"]["channel"] == "DIRECT_TEXT"
+        assert partial["text_fallback"]["request_user_input_repeat"] is False
+        assert "请先回答以下三个问题" in partial["text_fallback"]["message"]
+        assert all(label in partial["text_fallback"]["message"] for label in ("1)", "2)", "3)"))
         stale_evidence = work / "stale-runtime.json"
         stale_evidence.write_text(json.dumps({
             "owner_task_id": "019fa29e-2cb5-70d0-9519-b6d993fe7e71",

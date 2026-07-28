@@ -61,6 +61,14 @@ CUSTOM_UNIT_AUTHORITY = {
     "presence": {"RESEARCH_ONLY", "PRESENCE_AUTHORIZED"},
 }
 
+TEXT_FALLBACK = (
+    "请先回答以下三个问题（可直接按 `1) … 2) … 3) …` 回复）：\n"
+    "1) 运行多久？可选：2 小时 / 4 小时 / 8 小时。\n"
+    "2) 希望账号在 Reddit 上成为什么样的人、围绕什么方向或社区被看见？"
+    "可选：社交与社区 / 个人创作与独立项目 / 3D/游戏/共创。\n"
+    "3) 这轮希望账号做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。"
+)
+
 
 def fail(message):
     raise ValueError(message)
@@ -168,6 +176,19 @@ def resolve_profile(value, custom):
     return "custom", custom_profile(custom)
 
 
+def waiting_response(missing):
+    return {
+        "schema": "reddit_startup_intake/v1",
+        "status": "WAITING_FOR_STARTUP_INPUT",
+        "missing": missing,
+        "text_fallback": {
+            "channel": "DIRECT_TEXT",
+            "request_user_input_repeat": False,
+            "message": TEXT_FALLBACK,
+        },
+    }
+
+
 def normalize(raw):
     if not isinstance(raw, dict):
         fail("input must be object")
@@ -186,7 +207,7 @@ def normalize(raw):
     if raw.get("authority_profile") in (None, ""):
         missing.append("authority_profile")
     if missing:
-        return {"schema": "reddit_startup_intake/v1", "status": "WAITING_FOR_STARTUP_INPUT", "missing": missing}
+        return waiting_response(missing)
 
     duration = duration_hours(raw.get("duration_hours", raw.get("duration")))
     direction = text(direction_value, "direction", 3, 2000)
@@ -252,10 +273,14 @@ def atomic_write(path, value):
 
 
 def self_test():
-    assert normalize({"duration_hours": 2}) == {
-        "schema": "reddit_startup_intake/v1",
-        "status": "WAITING_FOR_STARTUP_INPUT",
-        "missing": ["direction", "authority_profile"],
+    waiting = normalize({"duration_hours": 2})
+    assert waiting["schema"] == "reddit_startup_intake/v1"
+    assert waiting["status"] == "WAITING_FOR_STARTUP_INPUT"
+    assert waiting["missing"] == ["direction", "authority_profile"]
+    assert waiting["text_fallback"] == {
+        "channel": "DIRECT_TEXT",
+        "request_user_input_repeat": False,
+        "message": TEXT_FALLBACK,
     }
     assert normalize({"cancelled": True})["status"] == "STARTUP_CANCELLED_BY_USER"
     result = normalize({

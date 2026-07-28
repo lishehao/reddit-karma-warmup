@@ -19,6 +19,11 @@ envelope/queue/Heartbeat, or create unit tasks until all three answers arrive.
 For this required intake, omit `request_user_input.autoResolutionMs`: unanswered
 or partial input stays `WAITING_FOR_STARTUP_INPUT`, and only an explicit user
 cancellation may end intake without a mission.
+Use the interactive three-question form at most once for this bootstrap. If it
+is unanswered, partial, dismissed, or expires, do not submit another form:
+send a normal text response that lists all three questions and a compact
+`1) / 2) / 3)` reply format. Keep waiting; that reminder is not a fourth
+question and does not authorize any mission work.
 Once all three answers are explicit, persist exactly those answers and run
 `scripts/compile_startup_intake.py`. Only
 `STARTUP_ANSWERS_COMPLETE` may continue; do not ask another startup question.

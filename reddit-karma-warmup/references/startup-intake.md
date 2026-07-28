@@ -64,8 +64,10 @@ Question 2: do not ask a second-round question for audience, topic, community
 scope, a project link, facts, or lived observations. Default omitted scope to
 `discover` when no community seeds were volunteered (otherwise
 `seeded_expandable`), and material refs to
-`[]`. If posts later lack material, park only `posts` as
-`MATERIAL_REQUIRED`; do not ask another startup question or invent facts.
+`[]`. Missing a project artifact does not pre-park the whole posts unit: a
+truthful native discussion route may still be possible. Use mission-wide
+`MATERIAL_REQUIRED` only after a bounded audit proves every allowed post format
+needs absent material; do not ask another startup question or invent facts.
 
 ## Question 3 — action scope
 

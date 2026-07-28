@@ -14,6 +14,9 @@ missing tab, or account enforcement.
 This is not a Reddit rule result. If such a timeout prevents reading rules,
 composer state, duplicates, or account proof, the affected unit must use
 `LIVE_GATE_UNVERIFIED`/`YIELDED`, not `RULE_BLOCKED`.
+The next verified Heartbeat resumes that same unit with `RECOVERY_FIRST`; it
+must not use `WATCH`, `SKIP`, `DEFER`, or fast NOOP merely because the previous
+tab was blank.
 
 Start on Old Reddit for ordinary listings, text, rules, and text forms. Make at
 most one equivalent current-Reddit fallback when the required capability is
@@ -36,8 +39,9 @@ recovery path.
   page may have loaded. Do not use `Promise.race` as faux cancellation.
   If readback is still `about:blank` or the content channel remains
   unavailable, yield the packet and let the next verified Heartbeat run one
-  bounded recovery probe. Do not turn the next wake into a no-Chrome `SKIP`
-  solely because this navigation failed.
+  bounded recovery probe in a fresh owned tab if needed. Immediate same-boundary
+  retry is forbidden, but a later read-only recovery is required. Do not turn
+  the next wake into a no-Chrome `SKIP` solely because navigation failed.
 - Build locators from a fresh snapshot. Act only on one visible, interactive,
   unique control. Refresh the snapshot after every state change.
 - React fields may ignore `fill("")`; clear with Select All then Backspace and

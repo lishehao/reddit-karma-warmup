@@ -103,16 +103,21 @@ account risk.
 3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
    work remains, ending at `operation_stop_at + cleanup-grace`. Persist and read
    back its exact automation ID, target task, RRULE, `UNTIL`, next run, and proof.
+   Keep its automation prompt to stable mission identity/boundary facts and the
+   queue's `runtime_protocol_version`; every wake reloads this installed Skill
+   and the queue instead of carrying a copied cadence/NOOP policy.
    At every delivered Heartbeat record `heartbeat-observe` before unit work; a
    suspected gap never authorizes catch-up. Refresh the receipt after every
    completed wake. Only the first packet may use `wake-source=INITIAL` within
    the first five minutes; every later packet requires the observed Heartbeat.
-   Align normal unit rechecks to that grid, but schedule an evidence-backed
+   Align normal unit rechecks to the verified Heartbeat phase, never absolute
+   UTC quarter-hours. Schedule an evidence-backed
    `ACTION_ELIGIBLE` handoff for the task's next verified Heartbeat occurrence,
    not an unrelated wall-clock grid. For `全面推进` / active action-budget
    missions, keep browsing due at the next verified Heartbeat while coverage
    remains open. A trigger within ±5 minutes is ordinary; earlier/later triggers
-   retain their signed delay and never cause catch-up. A wake with nothing due is
+   retain their signed delay. A late wake runs one currently due unit; “no
+   catch-up” forbids replaying missed packets, not current work. A wake with nothing due is
    an atomic fast NOOP: do not open Chrome or rewrite the timer. Treat it as a
    terminal, duplicate/early, or recovery condition—not normal spacing between
    an eligible candidate and its next action packet. Never use a one-shot
@@ -127,13 +132,19 @@ account risk.
    queue's atomic `handoff` command before the browsing packet closes, and
    `verified own permalink -> follow-up ACTION_ELIGIBLE`. Do not poll a
    follow-up unit without a verified own permalink or a presence unit without a
-   concrete requested change. Park `MATERIAL_REQUIRED`, `RULE_BLOCKED`,
+   concrete requested change. Every action handoff must include the exact
+   `candidate_ref`; a previously rejected exact candidate cannot be re-armed.
+   If one comments/posts candidate or community fails a real rule/fit gate,
+   record `candidate-reject` and return to browsing on the next Heartbeat.
+   Park `MATERIAL_REQUIRED`, `RULE_BLOCKED`,
    `SUBMISSION_UNCERTAIN`, and `NOT_APPLICABLE` units until a mission revision
    or fresh upstream evidence explicitly re-arms them.
-   Use `RULE_BLOCKED` only for a visible rule, form, approval, or moderator
-   blocker. If Chrome navigation, DOM, screenshot, or rule-panel reads time out,
-   record `LIVE_GATE_UNVERIFIED` or yield the same unit; do not convert a
-   runtime/content-channel failure into a business rule block.
+   Use `RULE_BLOCKED` only for a mission-wide visible rule/form/approval/moderator
+   blocker with evidence. Use mission-wide `MATERIAL_REQUIRED` only after a
+   bounded audit proves every allowed truthful post format needs absent
+   material. If Chrome navigation, DOM, screenshot, or rule-panel reads time
+   out, record `LIVE_GATE_UNVERIFIED` and yield the same unit; the next due
+   decision must be `RUN` with `RECOVERY_FIRST`, not `WATCH`, `SKIP`, or `DEFER`.
    When the mission goal includes public action, an `ACTION_ELIGIBLE` unit
    outranks more exploratory browsing. Do not keep scanning the same
    communities after a passing route and truthful material are ready.

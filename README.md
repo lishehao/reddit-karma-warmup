@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.28.5`
+Protocol version: `2026.07.28.6`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -45,7 +45,9 @@ all three answers arrive, compile them through the local deterministic startup
 compiler into immutable mission-envelope inputs, run the same-Chrome account
 gate, and start the mission. Do not ask a fourth
 clarification merely because posts lack truthful material: compile that unit as
-`MATERIAL_REQUIRED` while other authorized units may proceed.
+pending and audit all truthful native formats first. Missing a project link
+does not block a native discussion; use mission-wide `MATERIAL_REQUIRED` only
+when every allowed format needs absent material.
 
 Answer completion starts the mission directly: classify the local runtime,
 compile the envelope, perform the technical canary/account gate, create and
@@ -103,9 +105,11 @@ Only an explicit user cancellation ends this intake.
 7. Separate a bounded packet from its unit objective. A completed research
    packet never means a post, comment, follow-up, or presence objective is
    complete. Candidate packs explicitly arm the next eligible unit; verified
-   own permalinks explicitly arm follow-up. Missing truthful material, a live
-   rule block, an uncertain submission, or no applicable target parks only that
-   unit and removes its recurring wake until a new mission revision or upstream
+   own permalinks explicitly arm follow-up. Only a bounded mission-wide audit
+   can park a unit for missing truthful material or a rule block; one rejected
+   candidate/community returns to browsing for replacement evidence instead.
+   An uncertain submission parks only that exact action key. A genuinely parked
+   unit removes its recurring wake until a mission revision or recorded upstream
    evidence changes it.
 8. Use one stable 15-minute mission Heartbeat with an explicit cleanup-grace
    `UNTIL`. Persist/read back its ID, target, RRULE, `UNTIL`, and future next run
@@ -113,18 +117,25 @@ Only an explicit user cancellation ends this intake.
    it after each closed wake. A late observed delivery is not proof that an
    earlier delivery occurred: record a suspected scheduler gap and enter
    recovery/finalization on the next available task turn rather than inventing
-   catch-up work. Align normal unit rechecks
-   to that grid; an evidence-backed action handoff runs at the next verified
+   catch-up work. Keep the automation prompt to stable mission identity and
+   boundary facts plus `runtime_protocol_version`; every wake reloads the
+   installed Skill/queue. Align normal unit rechecks to the verified Heartbeat
+   phase, never absolute UTC quarter-hours; an evidence-backed action handoff
+   includes an exact candidate reference and runs at the next verified
    Heartbeat, and active full-progression browsing stays due while coverage is
    open. A no-work wake is an atomic fast NOOP with no Chrome call only for an
    early/duplicate delivery, recovery, or genuinely exhausted frontier. An
-   authorized pending comment/post is clamped to the next grid if its default
+   authorized pending comment/post is clamped to the next verified Heartbeat if its default
    recheck would otherwise cross the mission cutoff; when no grid remains, it
    settles as `ACTION_WINDOW_EXPIRED` rather than wedging the wake. ±5 minutes
-   is normal; outside it, record an early/late signed delta without catch-up.
+   is normal; outside it, record an early/late signed delta. A late wake runs
+   one currently due unit; no catch-up means no replay, not skipping current work.
    A previous Chrome timeout is not a reason for repeated no-Chrome `SKIP`
    wakes: the next due wake runs one bounded recovery/read probe or yields the
    same unit again.
+   A failed exact candidate/community uses `candidate-reject`, refills browsing
+   on the next Heartbeat, and cannot be handed back. Only mission-wide evidence
+   may set `RULE_BLOCKED` or `MATERIAL_REQUIRED`.
    At deadline enter finalization only: recover stale work, release owned tabs,
    delete the Heartbeat with proof, then retire the queue.
 

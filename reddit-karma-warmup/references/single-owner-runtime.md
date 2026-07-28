@@ -59,6 +59,7 @@ comment/post/reply/profile change exists, and it must not close an action goal.
 
 ```text
 browsing candidate pack ──> atomic `handoff` ──> comments/posts ACTION_ELIGIBLE
+exact candidate/community rejection ──> `candidate-reject` ──> browsing PENDING
 verified own post/comment permalink ──> follow-up ACTION_ELIGIBLE
 explicit requested profile change ──> presence ACTION_ELIGIBLE
 ```
@@ -70,11 +71,13 @@ reference when a unit becomes `CANDIDATES_READY` or `ACTION_ELIGIBLE`.
 `ACTION_VERIFIED` needs both verification evidence and the resulting own
 permalink/source reference before it can arm follow-up.
 
-- `MATERIAL_REQUIRED`: one bounded audit established that the user has not
-  supplied the truthful artifact, relationship, observation, or claim needed
-  for the requested action. Stop re-researching until a revision supplies it.
-- `RULE_BLOCKED`: record the current visible rule/approval/form blocker and
-  park the unit. Do not keep probing hidden gates.
+- `MATERIAL_REQUIRED`: a bounded mission-wide audit established that every
+  allowed truthful post format needs absent material. Supply
+  `--block-scope MISSION` plus evidence; one failed format or missing project
+  link is insufficient while a native discussion route remains possible.
+- `RULE_BLOCKED`: reserve this terminal state for a mission-wide visible
+  rule/approval/form blocker. Supply `--block-scope MISSION` plus evidence.
+  One rejected candidate or incompatible community uses `candidate-reject`.
 - `LIVE_GATE_UNVERIFIED`: a Chrome/content-channel/DOM/navigation failure
   prevented the live account, rule, duplicate, composer, or page-state gate
   from being completed. It is not a rule decision and remains recoverable:
@@ -87,6 +90,12 @@ permalink/source reference before it can arm follow-up.
 
 Only a mission revision or a recorded upstream evidence handoff may re-arm a
 parked action unit. Do not use a generic cadence to revive it.
+
+For `discover` and `seeded_expandable` missions, a comments/posts packet that
+proves its exact target cannot pass must call `candidate-reject` before it
+finishes. This rejects only that exact `candidate_ref`, schedules browsing on
+the next verified Heartbeat, and prevents the same target from being handed
+back to that unit.
 
 ## Goal profile and priority
 
@@ -133,11 +142,17 @@ work wake. An unfinished mission with no verifiable future occurrence is
 `MISSION_SCHEDULER_UNVERIFIED`, not healthy. A later manual/task turn that
 finds a suspected gap must recover or finalize; a Skill cannot observe a timer
 delivery that never reaches any task turn.
+Keep the automation prompt to identity and immutable boundary facts: mission
+ID, owner task ID, queue/envelope paths, cutoff, authority, and the queue's
+`runtime_protocol_version`. Do not copy cadence, NOOP, catch-up, or
+unit-selection policy into the prompt. Each wake reloads the installed Skill
+and queue. A running mission stays pinned to its recorded protocol version.
 Only a first packet inside the opening five-minute tolerance may declare
 `wake-source=INITIAL`; every later `wake-open` requires an observation from the
 same Heartbeat turn. This prevents a manually resumed task from silently
 calling overdue work a healthy scheduler delivery.
-Normal unit rechecks align to its 15-minute grid: browsing 30 minutes, comments
+Normal unit rechecks align to the verified Heartbeat phase—not absolute UTC
+quarter-hours: browsing 30 minutes, comments
 45, posts 180, follow-up 90 (15 for an active known chain), and presence 24
 hours. They are recheck timings, never action quotas. An `ACTION_ELIGIBLE`
 handoff is different: it is a continuation and must be due on the next
@@ -149,15 +164,16 @@ packet studies and which eligible candidate it prefers. Rechecks apply only to
 objective states that remain runnable. For an action-oriented goal, an
 authorized pending/candidate-ready `comments` or `posts` unit may not be
 deferred beyond the cutoff: the queue records an
-`ACTION_WINDOW_CLAMPED_TO_NEXT_GRID` adjustment instead. A packet must never
+`ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT` adjustment instead. A packet must never
 schedule a unit after the mission cutoff. A wake with no due unit atomically
 records `NOOP` and does not claim, open, or read Chrome. It is valid only for
 an early/duplicate delivery, recovery, or a genuinely exhausted/parked
 frontier; it is not normal spacing after an eligible handoff. An actual trigger
 within ±5 minutes is ordinary. A trigger beyond that window records
-`EARLY_WAKE` or `LATE_WAKE` with its signed delta; an early wake does no work,
-and a late wake recomputes from actual time. Neither catches up missed actions
-or creates a second timer.
+`EARLY_WAKE` or `LATE_WAKE` with its signed delta; an early wake does no work.
+A late wake runs at most one currently due unit. “No catch-up” means no replay
+of missed packets or mutations; it never means skipping currently due work.
+Neither case creates a second timer.
 
 Every open wake and running packet has one 15-minute lease. If the owning task
 returns after that lease, or after the operation deadline, it must run one
@@ -165,14 +181,16 @@ bounded recovery: settle the stale boundary, preserve lower-bound evidence,
 freeze a supplied uncertain `action_key`, and yield the same unit for a later
 wake. It must not replay a mutation, create another Heartbeat, or create a new
 mission. A no-work wake never creates an open wake. If an action-window defer
-cannot fit another grid before cutoff, record `ACTION_WINDOW_EXPIRED`, clear
+cannot fit another verified Heartbeat before cutoff, record
+`ACTION_WINDOW_EXPIRED`, clear
 that unit's schedule, and close the wake normally; do not leave it open.
 
 A prior Chrome timeout is not a durable reason to skip future due work. When a
 due unit's last failure was `CHROME_CONTENT_CHANNEL_TIMEOUT`, `about:blank`,
 or a rule/composer read timeout, the next wake must run one bounded recovery or
-read probe and then either continue or yield again. Do not record repeated
-`SKIP` decisions whose only reason is the previous navigation or DOM timeout.
+read probe and then either continue or yield again. `resume_unit` and
+`LIVE_GATE_UNVERIFIED` both force `RUN`/`RECOVERY_FIRST`; `WATCH`, `SKIP`,
+`DEFER`, and fast NOOP are invalid until recovery settles the unit.
 
 ## Permission and uncertainty
 

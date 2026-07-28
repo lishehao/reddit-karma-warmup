@@ -22,7 +22,8 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-SCHEMA = "reddit_single_owner_queue/v9"
+PROTOCOL_VERSION = "2026.07.28.6"
+SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 ORDINARY_TRIGGER_TOLERANCE_SECONDS = 300
@@ -112,6 +113,7 @@ ACTION_WINDOW_UNITS = {"comments", "posts"}
 UPSTREAM_HANDOFFS = {
     "browsing": {"comments", "posts"},
 }
+REFILL_UNITS = {"comments", "posts"}
 
 
 def outward_authority(unit, authority):
@@ -159,7 +161,42 @@ def runtime_failure_reason(reason):
 
 
 def next_grid_epoch(now):
+    """Pre-receipt fallback only; live missions use the verified Heartbeat phase."""
     return int(now // HEARTBEAT_GRID_SECONDS + 1) * HEARTBEAT_GRID_SECONDS
+
+
+def heartbeat_epoch_at_or_after(state, target):
+    """Return the first verified mission Heartbeat occurrence at/after target."""
+    next_run = state.get("heartbeat", {}).get("next_run_at_utc")
+    if isinstance(next_run, str):
+        candidate = parse_utc("heartbeat_next_run_at_utc", next_run)
+        if candidate < target:
+            intervals = int((target - candidate + HEARTBEAT_GRID_SECONDS - 1) // HEARTBEAT_GRID_SECONDS)
+            candidate += intervals * HEARTBEAT_GRID_SECONDS
+    else:
+        candidate = next_grid_epoch(target)
+    return candidate if candidate < state["operation_stop_epoch"] else None
+
+
+def unit_requires_recovery_first(state, unit):
+    value = state["units"][unit]
+    if value["plan"] != "ACTIVE" or not due_objective(value["objective"]["state"]):
+        return False
+    return (
+        state.get("resume_unit") == unit
+        or value["objective"]["state"] == "LIVE_GATE_UNVERIFIED"
+        or runtime_failure_reason(value.get("last_reason"))
+        or runtime_failure_reason(value["objective"].get("reason"))
+    )
+
+
+def rejected_candidate(state, unit, candidate_ref):
+    if candidate_ref is None:
+        return False
+    return any(
+        item["unit"] == unit and item["candidate_ref"] == candidate_ref
+        for item in state.get("candidate_rejections", [])
+    )
 
 
 def action_window_guard(state, unit, decision):
@@ -349,6 +386,7 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
         }
     return {
         "schema": SCHEMA,
+        "runtime_protocol_version": PROTOCOL_VERSION,
         "state": "ACTIVE",
         "scope_sha256": hashlib.sha256(scope.encode("utf-8")).hexdigest(),
         "owner_task_id": owner_task_id,
@@ -393,6 +431,7 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
         "active_packet": None,
         "resume_unit": None,
         "frozen_action_keys": [],
+        "candidate_rejections": [],
         "history": [],
         "revision_history": [],
         "updated_at_utc": utc(now),
@@ -402,6 +441,8 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
 def validate_state(state, scope, owner_task_id):
     if state.get("schema") != SCHEMA or state.get("state") not in MISSION_STATES:
         raise ValueError("unknown mission state")
+    if state.get("runtime_protocol_version") != PROTOCOL_VERSION:
+        raise ValueError("runtime protocol version mismatch")
     if state.get("scope_sha256") != hashlib.sha256(scope.encode("utf-8")).hexdigest():
         raise ValueError("scope mismatch")
     if state.get("owner_task_id") != owner_task_id:
@@ -459,6 +500,13 @@ def validate_state(state, scope, owner_task_id):
             raise ValueError("invalid objective")
         if not isinstance(objective.get("reason"), str):
             raise ValueError("invalid objective reason")
+        for key in ("candidate_ref", "source_ref"):
+            reference = objective.get(key)
+            if reference is not None:
+                objective_reference("objective_" + key, reference)
+        evidence = objective.get("evidence_sha256")
+        if evidence is not None:
+            sha256_value("objective_evidence_sha256", evidence)
         schedule = value.get("next_due_epoch")
         should_schedule = value.get("plan") == "ACTIVE" and due_objective(objective["state"])
         if schedule is not None and not isinstance(schedule, (int, float)):
@@ -484,6 +532,22 @@ def validate_state(state, scope, owner_task_id):
         raise ValueError("invalid resume unit")
     for key in state.get("frozen_action_keys", []):
         sha256_value("frozen action key", key)
+    rejections = state.get("candidate_rejections")
+    if not isinstance(rejections, list):
+        raise ValueError("invalid candidate rejections")
+    seen_rejections = set()
+    for item in rejections:
+        if not isinstance(item, dict) or item.get("unit") not in REFILL_UNITS:
+            raise ValueError("invalid candidate rejection")
+        candidate = objective_reference("candidate_rejection_ref", item.get("candidate_ref"))
+        rejection_key = (item["unit"], candidate)
+        if rejection_key in seen_rejections:
+            raise ValueError("duplicate candidate rejection")
+        seen_rejections.add(rejection_key)
+        require_text("candidate_rejection_reason", item.get("reason"), 512)
+        sha256_value("candidate_rejection_evidence", item.get("evidence_sha256"))
+        objective_reference("candidate_rejection_source_ref", item.get("source_ref"))
+        parse_utc("candidate_rejection_at", item.get("rejected_at_utc"))
 
 
 def due_units(state, now):
@@ -514,6 +578,7 @@ def due_units(state, now):
 def public(state, status, now, detail=None):
     result = {
         "schema": SCHEMA,
+        "runtime_protocol_version": state["runtime_protocol_version"],
         "status": status,
         "state": state["state"],
         "owner_task_id": state["owner_task_id"],
@@ -544,8 +609,10 @@ def public(state, status, now, detail=None):
         "cleanup_state": state["cleanup"]["state"],
         "cleanup_deadline_at_utc": state["cleanup_deadline_at_utc"],
         "active_unit": (state.get("active_packet") or {}).get("unit"),
+        "resume_unit": state.get("resume_unit"),
         "due_units": due_units(state, now),
         "frozen_action_key_count": len(state["frozen_action_keys"]),
+        "candidate_rejection_count": len(state["candidate_rejections"]),
         "heartbeat_interval_minutes": HEARTBEAT_INTERVAL_MINUTES,
         "timer_policy": "CONTINUE_STABLE_RECURRENCE",
         "next_due_at_utc": {unit: state["units"][unit]["next_due_at_utc"] for unit in UNIT_ORDER},
@@ -688,6 +755,13 @@ def recover_stale_work(state, now, reason, action_key=None):
         state["history"].append({"kind": "PACKET", **active})
         unit = active["unit"]
         state["active_packet"] = None
+        state["units"][unit]["last_reason"] = "RECOVERY_FIRST: " + reason
+        if runtime_failure_reason(reason) and due_objective(state["units"][unit]["objective"]["state"]):
+            state["units"][unit]["objective"].update({
+                "state": "LIVE_GATE_UNVERIFIED",
+                "reason": reason,
+                "updated_at_utc": utc(now),
+            })
         state["resume_unit"] = unit if now < state["operation_stop_epoch"] and due_objective(state["units"][unit]["objective"]["state"]) else None
     settle_wake(state, "RECOVERED_YIELDED", now)
     return "RECOVERED_YIELDED"
@@ -697,8 +771,8 @@ def reschedule(state, unit, now, minutes):
     if not isinstance(minutes, int) or isinstance(minutes, bool) or not 15 <= minutes <= 10080:
         raise ValueError("invalid next_due_minutes")
     target = now + minutes * 60
-    aligned = int((target + HEARTBEAT_GRID_SECONDS - 1) // HEARTBEAT_GRID_SECONDS) * HEARTBEAT_GRID_SECONDS
-    if aligned >= state["operation_stop_epoch"]:
+    aligned = heartbeat_epoch_at_or_after(state, target)
+    if aligned is None:
         state["units"][unit]["next_due_epoch"] = None
         state["units"][unit]["next_due_at_utc"] = None
         return
@@ -707,8 +781,8 @@ def reschedule(state, unit, now, minutes):
 
 
 def schedule_next_grid(state, unit, now):
-    aligned = next_grid_epoch(now)
-    if aligned >= state["operation_stop_epoch"]:
+    aligned = heartbeat_epoch_at_or_after(state, now + 0.001)
+    if aligned is None:
         return False
     state["units"][unit]["next_due_epoch"] = aligned
     state["units"][unit]["next_due_at_utc"] = utc(aligned)
@@ -717,14 +791,12 @@ def schedule_next_grid(state, unit, now):
 
 def schedule_next_heartbeat(state, unit, now):
     """Schedule the next concrete mission turn, never an unrelated wall-clock grid."""
-    next_run = state["heartbeat"].get("next_run_at_utc")
-    if isinstance(next_run, str):
-        scheduled = parse_utc("heartbeat_next_run_at_utc", next_run)
-        if scheduled > now and scheduled < state["operation_stop_epoch"]:
-            state["units"][unit]["next_due_epoch"] = scheduled
-            state["units"][unit]["next_due_at_utc"] = utc(scheduled)
-            return True
-    return schedule_next_grid(state, unit, now)
+    scheduled = heartbeat_epoch_at_or_after(state, now + 0.001)
+    if scheduled is None:
+        return False
+    state["units"][unit]["next_due_epoch"] = scheduled
+    state["units"][unit]["next_due_at_utc"] = utc(scheduled)
+    return True
 
 
 def clear_schedule(state, unit):
@@ -738,18 +810,33 @@ def objective_reference(name, value):
     return require_text(name, value, 512)
 
 
-def update_objective(state, unit, objective_state, reason, now, evidence_sha256=None, candidate_ref=None, source_ref=None):
+def update_objective(
+    state,
+    unit,
+    objective_state,
+    reason,
+    now,
+    evidence_sha256=None,
+    candidate_ref=None,
+    source_ref=None,
+    block_scope=None,
+):
     if objective_state not in OBJECTIVE_STATES:
         raise ValueError("invalid objective_state")
     value = state["units"][unit]
-    if objective_state == "RULE_BLOCKED" and runtime_failure_reason(reason):
-        raise ValueError("rule_blocked_requires_visible_rule_or_form_blocker_use_live_gate_unverified")
+    if objective_state in {"RULE_BLOCKED", "MATERIAL_REQUIRED", "NOT_APPLICABLE"} and runtime_failure_reason(reason):
+        raise ValueError("recoverable_runtime_failure_requires_live_gate_unverified")
     previous_state = value["objective"]["state"]
     if objective_state in ("CANDIDATES_READY", "ACTION_ELIGIBLE"):
         candidate = objective_reference("candidate_ref", candidate_ref) or value["objective"].get("candidate_ref")
         source = objective_reference("source_ref", source_ref) or value["objective"].get("source_ref")
         if not (candidate or source):
             raise ValueError("candidate_or_source_reference_required")
+        if unit in REFILL_UNITS:
+            if candidate is None:
+                raise ValueError("exact_candidate_reference_required")
+            if rejected_candidate(state, unit, candidate):
+                raise ValueError("candidate_previously_rejected")
     if objective_state == "ACTION_ELIGIBLE" and unit != "browsing" and not outward_authority(unit, value["authority"]):
         raise ValueError("action_authority_required")
     if objective_state == "ACTION_VERIFIED":
@@ -759,6 +846,18 @@ def update_objective(state, unit, objective_state, reason, now, evidence_sha256=
             raise ValueError("verified_action_evidence_required")
         if not (objective_reference("source_ref", source_ref) or value["objective"].get("source_ref")):
             raise ValueError("verified_permalink_required")
+    if objective_state == "LIVE_GATE_UNVERIFIED" and not runtime_failure_reason(reason):
+        raise ValueError("live_gate_unverified_requires_runtime_failure")
+    if objective_state == "RULE_BLOCKED":
+        if block_scope != "MISSION":
+            raise ValueError("candidate_or_community_block_requires_candidate_reject")
+        if evidence_sha256 is None:
+            raise ValueError("mission_rule_block_evidence_required")
+    if objective_state == "MATERIAL_REQUIRED":
+        if block_scope != "MISSION":
+            raise ValueError("candidate_or_format_gap_requires_more_research")
+        if evidence_sha256 is None:
+            raise ValueError("mission_material_gap_evidence_required")
     if previous_state in PARKED_OBJECTIVE_STATES and due_objective(objective_state) and source_ref is None:
         raise ValueError("recorded_rearm_evidence_required")
     objective = value["objective"]
@@ -960,26 +1059,22 @@ def command(args):
                 return public(state, "DECISION_INVALID", now)
             if args.decision == "RUN" and any(item["decision"] == "RUN" for item in wake["decisions"].values()):
                 return public(state, "RUN_ALREADY_SELECTED", now)
-            if (
-                args.decision == "SKIP"
-                and runtime_failure_reason(args.reason)
-                and due_objective(state["units"][unit]["objective"]["state"])
-            ):
-                return public(state, "RUNTIME_FAILURE_MUST_RUN_OR_YIELD", now, {"unit": unit})
+            if args.decision != "RUN" and unit_requires_recovery_first(state, unit):
+                return public(state, "RECOVERABLE_RUNTIME_FAILURE_REQUIRES_RUN", now, {"unit": unit})
             minutes = args.next_due_minutes if args.next_due_minutes is not None else DEFAULT_RECHECK_MINUTES[unit]
             if not isinstance(minutes, int) or isinstance(minutes, bool) or not 15 <= minutes <= 10080:
                 raise ValueError("invalid next_due_minutes")
             adjustment = None
             if action_window_guard(state, unit, args.decision):
-                proposed = int((now + minutes * 60 + HEARTBEAT_GRID_SECONDS - 1) // HEARTBEAT_GRID_SECONDS) * HEARTBEAT_GRID_SECONDS
-                if proposed >= state["operation_stop_epoch"]:
+                proposed = heartbeat_epoch_at_or_after(state, now + minutes * 60)
+                if proposed is None:
                     if not schedule_next_grid(state, unit, now):
                         minutes = None
                         adjustment = "ACTION_WINDOW_EXPIRED"
                         clear_schedule(state, unit)
                     else:
                         minutes = HEARTBEAT_INTERVAL_MINUTES
-                        adjustment = "ACTION_WINDOW_CLAMPED_TO_NEXT_GRID"
+                        adjustment = "ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT"
             decision_record = {"decision": args.decision, "reason": require_text("reason", args.reason, 512), "next_due_minutes": minutes, "decided_at_utc": utc(now)}
             if adjustment is not None:
                 decision_record["scheduler_adjustment"] = adjustment
@@ -1060,6 +1155,11 @@ def command(args):
             source_ref = objective_reference("source_ref", args.source_ref)
             if source_ref is None:
                 return public(state, "HANDOFF_SOURCE_REFERENCE_REQUIRED", now)
+            candidate_ref = objective_reference("candidate_ref", args.candidate_ref)
+            if candidate_ref is None:
+                return public(state, "HANDOFF_CANDIDATE_REFERENCE_REQUIRED", now)
+            if rejected_candidate(state, target_unit, candidate_ref):
+                return public(state, "HANDOFF_CANDIDATE_PREVIOUSLY_REJECTED", now)
             update_objective(
                 state,
                 target_unit,
@@ -1067,8 +1167,9 @@ def command(args):
                 args.objective_reason,
                 now,
                 args.objective_evidence_sha256,
-                args.candidate_ref,
+                candidate_ref,
                 source_ref,
+                args.block_scope,
             )
             schedule_objective(state, target_unit, now, DEFAULT_RECHECK_MINUTES[target_unit])
             active.setdefault("handoffs", []).append({
@@ -1095,9 +1196,73 @@ def command(args):
                 args.objective_evidence_sha256,
                 args.candidate_ref,
                 args.source_ref,
+                args.block_scope,
             )
             schedule_objective(state, unit, now, DEFAULT_RECHECK_MINUTES[unit])
             return write_and_return(state_path, state, "OBJECTIVE_RECORDED", now, {"unit": unit})
+        if args.command == "candidate-reject":
+            active = state.get("active_packet")
+            if active is None or active.get("boundary") is not None:
+                return public(state, "CANDIDATE_REJECT_UNAVAILABLE", now)
+            unit = active["unit"]
+            if unit not in REFILL_UNITS:
+                return public(state, "CANDIDATE_REJECT_ROUTE_INVALID", now)
+            browsing = state["units"]["browsing"]
+            if browsing["plan"] != "ACTIVE":
+                return public(state, "CANDIDATE_REFILL_UNAVAILABLE", now)
+            candidate_ref = objective_reference(
+                "candidate_ref",
+                args.candidate_ref or state["units"][unit]["objective"].get("candidate_ref"),
+            )
+            if candidate_ref is None:
+                return public(state, "CANDIDATE_REFERENCE_REQUIRED", now)
+            if rejected_candidate(state, unit, candidate_ref):
+                return public(state, "CANDIDATE_ALREADY_REJECTED", now)
+            reason = require_text("objective_reason", args.objective_reason, 512)
+            evidence = sha256_value("objective_evidence_sha256", args.objective_evidence_sha256)
+            source_ref = objective_reference(
+                "source_ref",
+                args.source_ref or state["units"][unit]["objective"].get("source_ref"),
+            )
+            if source_ref is None:
+                return public(state, "CANDIDATE_SOURCE_REFERENCE_REQUIRED", now)
+            rejection = {
+                "unit": unit,
+                "candidate_ref": candidate_ref,
+                "source_ref": source_ref,
+                "reason": reason,
+                "evidence_sha256": evidence,
+                "rejected_at_utc": utc(now),
+            }
+            state["candidate_rejections"].append(rejection)
+            active["candidate_rejection"] = rejection
+            current_objective = state["units"][unit]["objective"]
+            current_objective.update({
+                "state": "NOT_APPLICABLE",
+                "reason": "EXACT_CANDIDATE_REJECTED: " + reason,
+                "evidence_sha256": evidence,
+                "candidate_ref": candidate_ref,
+                "source_ref": source_ref,
+                "updated_at_utc": utc(now),
+            })
+            clear_schedule(state, unit)
+            browsing["objective"].update({
+                "state": "PENDING",
+                "reason": "FRESH_CANDIDATE_REQUIRED_AFTER_REJECTION",
+                "evidence_sha256": evidence,
+                "candidate_ref": None,
+                "source_ref": candidate_ref,
+                "updated_at_utc": utc(now),
+            })
+            if not schedule_next_heartbeat(state, "browsing", now):
+                clear_schedule(state, "browsing")
+            return write_and_return(
+                state_path,
+                state,
+                "CANDIDATE_REJECTED_REFILL_SCHEDULED",
+                now,
+                {"unit": unit, "refill_unit": "browsing"},
+            )
         if args.command == "finish":
             active = state.get("active_packet")
             if active is None or active.get("boundary") is not None:
@@ -1106,8 +1271,14 @@ def command(args):
             if outcome not in OUTCOMES:
                 return public(state, "OUTCOME_INVALID", now)
             unit = active["unit"]
-            if outward_authority(unit, state["units"][unit]["authority"]) and args.objective_state is None:
+            if (
+                outward_authority(unit, state["units"][unit]["authority"])
+                and args.objective_state is None
+                and active.get("candidate_rejection") is None
+            ):
                 return public(state, "OBJECTIVE_STATE_REQUIRED", now, {"unit": unit})
+            if args.objective_state == "LIVE_GATE_UNVERIFIED" and outcome != "YIELDED":
+                return public(state, "LIVE_GATE_UNVERIFIED_REQUIRES_YIELD", now, {"unit": unit})
             if args.objective_state is not None:
                 update_objective(
                     state,
@@ -1118,6 +1289,7 @@ def command(args):
                     args.objective_evidence_sha256,
                     args.candidate_ref,
                     args.source_ref,
+                    args.block_scope,
                 )
             active["outcome"] = outcome
             active["finished_at_utc"] = utc(now)
@@ -1192,7 +1364,7 @@ def command(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "presentation-promote", "canary-pass", "heartbeat-record", "heartbeat-observe", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "handoff", "objective-set", "finish", "recover", "cleanup-open", "release-tabs", "heartbeat-delete", "retire"))
+    parser.add_argument("command", choices=("bootstrap", "inspect", "apply-revision", "presentation-promote", "canary-pass", "heartbeat-record", "heartbeat-observe", "wake-open", "decide", "start", "boundary-open", "boundary-settle", "freeze-action", "handoff", "objective-set", "candidate-reject", "finish", "recover", "cleanup-open", "release-tabs", "heartbeat-delete", "retire"))
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--scope", required=True)
     parser.add_argument("--owner-task-id", required=True)
@@ -1221,6 +1393,7 @@ def main():
     parser.add_argument("--objective-evidence-sha256")
     parser.add_argument("--candidate-ref")
     parser.add_argument("--source-ref")
+    parser.add_argument("--block-scope")
     parser.add_argument("--recovery-reason")
     parser.add_argument("--recovery-action-key")
     parser.add_argument("--cleanup-reason")

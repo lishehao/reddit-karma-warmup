@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.28.4`
+Protocol version: `2026.07.28.5`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -90,6 +90,10 @@ Only an explicit user cancellation ends this intake.
    current rules, account, submit state, truthful evidence, pacing, and one
    verified result. Persist an `action_key` before submission; freeze uncertain
    results and never retry them.
+   If the rule/composer/account live gate cannot complete because Chrome
+   navigation or DOM reading times out, record `LIVE_GATE_UNVERIFIED` or
+   `YIELDED`; do not call it `RULE_BLOCKED` unless a visible rule, form,
+   approval, or moderator blocker was actually read.
 6. Compile one business-goal profile: `community_discovery`,
    `conversation_entry`, `feedback_validation`, `project_distribution`,
    `relationship_maintenance`, or `profile_readiness`. Store community scope,
@@ -118,6 +122,9 @@ Only an explicit user cancellation ends this intake.
    recheck would otherwise cross the mission cutoff; when no grid remains, it
    settles as `ACTION_WINDOW_EXPIRED` rather than wedging the wake. ±5 minutes
    is normal; outside it, record an early/late signed delta without catch-up.
+   A previous Chrome timeout is not a reason for repeated no-Chrome `SKIP`
+   wakes: the next due wake runs one bounded recovery/read probe or yields the
+   same unit again.
    At deadline enter finalization only: recover stale work, release owned tabs,
    delete the Heartbeat with proof, then retire the queue.
 

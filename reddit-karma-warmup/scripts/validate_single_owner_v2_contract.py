@@ -54,17 +54,19 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.28.4"
+    assert version == "2026.07.28.5"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
     assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
     assert defaults["scheduler"]["unit_recheck_grid_minutes"] == 15
     assert defaults["scheduler"]["no_work_wake"] == "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER"
+    assert defaults["scheduler"]["runtime_timeout_policy"] == "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE"
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
-    assert defaults["schema"] == "reddit_single_owner_defaults/v15"
+    assert defaults["objective_linking"]["recoverable_states"] == ["LIVE_GATE_UNVERIFIED"]
+    assert defaults["schema"] == "reddit_single_owner_defaults/v16"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
@@ -116,15 +118,17 @@ def main() -> None:
     if repository_readme.is_file():
         documents.append(repository_readme)
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "single account-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "single account-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
-    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_GRID", "single_owner_queue.py handoff", "next verified Heartbeat", "genuinely exhausted/parked"):
+    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_GRID", "single_owner_queue.py handoff", "next verified Heartbeat", "genuinely exhausted/parked", "previous navigation or DOM timeout"):
         assert phrase in runtime, phrase
     for phrase in ("notLoaded", "chrome_release=PENDING", "runtime_fence.py --reconcile", "UNCERTAIN"):
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
+    chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
+    assert "not `RULE_BLOCKED`" in chrome
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("atomic `handoff`", "BOOTSTRAP_READY", "MUTATION_INTENT"):
         assert phrase in installed_text, phrase
@@ -275,6 +279,42 @@ def main() -> None:
         assert run(str(QUEUE), "decide", *continuous_shared, "--unit", "comments", "--decision", "RUN", "--reason", "eligible continuation runs first", "--now-utc", "2026-07-27T09:11:01Z")["status"] == "DECISION_RECORDED"
         deferred_browsing = run(str(QUEUE), "decide", *continuous_shared, "--unit", "browsing", "--decision", "DEFER", "--reason", "eligible comment has this packet", "--now-utc", "2026-07-27T09:11:02Z")
         assert deferred_browsing["next_due_at_utc"]["browsing"] == "2026-07-27T09:26:00Z"
+        assert run(str(QUEUE), "start", *continuous_shared, "--now-utc", "2026-07-27T09:11:03Z")["status"] == "PACKET_STARTED"
+        bad_rule_block = run(
+            str(QUEUE), "finish", *continuous_shared,
+            "--outcome", "BLOCKED",
+            "--objective-state", "RULE_BLOCKED",
+            "--objective-reason", "Live community rule evidence incomplete after DOM timeout",
+            "--now-utc", "2026-07-27T09:11:04Z",
+        )
+        assert bad_rule_block["status"] == "INVALID" and "rule_blocked_requires_visible" in bad_rule_block["error"], bad_rule_block
+        yielded_gate = run(
+            str(QUEUE), "finish", *continuous_shared,
+            "--outcome", "YIELDED",
+            "--objective-state", "LIVE_GATE_UNVERIFIED",
+            "--objective-reason", "Live community rule gate unverified after DOM timeout",
+            "--candidate-ref", "pack:coverage:comment:1",
+            "--source-ref", "pack:coverage:comment:1",
+            "--now-utc", "2026-07-27T09:11:05Z",
+        )
+        assert yielded_gate["status"] == "YIELDED"
+        assert yielded_gate["objective_state"]["comments"] == "LIVE_GATE_UNVERIFIED"
+        assert yielded_gate["due_units"] == ["comments"]
+        assert heartbeat_record(continuous_shared, "2026-07-27T09:11:06Z", "2026-07-27T11:25:00Z", "2026-07-27T09:26:00Z", "owner-continuous", startup_proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert run(str(QUEUE), "heartbeat-observe", *continuous_shared, "--now-utc", "2026-07-27T09:26:00Z")["status"] == "HEARTBEAT_OBSERVED"
+        recovery_wake = run(str(QUEUE), "wake-open", *continuous_shared, "--expected-at-utc", "2026-07-27T09:26:00Z", "--now-utc", "2026-07-27T09:26:00Z")
+        assert recovery_wake["status"] == "WAKE_OPEN" and recovery_wake["due_units"] == ["comments"]
+        skip_after_timeout = run(
+            str(QUEUE), "decide", *continuous_shared,
+            "--unit", "comments",
+            "--decision", "SKIP",
+            "--reason", "prior navigation timed out and no verified fresh page is available",
+            "--now-utc", "2026-07-27T09:26:01Z",
+        )
+        assert skip_after_timeout["status"] == "RUNTIME_FAILURE_MUST_RUN_OR_YIELD", skip_after_timeout
+        assert run(str(QUEUE), "decide", *continuous_shared, "--unit", "comments", "--decision", "RUN", "--reason", "bounded recovery read probe", "--now-utc", "2026-07-27T09:26:02Z")["status"] == "DECISION_RECORDED"
+        assert run(str(QUEUE), "start", *continuous_shared, "--now-utc", "2026-07-27T09:26:03Z")["status"] == "PACKET_STARTED"
+        assert run(str(QUEUE), "finish", *continuous_shared, "--outcome", "YIELDED", "--objective-state", "LIVE_GATE_UNVERIFIED", "--objective-reason", "content channel still unavailable after bounded recovery probe", "--now-utc", "2026-07-27T09:26:04Z")["status"] == "YIELDED"
         source = work / "mission.json"
         envelope = work / "envelope.json"
         source.write_text(json.dumps({"mission_id": "v2-contract", "account": "u/example", "direction": "truthful research", "operation_start_at": "2026-07-27T00:00:00Z", "duration_hours": 2, "requested_work_types": ["browsing", "posts"], "unit_authority": {"posts": "POST_AUTHORIZED"}, "authorization_receipt": "explicit post authority", "mission_strategy": {"business_goal": "project_distribution", "community_scope": "discover", "frequency": "high", "action_threshold": "high", "material_refs": ["https://example.test/project"], "planning_targets": {"eligible_routes": 1, "verified_actions": 1}}, "source_prompt": "compact one task"}), encoding="utf-8")

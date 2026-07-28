@@ -37,6 +37,11 @@ Do not manufacture a quota, a personal experience, a factual claim, or product
 promotion. If no candidate pack/true contribution remains after the bounded
 packet, record `MATERIAL_REQUIRED` or `NOT_APPLICABLE` and stop periodic
 candidate hunting; a later browsing handoff or mission revision must re-arm it.
+If the candidate is still specific and truthful but the live rule/composer
+gate cannot be completed because Chrome or DOM reads time out, record
+`LIVE_GATE_UNVERIFIED` and finish as `YIELDED`. Do not mark the candidate
+`RULE_BLOCKED` unless the blocking rule, approval message, form state, or mod
+instruction was actually visible.
 
 ## Posts
 
@@ -50,6 +55,9 @@ native post and verify it once. Never cross-post a template to force a KPI. If
 the truthful subject/artifact/relationship is absent, record
 `MATERIAL_REQUIRED` after the first full live audit. Do not repeat the same
 community sweep or schedule the post unit after the mission cutoff.
+If the final route appears viable but Chrome cannot read the current rules,
+format, duplicate, account, or composer state, yield with
+`LIVE_GATE_UNVERIFIED`; do not convert an unread gate into `RULE_BLOCKED`.
 
 Persist a compact `live_gate_checkpoint` once the final target route is known:
 target URL, account proof, relevant rule/format proof, duplicate proof,

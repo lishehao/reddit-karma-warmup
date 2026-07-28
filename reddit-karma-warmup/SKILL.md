@@ -130,6 +130,10 @@ account risk.
    concrete requested change. Park `MATERIAL_REQUIRED`, `RULE_BLOCKED`,
    `SUBMISSION_UNCERTAIN`, and `NOT_APPLICABLE` units until a mission revision
    or fresh upstream evidence explicitly re-arms them.
+   Use `RULE_BLOCKED` only for a visible rule, form, approval, or moderator
+   blocker. If Chrome navigation, DOM, screenshot, or rule-panel reads time out,
+   record `LIVE_GATE_UNVERIFIED` or yield the same unit; do not convert a
+   runtime/content-channel failure into a business rule block.
    When the mission goal includes public action, an `ACTION_ELIGIBLE` unit
    outranks more exploratory browsing. Do not keep scanning the same
    communities after a passing route and truthful material are ready.

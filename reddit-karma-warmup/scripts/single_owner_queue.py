@@ -22,7 +22,7 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-SCHEMA = "reddit_single_owner_queue/v8"
+SCHEMA = "reddit_single_owner_queue/v9"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 ORDINARY_TRIGGER_TOLERANCE_SECONDS = 300
@@ -40,6 +40,7 @@ OBJECTIVE_STATES = (
     "CANDIDATES_READY",
     "ACTION_ELIGIBLE",
     "ACTION_VERIFIED",
+    "LIVE_GATE_UNVERIFIED",
     "MATERIAL_REQUIRED",
     "RULE_BLOCKED",
     "SUBMISSION_UNCERTAIN",
@@ -52,6 +53,13 @@ PARKED_OBJECTIVE_STATES = {
     "SUBMISSION_UNCERTAIN",
     "NOT_APPLICABLE",
 }
+
+RUNTIME_FAILURE_PATTERN = re.compile(
+    r"(timeout|timed out|about:blank|content[-_ ]channel|navigation|goto|dom|"
+    r"screenshot|evaluate|not expose|not exposed|incomplete|unverified|unknown|"
+    r"no verified fresh page|page recovery)",
+    re.IGNORECASE,
+)
 DEFAULT_RECHECK_MINUTES = {
     "browsing": 30,
     "comments": 45,
@@ -144,6 +152,10 @@ def initial_objective(unit, plan, authority):
 
 def due_objective(value):
     return value not in PARKED_OBJECTIVE_STATES
+
+
+def runtime_failure_reason(reason):
+    return isinstance(reason, str) and bool(RUNTIME_FAILURE_PATTERN.search(reason))
 
 
 def next_grid_epoch(now):
@@ -730,6 +742,8 @@ def update_objective(state, unit, objective_state, reason, now, evidence_sha256=
     if objective_state not in OBJECTIVE_STATES:
         raise ValueError("invalid objective_state")
     value = state["units"][unit]
+    if objective_state == "RULE_BLOCKED" and runtime_failure_reason(reason):
+        raise ValueError("rule_blocked_requires_visible_rule_or_form_blocker_use_live_gate_unverified")
     previous_state = value["objective"]["state"]
     if objective_state in ("CANDIDATES_READY", "ACTION_ELIGIBLE"):
         candidate = objective_reference("candidate_ref", candidate_ref) or value["objective"].get("candidate_ref")
@@ -946,6 +960,12 @@ def command(args):
                 return public(state, "DECISION_INVALID", now)
             if args.decision == "RUN" and any(item["decision"] == "RUN" for item in wake["decisions"].values()):
                 return public(state, "RUN_ALREADY_SELECTED", now)
+            if (
+                args.decision == "SKIP"
+                and runtime_failure_reason(args.reason)
+                and due_objective(state["units"][unit]["objective"]["state"])
+            ):
+                return public(state, "RUNTIME_FAILURE_MUST_RUN_OR_YIELD", now, {"unit": unit})
             minutes = args.next_due_minutes if args.next_due_minutes is not None else DEFAULT_RECHECK_MINUTES[unit]
             if not isinstance(minutes, int) or isinstance(minutes, bool) or not 15 <= minutes <= 10080:
                 raise ValueError("invalid next_due_minutes")

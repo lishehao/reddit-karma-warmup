@@ -1,5 +1,5 @@
 {
-  "schema": "reddit_single_owner_defaults/v15",
+  "schema": "reddit_single_owner_defaults/v16",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
@@ -66,6 +66,7 @@
     "terminal_cleanup": "FINALIZE_ONLY_AFTER_STOP_OR_ALL_OBJECTIVES_TERMINAL_RELEASE_TABS_DELETE_HEARTBEAT_RETIRE",
     "unit_recheck_grid_minutes": 15,
     "no_work_wake": "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER",
+    "runtime_timeout_policy": "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE",
     "late_wake": "RECORD_SIGNED_EARLY_OR_LATE_DELTA_RECOMPUTE_FROM_ACTUAL_NO_CATCH_UP",
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
@@ -78,6 +79,7 @@
     "candidate_handoff": "ATOMIC_HANDOFF_DURING_BROWSING_PACKET_TO_COMMENTS_OR_POSTS_NEXT_VERIFIED_HEARTBEAT",
     "follow_up_handoff": "verified_own_permalink_to_follow_up",
     "presence_requires": "explicit_concrete_change",
+    "recoverable_states": ["LIVE_GATE_UNVERIFIED"],
     "parked_states": ["MATERIAL_REQUIRED", "RULE_BLOCKED", "SUBMISSION_UNCERTAIN", "NOT_APPLICABLE"],
     "rearm_only_by": ["MISSION_REVISION", "RECORDED_UPSTREAM_EVIDENCE"],
     "never_schedule_after_mission_cutoff": true

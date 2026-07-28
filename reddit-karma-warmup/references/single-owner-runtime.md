@@ -64,7 +64,7 @@ explicit requested profile change ──> presence ACTION_ELIGIBLE
 ```
 
 Use `PENDING`, `CANDIDATES_READY`, `ACTION_ELIGIBLE`, `ACTION_VERIFIED`,
-`MATERIAL_REQUIRED`, `RULE_BLOCKED`, `SUBMISSION_UNCERTAIN`,
+`LIVE_GATE_UNVERIFIED`, `MATERIAL_REQUIRED`, `RULE_BLOCKED`, `SUBMISSION_UNCERTAIN`,
 `NOT_APPLICABLE`, or `RESEARCH_ONLY`. Record a compact evidence/source
 reference when a unit becomes `CANDIDATES_READY` or `ACTION_ELIGIBLE`.
 `ACTION_VERIFIED` needs both verification evidence and the resulting own
@@ -75,6 +75,11 @@ permalink/source reference before it can arm follow-up.
   for the requested action. Stop re-researching until a revision supplies it.
 - `RULE_BLOCKED`: record the current visible rule/approval/form blocker and
   park the unit. Do not keep probing hidden gates.
+- `LIVE_GATE_UNVERIFIED`: a Chrome/content-channel/DOM/navigation failure
+  prevented the live account, rule, duplicate, composer, or page-state gate
+  from being completed. It is not a rule decision and remains recoverable:
+  finish the packet as `YIELDED`, preserve the candidate/action-key state, and
+  resume the same unit at the next verified Heartbeat.
 - `SUBMISSION_UNCERTAIN`: freeze the exact action key permanently; never use a
   recovery wake to resend it.
 - `NOT_APPLICABLE`: no verified own permalink for follow-up, or no concrete
@@ -162,6 +167,12 @@ wake. It must not replay a mutation, create another Heartbeat, or create a new
 mission. A no-work wake never creates an open wake. If an action-window defer
 cannot fit another grid before cutoff, record `ACTION_WINDOW_EXPIRED`, clear
 that unit's schedule, and close the wake normally; do not leave it open.
+
+A prior Chrome timeout is not a durable reason to skip future due work. When a
+due unit's last failure was `CHROME_CONTENT_CHANNEL_TIMEOUT`, `about:blank`,
+or a rule/composer read timeout, the next wake must run one bounded recovery or
+read probe and then either continue or yield again. Do not record repeated
+`SKIP` decisions whose only reason is the previous navigation or DOM timeout.
 
 ## Permission and uncertainty
 

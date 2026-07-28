@@ -11,6 +11,9 @@ account. A successful tab list/claim/title does not prove page readability.
 When `goto`, DOM, screenshot, or evaluate times out while metadata remains
 healthy, record `CHROME_CONTENT_CHANNEL_TIMEOUT`; do not report disconnect,
 missing tab, or account enforcement.
+This is not a Reddit rule result. If such a timeout prevents reading rules,
+composer state, duplicates, or account proof, the affected unit must use
+`LIVE_GATE_UNVERIFIED`/`YIELDED`, not `RULE_BLOCKED`.
 
 Start on Old Reddit for ordinary listings, text, rules, and text forms. Make at
 most one equivalent current-Reddit fallback when the required capability is
@@ -31,6 +34,10 @@ recovery path.
   that file; mixed `url/title/goto` calls are invalid.
 - After a navigation timeout, first read back URL/title/page state because the
   page may have loaded. Do not use `Promise.race` as faux cancellation.
+  If readback is still `about:blank` or the content channel remains
+  unavailable, yield the packet and let the next verified Heartbeat run one
+  bounded recovery probe. Do not turn the next wake into a no-Chrome `SKIP`
+  solely because this navigation failed.
 - Build locators from a fresh snapshot. Act only on one visible, interactive,
   unique control. Refresh the snapshot after every state change.
 - React fields may ignore `fill("")`; clear with Select All then Backspace and

@@ -12,12 +12,14 @@ STEP_KINDS = {
     "submit", "verify", "finalize",
 }
 FRESH_SNAPSHOT_KINDS = {"fill", "click", "submit", "verify"}
+NAVIGATION_OUTCOMES = {"PASS", "TIMEOUT", "ERROR", "UNKNOWN"}
 
 
 def validate(records):
     if not records:
         raise ValueError("empty browser-step ledger")
     expected_seq = {}
+    timeout_readback_required = {}
     for index, record in enumerate(records, start=1):
         if not isinstance(record, dict):
             raise ValueError("record %d is not an object" % index)
@@ -31,12 +33,24 @@ def validate(records):
         if step_seq != next_seq:
             raise ValueError("record %d non-contiguous step_seq" % index)
         expected_seq[packet_id] = next_seq + 1
-        if record.get("boundary_kind") not in STEP_KINDS:
+        boundary_kind = record.get("boundary_kind")
+        if boundary_kind not in STEP_KINDS:
             raise ValueError("record %d invalid boundary_kind" % index)
         if record.get("boundary_operation_count") != 1:
             raise ValueError("record %d mixed browser boundary" % index)
-        if record["boundary_kind"] in FRESH_SNAPSHOT_KINDS and record.get("fresh_snapshot") is not True:
+        if timeout_readback_required.get(packet_id):
+            if boundary_kind != "metadata" or record.get("post_timeout_readback") is not True:
+                raise ValueError("record %d timeout must be followed by metadata readback" % index)
+            timeout_readback_required[packet_id] = False
+        if boundary_kind == "navigate":
+            if record.get("outcome") not in NAVIGATION_OUTCOMES:
+                raise ValueError("record %d navigate requires valid outcome" % index)
+            if record["outcome"] == "TIMEOUT":
+                timeout_readback_required[packet_id] = True
+        if boundary_kind in FRESH_SNAPSHOT_KINDS and record.get("fresh_snapshot") is not True:
             raise ValueError("record %d requires fresh_snapshot" % index)
+    if any(timeout_readback_required.values()):
+        raise ValueError("timeout missing metadata readback")
     return {"status": "PASS", "packet_count": len(expected_seq), "step_count": len(records)}
 
 
@@ -55,7 +69,7 @@ def load(path):
 def self_test():
     valid = [
         {"packet_id": "p", "step_seq": 1, "boundary_kind": "metadata", "boundary_operation_count": 1},
-        {"packet_id": "p", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1},
+        {"packet_id": "p", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "PASS"},
         {"packet_id": "p", "step_seq": 3, "boundary_kind": "read_projection", "boundary_operation_count": 1},
         {"packet_id": "p", "step_seq": 4, "boundary_kind": "submit", "boundary_operation_count": 1, "fresh_snapshot": True},
     ]
@@ -66,6 +80,23 @@ def self_test():
         assert "mixed browser boundary" in str(exc)
     else:
         raise AssertionError("mixed boundary accepted")
+    recovery = [
+        {"packet_id": "r", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "TIMEOUT"},
+        {"packet_id": "r", "step_seq": 2, "boundary_kind": "metadata", "boundary_operation_count": 1, "post_timeout_readback": True},
+        {"packet_id": "r", "step_seq": 3, "boundary_kind": "claim", "boundary_operation_count": 1},
+        {"packet_id": "r", "step_seq": 4, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "TIMEOUT"},
+        {"packet_id": "r", "step_seq": 5, "boundary_kind": "metadata", "boundary_operation_count": 1, "post_timeout_readback": True},
+    ]
+    assert validate(recovery)["status"] == "PASS"
+    try:
+        validate([
+            {"packet_id": "t", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "TIMEOUT"},
+            {"packet_id": "t", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "PASS"},
+        ])
+    except ValueError as exc:
+        assert "timeout must be followed" in str(exc)
+    else:
+        raise AssertionError("timeout retry accepted")
 
 
 def main():

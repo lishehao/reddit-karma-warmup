@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.28.7"
+    assert version == "2026.07.28.8"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
@@ -68,6 +68,16 @@ def main() -> None:
     assert defaults["scheduler"]["recoverable_runtime_failure"] == "NEXT_DUE_DECISION_MUST_RUN_RECOVERY_FIRST_NOT_SKIP_WATCH_DEFER_OR_FAST_NOOP"
     assert defaults["scheduler"]["heartbeat_prompt"] == "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
+    chrome_defaults = defaults["chrome"]
+    assert chrome_defaults["outer_operation_budget_ms"] == 120000
+    assert chrome_defaults["outer_budget_policy"] == "USE_ONLY_WHEN_CURRENT_WRAPPER_SUPPORTS_EXPLICIT_PER_CALL_TIMEOUT"
+    assert chrome_defaults["startup_neutral_probe_limit"] == 2
+    assert chrome_defaults["startup_neutral_probe_urls"] == ["https://example.com/", "https://www.iana.org/domains/reserved/"]
+    assert chrome_defaults["reconnect_limit_after_explicit_disconnect"] == 1
+    assert chrome_defaults["timeout_readback"] == "METADATA_IMMEDIATELY_BEFORE_ANY_NEW_NAVIGATION_OR_FRESH_TAB_CLAIM"
+    assert chrome_defaults["global_neutral_failure"] == "CHROME_CONTENT_CHANNEL_TIMEOUT_GLOBAL_SUSPECTED_NETWORK_EXTENSION_OR_RENDERER_UNRESOLVED"
+    assert chrome_defaults["route_failure_after_neutral_success"] == "REDDIT_ROUTE_OR_CLIENT_FILTER_SUSPECTED"
+    assert chrome_defaults["cua_address_bar_after_neutral_goto_timeout"] == "FORBIDDEN"
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
     assert defaults["objective_linking"]["recoverable_states"] == ["LIVE_GATE_UNVERIFIED"]
@@ -139,7 +149,8 @@ def main() -> None:
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
-    assert "not `RULE_BLOCKED`" in chrome
+    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery ladder", "setupBrowserRuntime", "two neutral probes", "GLOBAL_SUSPECTED", "NETWORK_EXTENSION_OR_RENDERER_UNRESOLVED", "Do not use CUA address-bar typing", "post_timeout_readback=true"):
+        assert phrase in chrome, phrase
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("atomic `handoff`", "BOOTSTRAP_READY", "MUTATION_INTENT"):
         assert phrase in installed_text, phrase

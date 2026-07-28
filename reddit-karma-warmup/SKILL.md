@@ -83,6 +83,11 @@ Reddit fallback only when the required live capability is unavailable. Keep the
 same account and primary tab. A content-channel timeout is
 `CHROME_CONTENT_CHANNEL_TIMEOUT`, not a browser disconnect, missing tab, or
 account risk.
+For startup or recovery, use the bounded two-neutral-probe ladder in
+[Chrome and actions](references/chrome-and-actions.md): a timeout first gets a
+metadata readback, then at most one distinct fresh neutral probe. Do not chain
+browser operations in one call, invent browser-runtime setup symbols, or use
+address-bar typing as a substitute for a failed programmatic navigation.
 
 ## Required mission sequence
 

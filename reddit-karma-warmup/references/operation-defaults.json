@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.07.28.7",
+  "runtime_protocol_version": "2026.07.28.8",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
@@ -147,7 +147,15 @@
   },
   "chrome": {
     "outer_operation_budget_ms": 120000,
+    "outer_budget_policy": "USE_ONLY_WHEN_CURRENT_WRAPPER_SUPPORTS_EXPLICIT_PER_CALL_TIMEOUT",
     "one_blocking_boundary_per_call": true,
+    "startup_neutral_probe_limit": 2,
+    "startup_neutral_probe_urls": ["https://example.com/", "https://www.iana.org/domains/reserved/"],
+    "reconnect_limit_after_explicit_disconnect": 1,
+    "timeout_readback": "METADATA_IMMEDIATELY_BEFORE_ANY_NEW_NAVIGATION_OR_FRESH_TAB_CLAIM",
+    "global_neutral_failure": "CHROME_CONTENT_CHANNEL_TIMEOUT_GLOBAL_SUSPECTED_NETWORK_EXTENSION_OR_RENDERER_UNRESOLVED",
+    "route_failure_after_neutral_success": "REDDIT_ROUTE_OR_CLIENT_FILTER_SUSPECTED",
+    "cua_address_bar_after_neutral_goto_timeout": "FORBIDDEN",
     "surface_default": "OLD_REDDIT_FIRST",
     "content_timeout_class": "CHROME_CONTENT_CHANNEL_TIMEOUT",
     "uncertain_mutation": "FREEZE_EXACT_ACTION_KEY_NO_RETRY"

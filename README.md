@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.28.7`
+Protocol version: `2026.07.28.8`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -66,6 +66,12 @@ expires, the next normal text response must list all three questions and the
 `1) / 2) / 3)` reply format; do not reopen the form or reduce the reminder to
 internal missing-field names. Only an explicit user cancellation ends this
 intake.
+
+Chrome startup uses one bounded recovery ladder: metadata check, then at most
+two independent neutral HTTPS probes with a metadata readback after every
+timeout. A control-plane success plus two neutral content failures is reported
+as unresolved network/extension/renderer content-channel trouble, never as a
+Reddit login, rules, or account problem.
 
 “高频/低频”是兼容性简称，不改变 15 分钟 Heartbeat：它会被解释为
 覆盖面、软行动门槛和动作预算的组合。版规、真实性、当前账号/表单状态、

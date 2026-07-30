@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.28.8"
+    assert version == "2026.07.30.1"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
@@ -138,6 +138,11 @@ def main() -> None:
     repository_readme = ROOT.parent / "README.md"
     if repository_readme.is_file():
         documents.append(repository_readme)
+        readme = repository_readme.read_text(encoding="utf-8")
+        assert "不要进入目标模式" not in readme
+        assert "收到完整回答后，在同一任务中立即开始第一轮正式运营" in readme
+        assert len(readme.splitlines()) <= 100
+    assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
     for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "single account-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
         assert phrase in text, phrase
@@ -159,9 +164,11 @@ def main() -> None:
     actual = {path.name for path in (ROOT / "references").iterdir()}
     assert actual == required, actual
     intake = STARTUP_INTAKE.read_text(encoding="utf-8")
+    intake_flat = " ".join(intake.split())
+    assert len(intake.splitlines()) <= 115
     assert intake.count("## Question ") == 3
     for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "one account direction", "not separate required fields", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round", "Text fallback after an unanswered form", "do **not** submit `request_user_input` again", "请先回答以下三个问题", "all three questions"):
-        assert phrase in intake, phrase
+        assert phrase in intake_flat, phrase
     scripts = {path.name for path in (ROOT / "scripts").iterdir()}
     assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
     assert run(str(INTAKE_COMPILER), "--self-test")["status"] == "PASS"

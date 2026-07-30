@@ -5,191 +5,119 @@ description: Run authorized Reddit research, browsing, native posts, comments, f
 
 # Reddit Community Operations
 
-## Bootstrap-only requests
+## Startup state machine
 
-If the user asks to install/upgrade from the HTTPS README and says not to enter
-target mode, do only bootstrap. Verify raw/codeload origin, package layout,
-manifest, offline validator, installed tree, current-task presence, and required
-tool availability. Then report `BOOTSTRAP_READY` and ask the exactly three
-startup-intake questions in [startup intake](references/startup-intake.md).
-Do not ask for an account: resolve it only through the later same-Chrome live
-account gate. Do not ask the user for a second free-form mission prompt. Do
-not open Chrome or Reddit, run Web Search/API, create a mission
-envelope/queue/Heartbeat, or create unit tasks until all three answers arrive.
-For this required intake, omit `request_user_input.autoResolutionMs`: unanswered
-or partial input stays `WAITING_FOR_STARTUP_INPUT`, and only an explicit user
-cancellation may end intake without a mission.
-Use the interactive three-question form at most once for this bootstrap. If it
-is unanswered, partial, dismissed, or expires, do not submit another form:
-send a normal text response that lists all three questions and a compact
-`1) / 2) / 3)` reply format. Keep waiting; that reminder is not a fourth
-question and does not authorize any mission work.
-Once all three answers are explicit, persist exactly those answers and run
-`scripts/compile_startup_intake.py`. Only
-`STARTUP_ANSWERS_COMPLETE` may continue; do not ask another startup question.
-A single account-direction answer is complete without separately supplying an
-audience, topic list, community list, or material reference: default to
-`discover` (or `seeded_expandable` when the user voluntarily supplies community
-seeds) and empty material refs. In the same task
-turn run
-`runtime fence -> envelope -> technical live gates -> Heartbeat readback ->
-INITIAL formal packet`. Treat that first packet as round one, never as a
-preview or pre-filter.
+Treat an HTTPS install/upgrade request as the start of one intake flow:
 
-Before a post-intake mission starts, classify any pre-existing local Reddit
-runtime record with `scripts/runtime_fence.py`. An `ACTIVE` word in an old
-JSON file or `chrome_release=PENDING` alone is never a blocker. Treat only a
-verified `ACTIVE_OWNER` as occupied. Reconcile a proven `STALE_RUNTIME`
-locally without asking the user, without modifying the old task, and without
-touching Chrome or an automation. Treat `UNCERTAIN` as a real block.
+1. Verify the raw/codeload source, manifest, installed tree, offline validator,
+   current task, and required tools. Do not open Chrome/Reddit, run research, or
+   create a mission/queue/Heartbeat during this bootstrap step. Report
+   `BOOTSTRAP_READY`.
+2. Ask exactly three startup questions from
+   [startup intake](references/startup-intake.md): duration, one account
+   direction, and action scope. Do not ask for an account; the same-Chrome live
+   gate is its source of truth. Use `request_user_input` at most once and omit
+   `autoResolutionMs`. If the form is unanswered, partial, dismissed, or
+   expires, send the prescribed normal text response listing all three
+   questions. Remain `WAITING_FOR_STARTUP_INPUT`; silence never starts or
+   cancels work.
+3. Persist the three answers and run `scripts/compile_startup_intake.py`. Only
+   `STARTUP_ANSWERS_COMPLETE` continues. A single account-direction answer is
+   complete; do not ask separately for audience, topics, communities, links, or
+   materials.
+4. In that same task turn run:
+   `runtime fence -> envelope -> technical live gates -> Heartbeat readback ->
+   INITIAL packet`. The `INITIAL` packet is formal round one, not a preview or
+   pre-filter, and it must do real mission work immediately. Do not wait for a
+   second user message or the first Heartbeat.
 
-## Default: one task, five internal units
+Before compiling a new mission, classify local runtime records with
+`scripts/runtime_fence.py`. A stale `ACTIVE` word or
+`chrome_release=PENDING` alone is not occupancy. Reconcile a proven
+`STALE_RUNTIME` locally; only `ACTIVE_OWNER` or `UNCERTAIN` blocks startup.
 
-Run one present, unarchived, user-visible `Reddit 运营台` for a mission. It owns
-one durable mission record, one Heartbeat, one logged-in Chrome binding, and
-one primary Reddit tab. Do not create unit tasks, a Chrome dispatcher, a lock
-daemon, a callback tree, or a second Chrome owner.
+## One task, five internal units
+
+Run one present, unarchived, user-visible `Reddit 运营台`. It owns one mission
+record, one queue, one Heartbeat, one Chrome binding, and one primary Reddit
+tab. Never create unit tasks, a browser dispatcher, a lock daemon, or a second
+Chrome owner.
 
 | Unit | Owns | Never owns |
 | --- | --- | --- |
-| `browsing` | qualified reads and candidate packs; an explicitly authorized Upvote/Downvote | text publication, replies, profile/community changes |
-| `comments` | consume a candidate pack; research and proactive comments | vote controls, posts, inbound replies, profile/community changes |
-| `posts` | consume a community/candidate pack plus truthful material; native publication | vote controls, comments, inbound replies, profile/community changes |
-| `follow-up` | consume a verified own permalink; notifications and explicitly authorized replies | vote controls, unrelated discovery, new posts, profile/community changes |
-| `presence` | an explicitly authorized, concrete truthful profile/membership/flair/tag change | vote controls, text publication, replies |
+| `browsing` | qualified reads, candidate packs, and explicitly authorized votes | publication, replies, profile changes |
+| `comments` | candidate research and proactive comments | votes, posts, replies, profile changes |
+| `posts` | rule-qualified native posts using truthful material | votes, comments, replies, profile changes |
+| `follow-up` | verified own permalinks, notifications, and authorized replies | votes, unrelated discovery, new posts |
+| `presence` | explicit truthful profile/community/flair changes | votes, publication, replies |
 
-The units are policy boundaries inside one task, not lanes or threads. Default
-authority is research-only. Votes are disabled unless the mission explicitly
-authorizes `browsing` with `VOTE_AUTHORIZED`; every other unit has vote cap zero
-and must not inspect a vote locator.
+Default authority is research-only. Votes require explicit
+`browsing=VOTE_AUTHORIZED`; every other unit has vote cap zero and must not
+inspect vote controls.
 
 ## Surface contract
 
-Use each surface only for the work it can prove.
-
-| Surface | Allowed use | Never use it for |
+| Surface | Use | Never treat as |
 | --- | --- | --- |
-| Built-in Web Search | broad current discovery, terminology, primary sources, duplicate/FAQ risk | current Reddit permissions, account state, composer state, action proof |
-| Official Reddit API via `scripts/community_index.py` | optional GET-only public index: community metadata, rules, and up to three hot-item pointers | content browsing, account endpoints, any Reddit write, a Chrome-failure fallback, publishing permission |
-| Logged-in Chrome | every actual Reddit read, current community context/rules, account gate, composer, submit/reply/vote, and result verification | parallel multi-task control, evasion or fake-human techniques |
+| Built-in Web Search | broad current discovery, terminology, primary sources, duplicate/FAQ risk | current Reddit permission or action proof |
+| Official Reddit API via `scripts/community_index.py` | optional GET-only public community metadata, rules, and up to three hot pointers | browsing, account access, writes, or a Chrome fallback |
+| Logged-in Chrome | every real Reddit read, live rule/account/composer gate, action, and verification | parallel task control or evasion |
 
-API is optional: use it during bootstrap or community expansion only when the
-official OAuth token and truthful User-Agent are configured. Missing credentials
-are normal; continue with Web Search plus Chrome. API output is an index, not a
-publish gate. TikHub is not part of the default path.
+Missing API credentials are normal. Start with Old Reddit for ordinary text
+work and use one equivalent current-Reddit fallback only when the required live
+capability is absent. A content timeout is
+`CHROME_CONTENT_CHANNEL_TIMEOUT`, not a disconnect, missing tab, account risk,
+or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md).
 
-Use Old Reddit first for ordinary text communities; make one semantic current-
-Reddit fallback only when the required live capability is unavailable. Keep the
-same account and primary tab. A content-channel timeout is
-`CHROME_CONTENT_CHANNEL_TIMEOUT`, not a browser disconnect, missing tab, or
-account risk.
-For startup or recovery, use the bounded two-neutral-probe ladder in
-[Chrome and actions](references/chrome-and-actions.md): a timeout first gets a
-metadata readback, then at most one distinct fresh neutral probe. Do not chain
-browser operations in one call, invent browser-runtime setup symbols, or use
-address-bar typing as a substitute for a failed programmatic navigation.
+## Mission loop
 
-## Required mission sequence
-
-1. After `compile_startup_intake.py` returns `STARTUP_ANSWERS_COMPLETE`, inspect every pre-existing Reddit runtime
-   record before compiling a new envelope. Use exact task state, Heartbeat
-   readback, local lock ownership, and operation cutoff. A proven
-   `STALE_RUNTIME` must be non-destructively reconciled and ignored; only an
-   `ACTIVE_OWNER` or `UNCERTAIN` record blocks a new mission. Then compile one
-   immutable mission envelope and bootstrap its single-owner queue.
-   Bind it to the exact current task ID and use its unique `mission_id` as the
-   queue scope before Chrome work. Rename the same task to `Reddit 运营台`, read
-   it back, and record `presentation-promote` before the canary. Include a business
-   goal, community scope, coverage budget, soft action threshold, action
-   budget, truthful material references, and evidence/output targets. Treat
-   “high/low frequency” as a profile shorthand, never as a timer change.
-   Immediately continue through the technical gates and first formal
-   `INITIAL` packet in this task turn; do not return a standalone
-   plan/preview/candidate-filter stage. When that packet finds a concrete,
-   authorized route, record its `handoff` to the target action unit before the
-   browsing packet closes. The next verified Heartbeat must run that target
-   unit rather than wait for its generic recheck cadence.
-2. Run a neutral HTTPS canary, then create or claim one dedicated Reddit tab.
-3. Create one stable 15-minute recurring mission Heartbeat only while unfinished
-   work remains, ending at `operation_stop_at + cleanup-grace`. Persist and read
-   back its exact automation ID, target task, RRULE, `UNTIL`, next run, and proof.
-   Keep its automation prompt to stable mission identity/boundary facts and the
-   queue's `runtime_protocol_version`; every wake reloads this installed Skill
-   and the queue instead of carrying a copied cadence/NOOP policy.
-   At every delivered Heartbeat record `heartbeat-observe` before unit work; a
-   suspected gap never authorizes catch-up. Refresh the receipt after every
-   completed wake. Only the first packet may use `wake-source=INITIAL` within
-   the first five minutes; every later packet requires the observed Heartbeat.
-   Align normal unit rechecks to the verified Heartbeat phase, never absolute
-   UTC quarter-hours. Schedule an evidence-backed
-   `ACTION_ELIGIBLE` handoff for the task's next verified Heartbeat occurrence,
-   not an unrelated wall-clock grid. For `全面推进` / active action-budget
-   missions, keep browsing due at the next verified Heartbeat while coverage
-   remains open. A trigger within ±5 minutes is ordinary; earlier/later triggers
-   retain their signed delay. A late wake runs one currently due unit; “no
-   catch-up” forbids replaying missed packets, not current work. A wake with nothing due is
-   an atomic fast NOOP: do not open Chrome or rewrite the timer. Treat it as a
-   terminal, duplicate/early, or recovery condition—not normal spacing between
-   an eligible candidate and its next action packet. Never use a one-shot
-   self-rescheduling timer or phase-switching timer updates.
-4. At each wake decide `RUN`, `WATCH`, `SKIP`, or `DEFER` for every due enabled
-   unit. Run at most one Chrome packet and one public action in that wake.
-   Record both the packet outcome and the unit objective state. `COMPLETED`
-   only means that bounded packet ended; it never proves a public action or
-   closes the objective.
-5. Link units only through recorded evidence:
-   `browsing candidate pack -> comments/posts ACTION_ELIGIBLE` through the
-   queue's atomic `handoff` command before the browsing packet closes, and
-   `verified own permalink -> follow-up ACTION_ELIGIBLE`. Do not poll a
-   follow-up unit without a verified own permalink or a presence unit without a
-   concrete requested change. Every action handoff must include the exact
-   `candidate_ref`; a previously rejected exact candidate cannot be re-armed.
-   If one comments/posts candidate or community fails a real rule/fit gate,
-   record `candidate-reject` and return to browsing on the next Heartbeat.
-   Park `MATERIAL_REQUIRED`, `RULE_BLOCKED`,
-   `SUBMISSION_UNCERTAIN`, and `NOT_APPLICABLE` units until a mission revision
-   or fresh upstream evidence explicitly re-arms them.
-   Use `RULE_BLOCKED` only for a mission-wide visible rule/form/approval/moderator
-   blocker with evidence. Use mission-wide `MATERIAL_REQUIRED` only after a
-   bounded audit proves every allowed truthful post format needs absent
-   material. If Chrome navigation, DOM, screenshot, or rule-panel reads time
-   out, record `LIVE_GATE_UNVERIFIED` and yield the same unit; the next due
-   decision must be `RUN` with `RECOVERY_FIRST`, not `WATCH`, `SKIP`, or `DEFER`.
-   When the mission goal includes public action, an `ACTION_ELIGIBLE` unit
-   outranks more exploratory browsing. Do not keep scanning the same
-   communities after a passing route and truthful material are ready.
-6. For `comments` or `posts`, complete:
-   `research brief -> purpose-labelled query plan -> evidence synthesis -> Chrome live gate`.
-   Use 4–6 distinct Web Search questions for a comment candidate pack and 8–12
-   for a post candidate pack. Add an exact final query for the selected item and
-   a source/objection query whenever the intended text contains a factual claim.
-7. Before each public action persist a deterministic `MUTATION_INTENT` /
-   `action_key`. Submit once. If acknowledgement or verification is uncertain,
-   freeze that exact key permanently and do not reopen or retry it.
-8. At completion or deadline, stop Reddit work and enter `FINALIZE_ONLY`.
-   Recover or freeze any stale boundary first, then release only agent-owned
-   tabs, delete the exact Heartbeat with proof, and retire the queue. Keep the
-   visible `Reddit 运营台` available for a future mission.
-
-Hard compliance and truthful evidence decide whether an action is possible.
-Content quality is a secondary ranking aid, never a reason to bypass a current
-rule or invent a project, metric, link, experience, or claim.
+1. Compile one immutable envelope and queue, bind the exact current task, rename
+   it to `Reddit 运营台`, read it back, and record `presentation-promote`.
+   Store the business goal, community scope, coverage budget, soft action
+   threshold, action budget, truthful material references, and evidence/output
+   targets. `high/low frequency` changes these profiles, not the timer.
+2. Pass the neutral canary and same-Chrome account gate. Then create one stable
+   15-minute recurring Heartbeat through `operation_stop_at + cleanup-grace`,
+   and persist/read back its exact ID, task, RRULE, `UNTIL`, next run, and proof.
+   The prompt carries only stable identity/boundaries and
+   `runtime_protocol_version`; each wake reloads this installed Skill and queue.
+3. Run the formal `INITIAL` packet immediately. Every later wake first records
+   `heartbeat-observe`, then decides `RUN|WATCH|SKIP|DEFER` for due units. Run at
+   most one unit, one Chrome packet, and one public action per wake. ±5 minutes
+   is normal. A late wake runs one currently due unit; no catch-up means no
+   replay. A fast NOOP is only for early/duplicate, recovery, or genuinely
+   exhausted/parked work.
+4. Link work only through recorded evidence: browsing candidate pack -> atomic
+   `handoff` to comments/posts, and verified own permalink -> follow-up. An
+   `ACTION_ELIGIBLE` unit outranks more browsing. Reject one bad candidate with
+   `candidate-reject`; do not turn it into mission-wide `RULE_BLOCKED` or
+   `MATERIAL_REQUIRED`. A runtime read failure is `LIVE_GATE_UNVERIFIED`; yield
+   the same unit and run `RECOVERY_FIRST` at the next verified Heartbeat.
+5. For comments/posts perform
+   `research brief -> labelled query plan -> evidence synthesis -> Chrome live
+   gate`: 4-6 distinct Web Search questions for a comment pack and 8-12 for a
+   post pack, plus exact-target and source/objection queries when factual claims
+   require them. Rules, truthful evidence, duplicate state, account, composer,
+   and submit state are hard gates; content quality only ranks passing routes.
+6. Before every public action persist deterministic `MUTATION_INTENT` and
+   `action_key`. Submit once and verify separately. Freeze uncertain exact keys
+   permanently; never reopen or retry them. At completion/deadline enter
+   `FINALIZE_ONLY`, release only owned tabs, delete the exact Heartbeat with
+   proof, retire the queue, and keep the visible operating task available.
 
 ## Load only what the current decision needs
 
-| Situation | Required reference |
+| Situation | Reference |
 | --- | --- |
-| bootstrap, mission revision, timer, recovery, retirement | [single-owner runtime](references/single-owner-runtime.md) |
-| existing local queue appears active before a new mission | [single-owner runtime](references/single-owner-runtime.md) and `scripts/runtime_fence.py` |
-| Web Search, public API index, community shortlist, candidate evidence | [research and community index](references/research-and-community-index.md) |
-| Chrome setup, surface routing, read/action boundaries, timeout recovery | [Chrome and actions](references/chrome-and-actions.md) |
-| selected `browsing`, `comments`, `posts`, `follow-up`, or `presence` unit | [unit guides](references/unit-guides.md) |
-| business goal, coverage, threshold, KPI, or community-scope choice | [mission goals and profiles](references/mission-goals-and-profiles.md) |
-| bootstrap has passed and the user needs to define a mission | [startup intake](references/startup-intake.md) |
-| numeric defaults or script configuration | [operation defaults](references/operation-defaults.json) |
+| intake | [startup intake](references/startup-intake.md) |
+| mission, timer, recovery, retirement | [single-owner runtime](references/single-owner-runtime.md) |
+| Web Search, API index, community/candidate evidence | [research and community index](references/research-and-community-index.md) |
+| Chrome and action boundaries | [Chrome and actions](references/chrome-and-actions.md) |
+| selected unit | [unit guides](references/unit-guides.md) |
+| goal, KPI, coverage, threshold, scope | [mission goals and profiles](references/mission-goals-and-profiles.md) |
+| numeric/script defaults | [operation defaults](references/operation-defaults.json) |
 
-Do not load historical lane, dispatcher, worker, callback, catalog-snapshot, or
-legacy migration documents: they are not part of this production Skill.
+Do not load historical lane, dispatcher, worker, callback, or migration files.
 
 ## Compact receipt
 

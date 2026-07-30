@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.07.28.8",
+  "runtime_protocol_version": "2026.07.30.1",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",

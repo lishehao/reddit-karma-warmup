@@ -1,156 +1,79 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.28.8`
+Protocol version: `2026.07.30.1`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
-## Send this prompt
+## First-use prompt
 
 ```text
-请完整读取并执行 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md：通过 HTTPS 安装或升级 reddit-karma-warmup，完成安装完整性与本机能力预检，并完成启动交接；不要进入目标模式。此阶段不得打开 Reddit/Chrome、运行 Web Search/API、创建 mission envelope/queue/Heartbeat，或创建浏览/评论/发帖/跟进/主页任务。预检通过后报告 `BOOTSTRAP_READY` 和已验证版本，并直接提出 README 定义的三个启动问题；不要要求我再写一段完整任务 Prompt，也不要询问账号。
+请通过 HTTPS 读取并遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成预检并一次性询问启动问题；收到完整回答后，在同一任务中立即开始第一轮正式运营。
 ```
 
-## Bootstrap-only boundary
+## Startup flow
 
-The prompt above is stage one only. Verify the raw/codeload source, package
-layout, manifest version, offline validator, installed tree, current task
-presence, and required tool availability. It may rename the current task to
-`Reddit 启动台` as presentation only. It must not create a mission record,
-queue, timer, Chrome binding, or Reddit tab, and must not search, read, or
-mutate Reddit.
+The initial message performs installation/upgrade and local preflight only,
+reports `BOOTSTRAP_READY`, then asks exactly three questions at once:
 
-After `BOOTSTRAP_READY`, ask exactly these three questions in one request.
-The user can answer all three as three short lines. Do not ask for an account:
-resolve the actual `u/<name>` only through the same-Chrome live gate after the
-answers are complete.
+1. **运行多久？** `2 小时 / 4 小时 / 8 小时`，或明确的自定义时长。
+2. **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/社区被看见？**
+   可选：`社交与社区 / 个人创作与独立项目 / 3D/游戏/共创`，也可自由描述。
+3. **这轮希望账号做到哪一步？** `模拟浏览 / 参与讨论 / 全面推进`。
 
-1. **运行多久？** `2 小时 / 4 小时 / 8 小时` are the preset choices; accept
-   an explicit custom duration as `其他`.
-2. **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/社区被看见？** The
-   preset choices are `社交与社区`、`个人创作与独立项目`、`3D/游戏/共创`. This is
-   one direction setting: the user may describe the desired account persona,
-   people they hope to reach, topic cluster, or seed communities—any one of
-   those is sufficient. Communities remain optional seeds; otherwise search
-   expands from that one direction.
-3. **这轮希望账号做到哪一步？** The preset choices are `模拟浏览`、`参与讨论`、
-   `全面推进`. They mean, respectively: read-only community/content discovery;
-   discovery plus natural, context-fit comments; or all five units, including
-   eligible project posts, follow-up, and concrete presence work. The choice
-   sets action scope, not a quota or operating tempo. Accept `其他` only when
-   the user names the exact allowed units and any intended override.
+Do not ask for an account; resolve it through the same-Chrome live gate. Use
+the interactive form once without `autoResolutionMs`. If it is unanswered,
+partial, dismissed, or expires, list all three questions in a normal text
+response and remain `WAITING_FOR_STARTUP_INPUT`; never infer defaults.
 
-The complete mapping, defaults, and custom-answer rules are in
-[`startup-intake.md`](reddit-karma-warmup/references/startup-intake.md). Once
-all three answers arrive, compile them through the local deterministic startup
-compiler into immutable mission-envelope inputs, run the same-Chrome account
-gate, and start the mission. Do not ask a fourth
-clarification merely because posts lack truthful material: compile that unit as
-pending and audit all truthful native formats first. Missing a project link
-does not block a native discussion; use mission-wide `MATERIAL_REQUIRED` only
-when every allowed format needs absent material.
+When all three answers are complete, start in the same task turn:
 
-Answer completion starts the mission directly: classify the local runtime,
-compile the envelope, perform the technical canary/account gate, create and
-read back the Heartbeat, then run the first formal `INITIAL` packet in the
-same task turn. An INITIAL candidate that can truthfully support an authorized
-comment or post must atomically hand off its next work unit before browsing
-closes, so the next verified Heartbeat continues the work rather than idling on
-a generic recheck. Those technical gates are not a preview, candidate-filter,
-or second user-decision stage.
+`runtime fence -> mission envelope -> Chrome/account gates -> recurring
+Heartbeat readback -> formal INITIAL round`
 
-The three answers are a hard wait. When the task uses `request_user_input`,
-it must omit `autoResolutionMs`; no answer or partial answer remains
-`WAITING_FOR_STARTUP_INPUT`, not permission to choose defaults or start work.
-Use the interactive form once only. If it is unanswered, partial, dismissed, or
-expires, the next normal text response must list all three questions and the
-`1) / 2) / 3)` reply format; do not reopen the form or reduce the reminder to
-internal missing-field names. Only an explicit user cancellation ends this
-intake.
+The INITIAL round performs real work immediately. It is not a preview or
+pre-filter and does not wait for another “继续” or for the first Heartbeat.
+Heartbeat exists only for later continuation.
 
-Chrome startup uses one bounded recovery ladder: metadata check, then at most
-two independent neutral HTTPS probes with a metadata readback after every
-timeout. A control-plane success plus two neutral content failures is reported
-as unresolved network/extension/renderer content-channel trouble, never as a
-Reddit login, rules, or account problem.
+## Installation contract
 
-“高频/低频”是兼容性简称，不改变 15 分钟 Heartbeat：它会被解释为
-覆盖面、软行动门槛和动作预算的组合。版规、真实性、当前账号/表单状态、
-明确授权与提交验证始终是不可降低的硬门槛。
+1. Fetch this README and the GitHub codeload ZIP over HTTPS.
+2. Validate the ZIP layout and `reddit-karma-warmup/manifest.json`.
+3. Run `scripts/validate_single_owner_v2_contract.py` in the staged tree.
+4. Compare the staged manifest/tree with the managed local Skill. Install the
+   complete directory atomically; never merge versions.
+5. If a verified active Reddit runtime exists, validate and stage the upgrade
+   but defer local replacement until release. Stale JSON text or
+   `chrome_release=PENDING` alone is not an active fence.
 
-## Runtime in one page
+During installation and intake, do not open Chrome/Reddit, run research, or
+create a mission, queue, or Heartbeat. Those begin only after all three answers
+are complete.
 
-1. During bootstrap, install the complete Skill atomically under `${CODEX_HOME:-$HOME/.codex}/skills/`.
-   Compare `manifest.json`; never merge versions.
-2. Promote the same present task from `Reddit 启动台` to `Reddit 运营台` only
-   after the mission envelope is bound. Read back the exact title and store its
-   proof before the canary, then let that one operating task own one queue, one
-   Heartbeat, one Chrome binding, and one primary Reddit tab.
-   Before starting a new mission, classify any old local runtime record. A
-   stale `ACTIVE` JSON value or `chrome_release=PENDING` does not itself block:
-   only a running owner, held lock, or future Heartbeat does. A record whose
-   cutoff has passed, task is not running, Heartbeat is absent/expired, and
-   lock is unheld is reconciled locally and does not require user confirmation.
-3. Built-in Web Search performs broad current research. The optional
-   `scripts/community_index.py` uses official OAuth GET calls only for public
-   community rules, metadata, and small hot-pointer indexes. It never writes,
-   uses cookies, replaces Chrome, or grants action permission.
-4. Chrome performs every real Reddit read and every interactive action:
-   rules/context final check, account, composer, flair, publish/reply/vote, and
-   result verification. Use Old Reddit first for ordinary text work and one
-   bounded current-Reddit fallback only when necessary.
-5. A post/comment/reply/profile change/vote needs explicit unit authority plus
-   current rules, account, submit state, truthful evidence, pacing, and one
-   verified result. Persist an `action_key` before submission; freeze uncertain
-   results and never retry them.
-   If the rule/composer/account live gate cannot complete because Chrome
-   navigation or DOM reading times out, record `LIVE_GATE_UNVERIFIED` or
-   `YIELDED`; do not call it `RULE_BLOCKED` unless a visible rule, form,
-   approval, or moderator blocker was actually read.
-6. Compile one business-goal profile: `community_discovery`,
-   `conversation_entry`, `feedback_validation`, `project_distribution`,
-   `relationship_maintenance`, or `profile_readiness`. Store community scope,
-   coverage budget, soft action threshold, action budget, and evidence/output
-   targets in the mission envelope. These are planning controls, never a quota
-   that forces a public action.
-7. Separate a bounded packet from its unit objective. A completed research
-   packet never means a post, comment, follow-up, or presence objective is
-   complete. Candidate packs explicitly arm the next eligible unit; verified
-   own permalinks explicitly arm follow-up. Only a bounded mission-wide audit
-   can park a unit for missing truthful material or a rule block; one rejected
-   candidate/community returns to browsing for replacement evidence instead.
-   An uncertain submission parks only that exact action key. A genuinely parked
-   unit removes its recurring wake until a mission revision or recorded upstream
-   evidence changes it.
-8. Use one stable 15-minute mission Heartbeat with an explicit cleanup-grace
-   `UNTIL`. Persist/read back its ID, target, RRULE, `UNTIL`, and future next run
-   before work; record each delivered Heartbeat against that receipt and refresh
-   it after each closed wake. A late observed delivery is not proof that an
-   earlier delivery occurred: record a suspected scheduler gap and enter
-   recovery/finalization on the next available task turn rather than inventing
-   catch-up work. Keep the automation prompt to stable mission identity and
-   boundary facts plus `runtime_protocol_version`; every wake reloads the
-   installed Skill/queue. Align normal unit rechecks to the verified Heartbeat
-   phase, never absolute UTC quarter-hours; an evidence-backed action handoff
-   includes an exact candidate reference and runs at the next verified
-   Heartbeat, and active full-progression browsing stays due while coverage is
-   open. A no-work wake is an atomic fast NOOP with no Chrome call only for an
-   early/duplicate delivery, recovery, or genuinely exhausted frontier. An
-   authorized pending comment/post is clamped to the next verified Heartbeat if its default
-   recheck would otherwise cross the mission cutoff; when no grid remains, it
-   settles as `ACTION_WINDOW_EXPIRED` rather than wedging the wake. ±5 minutes
-   is normal; outside it, record an early/late signed delta. A late wake runs
-   one currently due unit; no catch-up means no replay, not skipping current work.
-   A previous Chrome timeout is not a reason for repeated no-Chrome `SKIP`
-   wakes: the next due wake runs one bounded recovery/read probe or yields the
-   same unit again.
-   A failed exact candidate/community uses `candidate-reject`, refills browsing
-   on the next Heartbeat, and cannot be handed back. Only mission-wide evidence
-   may set `RULE_BLOCKED` or `MATERIAL_REQUIRED`.
-   At deadline enter finalization only: recover stale work, release owned tabs,
-   delete the Heartbeat with proof, then retire the queue.
+## Runtime contract
+
+- One present, unarchived `Reddit 运营台` owns all five internal units, one
+  queue, one Chrome binding/tab, and one stable 15-minute Heartbeat.
+- Built-in Web Search handles broad research; the optional official Reddit API
+  is GET-only public indexing; logged-in Chrome performs every real Reddit read
+  and every interactive action.
+- Rules, truthful evidence, current account/composer state, duplicate checks,
+  explicit authority, and independent verification are hard gates. Targets are
+  planning signals, never forced-action quotas.
+- Candidate evidence moves atomically from browsing to comments/posts; a
+  verified own permalink can arm follow-up. One rejected candidate returns to
+  browsing instead of blocking the whole mission.
+- Every mutation has a persisted deterministic action key, one submission, and
+  separate verification. An uncertain exact key is frozen and never retried.
+- Heartbeat deliveries within ±5 minutes are normal. A late wake runs one
+  currently due unit without replaying missed work. At the deadline, stop
+  Reddit work, release owned tabs, delete the exact Heartbeat, and retire the
+  queue.
+
+Full operational rules live in the Skill's routed references; this README is
+only the install and startup contract.
 
 ## Release rule
 
-Skill updates publish directly to GitHub `main`: bump the version, run the
-offline validator, build the ZIP, verify a fresh public codeload, then replace
-the local managed copy atomically only when no active old runtime fence exists.
+Publish updates directly to GitHub `main`: bump the version, run validators,
+build a ZIP, verify fresh public codeload and ZIP contents, then upgrade the
+local managed copy only when no active old-runtime fence exists.

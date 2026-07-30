@@ -1,38 +1,25 @@
 # Startup intake
 
-After bootstrap passes, ask all three questions at once. Wait for all three
-answers before opening Chrome or compiling a mission. Do not ask for an account: the later same-Chrome live gate is the only account source of truth.
-Do not ask a fourth question merely to collect a missing project artifact,
-community rule, or candidate; record the resulting blocked unit honestly.
+Ask all three questions at once after bootstrap. Wait for all three answers
+before Chrome, research, mission compilation, queue, or Heartbeat work. Do not ask for an account; the later same-Chrome gate is authoritative. This intake
+has no fourth question.
 
-Use the presets when the task UI supports three choices per question. `Other`
-is for an explicit custom value, not a reason to start an unbounded interview.
-Keep the user's one-line additions as the authorization and source-prompt
-evidence.
-
-When `request_user_input` is available, submit exactly these three questions in
-one request and wait for the user's answers. Omit `autoResolutionMs`: automatic
-resolution is only for nonblocking prompts and is forbidden for this intake.
-Use that interactive form at most once for the bootstrap. Otherwise present the
-same three headings in one compact normal-text message and wait. Never split
-them into sequential questions or use an automatic timeout to infer an answer.
-This flow asks no fourth question.
+Use `request_user_input` once when available, with three choices per question
+and no `autoResolutionMs`. Otherwise ask the same questions in one compact text
+message. A preset or explicit `Other` value completes its question. Do not turn
+`Other` into an open-ended interview.
 
 ## Required-answer wait
 
-Treat no response, a partial response, a dismissed form, or a platform-side
-question expiry as `WAITING_FOR_STARTUP_INPUT`. Do not infer missing values,
-compile an envelope, create a queue/Heartbeat, open Chrome, or begin research.
-Resume only when all three answers are explicit. An explicit user cancellation
-ends intake as `STARTUP_CANCELLED_BY_USER`; silence never does.
+No response, a partial response, dismissal, or expiry is
+`WAITING_FOR_STARTUP_INPUT`. Only an explicit cancellation returns
+`STARTUP_CANCELLED_BY_USER`; silence never does, and do **not** submit
+`request_user_input` again.
 
 ## Text fallback after an unanswered form
 
-After the first interactive form is unanswered, partial, dismissed, or expired,
-do **not** submit `request_user_input` again. Send this direct normal-text
-reminder in the response that follows, even when one or two answers were
-recognized. Always list all three questions so the user can answer in one
-message:
+Send this normal-text reminder and keep waiting. Mention recognized/missing
+answers, but always repeat all three questions:
 
 ```text
 请先回答以下三个问题（可直接按 `1) … 2) … 3) …` 回复）：
@@ -41,111 +28,73 @@ message:
 3) 这轮希望账号做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。
 ```
 
-Mention any recognized answers and the missing fields, but never replace the
-three-line reminder with only field names such as `duration_hours`. On every
-later incomplete reply, repeat this **text** reminder rather than reopening the
-interactive form. It is the same three-question intake, not a second-round or
-fourth question. The deterministic compiler emits this exact fallback payload
-for `WAITING_FOR_STARTUP_INPUT`; use it instead of improvising a shorter
-message.
+This is the same intake, not a second-round question. Use the compiler's exact
+fallback payload rather than improvising field names.
 
 ## Question 1 — duration
 
-Ask: **How long should this mission run?**
+Ask how long the mission should run.
 
-| Choice | Normalized duration |
-| --- | --- |
-| `2 hours` | `2` |
-| `4 hours` | `4` |
-| `8 hours` | `8` |
+| Choice | Hours |
+| --- | ---: |
+| `2 hours` | 2 |
+| `4 hours` | 4 |
+| `8 hours` | 8 |
 
-Accept `Other` only as an explicit duration from more than zero through 168
-hours. The duration never changes the 15-minute Heartbeat interval.
+Accept an explicit custom duration from more than zero through 168 hours. It
+does not change the 15-minute Heartbeat.
 
-## Question 2 — account direction
+## Question 2 — one account direction
 
 Ask: **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/社区被看见？**
-You may answer through the account persona, people you hope to reach, topic
-cluster, or seed communities. They are all evidence for one account direction;
-one clear expression is enough.
 
-| Choice | Example direction |
+| Choice | Direction |
 | --- | --- |
-| `社交与社区` | a thoughtful, human-scale participant around low-pressure connection, friendship, and community UX |
-| `个人创作与独立项目` | a curious builder around solo projects, creative tools, and maker practice |
-| `3D/游戏/共创` | a playful systems-and-worlds creator around spatial interaction, games, and co-creation |
+| `社交与社区` | low-pressure connection, friendship, community UX |
+| `个人创作与独立项目` | solo projects, creative tools, maker practice |
+| `3D/游戏/共创` | spatial interaction, games, co-creation |
 
-This one answer sets the account direction; account persona, target people,
-topic cluster, and community seeds are not separate required fields. It grants
-no action authority and does not select a business goal. Preserve the user's
-exact wording in `direction`, and record a compact `account_direction` plus
-`direction_tags` only as normalizations of that same answer. Named communities
-are optional *seeds* and therefore default to
-`seeded_expandable`; only an explicit request to stay within that exact list
-creates `closed`. A direction without named communities is `discover`.
-Choosing a preset or supplying any clear account-direction text completes
-Question 2: do not ask a second-round question for audience, topic, community
-scope, a project link, facts, or lived observations. Default omitted scope to
-`discover` when no community seeds were volunteered (otherwise
-`seeded_expandable`), and material refs to
-`[]`. Missing a project artifact does not pre-park the whole posts unit: a
-truthful native discussion route may still be possible. Use mission-wide
-`MATERIAL_REQUIRED` only after a bounded audit proves every allowed post format
-needs absent material; do not ask another startup question or invent facts.
+Persona, audience, topics, and community seeds are one account direction, not
+separate required fields. Preserve the user's wording and normalize it only
+into `account_direction` and `direction_tags`. Named communities are optional
+seeds (`seeded_expandable`); only an explicit closed list is `closed`; no seeds
+means `discover`.
+
+This answer grants no action authority, and do not ask a second-round question for
+scope, materials, a project link, facts, or observations. Default
+`material_refs=[]`. Missing material does not automatically park posts: use
+mission-wide `MATERIAL_REQUIRED` only after a bounded truthful-format audit.
 
 ## Question 3 — action scope
 
 Ask: **这轮希望账号做到哪一步？**
 
-| Choice | What the user will see | Business goal | Explicit units | Default profile |
-| --- | --- | --- | --- | --- |
-| `模拟浏览` | 只读探索社区和内容，不公开互动 | `community_discovery` | `browsing=READ_ONLY` | `standard / high / minimal` |
-| `参与讨论` | 在有真实具体贡献时自然评论；不发项目帖 | `conversation_entry` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED` | `standard / standard / standard` |
-| `全面推进` | 在符合版规和真实性前提下，可评论、发真实项目帖、跟进已有互动，并做明确的主页/社区维护 | `project_distribution` | `browsing=READ_ONLY`, `comments=COMMENT_AUTHORIZED`, `posts=POST_AUTHORIZED`, `follow-up=FOLLOWUP_AUTHORIZED`, `presence=PRESENCE_AUTHORIZED` | `broad / standard / active` |
+| Choice | User-visible scope | Business goal | Units |
+| --- | --- | --- | --- |
+| `模拟浏览` | read-only discovery | `community_discovery` | browsing |
+| `参与讨论` | discovery plus natural comments | `conversation_entry` | browsing, comments |
+| `全面推进` | eligible comments, truthful posts, follow-up, concrete presence | `project_distribution` | all five units |
 
-The three profile values are `coverage_budget / action_threshold / action_budget`.
-Every outward action remains subject to live rules, truthful evidence, account
-and composer state, duplicate checks, and independent verification. The
-choice controls action scope, not a frequency, quota, or promise of publication.
-
-Accept `Other` only when the user explicitly names permitted units, one
-business goal, and optional `narrow|standard|broad` coverage plus
-`high|standard|low` threshold. Record that free-text answer as
-`authority_profile` and extract it into the compiler's structured
-`custom_authority` object; otherwise the compiler returns
-`INVALID_STARTUP_INPUT` rather than inferring a write authorization. Never
-infer a write authorization or business goal from Question 2. Preserve the
-exact third answer as the authorization receipt. Legacy answer labels remain
-accepted by the local compiler only for already-written prompts; do not show
-them in a new intake.
+This is action scope, not frequency, quota, or a publication promise. All
+outward actions still require live rules, truthful evidence, account/composer
+state, duplicate checks, and verification. Accept a custom answer only when it
+explicitly names allowed units and one business goal; never infer write
+authority from Question 2.
 
 ## Completion rule
 
-Once all three answers are complete, record them in one local JSON artifact and
-run `scripts/compile_startup_intake.py --input <answers.json> --output
-<normalized.json>`. Only `STARTUP_ANSWERS_COMPLETE` may proceed; partial input
-stays `WAITING_FOR_STARTUP_INPUT`, and explicit cancellation stays
-`STARTUP_CANCELLED_BY_USER`. The compiler is local-only and creates no queue,
-Heartbeat, Chrome binding, or Reddit action. It normalizes Question 2 into
-`direction`, `account_direction`, `direction_tags`, and `community_scope`; the
-first two are the exact and compact forms of one answer, not separate inputs. It
-normalizes Question 3 into `business_goal`, `coverage_budget`,
-`action_threshold`, `action_budget`, selected units, and authority.
-`material_refs` are optional at startup and `planning_targets` remain
-evidence/output targets, never forced actions. Merge only this completed
-normalized artifact with system-provided mission ID, live account, start time,
-and source-prompt evidence, then, without another user prompt, complete this
-same-task transition:
+Write the three answers to one local JSON artifact and run
+`scripts/compile_startup_intake.py`. Only `STARTUP_ANSWERS_COMPLETE` proceeds;
+invalid or incomplete input keeps waiting.
 
-`runtime fence -> immutable envelope -> neutral canary + same-Chrome account
-gate -> Heartbeat create/readback -> INITIAL direct packet -> recorded next-work
-continuation`
+Merge the normalized artifact with the system mission ID, live account, start
+time, and source prompt, then continue without another prompt:
 
-The `INITIAL` packet is round one of the mission. If it runs `browsing`, it
-must perform the mission's real community/candidate work and record its real
-evidence; it is not a preview, pre-filter, or separate planning round. If it
-produces an authorized, concrete comment/post route, record the queue `handoff`
-before closing the packet so the next verified Heartbeat runs the target unit.
-Technical gates remain required, but a passing gate must continue directly into
-that first packet. No fourth question is required, including for a community
-list, project link, material facts, or a candidate preview.
+`runtime fence -> immutable envelope -> neutral canary/account gate ->
+Heartbeat create/readback -> INITIAL direct packet -> continuation`
+
+The INITIAL direct packet is formal round one, not a preview, pre-filter, or
+separate planning round. It must perform real mission work immediately. If it
+finds an authorized concrete route, record atomic handoff before closing so the
+next verified Heartbeat runs that action unit. Technical gates are required but
+not another user-decision stage.

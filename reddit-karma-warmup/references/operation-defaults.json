@@ -1,8 +1,12 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
+  "runtime_protocol_version": "2026.07.30.1",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
+    "interactive_form_attempts": 1,
+    "unanswered_form_fallback": "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_NO_REQUEST_USER_INPUT_REPEAT",
+    "partial_reply_fallback": "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_WITH_RECOGNIZED_AND_MISSING_FIELDS",
     "completion": "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER",
     "unanswered_or_partial": "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH",
     "silence": "NEVER_IMPLICITLY_CANCELLED",
@@ -16,7 +20,7 @@
     "primary_presets": ["SOCIAL_AND_COMMUNITY", "PERSONAL_CREATION_AND_INDEPENDENT_PROJECTS", "SPATIAL_GAMES_AND_CO_CREATION"],
     "community_scope": "OPTIONAL_SEED_COMMUNITIES_CLOSED_ONLY_IF_EXPLICIT_OTHERWISE_EXPANDABLE_OR_DISCOVER",
     "business_goal_source": "QUESTION_3_ACTION_SCOPE",
-    "material_refs": "OPTIONAL_AT_STARTUP_MISSING_MATERIAL_PARKS_POSTS_LATER"
+    "material_refs": "OPTIONAL_AT_STARTUP_MISSING_LINK_REQUIRES_TRUTHFUL_FORMAT_AUDIT_NOT_AUTOMATIC_POST_PARKING"
   },
   "action_scope_intake": {
     "question": "USER_VISIBLE_ACTION_SCOPE_NOT_FREQUENCY_QUOTA_OR_INTERNAL_PROFILE",
@@ -65,22 +69,28 @@
     "heartbeat_observation": "RECORD_EACH_DELIVERED_HEARTBEAT_SIGNED_DELTA_AND_SUSPECT_GAPS_WITHOUT_CATCH_UP",
     "terminal_cleanup": "FINALIZE_ONLY_AFTER_STOP_OR_ALL_OBJECTIVES_TERMINAL_RELEASE_TABS_DELETE_HEARTBEAT_RETIRE",
     "unit_recheck_grid_minutes": 15,
+    "unit_recheck_phase": "ALIGN_TO_VERIFIED_MISSION_HEARTBEAT_OCCURRENCES_NEVER_ABSOLUTE_UTC_QUARTER_HOURS",
     "no_work_wake": "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER",
     "runtime_timeout_policy": "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE",
-    "late_wake": "RECORD_SIGNED_EARLY_OR_LATE_DELTA_RECOMPUTE_FROM_ACTUAL_NO_CATCH_UP",
+    "late_wake": "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP",
+    "recoverable_runtime_failure": "NEXT_DUE_DECISION_MUST_RUN_RECOVERY_FIRST_NOT_SKIP_WATCH_DEFER_OR_FAST_NOOP",
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
     "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440},
     "continuation_policy": "ACTION_ELIGIBLE_HANDOFF_TO_NEXT_VERIFIED_HEARTBEAT_ACTIVE_ACTION_BUDGET_BROWSING_TO_NEXT_VERIFIED_HEARTBEAT",
-    "action_window_guard": "AUTHORIZED_PENDING_OR_CANDIDATE_READY_COMMENTS_POSTS_CLAMP_TO_NEXT_GRID_IF_DEFAULT_RECHECK_WOULD_CROSS_CUTOFF"
+    "action_window_guard": "AUTHORIZED_PENDING_OR_CANDIDATE_READY_COMMENTS_POSTS_CLAMP_TO_NEXT_VERIFIED_HEARTBEAT_IF_DEFAULT_RECHECK_WOULD_CROSS_CUTOFF",
+    "heartbeat_prompt": "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
   },
   "objective_linking": {
     "packet_outcome_is_not_objective_completion": true,
     "candidate_handoff": "ATOMIC_HANDOFF_DURING_BROWSING_PACKET_TO_COMMENTS_OR_POSTS_NEXT_VERIFIED_HEARTBEAT",
+    "candidate_rejection": "EXACT_CANDIDATE_OR_COMMUNITY_REJECTION_RETURNS_TO_BROWSING_NEXT_HEARTBEAT_AND_CANNOT_BE_REARMED",
     "follow_up_handoff": "verified_own_permalink_to_follow_up",
     "presence_requires": "explicit_concrete_change",
     "recoverable_states": ["LIVE_GATE_UNVERIFIED"],
     "parked_states": ["MATERIAL_REQUIRED", "RULE_BLOCKED", "SUBMISSION_UNCERTAIN", "NOT_APPLICABLE"],
+    "rule_block_scope": "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT",
+    "material_block_scope": "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE",
     "rearm_only_by": ["MISSION_REVISION", "RECORDED_UPSTREAM_EVIDENCE"],
     "never_schedule_after_mission_cutoff": true
   },
@@ -137,7 +147,15 @@
   },
   "chrome": {
     "outer_operation_budget_ms": 120000,
+    "outer_budget_policy": "USE_ONLY_WHEN_CURRENT_WRAPPER_SUPPORTS_EXPLICIT_PER_CALL_TIMEOUT",
     "one_blocking_boundary_per_call": true,
+    "startup_neutral_probe_limit": 2,
+    "startup_neutral_probe_urls": ["https://example.com/", "https://www.iana.org/domains/reserved/"],
+    "reconnect_limit_after_explicit_disconnect": 1,
+    "timeout_readback": "METADATA_IMMEDIATELY_BEFORE_ANY_NEW_NAVIGATION_OR_FRESH_TAB_CLAIM",
+    "global_neutral_failure": "CHROME_CONTENT_CHANNEL_TIMEOUT_GLOBAL_SUSPECTED_NETWORK_EXTENSION_OR_RENDERER_UNRESOLVED",
+    "route_failure_after_neutral_success": "REDDIT_ROUTE_OR_CLIENT_FILTER_SUSPECTED",
+    "cua_address_bar_after_neutral_goto_timeout": "FORBIDDEN",
     "surface_default": "OLD_REDDIT_FIRST",
     "content_timeout_class": "CHROME_CONTENT_CHANNEL_TIMEOUT",
     "uncertain_mutation": "FREEZE_EXACT_ACTION_KEY_NO_RETRY"

@@ -20,7 +20,8 @@ explicitly re-arms it.
 
 If the pack establishes an exact route and a truthful contribution boundary for
 an authorized comment or post, call the queue's atomic `handoff` with the
-target unit, `ACTION_ELIGIBLE`, and a compact source reference before the
+target unit, `ACTION_ELIGIBLE`, the exact candidate reference, and a compact
+source reference before the
 browsing packet finishes. This arms the target's next verified Heartbeat packet;
 it does not bypass that packet's research, live-rule, duplicate, account, or
 composer gate. If no truthful boundary exists, leave the target `PENDING` or
@@ -34,9 +35,10 @@ truthful contribution. Read the post, relevant parent, nearby replies, live
 rule context, and composer. With explicit comment authority, publish at most
 one original context-fit comment in the packet; otherwise record research only.
 Do not manufacture a quota, a personal experience, a factual claim, or product
-promotion. If no candidate pack/true contribution remains after the bounded
-packet, record `MATERIAL_REQUIRED` or `NOT_APPLICABLE` and stop periodic
-candidate hunting; a later browsing handoff or mission revision must re-arm it.
+promotion. If the exact candidate fails a visible rule or fit gate, call
+`candidate-reject`; do not park the whole comments lane. Browsing must refill a
+different candidate at the next verified Heartbeat, and the rejected exact
+candidate must not be handed back.
 If the candidate is still specific and truthful but the live rule/composer
 gate cannot be completed because Chrome or DOM reads time out, record
 `LIVE_GATE_UNVERIFIED` and finish as `YIELDED`. Do not mark the candidate
@@ -50,11 +52,14 @@ comes first; truthful minimum context comes second; quality only ranks passing
 candidates. Do not use a quality score as an additional hard lock once rule,
 truth, format, account, duplicate, and submit gates pass. A native discussion can ask a real, answerable question without a
 project link. A project/showcase post requires real artifacts/details and clear
-relationship disclosure. With explicit post authority, publish at most one
+relationship disclosure. Missing a project link does not itself block a native
+discussion post. With explicit post authority, publish at most one
 native post and verify it once. Never cross-post a template to force a KPI. If
 the truthful subject/artifact/relationship is absent, record
-`MATERIAL_REQUIRED` after the first full live audit. Do not repeat the same
-community sweep or schedule the post unit after the mission cutoff.
+`MATERIAL_REQUIRED` only after a bounded mission-wide audit proves every
+allowed truthful post format needs absent material, with
+`--block-scope MISSION` and evidence. A failed candidate/community instead
+uses `candidate-reject` and returns to browsing.
 If the final route appears viable but Chrome cannot read the current rules,
 format, duplicate, account, or composer state, yield with
 `LIVE_GATE_UNVERIFIED`; do not convert an unread gate into `RULE_BLOCKED`.

@@ -79,4 +79,6 @@ Planning targets describe desired evidence and output, but never force a post
 or comment. For a launch/distribution goal, an eligible post route outranks
 more browsing. If no compliant route or truthful material exists, report the
 goal as unmet with `RULE_BLOCKED` or `MATERIAL_REQUIRED`; do not disguise it as
-successful exploration or repeat the same sweep.
+successful exploration or repeat the same sweep. One failed candidate or
+community is not mission-wide exhaustion: record `candidate-reject`, refill
+from browsing, and keep the KPI honest.

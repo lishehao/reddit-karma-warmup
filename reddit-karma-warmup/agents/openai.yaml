@@ -1,4 +1,4 @@
 interface:
   display_name: "Reddit Community Operations"
   short_description: "Run one durable Reddit operating task"
-  default_prompt: "Use $reddit-karma-warmup to run one Reddit 运营台. First compile the user's business goal, community scope, coverage, soft action threshold, action authority, and truthful material; keep one Chrome owner and a stable 15-minute mission Heartbeat."
+  default_prompt: "Use $reddit-karma-warmup. Complete bootstrap, ask the three startup questions once, and keep waiting if any answer is missing. After all three answers are explicit, use the same Reddit 运营台 to create the mission and immediately run the formal INITIAL round; use one Chrome owner and one stable 15-minute Heartbeat only for later continuation."

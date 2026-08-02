@@ -12,8 +12,8 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
 1. Verify the raw/codeload source, manifest, installed tree, offline validator,
    current task, and required tools. If the staged release is newer and its
    schema/queue protocol is compatible, atomically hot-replace the complete
-   local Skill by default before reporting `BOOTSTRAP_READY`; never merge trees
-   or call a remote-newer install `NOOP`. An active mission stays pinned to its
+   local Skill by default and report `HOT_REPLACED` before `BOOTSTRAP_READY`;
+   never merge trees or call a remote-newer install `NOOP`. An active mission stays pinned to its
    recorded protocol. Defer only for an unsettled mutation, incompatible
    schema/queue protocol, or `UNCERTAIN` runtime facts, recording
    `REMOTE_NEWER_DEFERRED` for the first safe release boundary. Do not open
@@ -21,7 +21,7 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    bootstrap step.
 2. Ask exactly three startup questions from
    [startup intake](references/startup-intake.md): duration, one operating
-   direction, and action scope. Never ask for an account name or handle. The
+   direction, and action scope. Do not ask for an account name or handle. The
    logged-in Chrome session is read silently as an internal gate; it is not a
    startup answer and is not repeated in normal receipts. Use
    `request_user_input` at most once and omit `autoResolutionMs`. If the form

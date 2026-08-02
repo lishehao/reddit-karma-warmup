@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.07.30.4",
+  "runtime_protocol_version": "2026.07.30.6",
   "upgrade": {
     "default_mode": "ATOMIC_HOT_REPLACE",
     "compatible_active_runtime": "HOT_REPLACE_WHILE_MISSION_REMAINS_PINNED_TO_RECORDED_PROTOCOL_AND_NO_MUTATION_IS_IN_FLIGHT",

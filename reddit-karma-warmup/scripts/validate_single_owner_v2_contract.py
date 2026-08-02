@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.30.4"
+    assert version == "2026.07.30.6"
     assert defaults["runtime_protocol_version"] == version
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"

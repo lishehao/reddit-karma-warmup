@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.30.6"
+    assert version == "2026.07.30.7"
     assert defaults["runtime_protocol_version"] == version
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"
@@ -137,7 +137,10 @@ def main() -> None:
     assert defaults["mission_profiles"]["frequency_aliases"]["low"]["action_threshold"] == "high"
     assert defaults["research"]["community_index"]["methods"] == ["GET"]
     assert defaults["research"]["community_index"]["account_or_write_endpoints"] == "FORBIDDEN"
-    assert defaults["research"]["web_search"]["posts_query_min"] >= 8
+    assert defaults["research"]["web_search"]["comments_query_min"] == 2
+    assert defaults["research"]["web_search"]["comments_query_max"] == 4
+    assert defaults["research"]["web_search"]["posts_query_min"] == 4
+    assert defaults["research"]["web_search"]["posts_query_max"] == 8
     assert defaults["runtime_fence"]["pending_chrome_release"] == "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF"
     assert defaults["runtime_fence"]["stale_reconciliation"] == "LOCAL_IMMUTABLE_MARKER_NO_OLD_TASK_CHROME_OR_AUTOMATION_MUTATION"
     assert set(defaults["units"]) == {"browsing", "comments", "posts", "follow-up", "presence"}
@@ -462,8 +465,7 @@ def main() -> None:
         assert completed["next_due_at_utc"]["browsing"] == "2026-07-27T00:15:00Z"
         assert completed["next_due_at_utc"]["posts"] == "2026-07-27T00:15:00Z"
         assert completed["mission_strategy"]["action_budget"] == "active"
-        assert completed["heartbeat"]["state"] == "NEEDS_READBACK"
-        assert heartbeat_record(shared, "2026-07-27T00:05:06Z", "2026-07-27T02:25:00Z", "2026-07-27T00:15:00Z", "owner-1", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert completed["heartbeat"]["state"] == "VERIFIED"
         assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:15:00Z")["status"] == "HEARTBEAT_OBSERVED"
         action_due = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:15:00Z", "--now-utc", "2026-07-27T00:15:00Z")
         assert action_due["status"] == "WAKE_OPEN" and action_due["due_units"] == ["browsing", "posts"], action_due
@@ -473,11 +475,10 @@ def main() -> None:
         assert run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:15:03Z")["status"] == "PACKET_STARTED"
         continued = run(str(QUEUE), "finish", *shared, "--outcome", "COMPLETED", "--objective-state", "CANDIDATES_READY", "--objective-reason", "active coverage frontier remains open", "--candidate-ref", "pack:sideproject:2", "--now-utc", "2026-07-27T00:15:04Z")
         assert continued["next_due_at_utc"]["browsing"] == "2026-07-27T00:30:00Z"
-        assert heartbeat_record(shared, "2026-07-27T00:15:05Z", "2026-07-27T02:25:00Z", "2026-07-27T00:30:00Z", "owner-1", proof)["status"] == "HEARTBEAT_VERIFIED"
         assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:20:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
         no_work = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:20:00Z", "--now-utc", "2026-07-27T00:20:00Z")
         assert no_work["status"] == "NOOP" and no_work["due_units"] == []
-        assert no_work["heartbeat"]["state"] == "NEEDS_READBACK"
+        assert no_work["heartbeat"]["state"] == "VERIFIED"
         action_source = work / "action-mission.json"
         action_envelope = work / "action-envelope.json"
         action_source.write_text(json.dumps({
@@ -683,7 +684,7 @@ def main() -> None:
         assert heartbeat_record(trigger_shared, "2026-07-27T06:00:00Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
         assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:09:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
         early = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:09:00Z")
-        assert early["status"] == "EARLY_WAKE_NOOP" and early["heartbeat"]["state"] == "NEEDS_READBACK"
+        assert early["status"] == "EARLY_WAKE_NOOP" and early["heartbeat"]["state"] == "VERIFIED"
         assert heartbeat_record(trigger_shared, "2026-07-27T06:09:01Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
         assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:21:00Z")["status"] == "HEARTBEAT_LATE_OBSERVED"
         late = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:21:00Z")

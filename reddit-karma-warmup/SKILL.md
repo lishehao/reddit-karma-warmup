@@ -101,12 +101,11 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    `candidate-reject`; do not turn it into mission-wide `RULE_BLOCKED` or
    `MATERIAL_REQUIRED`. A runtime read failure is `LIVE_GATE_UNVERIFIED`; yield
    the same unit and run `RECOVERY_FIRST` at the next verified Heartbeat.
-5. For comments/posts perform
-   `research brief -> labelled query plan -> evidence synthesis -> Chrome live
-   gate`: 4-6 distinct Web Search questions for a comment pack and 8-12 for a
-   post pack, plus exact-target and source/objection queries when factual claims
-   require them. Rules, truthful evidence, duplicate state, session identity, composer,
-   and submit state are hard gates; content quality only ranks passing routes.
+5. For comments/posts do a short research brief, then a small purpose-specific
+   Web Search pass and the Chrome live gate. Use 2-4 queries for comments and
+   4-8 for posts; add a query only when the selected target or a factual claim
+   needs it. The only action gates are current rules/format, truthful content,
+   current session/composer, duplicate/recent history, and one verified submit.
 6. Before every public action persist deterministic `MUTATION_INTENT` and
    `action_key`. Submit once and verify separately. Freeze uncertain exact keys
    permanently; never reopen or retry them. At completion/deadline enter

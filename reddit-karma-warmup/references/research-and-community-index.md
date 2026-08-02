@@ -22,13 +22,12 @@ angle, claims/questions, unknowns, and stop condition. Then create a query plan
 with distinct purposes—not wording variants—and synthesize findings before
 opening finalists in Chrome.
 
-For a post, use 8–12 questions across: community/current discussion;
-premise alternatives; duplicate/FAQ risk; and authoritative sources only when
-an external claim is intended. For comments, use 4–6 questions across target
-community, recent discussion, alternative/objection, and local language. Run
-one exact query for the selected target. Add another objection/source query for
-a substantive or factual claim. Record unsupported claims and remove or reframe
-them before Chrome.
+For a post, normally use 4–8 questions across community/current discussion,
+duplicate risk, and any claim that needs support. For comments, normally use
+2–4 questions across the target community and recent discussion. Run one exact
+query for the selected target only when it adds information; add a source or
+objection query only for a substantive factual claim. Stop when the decision is
+clear. Record unsupported claims and remove or reframe them before Chrome.
 
 ## Optional API index
 

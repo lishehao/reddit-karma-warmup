@@ -602,7 +602,7 @@ def public(state, status, now, detail=None):
             "scheduler_gap_count": state["heartbeat"]["scheduler_gap_count"],
         },
         "scheduler_health": (
-            "HEALTHY" if state["heartbeat"]["state"] == "VERIFIED"
+            "HEALTHY" if state["heartbeat"]["state"] in {"VERIFIED", "NEEDS_READBACK"}
             else "DELETED" if state["heartbeat"]["state"] == "DELETED"
             else "MISSION_SCHEDULER_UNVERIFIED"
         ),
@@ -637,8 +637,9 @@ def settle_wake(state, outcome, now):
         wake["closed_at_utc"] = utc(now)
         state["history"].append({"kind": "WAKE", **wake})
         state["wake"] = None
-        if state["heartbeat"]["state"] == "VERIFIED":
-            state["heartbeat"]["state"] = "NEEDS_READBACK"
+        # A normal wake closes work; it does not invalidate an already verified
+        # recurring timer. Older queues may still contain NEEDS_READBACK, and
+        # heartbeat-observe promotes that legacy state on the next delivery.
 
 
 def append_idle_wake(state, outcome, now, expected_at_utc, trigger_state, trigger_delta_seconds):
@@ -654,8 +655,9 @@ def append_idle_wake(state, outcome, now, expected_at_utc, trigger_state, trigge
         "decisions": {},
         "closed_at_utc": utc(now),
     })
-    if state["heartbeat"]["state"] == "VERIFIED":
-        state["heartbeat"]["state"] = "NEEDS_READBACK"
+    # Keep the verified receipt across ordinary no-work wakes. Requiring a
+    # second timer readback after every wake created a self-blocking loop:
+    # close wake -> NEEDS_READBACK -> next observe -> MISSION_SCHEDULER_UNVERIFIED.
 
 
 def objectives_terminal(state):
@@ -709,8 +711,14 @@ def heartbeat_receipt(state, args, now):
 def observe_heartbeat(state, now):
     """Record one delivered scheduler event without inventing future delivery."""
     heartbeat = state["heartbeat"]
-    if heartbeat["state"] != "VERIFIED":
+    if heartbeat["state"] not in {"VERIFIED", "NEEDS_READBACK"}:
         return "MISSION_SCHEDULER_UNVERIFIED"
+    # NEEDS_READBACK is a legacy state from pre-2026.07.30.7 queues. If the
+    # receipt still contains the same automation identity and a future
+    # occurrence, the delivered heartbeat itself is the required readback.
+    if heartbeat["state"] == "NEEDS_READBACK":
+        heartbeat["state"] = "VERIFIED"
+        heartbeat["readback_at_utc"] = utc(now)
     expected = parse_utc("heartbeat_next_run_at_utc", heartbeat["next_run_at_utc"])
     signed_delta = now - expected
     heartbeat["last_expected_at_utc"] = heartbeat["next_run_at_utc"]

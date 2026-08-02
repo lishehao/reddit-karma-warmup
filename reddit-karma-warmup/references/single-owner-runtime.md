@@ -130,18 +130,15 @@ an objective state as well as the packet outcome whenever the unit has outward
 authority. A yielded unit resumes before a later unit.
 
 The task creates one stable 15-minute recurring Heartbeat through the mission
-window plus one cleanup grace; it is not reconfigured for ordinary unit changes.
-Read back its exact ID, target task, recurrence, `UNTIL`, and a future next
-occurrence before claiming it healthy. At every delivered scheduler turn, run
-`heartbeat-observe` before `wake-open`; it records the signed delivery gap and
-advances the expected occurrence. More than one elapsed interval is
-`SCHEDULER_GAP_SUSPECTED`: it proves only that the expected schedule was not
-observed in this task, not that a platform execution was lost. Do not catch up
-missed actions. Refresh the receipt after every closed wake before the next
-work wake. An unfinished mission with no verifiable future occurrence is
-`MISSION_SCHEDULER_UNVERIFIED`, not healthy. A later manual/task turn that
-finds a suspected gap must recover or finalize; a Skill cannot observe a timer
-delivery that never reaches any task turn.
+window plus cleanup grace. Read back its ID, target, recurrence, `UNTIL`, and a
+future next occurrence once. At each delivered turn run `heartbeat-observe`
+before `wake-open`; it records the signed delivery gap and advances the next
+occurrence. A normal closed wake keeps the verified timer—there is no second
+readback step. `MISSION_SCHEDULER_UNVERIFIED` is reserved for a missing or
+conflicting automation receipt/future occurrence, not ordinary work completion.
+More than one elapsed interval records `SCHEDULER_GAP_SUSPECTED`; do not replay
+missed actions, but run the currently due unit once. A timer with a valid future
+occurrence remains healthy.
 Keep the automation prompt to identity and immutable boundary facts: mission
 ID, owner task ID, queue/envelope paths, cutoff, authority, and the queue's
 `runtime_protocol_version`. Do not copy cadence, NOOP, catch-up, or

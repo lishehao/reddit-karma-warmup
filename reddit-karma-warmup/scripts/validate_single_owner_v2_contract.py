@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.30.1"
+    assert version == "2026.07.30.2"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
@@ -169,7 +169,10 @@ def main() -> None:
     assert intake.count("## Question ") == 3
     for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "one account direction", "not separate required fields", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round", "Text fallback after an unanswered form", "do **not** submit `request_user_input` again", "请先回答以下三个问题", "all three questions"):
         assert phrase in intake_flat, phrase
-    scripts = {path.name for path in (ROOT / "scripts").iterdir()}
+    # Python may create __pycache__ while validators run. Only packaged files
+    # are part of the Skill contract; generated directories must not make an
+    # otherwise complete installation fail validation.
+    scripts = {path.name for path in (ROOT / "scripts").iterdir() if path.is_file()}
     assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
     assert run(str(INTAKE_COMPILER), "--self-test")["status"] == "PASS"
     assert run(str(BROWSER_LEDGER), "--self-test")["status"] == "PASS"

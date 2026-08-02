@@ -92,7 +92,7 @@ Merge the normalized artifact with the system mission ID, the silently derived
 live session identity, start time, and source prompt, then continue without
 another prompt:
 
-`runtime fence -> immutable envelope -> neutral canary/session gate ->
+`current-task scope -> immutable envelope -> neutral canary/session gate ->
 Heartbeat create/readback -> INITIAL direct packet -> continuation`
 
 The INITIAL direct packet is formal round one, not a preview, pre-filter, or

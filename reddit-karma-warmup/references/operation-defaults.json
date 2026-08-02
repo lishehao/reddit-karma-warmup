@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.07.30.7",
+  "runtime_protocol_version": "2026.08.03.1",
   "upgrade": {
     "default_mode": "ATOMIC_HOT_REPLACE",
     "compatible_active_runtime": "HOT_REPLACE_WHILE_MISSION_REMAINS_PINNED_TO_RECORDED_PROTOCOL_AND_NO_MUTATION_IS_IN_FLIGHT",
@@ -39,8 +39,8 @@
   "startup_transition": {
     "question_two_completion": "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP",
     "missing_optional_defaults": "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY",
-    "answer_compilation": "LOCAL_THREE_ANSWER_COMPILER_BEFORE_RUNTIME_FENCE_NO_SECOND_ROUND",
-    "after_three_answers": "RUNTIME_FENCE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_DIRECT_PACKET_AND_CONTINUATION_SAME_TASK_TURN",
+    "answer_compilation": "LOCAL_THREE_ANSWER_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND",
+    "after_three_answers": "CURRENT_TASK_SCOPE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_DIRECT_PACKET_AND_CONTINUATION_SAME_TASK_TURN",
     "initial_packet": "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER_WITH_ATOMIC_HANDOFF",
     "technical_gates": "REQUIRED_BUT_NOT_A_SEPARATE_USER_DECISION_STAGE"
   },
@@ -52,12 +52,16 @@
     "cross_task_dispatch": "FORBIDDEN"
   },
   "runtime_fence": {
-    "preflight": "CLASSIFY_EVERY_PREEXISTING_LOCAL_REDDIT_RUNTIME_BEFORE_NEW_ENVELOPE",
-    "active_owner_evidence": ["TASK_RUNNING", "LOCK_HELD", "HEARTBEAT_FUTURE"],
-    "stale_runtime_requires": ["OPERATION_CUTOFF_PASSED", "TASK_NOT_RUNNING", "HEARTBEAT_ABSENT_OR_EXPIRED", "LOCK_UNHELD"],
+    "preflight": "CURRENT_TASK_ONLY_NO_CROSS_TASK_SCAN",
+    "active_owner_evidence": ["CURRENT_TASK_MISSION_ACTIVE", "CURRENT_QUEUE_LOCK_HELD", "CURRENT_TASK_HEARTBEAT_FUTURE"],
+    "stale_runtime_requires": ["CURRENT_TASK_CUTOFF_PASSED", "CURRENT_TASK_NOT_RUNNING", "CURRENT_TASK_HEARTBEAT_ABSENT_OR_EXPIRED", "CURRENT_QUEUE_LOCK_UNHELD"],
     "pending_chrome_release": "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF",
-    "stale_reconciliation": "LOCAL_IMMUTABLE_MARKER_NO_OLD_TASK_CHROME_OR_AUTOMATION_MUTATION",
-    "uncertain_runtime": "BLOCK_WITH_EXACT_MISSING_OR_CONFLICTING_EVIDENCE"
+    "stale_reconciliation": "CURRENT_TASK_LOCAL_MARKER_ONLY",
+    "uncertain_runtime": "BLOCK_ONLY_CURRENT_TASK_CONFLICT",
+    "other_tasks": "IGNORE_BY_DEFAULT",
+    "other_heartbeats": "IGNORE_BY_DEFAULT",
+    "other_environments": "IGNORE_BY_DEFAULT",
+    "handoff_inspection": "NOT_REQUIRED_AT_STARTUP"
   },
   "units": {
     "browsing": {"default_authority": "READ_ONLY", "explicit_authority": "VOTE_AUTHORIZED", "votes": "BROWSING_ONLY"},

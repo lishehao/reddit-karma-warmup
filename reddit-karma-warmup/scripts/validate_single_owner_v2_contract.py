@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.30.7"
+    assert version == "2026.08.03.1"
     assert defaults["runtime_protocol_version"] == version
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"
@@ -122,8 +122,8 @@ def main() -> None:
     startup_transition = defaults["startup_transition"]
     assert startup_transition["question_two_completion"] == "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP"
     assert startup_transition["missing_optional_defaults"] == "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY"
-    assert startup_transition["answer_compilation"] == "LOCAL_THREE_ANSWER_COMPILER_BEFORE_RUNTIME_FENCE_NO_SECOND_ROUND"
-    assert startup_transition["after_three_answers"] == "RUNTIME_FENCE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_DIRECT_PACKET_AND_CONTINUATION_SAME_TASK_TURN"
+    assert startup_transition["answer_compilation"] == "LOCAL_THREE_ANSWER_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND"
+    assert startup_transition["after_three_answers"] == "CURRENT_TASK_SCOPE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_DIRECT_PACKET_AND_CONTINUATION_SAME_TASK_TURN"
     assert startup_transition["initial_packet"] == "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER_WITH_ATOMIC_HANDOFF"
     assert startup_transition["technical_gates"] == "REQUIRED_BUT_NOT_A_SEPARATE_USER_DECISION_STAGE"
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
@@ -141,8 +141,14 @@ def main() -> None:
     assert defaults["research"]["web_search"]["comments_query_max"] == 4
     assert defaults["research"]["web_search"]["posts_query_min"] == 4
     assert defaults["research"]["web_search"]["posts_query_max"] == 8
+    assert defaults["runtime_fence"]["preflight"] == "CURRENT_TASK_ONLY_NO_CROSS_TASK_SCAN"
     assert defaults["runtime_fence"]["pending_chrome_release"] == "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF"
-    assert defaults["runtime_fence"]["stale_reconciliation"] == "LOCAL_IMMUTABLE_MARKER_NO_OLD_TASK_CHROME_OR_AUTOMATION_MUTATION"
+    assert defaults["runtime_fence"]["stale_reconciliation"] == "CURRENT_TASK_LOCAL_MARKER_ONLY"
+    assert defaults["runtime_fence"]["uncertain_runtime"] == "BLOCK_ONLY_CURRENT_TASK_CONFLICT"
+    assert defaults["runtime_fence"]["other_tasks"] == "IGNORE_BY_DEFAULT"
+    assert defaults["runtime_fence"]["other_heartbeats"] == "IGNORE_BY_DEFAULT"
+    assert defaults["runtime_fence"]["other_environments"] == "IGNORE_BY_DEFAULT"
+    assert defaults["runtime_fence"]["handoff_inspection"] == "NOT_REQUIRED_AT_STARTUP"
     assert set(defaults["units"]) == {"browsing", "comments", "posts", "follow-up", "presence"}
     documents = [SKILL]
     repository_readme = ROOT.parent / "README.md"
@@ -154,13 +160,13 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account name or handle", "silent same-Chrome session", "One operating-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account name or handle", "silent same-Chrome session", "One operating-direction answer", "current task", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
     for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "next verified Heartbeat", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay"):
         assert phrase in runtime, phrase
-    for phrase in ("notLoaded", "chrome_release=PENDING", "runtime_fence.py --reconcile", "UNCERTAIN"):
+    for phrase in ("current task", "other Heartbeats", "runtime_fence.py", "UNCERTAIN"):
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")

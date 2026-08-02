@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.30.7`
+Protocol version: `2026.08.03.1`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -29,7 +29,7 @@ response and remain `WAITING_FOR_STARTUP_INPUT`; never infer defaults.
 
 When all three answers are complete, start in the same task turn:
 
-`runtime fence -> mission envelope -> Chrome/session gates -> recurring
+`current-task scope -> mission envelope -> Chrome/session gates -> recurring
 Heartbeat readback -> formal INITIAL round`
 
 The INITIAL round performs real work immediately. It is not a preview or
@@ -60,6 +60,8 @@ are complete.
 
 - One present, unarchived `Reddit 运营台` owns all five internal units, one
   queue, one Chrome binding/tab, and one stable 15-minute Heartbeat.
+- Startup trusts only this task's own mission, queue, and Heartbeat. Unrelated
+  tasks, Heartbeats, environments, locks, and handoffs are not scanned.
 - Built-in Web Search handles broad research; the optional official Reddit API
   is GET-only public indexing; logged-in Chrome performs every real Reddit read
   and every interactive action.

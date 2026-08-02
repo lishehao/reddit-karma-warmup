@@ -33,15 +33,17 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    complete; do not ask separately for audience, topics, communities, links,
    account name, or materials.
 4. In that same task turn run:
-   `runtime fence -> envelope -> technical live gates -> Heartbeat readback ->
-   INITIAL packet`. The `INITIAL` packet is formal round one, not a preview or
-   pre-filter, and it must do real mission work immediately. Do not wait for a
-   second user message or the first Heartbeat.
+   `current-task scope -> envelope -> technical live gates -> Heartbeat
+   readback -> INITIAL packet`. The `INITIAL` packet is formal round one, not
+   a preview or pre-filter, and it must do real mission work immediately. Do
+   not wait for a second user message or the first Heartbeat.
 
-Before compiling a new mission, classify local runtime records with
-`scripts/runtime_fence.py`. A stale `ACTIVE` word or
-`chrome_release=PENDING` alone is not occupancy. Reconcile a proven
-`STALE_RUNTIME` locally; only `ACTIVE_OWNER` or `UNCERTAIN` blocks startup.
+Use the current task as the authority. Inspect only its own mission/queue and
+its own Heartbeat when one already exists. Do not scan other tasks, other
+Heartbeats, other environments, locks, or historical handoffs. If this task
+has no mission yet, create its queue after the three answers; do not block on
+an unrelated runtime. `scripts/runtime_fence.py` remains an explicit
+diagnostic tool, not a startup-wide scan.
 
 ## One task, five internal units
 

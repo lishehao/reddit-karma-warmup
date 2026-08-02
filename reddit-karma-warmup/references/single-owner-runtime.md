@@ -2,39 +2,21 @@
 
 ## Ownership
 
-One current, unarchived `Reddit 运营台` owns the entire mission. It has one
-mission envelope, one append-only queue, one recurring Heartbeat, one Chrome
-binding, and one primary Reddit tab. The five units are internal decisions; do
-not create a launcher, executor, worker, lane, callback registry, browser
-proxy, or second Chrome task.
+The current `Reddit 运营台` owns the mission in this task. It has one mission
+envelope, one queue, one recurring Heartbeat, one Chrome binding, and one
+primary Reddit tab. The five units are internal decisions. Do not create a
+second owner inside this task. Do not inspect other tasks or environments to
+decide whether this task may start.
 
 ## Start
 
-1. After the three-answer intake and before creating a new envelope, inspect
-   every pre-existing local Reddit runtime record. This is local-only: do not
-   open Chrome, Reddit, or an old task just to settle a stale file. Use
-   `scripts/runtime_fence.py` with four independently obtained facts:
-
-   - exact owner task state from `read_thread` (`running`, `idle`, `notLoaded`,
-     `archived`, `absent`, or `unknown`);
-   - exact Heartbeat state (`future`, `absent`, `expired`, or `unknown`);
-   - current local lock state (`held`, `unheld`, or `unknown`);
-   - recorded operation cutoff and queue state.
-
-   `notLoaded`, an empty task read, `ACTIVE` in JSON, and
-   `chrome_release=PENDING` are each insufficient by themselves. Classify:
-
-   | Result | Required evidence | Startup behavior |
-   | --- | --- | --- |
-   | `ACTIVE_OWNER` | running task, held lock, or future Heartbeat | block new mission |
-   | `STALE_RUNTIME` | cutoff passed, task not running, Heartbeat absent/expired, and lock unheld | run `runtime_fence.py --reconcile`; keep old evidence, do not touch task/Chrome/automation, then continue |
-   | `UNCERTAIN` | any needed fact unknown or conflicting | block and report exact missing fact |
-   | `NO_FENCE` | already retired/released record with no live owner evidence | continue |
-
-   Reconciliation writes an immutable local marker rather than rewriting an
-   old queue. It must never request user permission, archive an old task,
-   delete an old automation, or claim a historical Chrome tab. A new mission
-   will create/claim its own dedicated tab only after its own canary.
+1. After the three-answer intake, inspect only this task's own queue and
+   mission, if present. If no current mission exists, continue and create one.
+   If the current queue is internally inconsistent, report that exact field;
+   do not look for a different task to substitute. Do not scan other Heartbeats,
+   environments, locks, or handoffs. `scripts/runtime_fence.py`
+   may be used later for an explicitly requested diagnosis, but is not a
+   startup-wide gate.
 2. Verify the current task is present and unarchived. After binding its mission
    envelope, rename that exact task from `Reddit 启动台` to `Reddit 运营台`, read
    the exact ID/title back, and record `presentation-promote` with the readback

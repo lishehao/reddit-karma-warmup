@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.30.3`
+Protocol version: `2026.07.30.4`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -41,10 +41,15 @@ Heartbeat exists only for later continuation.
 1. Fetch this README and the GitHub codeload ZIP over HTTPS.
 2. Validate the ZIP layout and `reddit-karma-warmup/manifest.json`.
 3. Run `scripts/validate_single_owner_v2_contract.py` in the staged tree.
-4. Compare the staged manifest/tree with the managed local Skill. Install the
-   complete directory atomically; never merge versions.
-5. If a verified active Reddit runtime exists, validate and stage the upgrade
-   but defer local replacement until release. Stale JSON text or
+4. Compare the staged manifest/tree with the managed local Skill. If the staged
+   release is newer and compatible, atomically hot-replace the complete
+   directory by default; never merge versions. Record `HOT_REPLACED`, not a
+   false `NOOP`.
+5. An active runtime may remain on its pinned protocol while a compatible Skill
+   is hot-replaced. Defer only when the staged schema/queue protocol is
+   incompatible, an in-flight mutation cannot be settled, or the runtime facts
+   are `UNCERTAIN`; record `REMOTE_NEWER_DEFERRED` and apply the staged release
+   at the first proven release boundary. Stale JSON text or
    `chrome_release=PENDING` alone is not an active fence.
 
 During installation and intake, do not open Chrome/Reddit, run research, or
@@ -77,5 +82,6 @@ only the install and startup contract.
 ## Release rule
 
 Publish updates directly to GitHub `main`: bump the version, run validators,
-build a ZIP, verify fresh public codeload and ZIP contents, then upgrade the
-local managed copy only when no active old-runtime fence exists.
+build a ZIP, verify fresh public codeload and ZIP contents, then perform the
+default compatible atomic hot replacement. Only incompatible or uncertain
+active-runtime state may defer the local replacement.

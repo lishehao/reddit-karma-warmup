@@ -9,7 +9,8 @@ public community shortlist needs refreshing.
    sources, duplicate/FAQ risk, and objections. It is mandatory before drafting.
 2. **Optional official API index:** public GET-only community metadata, rules,
    and compact hot pointers. It narrows a shortlist.
-3. **Logged-in Chrome:** current visible community context/rules, account,
+3. **Logged-in Chrome:** current visible community context/rules, session
+   identity,
    target, composer, flair, and mutation result. It is the final live gate.
 
 Never use a lower layer to claim a higher layer passed.

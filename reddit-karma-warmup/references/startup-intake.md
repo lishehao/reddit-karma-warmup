@@ -1,8 +1,9 @@
 # Startup intake
 
 Ask all three questions at once after bootstrap. Wait for all three answers
-before Chrome, research, mission compilation, queue, or Heartbeat work. Do not ask for an account; the later same-Chrome gate is authoritative. This intake
-has no fourth question.
+before Chrome, research, mission compilation, queue, or Heartbeat work. Do not
+ask for an account name or handle; the later same-Chrome session gate reads it
+silently. This intake has no fourth question.
 
 Use `request_user_input` once when available, with three choices per question
 and no `autoResolutionMs`. Otherwise ask the same questions in one compact text
@@ -24,8 +25,8 @@ answers, but always repeat all three questions:
 ```text
 请先回答以下三个问题（可直接按 `1) … 2) … 3) …` 回复）：
 1) 运行多久？可选：2 小时 / 4 小时 / 8 小时。
-2) 希望账号在 Reddit 上成为什么样的人、围绕什么方向或社区被看见？可选：社交与社区 / 个人创作与独立项目 / 3D/游戏/共创。
-3) 这轮希望账号做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。
+2) 这轮想围绕什么方向或哪些社区运营？可选：社交与社区 / 个人创作与独立项目 / 3D/游戏/共创。
+3) 这轮希望做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。
 ```
 
 This is the same intake, not a second-round question. Use the compiler's exact
@@ -44,9 +45,9 @@ Ask how long the mission should run.
 Accept an explicit custom duration from more than zero through 168 hours. It
 does not change the 15-minute Heartbeat.
 
-## Question 2 — one account direction
+## Question 2 — operating direction
 
-Ask: **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/社区被看见？**
+Ask: **这轮想围绕什么方向或哪些社区运营？**
 
 | Choice | Direction |
 | --- | --- |
@@ -54,11 +55,11 @@ Ask: **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/�
 | `个人创作与独立项目` | solo projects, creative tools, maker practice |
 | `3D/游戏/共创` | spatial interaction, games, co-creation |
 
-Persona, audience, topics, and community seeds are one account direction, not
-separate required fields. Preserve the user's wording and normalize it only
-into `account_direction` and `direction_tags`. Named communities are optional
-seeds (`seeded_expandable`); only an explicit closed list is `closed`; no seeds
-means `discover`.
+账号风格、目标受众、话题和社区种子都属于这一项，不需要拆开追问。保留用户
+原话，内部兼容字段仍写入 `account_direction` 和 `direction_tags`，但这不是
+账号姓名，也不是额外的账号确认。命名社区是可选种子
+（`seeded_expandable`）；只有明确的封闭列表才是 `closed`；没有种子则为
+`discover`。
 
 This answer grants no action authority, and do not ask a second-round question for
 scope, materials, a project link, facts, or observations. Default
@@ -67,7 +68,7 @@ mission-wide `MATERIAL_REQUIRED` only after a bounded truthful-format audit.
 
 ## Question 3 — action scope
 
-Ask: **这轮希望账号做到哪一步？**
+Ask: **这轮希望做到哪一步？**
 
 | Choice | User-visible scope | Business goal | Units |
 | --- | --- | --- | --- |
@@ -76,7 +77,7 @@ Ask: **这轮希望账号做到哪一步？**
 | `全面推进` | eligible comments, truthful posts, follow-up, concrete presence | `project_distribution` | all five units |
 
 This is action scope, not frequency, quota, or a publication promise. All
-outward actions still require live rules, truthful evidence, account/composer
+outward actions still require live rules, truthful evidence, session/composer
 state, duplicate checks, and verification. Accept a custom answer only when it
 explicitly names allowed units and one business goal; never infer write
 authority from Question 2.
@@ -87,10 +88,11 @@ Write the three answers to one local JSON artifact and run
 `scripts/compile_startup_intake.py`. Only `STARTUP_ANSWERS_COMPLETE` proceeds;
 invalid or incomplete input keeps waiting.
 
-Merge the normalized artifact with the system mission ID, live account, start
-time, and source prompt, then continue without another prompt:
+Merge the normalized artifact with the system mission ID, the silently derived
+live session identity, start time, and source prompt, then continue without
+another prompt:
 
-`runtime fence -> immutable envelope -> neutral canary/account gate ->
+`runtime fence -> immutable envelope -> neutral canary/session gate ->
 Heartbeat create/readback -> INITIAL direct packet -> continuation`
 
 The INITIAL direct packet is formal round one, not a preview, pre-filter, or

@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.07.30.2",
+  "runtime_protocol_version": "2026.07.30.3",
   "startup_intake": {
     "question_count": 3,
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
@@ -13,10 +13,11 @@
     "compiler": "scripts/compile_startup_intake.py",
     "compiler_success": "STARTUP_ANSWERS_COMPLETE",
     "compiler_wait": "WAITING_FOR_STARTUP_INPUT",
-    "compiler_cancelled": "STARTUP_CANCELLED_BY_USER"
+    "compiler_cancelled": "STARTUP_CANCELLED_BY_USER",
+    "session_identity": "SILENT_CHROME_DERIVATION_AT_STARTUP_RECHECK_ONLY_ON_REBIND_LOGIN_CHANGE_RECOVERY_STALE_CHECKPOINT_OR_PRE_MUTATION_NO_HANDLE_IN_RECEIPTS"
   },
   "direction_intake": {
-    "question": "ONE_ACCOUNT_DIRECTION_PERSONA_AUDIENCE_TOPICS_AND_COMMUNITY_SEEDS_NOT_SEPARATE_FIELDS",
+    "question": "ONE_OPERATING_DIRECTION_PERSONA_AUDIENCE_TOPICS_AND_COMMUNITY_SEEDS_NOT_SEPARATE_FIELDS",
     "primary_presets": ["SOCIAL_AND_COMMUNITY", "PERSONAL_CREATION_AND_INDEPENDENT_PROJECTS", "SPATIAL_GAMES_AND_CO_CREATION"],
     "community_scope": "OPTIONAL_SEED_COMMUNITIES_CLOSED_ONLY_IF_EXPLICIT_OTHERWISE_EXPANDABLE_OR_DISCOVER",
     "business_goal_source": "QUESTION_3_ACTION_SCOPE",

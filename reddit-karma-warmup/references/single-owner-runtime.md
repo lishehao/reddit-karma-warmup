@@ -79,7 +79,7 @@ permalink/source reference before it can arm follow-up.
   rule/approval/form blocker. Supply `--block-scope MISSION` plus evidence.
   One rejected candidate or incompatible community uses `candidate-reject`.
 - `LIVE_GATE_UNVERIFIED`: a Chrome/content-channel/DOM/navigation failure
-  prevented the live account, rule, duplicate, composer, or page-state gate
+  prevented the live session, rule, duplicate, composer, or page-state gate
   from being completed. It is not a rule decision and remains recoverable:
   finish the packet as `YIELDED`, preserve the candidate/action-key state, and
   resume the same unit at the next verified Heartbeat.
@@ -105,7 +105,7 @@ targets. The user may say “high/low frequency”, but that shorthand never
 changes the Heartbeat: it compiles to coverage/threshold/budget only.
 
 Hard action gates are invariant: explicit authority, live rule/format fit,
-truthful material or claim, current account/composer state, duplicate/recent
+truthful material or claim, current session/composer state, duplicate/recent
 history, and one verified submission. The threshold only ranks candidates that
 already pass those gates.
 
@@ -196,7 +196,7 @@ read probe and then either continue or yield again. `resume_unit` and
 
 The compiler accepts only `browsing`, `comments`, `posts`, `follow-up`, and
 `presence`. Explicit authority is required for every non-read action and does
-not override current rules, account state, truthful evidence, composer state,
+not override current rules, session identity, truthful evidence, composer state,
 or pacing. Persist `MUTATION_INTENT` / `action_key` before an outward action.
 Unknown submit state freezes that exact key forever.
 

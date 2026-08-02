@@ -14,17 +14,18 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    create a mission/queue/Heartbeat during this bootstrap step. Report
    `BOOTSTRAP_READY`.
 2. Ask exactly three startup questions from
-   [startup intake](references/startup-intake.md): duration, one account
-   direction, and action scope. Do not ask for an account; the same-Chrome live
-   gate is its source of truth. Use `request_user_input` at most once and omit
-   `autoResolutionMs`. If the form is unanswered, partial, dismissed, or
-   expires, send the prescribed normal text response listing all three
-   questions. Remain `WAITING_FOR_STARTUP_INPUT`; silence never starts or
-   cancels work.
+   [startup intake](references/startup-intake.md): duration, one operating
+   direction, and action scope. Never ask for an account name or handle. The
+   logged-in Chrome session is read silently as an internal gate; it is not a
+   startup answer and is not repeated in normal receipts. Use
+   `request_user_input` at most once and omit `autoResolutionMs`. If the form
+   is unanswered, partial, dismissed, or expires, send the prescribed normal
+   text response listing all three questions. Remain
+   `WAITING_FOR_STARTUP_INPUT`; silence never starts or cancels work.
 3. Persist the three answers and run `scripts/compile_startup_intake.py`. Only
-   `STARTUP_ANSWERS_COMPLETE` continues. A single account-direction answer is
-   complete; do not ask separately for audience, topics, communities, links, or
-   materials.
+   `STARTUP_ANSWERS_COMPLETE` continues. One operating-direction answer is
+   complete; do not ask separately for audience, topics, communities, links,
+   account name, or materials.
 4. In that same task turn run:
    `runtime fence -> envelope -> technical live gates -> Heartbeat readback ->
    INITIAL packet`. The `INITIAL` packet is formal round one, not a preview or
@@ -61,12 +62,12 @@ inspect vote controls.
 | --- | --- | --- |
 | Built-in Web Search | broad current discovery, terminology, primary sources, duplicate/FAQ risk | current Reddit permission or action proof |
 | Official Reddit API via `scripts/community_index.py` | optional GET-only public community metadata, rules, and up to three hot pointers | browsing, account access, writes, or a Chrome fallback |
-| Logged-in Chrome | every real Reddit read, live rule/account/composer gate, action, and verification | parallel task control or evasion |
+| Logged-in Chrome | every real Reddit read, live rule/session/composer gate, action, and verification | parallel task control or evasion |
 
 Missing API credentials are normal. Start with Old Reddit for ordinary text
 work and use one equivalent current-Reddit fallback only when the required live
 capability is absent. A content timeout is
-`CHROME_CONTENT_CHANNEL_TIMEOUT`, not a disconnect, missing tab, account risk,
+`CHROME_CONTENT_CHANNEL_TIMEOUT`, not a disconnect, missing tab, session risk,
 or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md).
 
 ## Mission loop
@@ -76,8 +77,9 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    Store the business goal, community scope, coverage budget, soft action
    threshold, action budget, truthful material references, and evidence/output
    targets. `high/low frequency` changes these profiles, not the timer.
-2. Pass the neutral canary and same-Chrome account gate. Then create one stable
-   15-minute recurring Heartbeat through `operation_stop_at + cleanup-grace`,
+2. Pass the neutral canary and establish the silent same-Chrome session gate
+   once. Then create one stable 15-minute recurring Heartbeat through
+   `operation_stop_at + cleanup-grace`,
    and persist/read back its exact ID, task, RRULE, `UNTIL`, next run, and proof.
    The prompt carries only stable identity/boundaries and
    `runtime_protocol_version`; each wake reloads this installed Skill and queue.
@@ -97,7 +99,7 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    `research brief -> labelled query plan -> evidence synthesis -> Chrome live
    gate`: 4-6 distinct Web Search questions for a comment pack and 8-12 for a
    post pack, plus exact-target and source/objection queries when factual claims
-   require them. Rules, truthful evidence, duplicate state, account, composer,
+   require them. Rules, truthful evidence, duplicate state, session identity, composer,
    and submit state are hard gates; content quality only ranks passing routes.
 6. Before every public action persist deterministic `MUTATION_INTENT` and
    `action_key`. Submit once and verify separately. Freeze uncertain exact keys

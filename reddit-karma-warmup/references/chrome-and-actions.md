@@ -7,12 +7,12 @@ Reddit consumption and every interactive action. Read the installed
 ## Health and routing
 
 Track independently: browser control, tab metadata, content channel, route, and
-account. A successful tab list/claim/title does not prove page readability.
+session identity. A successful tab list/claim/title does not prove page readability.
 When `goto`, DOM, screenshot, or evaluate times out while metadata remains
 healthy, record `CHROME_CONTENT_CHANNEL_TIMEOUT`; do not report disconnect,
 missing tab, or account enforcement.
 This is not a Reddit rule result. If such a timeout prevents reading rules,
-composer state, duplicates, or account proof, the affected unit must use
+composer state, duplicates, or session proof, the affected unit must use
 `LIVE_GATE_UNVERIFIED`/`YIELDED`, not `RULE_BLOCKED`.
 The next verified Heartbeat resumes that same unit with `RECOVERY_FIRST`; it
 must not use `WATCH`, `SKIP`, `DEFER`, or fast NOOP merely because the previous
@@ -20,13 +20,23 @@ tab was blank.
 
 Start on Old Reddit for ordinary listings, text, rules, and text forms. Make at
 most one equivalent current-Reddit fallback when the required capability is
-absent. Preserve the same canonical target and account. Never clear cookies,
+absent. Preserve the same canonical target and logged-in session. Never clear cookies,
 switch browser/profile, change proxy/TLS, or turn an API result into a browser
 recovery path.
 
+## Silent session identity gate
+
+The user never supplies or confirms an account name/handle. At startup, after
+the neutral canary, read the visible logged-in session once and store its
+internal proof in the mission envelope. Normal Heartbeat receipts do not echo
+the handle. Recheck silently only after a tab rebind, login change, recovery,
+stale checkpoint, or immediately before a mutation. If the session is unknown
+or changed, pause the affected unit and report the mismatch; do not guess or
+ask the user to repeat the account.
+
 ## Bounded startup and recovery ladder
 
-Run this ladder before the first Reddit account gate and again only for a due
+Run this ladder before the first Reddit session gate and again only for a due
 `RECOVERY_FIRST` unit. It is a bounded diagnostic, not a retry loop.
 
 1. Establish or reuse the existing Chrome binding. Reinitialize a local runtime
@@ -100,7 +110,8 @@ fresh bounded ladder.
 ## Action gate
 
 Before a public action persist `action_key`, target, text/direction, and
-expected account. Recheck fresh visible composer/control, title/body/flair,
+expected session proof. Recheck the fresh visible session/composer/control,
+title/body/flair,
 live rule context, and submit availability. Submit once. Verify with a separate
 targeted read. If the click/send may have occurred but proof is missing, record
 `MUTATION_UNKNOWN`, freeze the exact key, and never retry it on another surface

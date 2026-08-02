@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.07.30.2"
+    assert version == "2026.07.30.3"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
@@ -96,8 +96,9 @@ def main() -> None:
     assert intake_defaults["silence"] == "NEVER_IMPLICITLY_CANCELLED"
     assert intake_defaults["compiler"] == "scripts/compile_startup_intake.py"
     assert intake_defaults["compiler_success"] == "STARTUP_ANSWERS_COMPLETE"
+    assert intake_defaults["session_identity"] == "SILENT_CHROME_DERIVATION_AT_STARTUP_RECHECK_ONLY_ON_REBIND_LOGIN_CHANGE_RECOVERY_STALE_CHECKPOINT_OR_PRE_MUTATION_NO_HANDLE_IN_RECEIPTS"
     direction_defaults = defaults["direction_intake"]
-    assert direction_defaults["question"] == "ONE_ACCOUNT_DIRECTION_PERSONA_AUDIENCE_TOPICS_AND_COMMUNITY_SEEDS_NOT_SEPARATE_FIELDS"
+    assert direction_defaults["question"] == "ONE_OPERATING_DIRECTION_PERSONA_AUDIENCE_TOPICS_AND_COMMUNITY_SEEDS_NOT_SEPARATE_FIELDS"
     assert direction_defaults["primary_presets"] == [
         "SOCIAL_AND_COMMUNITY",
         "PERSONAL_CREATION_AND_INDEPENDENT_PROJECTS",
@@ -144,7 +145,7 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account", "single account-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account name or handle", "silent same-Chrome session", "One operating-direction answer", "STALE_RUNTIME", "ACTIVE_OWNER", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -167,8 +168,10 @@ def main() -> None:
     intake_flat = " ".join(intake.split())
     assert len(intake.splitlines()) <= 115
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "one account direction", "not separate required fields", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round", "Text fallback after an unanswered form", "do **not** submit `request_user_input` again", "请先回答以下三个问题", "all three questions"):
+    for phrase in ("Do not ask for an account name or handle", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "operating direction", "不需要拆开追问", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round", "Text fallback after an unanswered form", "do **not** submit `request_user_input` again", "请先回答以下三个问题", "这轮想围绕什么方向或哪些社区运营", "这轮希望做到哪一步", "all three questions"):
         assert phrase in intake_flat, phrase
+    assert "希望账号在 Reddit 上成为什么样的人" not in intake_flat
+    assert "这轮希望账号做到哪一步" not in intake_flat
     # Python may create __pycache__ while validators run. Only packaged files
     # are part of the Skill contract; generated directories must not make an
     # otherwise complete installation fail validation.

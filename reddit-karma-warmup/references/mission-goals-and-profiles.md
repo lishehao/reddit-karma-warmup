@@ -1,6 +1,6 @@
 # Mission goals and profiles
 
-Question 2 supplies one account direction, from which community-discovery
+Question 2 supplies one operating direction, from which community-discovery
 vectors are derived.
 Question 3 supplies the primary business goal and action authority. Supporting
 units may run only when the recorded evidence graph arms them; neither answer
@@ -10,8 +10,9 @@ alone bypasses a live action gate.
 
 After bootstrap, obtain the three-answer artifact defined in
 [startup intake](startup-intake.md), then normalize it into the canonical
-fields below. Do not ask for an account: use only the later same-Chrome live
-account proof. Question 2 carries one account direction; persona, target
+fields below. Do not ask for an account name or handle: use only the later
+same-Chrome live session proof. Question 2 carries one operating direction;
+persona, target
 people, topic cluster, and optional community seeds are interchangeable ways
 to express it. Question 3 carries the user-visible action scope, business
 goal, authority, and operating limits. Truthful materials are optional at startup and required only for the
@@ -31,8 +32,9 @@ Accept natural language, then record these canonical fields:
 
 ```text
 business_goal: one table value
-direction: exact one Question 2 direction answer
-account_direction: compact normalization of that same direction, not another answer
+direction: exact one Question 2 operating-direction answer
+account_direction: internal compatibility field; compact normalization of that
+same direction, not an account name or another answer
 direction_tags: derived community-discovery vectors
 community_scope: closed | seeded_expandable | discover
 coverage_budget: narrow | standard | broad
@@ -45,7 +47,7 @@ planning_targets: evidence/output targets, never forced action counts
 Question 2 determines `community_scope`: named communities are `closed`,
 expandable seeds are `seeded_expandable`, and a direction-only answer is
 `discover`. Do not request audience, topic, material, or a community list after
-Question 2; they are all optional details of the one direction and default to
+Question 2; they are all optional details of the one operating direction and default to
 `[]` / `discover` where relevant. It does not determine
 `business_goal` or grant a write. If the user only says “low frequency”, map it to
 `standard/high/minimal`; “high frequency” maps to `broad/standard/active`.

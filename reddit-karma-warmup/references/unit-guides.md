@@ -23,7 +23,7 @@ an authorized comment or post, call the queue's atomic `handoff` with the
 target unit, `ACTION_ELIGIBLE`, the exact candidate reference, and a compact
 source reference before the
 browsing packet finishes. This arms the target's next verified Heartbeat packet;
-it does not bypass that packet's research, live-rule, duplicate, account, or
+it does not bypass that packet's research, live-rule, duplicate, session, or
 composer gate. If no truthful boundary exists, leave the target `PENDING` or
 park it with the evidence reason—never create a pause/resume revision merely
 to alter its cadence.
@@ -50,7 +50,7 @@ instruction was actually visible.
 Complete the post Web Search pack and Chrome finalist gate. Hard compliance
 comes first; truthful minimum context comes second; quality only ranks passing
 candidates. Do not use a quality score as an additional hard lock once rule,
-truth, format, account, duplicate, and submit gates pass. A native discussion can ask a real, answerable question without a
+truth, format, session, duplicate, and submit gates pass. A native discussion can ask a real, answerable question without a
 project link. A project/showcase post requires real artifacts/details and clear
 relationship disclosure. Missing a project link does not itself block a native
 discussion post. With explicit post authority, publish at most one
@@ -61,15 +61,15 @@ allowed truthful post format needs absent material, with
 `--block-scope MISSION` and evidence. A failed candidate/community instead
 uses `candidate-reject` and returns to browsing.
 If the final route appears viable but Chrome cannot read the current rules,
-format, duplicate, account, or composer state, yield with
+format, duplicate, session, or composer state, yield with
 `LIVE_GATE_UNVERIFIED`; do not convert an unread gate into `RULE_BLOCKED`.
 
 Persist a compact `live_gate_checkpoint` once the final target route is known:
-target URL, account proof, relevant rule/format proof, duplicate proof,
+target URL, internal session proof, relevant rule/format proof, duplicate proof,
 composer proof, and capture time. If the same packet resumes after context
 compaction and the tab remains on the target, do not rerun the broad Web Search
 or navigate away and back just to recreate the checkpoint. Take one fresh,
-minimal account/composer snapshot immediately before `MUTATION_INTENT`; rerun
+minimal session/composer snapshot immediately before `MUTATION_INTENT`; rerun
 the full gate only after a tab rebind, login change, route change, or stale
 checkpoint. Every actual submission still has one deterministic action key and
 one attempt.

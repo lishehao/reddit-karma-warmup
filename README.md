@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.07.30.2`
+Protocol version: `2026.07.30.3`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -16,18 +16,20 @@ The initial message performs installation/upgrade and local preflight only,
 reports `BOOTSTRAP_READY`, then asks exactly three questions at once:
 
 1. **运行多久？** `2 小时 / 4 小时 / 8 小时`，或明确的自定义时长。
-2. **账号希望在 Reddit 上成为什么样的人，并围绕哪些话题/社区被看见？**
+2. **这轮想围绕什么方向或哪些社区运营？**
    可选：`社交与社区 / 个人创作与独立项目 / 3D/游戏/共创`，也可自由描述。
-3. **这轮希望账号做到哪一步？** `模拟浏览 / 参与讨论 / 全面推进`。
+3. **这轮希望做到哪一步？** `模拟浏览 / 参与讨论 / 全面推进`。
 
-Do not ask for an account; resolve it through the same-Chrome live gate. Use
-the interactive form once without `autoResolutionMs`. If it is unanswered,
+Do not ask for an account name or handle. The logged-in Chrome session is the
+internal source of truth; read it silently once at startup and only recheck it
+after a tab rebind, login change, recovery, or immediately before a mutation.
+Use the interactive form once without `autoResolutionMs`. If it is unanswered,
 partial, dismissed, or expires, list all three questions in a normal text
 response and remain `WAITING_FOR_STARTUP_INPUT`; never infer defaults.
 
 When all three answers are complete, start in the same task turn:
 
-`runtime fence -> mission envelope -> Chrome/account gates -> recurring
+`runtime fence -> mission envelope -> Chrome/session gates -> recurring
 Heartbeat readback -> formal INITIAL round`
 
 The INITIAL round performs real work immediately. It is not a preview or
@@ -56,7 +58,7 @@ are complete.
 - Built-in Web Search handles broad research; the optional official Reddit API
   is GET-only public indexing; logged-in Chrome performs every real Reddit read
   and every interactive action.
-- Rules, truthful evidence, current account/composer state, duplicate checks,
+- Rules, truthful evidence, current session/composer state, duplicate checks,
   explicit authority, and independent verification are hard gates. Targets are
   planning signals, never forced-action quotas.
 - Candidate evidence moves atomically from browsing to comments/posts; a

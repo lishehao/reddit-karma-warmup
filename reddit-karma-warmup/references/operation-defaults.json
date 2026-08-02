@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.07.30.6",
+  "runtime_protocol_version": "2026.07.30.7",
   "upgrade": {
     "default_mode": "ATOMIC_HOT_REPLACE",
     "compatible_active_runtime": "HOT_REPLACE_WHILE_MISSION_REMAINS_PINNED_TO_RECORDED_PROTOCOL_AND_NO_MUTATION_IS_IN_FLIGHT",
@@ -132,10 +132,10 @@
   },
   "research": {
     "web_search": {
-      "comments_query_min": 4,
-      "comments_query_max": 6,
-      "posts_query_min": 8,
-      "posts_query_max": 12,
+      "comments_query_min": 2,
+      "comments_query_max": 4,
+      "posts_query_min": 4,
+      "posts_query_max": 8,
       "selected_item_final_query_min": 1,
       "factual_or_substantive_objection_query_min": 1
     },

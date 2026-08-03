@@ -27,11 +27,17 @@ decide whether this task may start.
    prior mission scope.
 4. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated
    primary tab only after it passes.
-5. If work remains, create and read back one recurring task Heartbeat with an
-   `UNTIL` at `operation_stop_at + cleanup_grace`. The Heartbeat belongs to this
-   task, never a unit. It is not an unbounded recurring timer. Persist the
-   `automation_id`, exact owner task ID, RRULE, `UNTIL`, next occurrence,
-   readback time, and readback proof in the queue before declaring it healthy.
+5. If work remains, create and read back one recurring task Heartbeat. Prefer
+   an immediate RRULE without `DTSTART`, because the app anchors immediate
+   schedules itself. If the tool explicitly rejects `DTSTART`, retry once
+   without it. If an `UNTIL` form reports no future occurrence, use one bounded
+   `COUNT` fallback (`FREQ=MINUTELY;INTERVAL=15;COUNT=n`) sized to reach the
+   cleanup window; record the exact count, cutoff, and prompt stop guard. The
+   Heartbeat belongs to this task, never a unit. Persist the `automation_id`,
+   exact owner task ID, RRULE, next occurrence, readback time, and proof before
+   declaring it healthy. Do not stop the mission after the first scheduler
+   timeout; classify `MISSION_SCHEDULER_UNVERIFIED` only after these bounded
+   forms fail or the readback conflicts.
 
 ## Objective graph
 
@@ -112,8 +118,8 @@ an objective state as well as the packet outcome whenever the unit has outward
 authority. A yielded unit resumes before a later unit.
 
 The task creates one stable 15-minute recurring Heartbeat through the mission
-window plus cleanup grace. Read back its ID, target, recurrence, `UNTIL`, and a
-future next occurrence once. At each delivered turn run `heartbeat-observe`
+window plus cleanup grace. Read back its ID, target, recurrence, cutoff/count,
+and a future next occurrence once. At each delivered turn run `heartbeat-observe`
 before `wake-open`; it records the signed delivery gap and advances the next
 occurrence. A normal closed wake keeps the verified timer—there is no second
 readback step. `MISSION_SCHEDULER_UNVERIFIED` is reserved for a missing or

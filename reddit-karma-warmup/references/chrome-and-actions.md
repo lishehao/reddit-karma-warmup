@@ -68,9 +68,12 @@ failed neutral `goto`: it is not an independent page-readability probe.
 
 At most two neutral probes and one explicit-disconnect reconnect are allowed in
 one packet. Close failed agent-owned probe tabs before yielding. During startup,
-when no Heartbeat exists yet, end at `LIVE_GATE_UNVERIFIED` without creating a
-mission, queue, or Heartbeat; a later explicit user continuation may begin a
-fresh bounded ladder.
+after the canary passes, continue the current task's queue/bootstrap path even
+when the first Heartbeat attempt is unavailable. Retry the scheduler using its
+bounded normalization/count-fallback ladder; do not create a second task. Until
+a scheduler receipt is verified, preserve work as read-only `INITIAL` evidence
+and do not submit public mutations. A later verified Heartbeat may resume the
+same task and action units.
 
 ## Atomic boundary rules
 

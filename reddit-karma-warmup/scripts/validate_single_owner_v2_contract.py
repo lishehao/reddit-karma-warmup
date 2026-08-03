@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.03.2"
+    assert version == "2026.08.03.3"
     assert defaults["runtime_protocol_version"] == version
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"
@@ -129,6 +129,9 @@ def main() -> None:
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
     assert defaults["scheduler"]["packet_lease_seconds"] == 900
     assert "HEARTBEAT" in defaults["scheduler"]["heartbeat_receipt"]
+    assert "COUNT_FALLBACK" in defaults["scheduler"]["heartbeat_receipt"]
+    assert defaults["scheduler"]["heartbeat_create_recovery"].startswith("OMIT_DTSTART_RETRY")
+    assert defaults["scheduler"]["count_fallback"].startswith("FREQ=MINUTELY_INTERVAL_15")
     assert set(defaults["mission_profiles"]["business_goals"]) == {
         "community_discovery", "conversation_entry", "feedback_validation",
         "project_distribution", "relationship_maintenance", "profile_readiness",

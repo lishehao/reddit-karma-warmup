@@ -87,8 +87,12 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    targets. `high/low frequency` changes these profiles, not the timer.
 2. Pass the neutral canary and establish the silent same-Chrome session gate
    once. Then create one stable 15-minute recurring Heartbeat through
-   `operation_stop_at + cleanup-grace`,
-   and persist/read back its exact ID, task, RRULE, `UNTIL`, next run, and proof.
+   `operation_stop_at + cleanup-grace`, and persist/read back its exact ID,
+   task, RRULE, next run, and proof. If the scheduler rejects an immediate
+   `DTSTART`, retry once without `DTSTART`; if an `UNTIL` form reports no
+   future occurrence, use one bounded `COUNT` fallback sized to the cleanup
+   window and record its exact count/cutoff. Do not stop the mission after the
+   first scheduler-tool timeout.
    The prompt carries only stable identity/boundaries and
    `runtime_protocol_version`; each wake reloads this installed Skill and queue.
 3. Run the formal `INITIAL` packet immediately. Every later wake first records

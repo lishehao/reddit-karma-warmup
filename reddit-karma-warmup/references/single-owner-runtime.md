@@ -126,10 +126,10 @@ ID, owner task ID, queue/envelope paths, cutoff, authority, and the queue's
 `runtime_protocol_version`. Do not copy cadence, NOOP, catch-up, or
 unit-selection policy into the prompt. Each wake reloads the installed Skill
 and queue. A running mission stays pinned to its recorded protocol version.
-Only a first packet inside the opening five-minute tolerance may declare
-`wake-source=INITIAL`; later wakes use their expected time window and record
-whether scheduler telemetry was present. They do not require a same-turn
-observation before running current due work.
+The first packet may use `wake-source=INITIAL` even when startup was delayed;
+the normal expected-time window records the signed delay. Later wakes use their
+expected time window and record whether scheduler telemetry was present. They
+do not require a same-turn observation before running current due work.
 Normal unit rechecks align to the task Heartbeat phase when available—not absolute UTC
 quarter-hours: browsing 30 minutes, comments
 45, posts 180, follow-up 90 (15 for an active known chain), and presence 24

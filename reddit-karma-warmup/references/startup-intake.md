@@ -92,11 +92,12 @@ Merge the normalized artifact with the system mission ID, the silently derived
 live session identity, start time, and source prompt, then continue without
 another prompt:
 
-`current-task scope -> immutable envelope -> neutral canary/session gate ->
-Heartbeat create/readback -> INITIAL direct packet -> continuation`
+`current-task scope -> immutable envelope -> one same-Chrome session gate ->
+INITIAL direct packet -> optional Heartbeat continuation`
 
 The INITIAL direct packet is formal round one, not a preview, pre-filter, or
 separate planning round. It must perform real mission work immediately. If it
 finds an authorized concrete route, record atomic handoff before closing so the
-next verified Heartbeat runs that action unit. Technical gates are required but
-not another user-decision stage.
+next task wake can run that action unit. Technical gates are required but not
+another user-decision stage; missing scheduler telemetry does not block the
+current packet.

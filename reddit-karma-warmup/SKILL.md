@@ -33,18 +33,21 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    complete; do not ask separately for audience, topics, communities, links,
    account name, or materials.
 4. In that same task turn run:
-   `current-task scope -> envelope -> technical live gates -> Heartbeat
-   readback -> INITIAL packet`. The `INITIAL` packet is formal round one, not
-   a preview or pre-filter, and it must do real mission work immediately. Do
-   not wait for a second user message or the first Heartbeat.
+   `current-task scope -> envelope -> one Chrome/session gate -> INITIAL
+   packet`. The `INITIAL` packet is formal round one, not a preview or
+   pre-filter, and it must do real mission work immediately. Heartbeat creation
+   and readback are advisory continuation work; they must not block INITIAL.
+   Do not wait for a second user message or the first Heartbeat.
 
 Use the current task as the authority. Resolve the exact current Codex task ID
 from the current task context before compiling anything. A
 `<source_thread_id>` inside a delegated wrapper is provenance only; it is the
 parent/creator task and MUST NOT be used as this task's owner ID. The queue
 owner, mission owner, Heartbeat target, and finalization target must all equal
-the exact current task ID. If the current ID cannot be resolved, stop before
-queue bootstrap with `CURRENT_TASK_ID_UNAVAILABLE` rather than guessing.
+the exact current task ID. The current task context is the only identity
+source. If the runtime exposes a parent/source ID instead of the current ID,
+keep the source as provenance and use the task's own ID for queue/Heartbeat
+fields; do not perform a cross-task search to resolve it.
 Inspect only its own mission/queue and
 its own Heartbeat when one already exists. Do not scan other tasks, other
 Heartbeats, other environments, locks, or historical handoffs. If this task
@@ -54,10 +57,10 @@ diagnostic tool, not a startup-wide scan.
 
 ## One task, five internal units
 
-Run one present, unarchived, user-visible `Reddit 运营台`. It owns one mission
-record, one queue, one Heartbeat, one Chrome binding, and one primary Reddit
-tab. Never create unit tasks, a browser dispatcher, a lock daemon, or a second
-Chrome owner.
+Run one present Reddit operating task. It owns one mission record, one queue,
+an advisory Heartbeat when available, one Chrome binding, and one primary
+Reddit tab. Never create unit tasks, a browser dispatcher, a lock daemon, or a
+second Chrome owner.
 
 | Unit | Owns | Never owns |
 | --- | --- | --- |
@@ -88,28 +91,25 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
 ## Mission loop
 
 1. Resolve and record the exact current task ID (never the delegation
-   `source_thread_id`), then compile one immutable envelope and queue, bind that
-   exact task, rename
-   it to `Reddit 运营台`, read it back, and record `presentation-promote`.
+   `source_thread_id`), then compile one immutable envelope and queue. Renaming
+   the task to `Reddit 运营台` is best effort and must not block the packet.
    Store the business goal, community scope, coverage budget, soft action
    threshold, action budget, truthful material references, and evidence/output
    targets. `high/low frequency` changes these profiles, not the timer.
-2. Pass the neutral canary and establish the silent same-Chrome session gate
-   once. Then create one stable 15-minute recurring Heartbeat through
-   `operation_stop_at + cleanup-grace`, and persist/read back its exact ID,
-   task, RRULE, next run, and proof. If the scheduler rejects an immediate
-   `DTSTART`, retry once without `DTSTART`; if an `UNTIL` form reports no
-   future occurrence, use one bounded `COUNT` fallback sized to the cleanup
-   window and record its exact count/cutoff. Do not stop the mission after the
-   first scheduler-tool timeout.
+2. Establish one readable same-Chrome session gate. Do not create a separate
+   neutral canary tab just to prove the browser. Start INITIAL as soon as this
+   gate passes. In parallel, make a best-effort 15-minute Heartbeat attempt;
+   use the existing DTSTART/UNTIL/COUNT fallback once, record any failure, and
+   retry later without blocking current-task work.
    The prompt carries only stable identity/boundaries and
    `runtime_protocol_version`; each wake reloads this installed Skill and queue.
-3. Run the formal `INITIAL` packet immediately. Every later wake first records
-   `heartbeat-observe`, then decides `RUN|WATCH|SKIP|DEFER` for due units. Run at
-   most one unit, one Chrome packet, and one public action per wake. ±5 minutes
-   is normal. A late wake runs one currently due unit; no catch-up means no
-   replay. A fast NOOP is only for early/duplicate, recovery, or genuinely
-   exhausted/parked work.
+3. Run the formal `INITIAL` packet immediately. Later wakes may record
+   `heartbeat-observe` when available, then decide `RUN|WATCH|SKIP|DEFER` for
+   due units. Run at most one unit, one Chrome packet, and one public action per
+   wake. ±5 minutes is normal. A late wake runs one currently due unit; no
+   catch-up means no replay. A fast NOOP is only for early/duplicate, recovery,
+   or genuinely exhausted/parked work; scheduler uncertainty is not a reason
+   to skip current-task work, and a missing observation is not a second gate.
 4. Link work only through recorded evidence: browsing candidate pack -> atomic
    `handoff` to comments/posts, and verified own permalink -> follow-up. An
    `ACTION_ELIGIBLE` unit outranks more browsing. Reject one bad candidate with

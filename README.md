@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.03.4`
+Protocol version: `2026.08.03.5`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -29,12 +29,14 @@ response and remain `WAITING_FOR_STARTUP_INPUT`; never infer defaults.
 
 When all three answers are complete, start in the same task turn:
 
-`current-task scope -> mission envelope -> Chrome/session gates -> recurring
-Heartbeat readback -> formal INITIAL round`
+`current-task scope -> mission envelope -> one Chrome/session gate -> formal
+INITIAL round -> advisory Heartbeat`
 
 The INITIAL round performs real work immediately. It is not a preview or
 pre-filter and does not wait for another “继续” or for the first Heartbeat.
-Heartbeat exists only for later continuation.
+Heartbeat is a continuation aid, not a prerequisite for the first round. If
+creation or readback is unavailable, record it and retry in the background
+without stopping current-task work.
 
 ## Installation contract
 
@@ -58,19 +60,20 @@ are complete.
 
 ## Runtime contract
 
-- One present, unarchived `Reddit 运营台` owns all five internal units, one
-  queue, one Chrome binding/tab, and one stable 15-minute Heartbeat.
+- One present Reddit operating task owns all five internal units, one queue, one
+  Chrome binding/tab, and an advisory 15-minute Heartbeat when available.
 - The owner is the exact current task ID. A delegated wrapper's
-  `source_thread_id` is creator provenance, never the execution task owner; if
-  the current ID is unavailable, bootstrap stops before writing a queue.
+  `source_thread_id` is creator provenance, never the execution task owner. Use
+  the current task context directly; do not scan other tasks to resolve it.
 - Startup trusts only this task's own mission, queue, and Heartbeat. Unrelated
   tasks, Heartbeats, environments, locks, and handoffs are not scanned.
 - Built-in Web Search handles broad research; the optional official Reddit API
   is GET-only public indexing; logged-in Chrome performs every real Reddit read
   and every interactive action.
-- Rules, truthful evidence, current session/composer state, duplicate checks,
-  explicit authority, and independent verification are hard gates. Targets are
-  planning signals, never forced-action quotas.
+- Only current task scope, a readable Chrome session, and public-action gates
+  (current rules, truthful evidence, composer state, duplicate check, and
+  independent verification) are hard gates. Titles, scheduler readback, stale
+  metadata, and auxiliary probes are observability, not startup blockers.
 - Candidate evidence moves atomically from browsing to comments/posts; a
   verified own permalink can arm follow-up. One rejected candidate returns to
   browsing instead of blocking the whole mission.

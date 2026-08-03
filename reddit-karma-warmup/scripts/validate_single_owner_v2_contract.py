@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.03.4"
+    assert version == "2026.08.03.5"
     assert defaults["runtime_protocol_version"] == version
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"
@@ -65,13 +65,13 @@ def main() -> None:
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["topology"]["owner_task_binding"] == "EXACT_CURRENT_TASK_ID_ONLY_NEVER_DELEGATION_SOURCE_THREAD_ID"
-    assert defaults["topology"]["owner_task_unavailable"] == "CURRENT_TASK_ID_UNAVAILABLE_BEFORE_QUEUE_BOOTSTRAP"
+    assert defaults["topology"]["owner_task_unavailable"] == "USE_CURRENT_TASK_CONTEXT_NO_CROSS_TASK_LOOKUP"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
     assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
     assert defaults["scheduler"]["unit_recheck_grid_minutes"] == 15
     assert defaults["scheduler"]["no_work_wake"] == "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER"
     assert defaults["scheduler"]["runtime_timeout_policy"] == "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE"
-    assert defaults["scheduler"]["unit_recheck_phase"] == "ALIGN_TO_VERIFIED_MISSION_HEARTBEAT_OCCURRENCES_NEVER_ABSOLUTE_UTC_QUARTER_HOURS"
+    assert defaults["scheduler"]["unit_recheck_phase"] == "ALIGN_TO_TASK_HEARTBEAT_PHASE_WHEN_AVAILABLE_NEVER_ABSOLUTE_UTC_QUARTER_HOURS"
     assert defaults["scheduler"]["late_wake"] == "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP"
     assert defaults["scheduler"]["recoverable_runtime_failure"] == "NEXT_DUE_DECISION_MUST_RUN_RECOVERY_FIRST_NOT_SKIP_WATCH_DEFER_OR_FAST_NOOP"
     assert defaults["scheduler"]["heartbeat_prompt"] == "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
@@ -125,14 +125,15 @@ def main() -> None:
     assert startup_transition["question_two_completion"] == "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP"
     assert startup_transition["missing_optional_defaults"] == "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY"
     assert startup_transition["answer_compilation"] == "LOCAL_THREE_ANSWER_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND"
-    assert startup_transition["after_three_answers"] == "CURRENT_TASK_SCOPE_ENVELOPE_TECHNICAL_GATES_HEARTBEAT_READBACK_INITIAL_DIRECT_PACKET_AND_CONTINUATION_SAME_TASK_TURN"
+    assert startup_transition["after_three_answers"] == "CURRENT_TASK_SCOPE_ENVELOPE_ONE_CHROME_SESSION_INITIAL_DIRECT_THEN_ADVISORY_HEARTBEAT"
     assert startup_transition["initial_packet"] == "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER_WITH_ATOMIC_HANDOFF"
-    assert startup_transition["technical_gates"] == "REQUIRED_BUT_NOT_A_SEPARATE_USER_DECISION_STAGE"
+    assert startup_transition["technical_gates"] == "ONE_CURRENT_TASK_AND_CHROME_SESSION_GATE_NO_SCHEDULER_OR_TITLE_BLOCK"
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
     assert defaults["scheduler"]["packet_lease_seconds"] == 900
-    assert "HEARTBEAT" in defaults["scheduler"]["heartbeat_receipt"]
-    assert "COUNT_FALLBACK" in defaults["scheduler"]["heartbeat_receipt"]
-    assert defaults["scheduler"]["heartbeat_create_recovery"].startswith("OMIT_DTSTART_RETRY")
+    assert defaults["scheduler"]["heartbeat_receipt"] == "ADVISORY_RECORD_AUTOMATION_ID_TARGET_TASK_RRULE_NEXT_RUN_WHEN_AVAILABLE"
+    assert defaults["scheduler"]["heartbeat_create_recovery"] == "ONE_BACKGROUND_ATTEMPT_THEN_ONE_NORMALIZED_RETRY_NO_STARTUP_BLOCK"
+    assert defaults["scheduler"]["scheduler_gate"] == "ADVISORY_NEVER_BLOCK_INITIAL_OR_CURRENT_TASK_WAKE"
+    assert defaults["scheduler"]["wake_without_verified_heartbeat"] == "CONTINUE_WITH_SCHEDULER_UNVERIFIED_CONTINUING"
     assert defaults["scheduler"]["count_fallback"].startswith("FREQ=MINUTELY_INTERVAL_15")
     assert set(defaults["mission_profiles"]["business_goals"]) == {
         "community_discovery", "conversation_entry", "feedback_validation",
@@ -165,17 +166,17 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account name or handle", "silent same-Chrome session", "One operating-direction answer", "current task", "source_thread_id", "CURRENT_TASK_ID_UNAVAILABLE", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
+    for phrase in ("Reddit 运营台", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
-    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "next verified Heartbeat", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay"):
+    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay"):
         assert phrase in runtime, phrase
-    for phrase in ("current task", "other Heartbeats", "runtime_fence.py", "UNCERTAIN"):
+    for phrase in ("current task", "other Heartbeats", "UNCERTAIN"):
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
-    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery ladder", "setupBrowserRuntime", "two neutral probes", "GLOBAL_SUSPECTED", "NETWORK_EXTENSION_OR_RENDERER_UNRESOLVED", "Do not use CUA address-bar typing", "post_timeout_readback=true"):
+    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true"):
         assert phrase in chrome, phrase
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("atomic `handoff`", "BOOTSTRAP_READY", "MUTATION_INTENT"):
@@ -442,26 +443,8 @@ def main() -> None:
         bootstrapped = run(str(QUEUE), "bootstrap", *shared, "--now-utc", "2026-07-27T00:00:00Z")
         assert bootstrapped["status"] == "BOOTSTRAPPED" and bootstrapped["due_units"] == ["browsing", "posts"]
         proof = "0" * 64
-        assert run(str(QUEUE), "canary-pass", *shared, "--proof-sha256", proof)["status"] == "PRESENTATION_REQUIRED"
-        assert promote(shared, "2026-07-27T00:00:00Z", proof)["status"] == "PRESENTATION_PROMOTED"
         assert run(str(QUEUE), "canary-pass", *shared, "--proof-sha256", proof)["status"] == "CANARY_PASSED"
-        assert run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:00:00Z")["status"] == "MISSION_SCHEDULER_UNVERIFIED"
-        bad_timer = run(
-            str(QUEUE), "heartbeat-record", *shared,
-            "--automation-id", "automation-1",
-            "--heartbeat-target-task-id", "owner-1",
-            "--heartbeat-rrule", "FREQ=MINUTELY;INTERVAL=15;COUNT=1;UNTIL=20260727T022500Z",
-            "--heartbeat-until-at-utc", "2026-07-27T02:25:00Z",
-            "--heartbeat-next-run-at-utc", "2026-07-27T00:15:00Z",
-            "--proof-sha256", proof,
-            "--now-utc", "2026-07-27T00:00:01Z",
-        )
-        assert bad_timer["status"] == "INVALID" and "heartbeat_rrule" in bad_timer["error"]
-        recorded = heartbeat_record(shared, "2026-07-27T00:00:01Z", "2026-07-27T02:25:00Z", "2026-07-27T00:15:00Z", "owner-1", proof)
-        assert recorded["status"] == "HEARTBEAT_VERIFIED" and recorded["heartbeat"]["next_run_at_utc"] == "2026-07-27T00:15:00Z"
-        observed = run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:00:02Z")
-        assert observed["status"] == "HEARTBEAT_EARLY_OBSERVED"
-        assert run(str(QUEUE), "wake-open", *shared, "--wake-source", "INITIAL", "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:04:59Z")["status"] == "WAKE_OPEN"
+        assert run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:00:00Z")["status"] == "WAKE_OPEN"
         assert run(str(QUEUE), "decide", *shared, "--unit", "browsing", "--decision", "RUN", "--reason", "read current context", "--now-utc", "2026-07-27T00:05:00Z")["status"] == "DECISION_RECORDED"
         assert run(str(QUEUE), "decide", *shared, "--unit", "posts", "--decision", "DEFER", "--reason", "not due for one packet", "--now-utc", "2026-07-27T00:05:01Z")["status"] == "DECISION_RECORDED"
         started = run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:05:02Z")
@@ -470,13 +453,28 @@ def main() -> None:
         assert run(str(QUEUE), "boundary-settle", *shared, "--boundary-id", "read-1", "--boundary-outcome", "READ_OK", "--now-utc", "2026-07-27T00:05:04Z")["status"] == "BOUNDARY_SETTLED"
         completed = run(str(QUEUE), "finish", *shared, "--outcome", "COMPLETED", "--objective-state", "CANDIDATES_READY", "--objective-reason", "dated candidate pack", "--candidate-ref", "pack:sideproject:1", "--now-utc", "2026-07-27T00:05:05Z")
         assert completed["status"] == "COMPLETED"
+        bad_timer = run(
+            str(QUEUE), "heartbeat-record", *shared,
+            "--automation-id", "automation-1",
+            "--heartbeat-target-task-id", "owner-1",
+            "--heartbeat-rrule", "FREQ=MINUTELY;INTERVAL=15;COUNT=1;UNTIL=20260727T022500Z",
+            "--heartbeat-until-at-utc", "2026-07-27T02:25:00Z",
+            "--heartbeat-next-run-at-utc", "2026-07-27T00:15:00Z",
+            "--proof-sha256", proof,
+            "--now-utc", "2026-07-27T00:05:06Z",
+        )
+        assert bad_timer["status"] == "INVALID" and "heartbeat_rrule" in bad_timer["error"]
+        recorded = heartbeat_record(shared, "2026-07-27T00:05:07Z", "2026-07-27T02:25:00Z", "2026-07-27T00:15:00Z", "owner-1", proof)
+        assert recorded["status"] == "HEARTBEAT_VERIFIED" and recorded["heartbeat"]["next_run_at_utc"] == "2026-07-27T00:15:00Z"
+        observed = run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:05:08Z")
+        assert observed["status"] == "HEARTBEAT_EARLY_OBSERVED"
         assert completed["heartbeat_interval_minutes"] == 15
         assert completed["timer_policy"] == "CONTINUE_STABLE_RECURRENCE"
         assert completed["objective_state"]["browsing"] == "CANDIDATES_READY"
         assert completed["next_due_at_utc"]["browsing"] == "2026-07-27T00:15:00Z"
         assert completed["next_due_at_utc"]["posts"] == "2026-07-27T00:15:00Z"
         assert completed["mission_strategy"]["action_budget"] == "active"
-        assert completed["heartbeat"]["state"] == "VERIFIED"
+        assert completed["heartbeat"]["state"] == "PENDING"
         assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:15:00Z")["status"] == "HEARTBEAT_OBSERVED"
         action_due = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:15:00Z", "--now-utc", "2026-07-27T00:15:00Z")
         assert action_due["status"] == "WAKE_OPEN" and action_due["due_units"] == ["browsing", "posts"], action_due

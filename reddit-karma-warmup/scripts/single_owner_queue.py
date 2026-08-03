@@ -965,7 +965,6 @@ def rebind_idle_owner(state, owner_task_id, now):
         state.get("state") not in {"ACTIVE", "FINALIZING"}
         or state.get("active_packet") is not None
         or state.get("wake") is not None
-        or state.get("heartbeat", {}).get("state") not in {"PENDING", "DELETED"}
     ):
         return None
     previous = state.get("owner_task_id")
@@ -1068,9 +1067,6 @@ def command(args):
             wake_source = args.wake_source or "HEARTBEAT"
             if wake_source not in {"INITIAL", "HEARTBEAT"}:
                 raise ValueError("invalid wake_source")
-            if wake_source == "INITIAL":
-                if now > state["operation_start_epoch"] + ORDINARY_TRIGGER_TOLERANCE_SECONDS:
-                    return public(state, "INITIAL_WAKE_WINDOW_EXPIRED", now)
             # A verified receipt is useful telemetry, not a second gate.  The
             # scheduler may deliver late or omit an observation; the current
             # task still runs once its ordinary time window is valid.

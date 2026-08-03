@@ -2,30 +2,23 @@
 
 ## Ownership
 
-The current `Reddit 运营台` owns the mission in this task. It has one mission
-envelope, one queue, one recurring Heartbeat, one Chrome binding, and one
-primary Reddit tab. The five units are internal decisions. Do not create a
-second owner inside this task. Do not inspect other tasks or environments to
-decide whether this task may start.
+The current Reddit operating task owns the mission in this task. It has one
+mission envelope, one queue, an advisory Heartbeat when available, one Chrome
+binding, and one primary Reddit tab. The five units are internal decisions. Do
+not create a second owner inside this task. Do not inspect other tasks or
+environments to decide whether this task may start.
 
 ## Start
 
 1. After the three-answer intake, inspect only this task's own queue and
    mission, if present. If no current mission exists, continue and create one.
-   If the current queue is internally inconsistent, report that exact field;
-   do not look for a different task to substitute. Do not scan other Heartbeats,
-   environments, locks, or handoffs. `scripts/runtime_fence.py`
-   may be used later for an explicitly requested diagnosis, but is not a
-   startup-wide gate.
-2. Verify the current task is present and unarchived, and resolve its exact task
-   ID from the current task context. A delegated wrapper's
-   `<source_thread_id>` is only provenance for the creator task; it is never the
-   owner of this execution task. If the exact current ID is unavailable, stop
-   with `CURRENT_TASK_ID_UNAVAILABLE` before writing a mission or queue. After
-   binding its mission
-   envelope, rename that exact task from `Reddit 启动台` to `Reddit 运营台`, read
-   the exact ID/title back, and record `presentation-promote` with the readback
-   proof. Do not pass the canary while the task still presents as a launcher.
+   Do not scan other Heartbeats, environments, locks, or handoffs. Queue
+   inconsistencies are recorded locally; they are not a reason to search for a
+   different task.
+2. Resolve the exact current task ID from the task context, never from a
+   delegated wrapper's `<source_thread_id>`. Task title/readback and archive
+   metadata are informational. A best-effort rename may run, but the task can
+   proceed while it is unavailable.
 3. Compile the input with `scripts/compile_single_owner_mission.py`, then
    bootstrap `scripts/single_owner_queue.py` using that exact current task ID
    for `--owner-task-id`. The mission envelope, queue state, Heartbeat target,
@@ -33,19 +26,12 @@ decide whether this task may start.
    `source_thread_id` into any of them.
    and the envelope's unique `mission_id` as its queue scope. Never reuse a
    prior mission scope.
-4. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated
-   primary tab only after it passes.
-5. If work remains, create and read back one recurring task Heartbeat. Prefer
-   an immediate RRULE without `DTSTART`, because the app anchors immediate
-   schedules itself. If the tool explicitly rejects `DTSTART`, retry once
-   without it. If an `UNTIL` form reports no future occurrence, use one bounded
-   `COUNT` fallback (`FREQ=MINUTELY;INTERVAL=15;COUNT=n`) sized to reach the
-   cleanup window; record the exact count, cutoff, and prompt stop guard. The
-   Heartbeat belongs to this task, never a unit. Persist the `automation_id`,
-   exact owner task ID, RRULE, next occurrence, readback time, and proof before
-   declaring it healthy. Do not stop the mission after the first scheduler
-   timeout; classify `MISSION_SCHEDULER_UNVERIFIED` only after these bounded
-   forms fail or the readback conflicts.
+4. Perform one direct same-Chrome Reddit/session probe and create/claim the
+   primary tab. Do not open a second neutral canary solely for validation.
+5. Start the formal INITIAL packet immediately. In parallel, make one bounded
+   recurring Heartbeat attempt. Its ID/readback is useful telemetry, not a
+   startup gate; if unavailable, continue the current task and retry on the
+   next opportunity. `MISSION_SCHEDULER_UNVERIFIED_CONTINUING` is advisory.
 
 ## Objective graph
 
@@ -78,7 +64,7 @@ permalink/source reference before it can arm follow-up.
   prevented the live session, rule, duplicate, composer, or page-state gate
   from being completed. It is not a rule decision and remains recoverable:
   finish the packet as `YIELDED`, preserve the candidate/action-key state, and
-  resume the same unit at the next verified Heartbeat.
+  resume the same unit at the next task wake when available.
 - `SUBMISSION_UNCERTAIN`: freeze the exact action key permanently; never use a
   recovery wake to resend it.
 - `NOT_APPLICABLE`: no verified own permalink for follow-up, or no concrete
@@ -90,7 +76,7 @@ parked action unit. Do not use a generic cadence to revive it.
 For `discover` and `seeded_expandable` missions, a comments/posts packet that
 proves its exact target cannot pass must call `candidate-reject` before it
 finishes. This rejects only that exact `candidate_ref`, schedules browsing on
-the next verified Heartbeat, and prevents the same target from being handed
+the next task wake, and prevents the same target from being handed
 back to that unit.
 
 ## Goal profile and priority
@@ -111,7 +97,7 @@ packet that establishes a dated route plus the truthful contribution boundary
 must call `single_owner_queue.py handoff` before it finishes. The handoff is
 the only cross-unit path permitted while a packet is active; it records the
 source reference, arms the target, and schedules that target for the task's
-next verified Heartbeat occurrence. Do not close browsing and then leave its
+next wake occurrence when available. Do not close browsing and then leave its
 candidate to a generic 30/45/180-minute recheck. If a post is parked as
 `MATERIAL_REQUIRED` or `RULE_BLOCKED`, do not keep repeating the same route
 sweep. Record the unmet goal honestly; a planning target is not permission to
@@ -125,13 +111,13 @@ public action. The unit may complete, skip, block, or yield. On finish, persist
 an objective state as well as the packet outcome whenever the unit has outward
 authority. A yielded unit resumes before a later unit.
 
-The task creates one stable 15-minute recurring Heartbeat through the mission
-window plus cleanup grace. Read back its ID, target, recurrence, cutoff/count,
-and a future next occurrence once. At each delivered turn run `heartbeat-observe`
-before `wake-open`; it records the signed delivery gap and advances the next
-occurrence. A normal closed wake keeps the verified timer—there is no second
-readback step. `MISSION_SCHEDULER_UNVERIFIED` is reserved for a missing or
-conflicting automation receipt/future occurrence, not ordinary work completion.
+The task attempts one stable 15-minute recurring Heartbeat through the mission
+window plus cleanup grace. Readback is telemetry. At each delivered turn run
+`heartbeat-observe` when possible; it records the signed delivery gap and
+advances the next occurrence. A missing or conflicting receipt is
+`MISSION_SCHEDULER_UNVERIFIED_CONTINUING`, not a reason to block INITIAL or a
+current-task wake. A normal closed wake keeps any verified timer; there is no
+second readback gate, and a missing observation never blocks a valid wake.
 More than one elapsed interval records `SCHEDULER_GAP_SUSPECTED`; do not replay
 missed actions, but run the currently due unit once. A timer with a valid future
 occurrence remains healthy.
@@ -141,17 +127,17 @@ ID, owner task ID, queue/envelope paths, cutoff, authority, and the queue's
 unit-selection policy into the prompt. Each wake reloads the installed Skill
 and queue. A running mission stays pinned to its recorded protocol version.
 Only a first packet inside the opening five-minute tolerance may declare
-`wake-source=INITIAL`; every later `wake-open` requires an observation from the
-same Heartbeat turn. This prevents a manually resumed task from silently
-calling overdue work a healthy scheduler delivery.
-Normal unit rechecks align to the verified Heartbeat phase—not absolute UTC
+`wake-source=INITIAL`; later wakes use their expected time window and record
+whether scheduler telemetry was present. They do not require a same-turn
+observation before running current due work.
+Normal unit rechecks align to the task Heartbeat phase when available—not absolute UTC
 quarter-hours: browsing 30 minutes, comments
 45, posts 180, follow-up 90 (15 for an active known chain), and presence 24
 hours. They are recheck timings, never action quotas. An `ACTION_ELIGIBLE`
-handoff is different: it is a continuation and must be due on the next
-verified task Heartbeat, not the next absolute grid boundary. For an active
-action-budget mission, runnable browsing likewise remains due on the next
-verified Heartbeat until its coverage frontier is exhausted or an action
+handoff is different: it is a continuation and should be due on the next task
+wake when available, not the next absolute grid boundary. For an active
+action-budget mission, runnable browsing likewise remains due on the next task
+wake until its coverage frontier is exhausted or an action
 handoff supersedes it. Coverage and action threshold determine what a bounded
 packet studies and which eligible candidate it prefers. Rechecks apply only to
 objective states that remain runnable. For an action-oriented goal, an
@@ -174,7 +160,7 @@ bounded recovery: settle the stale boundary, preserve lower-bound evidence,
 freeze a supplied uncertain `action_key`, and yield the same unit for a later
 wake. It must not replay a mutation, create another Heartbeat, or create a new
 mission. A no-work wake never creates an open wake. If an action-window defer
-cannot fit another verified Heartbeat before cutoff, record
+cannot fit another task wake before cutoff, record
 `ACTION_WINDOW_EXPIRED`, clear
 that unit's schedule, and close the wake normally; do not leave it open.
 

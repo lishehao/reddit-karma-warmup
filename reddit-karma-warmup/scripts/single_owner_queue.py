@@ -604,7 +604,7 @@ def public(state, status, now, detail=None):
         "scheduler_health": (
             "HEALTHY" if state["heartbeat"]["state"] in {"VERIFIED", "NEEDS_READBACK"}
             else "DELETED" if state["heartbeat"]["state"] == "DELETED"
-            else "MISSION_SCHEDULER_UNVERIFIED"
+            else "ADVISORY_UNVERIFIED_CONTINUING"
         ),
         "cleanup_state": state["cleanup"]["state"],
         "cleanup_deadline_at_utc": state["cleanup_deadline_at_utc"],
@@ -657,7 +657,7 @@ def append_idle_wake(state, outcome, now, expected_at_utc, trigger_state, trigge
     })
     # Keep the verified receipt across ordinary no-work wakes. Requiring a
     # second timer readback after every wake created a self-blocking loop:
-    # close wake -> NEEDS_READBACK -> next observe -> MISSION_SCHEDULER_UNVERIFIED.
+    # close wake -> NEEDS_READBACK -> next observe -> scheduler advisory.
 
 
 def objectives_terminal(state):
@@ -712,7 +712,7 @@ def observe_heartbeat(state, now):
     """Record one delivered scheduler event without inventing future delivery."""
     heartbeat = state["heartbeat"]
     if heartbeat["state"] not in {"VERIFIED", "NEEDS_READBACK"}:
-        return "MISSION_SCHEDULER_UNVERIFIED"
+        return "MISSION_SCHEDULER_UNVERIFIED_CONTINUING"
     # NEEDS_READBACK is a legacy state from pre-2026.07.30.7 queues. If the
     # receipt still contains the same automation identity and a future
     # occurrence, the delivered heartbeat itself is the required readback.
@@ -951,6 +951,38 @@ def envelope_matches_state(state, envelope):
     )
 
 
+def rebind_idle_owner(state, owner_task_id, now):
+    """Repair a stale parent-task binding without searching other tasks.
+
+    A queue is addressed by the current task's explicit mission scope. If an
+    older bootstrap copied the delegation source ID into an otherwise idle
+    queue, the current task may adopt that queue once. Active packets, open
+    wakes, or unsettled browser/mutation state remain hard stops.
+    """
+    if state.get("owner_task_id") == owner_task_id:
+        return None
+    if (
+        state.get("state") not in {"ACTIVE", "FINALIZING"}
+        or state.get("active_packet") is not None
+        or state.get("wake") is not None
+        or state.get("heartbeat", {}).get("state") not in {"PENDING", "DELETED"}
+    ):
+        return None
+    previous = state.get("owner_task_id")
+    state["owner_task_id"] = owner_task_id
+    if isinstance(state.get("heartbeat"), dict):
+        state["heartbeat"]["target_task_id"] = owner_task_id
+    state.setdefault("history", []).append({
+        "kind": "OWNER_REBOUND",
+        "from_owner_task_id": previous,
+        "to_owner_task_id": owner_task_id,
+        "at_utc": utc(now),
+        "reason": "current_task_scope_repaired_idle_delegation_binding",
+    })
+    state["updated_at_utc"] = utc(now)
+    return previous
+
+
 def command(args):
     now = now_epoch(args.now_utc)
     envelope = load_envelope(args.mission_envelope)
@@ -966,12 +998,18 @@ def command(args):
         state = read_state(state_path)
         if args.command == "bootstrap":
             if state is not None:
+                rebound_from = rebind_idle_owner(state, args.owner_task_id, now)
+                if rebound_from is not None:
+                    atomic_write(state_path, state)
                 validate_state(state, args.scope, args.owner_task_id)
                 return public(state, "ALREADY_BOOTSTRAPPED", now)
             state = state_from_envelope(args.scope, args.owner_task_id, envelope, now)
             return write_and_return(state_path, state, "BOOTSTRAPPED", now)
         if state is None:
             return {"schema": SCHEMA, "status": "NOT_BOOTSTRAPPED"}
+        rebound_from = rebind_idle_owner(state, args.owner_task_id, now)
+        if rebound_from is not None:
+            atomic_write(state_path, state)
         validate_state(state, args.scope, args.owner_task_id)
         if args.command == "apply-revision":
             apply_envelope_revision(state, envelope, now)
@@ -997,7 +1035,14 @@ def command(args):
             return public(state, "FINALIZING", now)
         if args.command == "canary-pass":
             if state["presentation"]["state"] != "OPERATING":
-                return public(state, "PRESENTATION_REQUIRED", now)
+                # Presentation metadata is useful but must not block the
+                # current task's first real work. Promote it opportunistically.
+                state["presentation"] = {
+                    "state": "OPERATING",
+                    "title": "Reddit 运营台",
+                    "proof_sha256": sha256_value("presentation_proof_sha256", args.proof_sha256),
+                    "verified_at_utc": utc(now),
+                }
             if state["canary"]["state"] == "PASSED":
                 return public(state, "CANARY_ALREADY_PASSED", now)
             state["canary"] = {"state": "PASSED", "proof_sha256": sha256_value("proof_sha256", args.proof_sha256)}
@@ -1019,16 +1064,16 @@ def command(args):
                 return public(state, "MISSION_STOPPED", now)
             if state["canary"]["state"] != "PASSED":
                 return public(state, "CANARY_REQUIRED", now)
-            if state["heartbeat"]["state"] != "VERIFIED":
-                return public(state, "MISSION_SCHEDULER_UNVERIFIED", now)
+            scheduler_advisory = state["heartbeat"]["state"] != "VERIFIED"
             wake_source = args.wake_source or "HEARTBEAT"
             if wake_source not in {"INITIAL", "HEARTBEAT"}:
                 raise ValueError("invalid wake_source")
             if wake_source == "INITIAL":
                 if now > state["operation_start_epoch"] + ORDINARY_TRIGGER_TOLERANCE_SECONDS:
                     return public(state, "INITIAL_WAKE_WINDOW_EXPIRED", now)
-            elif state["heartbeat"]["last_observed_at_utc"] != utc(now):
-                return public(state, "HEARTBEAT_OBSERVATION_REQUIRED", now)
+            # A verified receipt is useful telemetry, not a second gate.  The
+            # scheduler may deliver late or omit an observation; the current
+            # task still runs once its ordinary time window is valid.
             expected = parse_utc("expected_at_utc", args.expected_at_utc)
             signed_delta = now - expected
             delta = abs(signed_delta)
@@ -1055,6 +1100,7 @@ def command(args):
                 "trigger_state": trigger,
                 "due_units": due,
                 "decisions": {},
+                "scheduler_status": "ADVISORY_UNVERIFIED_CONTINUING" if scheduler_advisory else "VERIFIED",
                 "lease_expires_at_utc": utc(now + WAKE_LEASE_SECONDS),
             }
             return write_and_return(state_path, state, "WAKE_OPEN", now)

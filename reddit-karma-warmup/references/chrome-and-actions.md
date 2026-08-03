@@ -14,9 +14,9 @@ missing tab, or account enforcement.
 This is not a Reddit rule result. If such a timeout prevents reading rules,
 composer state, duplicates, or session proof, the affected unit must use
 `LIVE_GATE_UNVERIFIED`/`YIELDED`, not `RULE_BLOCKED`.
-The next verified Heartbeat resumes that same unit with `RECOVERY_FIRST`; it
-must not use `WATCH`, `SKIP`, `DEFER`, or fast NOOP merely because the previous
-tab was blank.
+The next task wake resumes that same unit with `RECOVERY_FIRST`; it must not
+use `WATCH`, `SKIP`, `DEFER`, or fast NOOP merely because the previous tab was
+blank.
 
 Start on Old Reddit for ordinary listings, text, rules, and text forms. Make at
 most one equivalent current-Reddit fallback when the required capability is
@@ -26,54 +26,38 @@ recovery path.
 
 ## Silent session identity gate
 
-The user never supplies or confirms an account name/handle. At startup, after
-the neutral canary, read the visible logged-in session once and store its
+The user never supplies or confirms an account name/handle. At startup, read
+the visible logged-in session once and store its
 internal proof in the mission envelope. Normal Heartbeat receipts do not echo
 the handle. Recheck silently only after a tab rebind, login change, recovery,
 stale checkpoint, or immediately before a mutation. If the session is unknown
 or changed, pause the affected unit and report the mismatch; do not guess or
 ask the user to repeat the account.
 
-## Bounded startup and recovery ladder
+## Bounded startup and recovery
 
-Run this ladder before the first Reddit session gate and again only for a due
-`RECOVERY_FIRST` unit. It is a bounded diagnostic, not a retry loop.
+Run one short recovery path before the first Reddit session gate and again only
+for a due `RECOVERY_FIRST` unit. It is a bounded retry, not a chain of probes:
 
-1. Establish or reuse the existing Chrome binding. Reinitialize a local runtime
-   handle only with the exact documented `setupBrowserRuntime` export when a
-   fresh JavaScript session has lost it. Never invent suffixed setup names. An
-   explicit browser-disconnected error permits one browser reconnect; a blank
-   tab, empty tab list, navigation timeout, or DOM timeout does not.
-2. Read the control plane and tab metadata in separate steps. If metadata works,
-   the browser is connected even if a page cannot render.
-3. Run neutral probe A in a fresh owned tab: `https://example.com/`.
-4. After a navigation timeout, read URL/title in the next separate call. A page
-   that actually loaded passes; `about:blank` or unreadable content continues
-   to probe B.
-5. Run neutral probe B in a different fresh owned tab:
-   `https://www.iana.org/domains/reserved/`. Again, read metadata before any
-   conclusion.
-6. Only after a neutral probe passes may the task navigate to Reddit. If a
-   neutral page passes but a Reddit route fails, classify a route/client-filter
-   problem and use the one permitted Old-Reddit/current-Reddit semantic
-   fallback. If both neutral probes fail while metadata remains healthy, record
-   `CHROME_CONTENT_CHANNEL_TIMEOUT` with scope `GLOBAL_SUSPECTED` and cause
-   `NETWORK_EXTENSION_OR_RENDERER_UNRESOLVED`.
+1. Establish or reuse the existing Chrome binding and read tab metadata. Only
+   an explicit browser-disconnected error permits one reconnect; a blank page,
+   navigation timeout, or DOM timeout is a content-channel failure.
+2. Claim or reuse the current task's Reddit tab and perform navigation/read as
+   separate calls. After a navigation timeout, read URL/title once before
+   deciding whether the page actually loaded.
+3. If metadata works but content does not, record
+   `CHROME_CONTENT_CHANNEL_TIMEOUT`; retry once in a fresh owned tab when the
+   packet has budget, otherwise yield the same unit to the next task wake.
+4. If the current Reddit page is readable, continue immediately. Do not open
+   neutral canary tabs, scan other tasks, or wait for a scheduler receipt.
+5. Keep the same logged-in Chrome/profile. Never clear cookies, switch browser,
+   change proxy/TLS, or turn an API result into a browser recovery path.
 
-The last classification deliberately does not guess whether the root cause is
-the network, extension transport, or renderer. It gives enough evidence for a
-user to check connectivity and the Chrome extension without mislabelling an
-account or Reddit-policy issue. Do not use CUA address-bar typing after a
-failed neutral `goto`: it is not an independent page-readability probe.
-
-At most two neutral probes and one explicit-disconnect reconnect are allowed in
-one packet. Close failed agent-owned probe tabs before yielding. During startup,
-after the canary passes, continue the current task's queue/bootstrap path even
-when the first Heartbeat attempt is unavailable. Retry the scheduler using its
-bounded normalization/count-fallback ladder; do not create a second task. Until
-a scheduler receipt is verified, preserve work as read-only `INITIAL` evidence
-and do not submit public mutations. A later verified Heartbeat may resume the
-same task and action units.
+The classification deliberately does not guess whether the root cause is the
+network, extension transport, or renderer. It distinguishes a content timeout
+from a true browser disconnect without adding a startup blocker. A current
+live rule/composer/session gate is still required immediately before a public
+action.
 
 ## Atomic boundary rules
 
@@ -98,7 +82,7 @@ same task and action units.
   page may have loaded. Do not use `Promise.race` as faux cancellation.
   If readback is still `about:blank` or the content channel remains
   unavailable, use the next distinct ladder step in a fresh owned tab if the
-  packet has budget; otherwise yield and let the next verified Heartbeat run
+  packet has budget; otherwise yield and let the next task wake run
   one bounded recovery probe. Immediate same-boundary retry is forbidden, but
   a later read-only recovery is required. Do not turn the next wake into a
   no-Chrome `SKIP` solely because navigation failed.

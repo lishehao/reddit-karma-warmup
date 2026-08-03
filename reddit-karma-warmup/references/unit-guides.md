@@ -22,7 +22,8 @@ If the pack establishes an exact route and a truthful contribution boundary for
 an authorized comment or post, call the queue's atomic `handoff` with the
 target unit, `ACTION_ELIGIBLE`, the exact candidate reference, and a compact
 source reference before the
-browsing packet finishes. This arms the target's next verified Heartbeat packet;
+browsing packet finishes. This arms the target's next task wake packet when
+available;
 it does not bypass that packet's research, live-rule, duplicate, session, or
 composer gate. If no truthful boundary exists, leave the target `PENDING` or
 park it with the evidence reason—never create a pause/resume revision merely
@@ -37,7 +38,7 @@ one original context-fit comment in the packet; otherwise record research only.
 Do not manufacture a quota, a personal experience, a factual claim, or product
 promotion. If the exact candidate fails a visible rule or fit gate, call
 `candidate-reject`; do not park the whole comments lane. Browsing must refill a
-different candidate at the next verified Heartbeat, and the rejected exact
+different candidate at the next task wake, and the rejected exact
 candidate must not be handed back.
 If the candidate is still specific and truthful but the live rule/composer
 gate cannot be completed because Chrome or DOM reads time out, record

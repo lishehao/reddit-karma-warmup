@@ -54,8 +54,13 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.03.5"
+    assert version == "2026.08.04.1"
     assert defaults["runtime_protocol_version"] == version
+    assert defaults["runtime_evidence_policy"] == {
+        "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
+        "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
+        "legacy_sha256_field_names": "ACCEPT_AS_OPAQUE_TOKENS",
+    }
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"
     assert upgrade["compatible_active_runtime"] == "HOT_REPLACE_WHILE_MISSION_REMAINS_PINNED_TO_RECORDED_PROTOCOL_AND_NO_MUTATION_IS_IN_FLIGHT"
@@ -258,7 +263,7 @@ def main() -> None:
         assert startup_mission["selected_units"] == ["browsing", "comments"]
         startup_shared = ("--root", str(work / "startup-queue"), "--scope", "three-answer-contract", "--owner-task-id", "owner-startup", "--mission-envelope", str(startup_envelope))
         assert run(str(QUEUE), "bootstrap", *startup_shared, "--now-utc", "2026-07-27T08:00:00Z")["status"] == "BOOTSTRAPPED"
-        startup_proof = "1" * 64
+        startup_proof = "startup-proof-token"
         assert promote(startup_shared, "2026-07-27T08:00:00Z", startup_proof)["status"] == "PRESENTATION_PROMOTED"
         assert run(str(QUEUE), "canary-pass", *startup_shared, "--proof-sha256", startup_proof)["status"] == "CANARY_PASSED"
         assert heartbeat_record(startup_shared, "2026-07-27T08:00:00Z", "2026-07-27T10:25:00Z", "2026-07-27T08:15:00Z", "owner-startup", startup_proof)["status"] == "HEARTBEAT_VERIFIED"
@@ -442,7 +447,7 @@ def main() -> None:
         shared = ("--root", str(queue_root), "--scope", "v2-contract", "--owner-task-id", "owner-1", "--mission-envelope", str(envelope))
         bootstrapped = run(str(QUEUE), "bootstrap", *shared, "--now-utc", "2026-07-27T00:00:00Z")
         assert bootstrapped["status"] == "BOOTSTRAPPED" and bootstrapped["due_units"] == ["browsing", "posts"]
-        proof = "0" * 64
+        proof = "runtime-proof-token"
         assert run(str(QUEUE), "canary-pass", *shared, "--proof-sha256", proof)["status"] == "CANARY_PASSED"
         assert run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:00:00Z")["status"] == "WAKE_OPEN"
         assert run(str(QUEUE), "decide", *shared, "--unit", "browsing", "--decision", "RUN", "--reason", "read current context", "--now-utc", "2026-07-27T00:05:00Z")["status"] == "DECISION_RECORDED"

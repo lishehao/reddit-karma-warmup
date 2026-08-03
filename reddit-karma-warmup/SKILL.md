@@ -125,7 +125,7 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    `action_key`. Submit once and verify separately. Freeze uncertain exact keys
    permanently; never reopen or retry them. At completion/deadline enter
    `FINALIZE_ONLY`, release only owned tabs, delete the exact Heartbeat with
-   proof, retire the queue, and keep the visible operating task available.
+   proof, retire the queue, and keep the visible operating task available. Runtime receipt tokens are opaque; SHA-256 is only for package, manifest, or mission-envelope boundaries.
 
 ## Load only what the current decision needs
 

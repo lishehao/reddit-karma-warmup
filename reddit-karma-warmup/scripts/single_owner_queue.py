@@ -222,10 +222,14 @@ def require_text(name, value, maximum=512):
 
 
 def sha256_value(name, value):
-    value = require_text(name, value, 64)
-    if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
-        raise ValueError("invalid " + name)
-    return value
+    """Read a lightweight opaque runtime token.
+
+    The queue keeps legacy ``*_sha256`` field names for compatibility, but
+    normal receipts are identifiers, not manually supplied digests. Package
+    and mission-envelope integrity still use ``canonical_hash`` at their
+    explicit install/compile boundary.
+    """
+    return require_text(name, value, 256)
 
 
 def canonical_hash(value):
@@ -1419,7 +1423,7 @@ def main():
     parser.add_argument("--scope", required=True)
     parser.add_argument("--owner-task-id", required=True)
     parser.add_argument("--mission-envelope", required=True, type=Path)
-    parser.add_argument("--proof-sha256")
+    parser.add_argument("--proof-sha256", "--proof-token", dest="proof_sha256")
     parser.add_argument("--presentation-title")
     parser.add_argument("--automation-id")
     parser.add_argument("--heartbeat-target-task-id")
@@ -1440,7 +1444,7 @@ def main():
     parser.add_argument("--outcome")
     parser.add_argument("--objective-state")
     parser.add_argument("--objective-reason")
-    parser.add_argument("--objective-evidence-sha256")
+    parser.add_argument("--objective-evidence-sha256", "--objective-evidence-token", dest="objective_evidence_sha256")
     parser.add_argument("--candidate-ref")
     parser.add_argument("--source-ref")
     parser.add_argument("--block-scope")

@@ -1,5 +1,11 @@
 # Single-owner runtime
 
+Runtime receipts use short opaque evidence tokens. Do not generate or check a
+SHA-256 value on every wake, Chrome packet, or cleanup step; the queue accepts
+legacy `*_sha256` field names as plain receipt references. Hashing is reserved
+for package/manifest and mission-envelope integrity at install or compile
+boundaries.
+
 ## Ownership
 
 The current Reddit operating task owns the mission in this task. It has one

@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.03.3`
+Protocol version: `2026.08.03.4`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -60,6 +60,9 @@ are complete.
 
 - One present, unarchived `Reddit 运营台` owns all five internal units, one
   queue, one Chrome binding/tab, and one stable 15-minute Heartbeat.
+- The owner is the exact current task ID. A delegated wrapper's
+  `source_thread_id` is creator provenance, never the execution task owner; if
+  the current ID is unavailable, bootstrap stops before writing a queue.
 - Startup trusts only this task's own mission, queue, and Heartbeat. Unrelated
   tasks, Heartbeats, environments, locks, and handoffs are not scanned.
 - Built-in Web Search handles broad research; the optional official Reddit API

@@ -38,7 +38,14 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    a preview or pre-filter, and it must do real mission work immediately. Do
    not wait for a second user message or the first Heartbeat.
 
-Use the current task as the authority. Inspect only its own mission/queue and
+Use the current task as the authority. Resolve the exact current Codex task ID
+from the current task context before compiling anything. A
+`<source_thread_id>` inside a delegated wrapper is provenance only; it is the
+parent/creator task and MUST NOT be used as this task's owner ID. The queue
+owner, mission owner, Heartbeat target, and finalization target must all equal
+the exact current task ID. If the current ID cannot be resolved, stop before
+queue bootstrap with `CURRENT_TASK_ID_UNAVAILABLE` rather than guessing.
+Inspect only its own mission/queue and
 its own Heartbeat when one already exists. Do not scan other tasks, other
 Heartbeats, other environments, locks, or historical handoffs. If this task
 has no mission yet, create its queue after the three answers; do not block on
@@ -80,7 +87,9 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
 
 ## Mission loop
 
-1. Compile one immutable envelope and queue, bind the exact current task, rename
+1. Resolve and record the exact current task ID (never the delegation
+   `source_thread_id`), then compile one immutable envelope and queue, bind that
+   exact task, rename
    it to `Reddit 运营台`, read it back, and record `presentation-promote`.
    Store the business goal, community scope, coverage budget, soft action
    threshold, action budget, truthful material references, and evidence/output

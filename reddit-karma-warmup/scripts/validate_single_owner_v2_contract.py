@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.03.3"
+    assert version == "2026.08.03.4"
     assert defaults["runtime_protocol_version"] == version
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"
@@ -64,6 +64,8 @@ def main() -> None:
     assert upgrade["pending_apply"] == "FIRST_PROVEN_RELEASE_BOUNDARY"
     assert defaults["topology"]["chrome_owners"] == 1
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
+    assert defaults["topology"]["owner_task_binding"] == "EXACT_CURRENT_TASK_ID_ONLY_NEVER_DELEGATION_SOURCE_THREAD_ID"
+    assert defaults["topology"]["owner_task_unavailable"] == "CURRENT_TASK_ID_UNAVAILABLE_BEFORE_QUEUE_BOOTSTRAP"
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
     assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
     assert defaults["scheduler"]["unit_recheck_grid_minutes"] == 15
@@ -163,7 +165,7 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account name or handle", "silent same-Chrome session", "One operating-direction answer", "current task", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
+    for phrase in ("user-visible `Reddit 运营台`", "presentation-promote", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "cleanup-grace", "exactly three", "Do not ask for an account name or handle", "silent same-Chrome session", "One operating-direction answer", "current task", "source_thread_id", "CURRENT_TASK_ID_UNAVAILABLE", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")

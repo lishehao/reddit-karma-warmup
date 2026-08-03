@@ -17,12 +17,20 @@ decide whether this task may start.
    environments, locks, or handoffs. `scripts/runtime_fence.py`
    may be used later for an explicitly requested diagnosis, but is not a
    startup-wide gate.
-2. Verify the current task is present and unarchived. After binding its mission
+2. Verify the current task is present and unarchived, and resolve its exact task
+   ID from the current task context. A delegated wrapper's
+   `<source_thread_id>` is only provenance for the creator task; it is never the
+   owner of this execution task. If the exact current ID is unavailable, stop
+   with `CURRENT_TASK_ID_UNAVAILABLE` before writing a mission or queue. After
+   binding its mission
    envelope, rename that exact task from `Reddit 启动台` to `Reddit 运营台`, read
    the exact ID/title back, and record `presentation-promote` with the readback
    proof. Do not pass the canary while the task still presents as a launcher.
 3. Compile the input with `scripts/compile_single_owner_mission.py`, then
-   bootstrap `scripts/single_owner_queue.py` using the exact current task ID
+   bootstrap `scripts/single_owner_queue.py` using that exact current task ID
+   for `--owner-task-id`. The mission envelope, queue state, Heartbeat target,
+   and cleanup command must repeat the same ID; never copy the wrapper's
+   `source_thread_id` into any of them.
    and the envelope's unique `mission_id` as its queue scope. Never reuse a
    prior mission scope.
 4. Perform a neutral HTTPS canary before Reddit work. Create/claim a dedicated

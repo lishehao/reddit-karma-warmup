@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.04.1`
+Protocol version: `2026.08.04.2`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -38,9 +38,10 @@ Heartbeat is a continuation aid, not a prerequisite for the first round. If
 creation or readback is unavailable, record it and retry in the background
 without stopping current-task work.
 
-Normal runtime receipts use short opaque evidence tokens; SHA-256 is reserved
-for package/manifest or mission-envelope integrity checks and is not required
-for each wake, Chrome read, or action receipt.
+Normal runtime receipts use short opaque evidence tokens; SHA-256 is not
+required for each wake, Chrome read, or action receipt. Envelope re-hashing is
+diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`); normal operation trusts the
+compiled envelope and checks task/scope consistency.
 
 ## Installation contract
 

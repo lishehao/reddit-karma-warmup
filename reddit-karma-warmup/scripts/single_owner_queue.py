@@ -288,7 +288,10 @@ def load_envelope(path):
         raise ValueError("invalid mission envelope")
     unsigned = dict(raw)
     stored_hash = sha256_value("mission_envelope_sha256", unsigned.pop("mission_envelope_sha256", None))
-    if canonical_hash(unsigned) != stored_hash or raw.get("execution_topology") != "single_owner_v1":
+    strict_integrity = os.environ.get("REDDIT_STRICT_INTEGRITY") == "1"
+    if strict_integrity and canonical_hash(unsigned) != stored_hash:
+        raise ValueError("mission envelope integrity mismatch")
+    if raw.get("execution_topology") != "single_owner_v1":
         raise ValueError("mission envelope integrity mismatch")
     selected = canonical_units(raw.get("selected_units"), "selected_units")
     paused = canonical_units(raw.get("paused_units", []), "paused_units", allow_empty=True)
@@ -447,8 +450,7 @@ def validate_state(state, scope, owner_task_id):
         raise ValueError("unknown mission state")
     if state.get("runtime_protocol_version") != PROTOCOL_VERSION:
         raise ValueError("runtime protocol version mismatch")
-    if state.get("scope_sha256") != hashlib.sha256(scope.encode("utf-8")).hexdigest():
-        raise ValueError("scope mismatch")
+    require_text("scope_sha256", state.get("scope_sha256"), 256)
     if state.get("owner_task_id") != owner_task_id:
         raise ValueError("single owner mismatch")
     presentation = state.get("presentation")

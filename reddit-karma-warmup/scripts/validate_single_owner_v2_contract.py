@@ -54,12 +54,13 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.04.1"
+    assert version == "2026.08.04.2"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
         "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
         "legacy_sha256_field_names": "ACCEPT_AS_OPAQUE_TOKENS",
+        "strict_integrity_opt_in": "REDDIT_STRICT_INTEGRITY=1",
     }
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"

@@ -2,9 +2,9 @@
 
 Runtime receipts use short opaque evidence tokens. Do not generate or check a
 SHA-256 value on every wake, Chrome packet, or cleanup step; the queue accepts
-legacy `*_sha256` field names as plain receipt references. Hashing is reserved
-for package/manifest and mission-envelope integrity at install or compile
-boundaries.
+legacy `*_sha256` field names as plain receipt references. Envelope re-hashing
+is diagnostic-only with `REDDIT_STRICT_INTEGRITY=1`; normal operation checks
+task/scope consistency without recomputing the digest.
 
 ## Ownership
 

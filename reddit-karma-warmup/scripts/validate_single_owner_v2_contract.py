@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.04.7"
+    assert version == "2026.08.04.8"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
@@ -84,6 +84,13 @@ def main() -> None:
     assert defaults["scheduler"]["recoverable_runtime_failure"] == "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING"
     assert defaults["scheduler"]["heartbeat_prompt"] == "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
+    assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_COMMENTS_SELF_SELECT_TARGET_IF_NO_HANDOFF"
+    assert defaults["scheduler"]["action_obligation"] == {
+        "enabled": "AUTHORIZED_OUTWARD_UNIT_EACH_FORMAL_ROUND",
+        "initial": "ACTION_FIRST_BEFORE_BROWSING",
+        "search_expansion": "UP_TO_60_TARGET_READS_STOP_ON_FIRST_COMPLIANT_TARGET",
+        "exceptions": ["NO_AUTHORITY", "CUTOFF", "CHROME_CONTENT_UNAVAILABLE", "VISIBLE_BLOCKER_ALL_TESTED_TARGETS", "NO_TRUTHFUL_CONTRIBUTION_AFTER_60", "SUBMISSION_UNCERTAIN"],
+    }
     chrome_defaults = defaults["chrome"]
     assert chrome_defaults["outer_operation_budget_ms"] == 120000
     assert chrome_defaults["outer_budget_policy"] == "USE_ONLY_WHEN_CURRENT_WRAPPER_SUPPORTS_EXPLICIT_PER_CALL_TIMEOUT"
@@ -98,6 +105,7 @@ def main() -> None:
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
     assert defaults["objective_linking"]["recoverable_states"] == ["LIVE_GATE_UNVERIFIED"]
     assert defaults["objective_linking"]["candidate_rejection"] == "EXACT_CANDIDATE_OR_COMMUNITY_REJECTION_RETURNS_TO_BROWSING_NEXT_HEARTBEAT_AND_CANNOT_BE_REARMED"
+    assert defaults["objective_linking"]["candidate_handoff"] == "OPTIONAL_ATOMIC_HANDOFF_COMMENTS_OR_POSTS_MAY_SELF_SELECT_TARGET_IN_SAME_ACTION_PACKET"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
     assert defaults["schema"] == "reddit_single_owner_defaults/v16"
@@ -138,7 +146,7 @@ def main() -> None:
     assert startup_transition["missing_optional_defaults"] == "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY"
     assert startup_transition["answer_compilation"] == "LOCAL_THREE_ANSWER_OR_DIRECT_TARGET_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND"
     assert startup_transition["after_three_answers"] == "CURRENT_TASK_SCOPE_ENVELOPE_ONE_CHROME_SESSION_INITIAL_DIRECT_THEN_ADVISORY_HEARTBEAT"
-    assert startup_transition["initial_packet"] == "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER_WITH_ATOMIC_HANDOFF"
+    assert startup_transition["initial_packet"] == "FORMAL_ROUND_ONE_ACTION_FIRST_NOT_PREVIEW_WITH_OPTIONAL_HANDOFF"
     assert startup_transition["technical_gates"] == "ONE_CURRENT_TASK_AND_CHROME_SESSION_GATE_NO_SCHEDULER_OR_TITLE_BLOCK"
     assert defaults["scheduler"]["wake_lease_seconds"] == 900
     assert defaults["scheduler"]["packet_lease_seconds"] == 900
@@ -158,11 +166,14 @@ def main() -> None:
     assert defaults["research"]["comment_fast_path"]["web_search"] == "OPTIONAL_ONLY_FOR_FACTUAL_TECHNICAL_OR_UNFAMILIAR_CLAIMS"
     assert defaults["research"]["comment_fast_path"]["duplicate_scope"] == "SAME_TARGET_ONLY"
     assert defaults["research"]["comment_fast_path"]["full_account_history"] is False
+    assert defaults["research"]["comment_fast_path"]["max_target_reads_per_action_packet"] == 60
+    assert defaults["research"]["comment_fast_path"]["stop_after_first_eligible"] is True
+    assert defaults["research"]["comment_fast_path"]["required_reads"] == ["TARGET_POST", "NEARBY_CONTEXT", "VISIBLE_RULE_OR_SUBMIT_SIGNAL", "VISIBLE_COMPOSER"]
     assert defaults["research"]["web_search"]["comments_query_min"] == 0
     assert defaults["research"]["web_search"]["comments_query_max"] == 1
     assert defaults["research"]["web_search"]["posts_query_min"] == 4
     assert defaults["research"]["web_search"]["posts_query_max"] == 8
-    assert defaults["mission_profiles"]["comment_action_gates"] == ["explicit_authority", "target_and_nearby_context", "basic_current_rule_or_fresh_cache", "truthful_context_fit", "visible_composer", "single_submission_and_verification"]
+    assert defaults["mission_profiles"]["comment_action_gates"] == ["explicit_authority", "target_and_nearby_context", "visible_rule_or_submit_signal", "visible_composer", "single_submission_and_verification"]
     assert defaults["runtime_fence"]["preflight"] == "CURRENT_TASK_ONLY_NO_CROSS_TASK_SCAN"
     assert defaults["runtime_fence"]["pending_chrome_release"] == "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF"
     assert defaults["runtime_fence"]["stale_reconciliation"] == "CURRENT_TASK_LOCAL_MARKER_ONLY"
@@ -182,11 +193,11 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
+    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
-    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay", "fresh agent-owned tab", "no permanent recovery parking"):
+    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "same packet", "Action-first rounds", "up to 60 new", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay", "fresh agent-owned tab", "no permanent recovery parking"):
         assert phrase in runtime, phrase
     for phrase in ("current task", "other Heartbeats", "UNCERTAIN"):
         assert phrase in runtime, phrase
@@ -307,7 +318,7 @@ def main() -> None:
         assert run(str(QUEUE), "canary-pass", *startup_shared, "--proof-sha256", startup_proof)["status"] == "CANARY_PASSED"
         assert heartbeat_record(startup_shared, "2026-07-27T08:00:00Z", "2026-07-27T10:25:00Z", "2026-07-27T08:15:00Z", "owner-startup", startup_proof)["status"] == "HEARTBEAT_VERIFIED"
         initial_wake = run(str(QUEUE), "wake-open", *startup_shared, "--wake-source", "INITIAL", "--expected-at-utc", "2026-07-27T08:00:00Z", "--now-utc", "2026-07-27T08:01:00Z")
-        assert initial_wake["status"] == "WAKE_OPEN" and initial_wake["due_units"] == ["browsing", "comments"]
+        assert initial_wake["status"] == "WAKE_OPEN" and initial_wake["due_units"] == ["comments", "browsing"]
         assert run(str(QUEUE), "decide", *startup_shared, "--unit", "browsing", "--decision", "RUN", "--reason", "first formal community research packet", "--now-utc", "2026-07-27T08:01:01Z")["status"] == "DECISION_RECORDED"
         assert run(str(QUEUE), "decide", *startup_shared, "--unit", "comments", "--decision", "DEFER", "--reason", "requires real upstream candidate evidence", "--now-utc", "2026-07-27T08:01:02Z")["status"] == "DECISION_RECORDED"
         first_packet = run(str(QUEUE), "start", *startup_shared, "--now-utc", "2026-07-27T08:01:03Z")
@@ -363,7 +374,7 @@ def main() -> None:
         assert run(str(QUEUE), "canary-pass", *continuous_shared, "--proof-sha256", startup_proof)["status"] == "CANARY_PASSED"
         assert heartbeat_record(continuous_shared, "2026-07-27T09:00:00Z", "2026-07-27T11:25:00Z", "2026-07-27T09:11:00Z", "owner-continuous", startup_proof)["status"] == "HEARTBEAT_VERIFIED"
         initial_continuous_wake = run(str(QUEUE), "wake-open", *continuous_shared, "--wake-source", "INITIAL", "--expected-at-utc", "2026-07-27T09:00:00Z", "--now-utc", "2026-07-27T09:00:00Z")
-        assert initial_continuous_wake["status"] == "WAKE_OPEN" and initial_continuous_wake["due_units"] == ["browsing", "comments"]
+        assert initial_continuous_wake["status"] == "WAKE_OPEN" and initial_continuous_wake["due_units"] == ["comments", "browsing"]
         assert run(str(QUEUE), "decide", *continuous_shared, "--unit", "browsing", "--decision", "RUN", "--reason", "first direct coverage packet", "--now-utc", "2026-07-27T09:00:01Z")["status"] == "DECISION_RECORDED"
         assert run(str(QUEUE), "decide", *continuous_shared, "--unit", "comments", "--decision", "DEFER", "--reason", "requires a real upstream route", "--now-utc", "2026-07-27T09:00:01Z")["status"] == "DECISION_RECORDED"
         assert run(str(QUEUE), "start", *continuous_shared, "--now-utc", "2026-07-27T09:00:02Z")["status"] == "PACKET_STARTED"
@@ -485,7 +496,7 @@ def main() -> None:
         queue_root = work / "queue"
         shared = ("--root", str(queue_root), "--scope", "v2-contract", "--owner-task-id", "owner-1", "--mission-envelope", str(envelope))
         bootstrapped = run(str(QUEUE), "bootstrap", *shared, "--now-utc", "2026-07-27T00:00:00Z")
-        assert bootstrapped["status"] == "BOOTSTRAPPED" and bootstrapped["due_units"] == ["browsing", "posts"]
+        assert bootstrapped["status"] == "BOOTSTRAPPED" and bootstrapped["due_units"] == ["posts", "browsing"]
         proof = "runtime-proof-token"
         assert run(str(QUEUE), "canary-pass", *shared, "--proof-sha256", proof)["status"] == "CANARY_PASSED"
         assert run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:00:00Z", "--now-utc", "2026-07-27T00:00:00Z")["status"] == "WAKE_OPEN"
@@ -521,7 +532,7 @@ def main() -> None:
         assert completed["heartbeat"]["state"] == "PENDING"
         assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:15:00Z")["status"] == "HEARTBEAT_OBSERVED"
         action_due = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:15:00Z", "--now-utc", "2026-07-27T00:15:00Z")
-        assert action_due["status"] == "WAKE_OPEN" and action_due["due_units"] == ["browsing", "posts"], action_due
+        assert action_due["status"] == "WAKE_OPEN" and action_due["due_units"] == ["posts", "browsing"], action_due
         action_defer = run(str(QUEUE), "decide", *shared, "--unit", "posts", "--decision", "DEFER", "--reason", "candidate packet first", "--now-utc", "2026-07-27T00:15:01Z")
         assert action_defer["scheduler_adjustment"] == "ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT"
         assert run(str(QUEUE), "decide", *shared, "--unit", "browsing", "--decision", "RUN", "--reason", "active coverage continues", "--now-utc", "2026-07-27T00:15:02Z")["status"] == "DECISION_RECORDED"

@@ -22,8 +22,8 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-PROTOCOL_VERSION = "2026.08.04.7"
-LEGACY_PROTOCOL_VERSIONS = {"2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
+PROTOCOL_VERSION = "2026.08.04.8"
+LEGACY_PROTOCOL_VERSIONS = {"2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
 SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
@@ -110,6 +110,7 @@ ACTION_ORIENTED_GOALS = {
     "relationship_maintenance",
     "profile_readiness",
 }
+ACTION_FIRST_UNITS = ("comments", "posts", "follow-up", "presence")
 ACTION_WINDOW_UNITS = {"comments", "posts"}
 UPSTREAM_HANDOFFS = {
     "browsing": {"comments", "posts"},
@@ -119,6 +120,14 @@ REFILL_UNITS = {"comments", "posts"}
 
 def outward_authority(unit, authority):
     return authority != DEFAULT_AUTHORITY[unit]
+
+
+def action_first_enabled(state):
+    return any(
+        state["units"][unit]["plan"] == "ACTIVE"
+        and outward_authority(unit, state["units"][unit]["authority"])
+        for unit in ACTION_FIRST_UNITS
+    )
 
 
 def validate_strategy(value):
@@ -572,11 +581,16 @@ def due_units(state, now):
     ]
     goal_priority = GOAL_UNIT_PRIORITY[state["mission_strategy"]["business_goal"]]
     order = {unit: index for index, unit in enumerate(goal_priority)}
-    action_goal = state["mission_strategy"]["business_goal"] in ACTION_ORIENTED_GOALS
+    action_goal = state["mission_strategy"]["business_goal"] in ACTION_ORIENTED_GOALS or action_first_enabled(state)
     return sorted(
         candidates,
         key=lambda unit: (
+            # A ready action still outranks all exploration. On a fresh round,
+            # comments are the default action-first lane, then other authorized
+            # outward units, and browsing comes last.
             0 if action_goal and state["units"][unit]["objective"]["state"] == "ACTION_ELIGIBLE" else 1,
+            0 if action_goal and unit in ACTION_FIRST_UNITS and outward_authority(unit, state["units"][unit]["authority"]) else 1,
+            ACTION_FIRST_UNITS.index(unit) if unit in ACTION_FIRST_UNITS else len(ACTION_FIRST_UNITS),
             order[unit],
         ),
     )
@@ -897,6 +911,13 @@ def schedule_objective(state, unit, now, normal_minutes):
     elif (
         unit == "browsing"
         and state["mission_strategy"]["action_budget"] == "active"
+    ):
+        if not schedule_next_heartbeat(state, unit, now):
+            clear_schedule(state, unit)
+    elif (
+        unit in ACTION_WINDOW_UNITS
+        and outward_authority(unit, value["authority"])
+        and action_first_enabled(state)
     ):
         if not schedule_next_heartbeat(state, unit, now):
             clear_schedule(state, unit)

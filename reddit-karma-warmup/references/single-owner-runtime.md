@@ -46,7 +46,7 @@ objective state. `COMPLETED` is only a packet outcome. It does not mean a
 comment/post/reply/profile change exists, and it must not close an action goal.
 
 ```text
-browsing candidate pack ──> atomic `handoff` ──> comments/posts ACTION_ELIGIBLE
+browsing candidate pack ──> optional atomic `handoff` ──> comments/posts ACTION_ELIGIBLE
 exact candidate/community rejection ──> `candidate-reject` ──> browsing PENDING
 verified own post/comment permalink ──> follow-up ACTION_ELIGIBLE
 explicit requested profile change ──> presence ACTION_ELIGIBLE
@@ -79,11 +79,26 @@ permalink/source reference before it can arm follow-up.
 Only a mission revision or a recorded upstream evidence handoff may re-arm a
 parked action unit. Do not use a generic cadence to revive it.
 
-For `discover` and `seeded_expandable` missions, a comments/posts packet that
-proves its exact target cannot pass must call `candidate-reject` before it
-finishes. This rejects only that exact `candidate_ref`, schedules browsing on
-the next task wake, and prevents the same target from being handed
-back to that unit.
+## Action-first rounds
+
+When any outward unit is authorized, every formal round, including `INITIAL`,
+must attempt one authorized public action before it finishes. Comments are the
+default action-first unit when enabled; a comments packet may search and choose
+its own target instead of waiting for a browsing handoff. Read up to 60 new
+target posts in that packet and stop at the first target that passes the small
+live gate. This is an expansion cap, not a posting quota.
+
+The only honest no-action outcomes are: no authority, mission cutoff, Chrome or
+content-channel failure, a visible blocker on every tested target, no truthful
+contribution after the expanded search, or an uncertain submission. Record the
+reason and continue the same unit at the next wake; do not turn one rejected
+target into a mission-wide block. Browsing-only missions remain research-only.
+
+For `discover` and `seeded_expandable` missions, a handoff-supplied
+comments/posts target that cannot pass must call `candidate-reject` before the
+packet finishes. A self-selecting action packet keeps a compact local rejected
+set and continues searching; it does not park the lane or schedule a separate
+browsing wake for every failed target.
 
 ## Goal profile and priority
 
@@ -95,20 +110,17 @@ changes the Heartbeat: it compiles to coverage/threshold/budget only.
 Post/follow-up/presence gates require explicit authority, live rule/format fit,
 truthful material or claim, current session/composer state, duplicate/recent
 history, and one verified submission. Comments use the lighter target/context,
-basic-rule, truthful-text, composer, and one verified submission path. The
-threshold only ranks candidates after their action-type gate.
+one visible rule or submit signal, composer, truthful text, and one verified
+submission path. The threshold only ranks candidates after their action-type
+gate; it is never a reason to stop searching for the first workable comment.
 
-When an enabled comment/post/follow-up/presence unit becomes `ACTION_ELIGIBLE`
-for the business goal, schedule it before more exploratory browsing. A browsing
-packet that establishes a dated route plus the truthful contribution boundary
-must call `single_owner_queue.py handoff` before it finishes. The handoff is
-the only cross-unit path permitted while a packet is active; it records the
-source reference, arms the target, and schedules that target for the task's
-next wake occurrence when available. Do not close browsing and then leave its
-candidate to a generic 30/45/180-minute recheck. If a post is parked as
-`MATERIAL_REQUIRED` or `RULE_BLOCKED`, do not keep repeating the same route
-sweep. Record the unmet goal honestly; a planning target is not permission to
-force an action.
+When an enabled comment/post/follow-up/presence unit is authorized, schedule its
+action-first packet before exploratory browsing. A browsing packet may call
+`single_owner_queue.py handoff` when it has a useful dated route, but the target
+unit may also self-select in the same packet. Do not finish an
+action-authorized round with only a candidate pack. If a post is parked as
+`MATERIAL_REQUIRED` or `RULE_BLOCKED`, keep comments or another authorized
+action moving; record the unmet post goal honestly rather than forcing a post.
 
 ## Wake and units
 
@@ -116,7 +128,9 @@ For every due enabled unit, persist one `RUN`, `WATCH`, `SKIP`, or `DEFER`
 decision. Select at most one `RUN`; it gets one Chrome packet and at most one
 public action. The unit may complete, skip, block, or yield. On finish, persist
 an objective state as well as the packet outcome whenever the unit has outward
-authority. A yielded unit resumes before a later unit.
+authority. A yielded unit resumes before a later unit. For an
+action-authorized mission, `RUN` must be an action-first packet unless one of
+the explicit no-action outcomes above is recorded.
 
 The task attempts one stable 15-minute recurring Heartbeat through the mission
 window plus cleanup grace. Readback is telemetry. At each delivered turn run

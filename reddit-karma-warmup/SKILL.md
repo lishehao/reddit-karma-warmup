@@ -2,7 +2,6 @@
 name: reddit-karma-warmup
 description: Run authorized Reddit research, browsing, native posts, comments, follow-up, and profile/community work through one persistent user-visible Reddit operating task and the user's logged-in Chrome. Use when a user asks to operate, warm up, publish to, research, or monitor a Reddit account or community.
 ---
-
 # Reddit Community Operations
 
 ## Startup state machine
@@ -68,7 +67,6 @@ Default authority is research-only. Votes require explicit
 inspect vote controls.
 
 ## Surface contract
-
 | Surface | Use | Never treat as |
 | --- | --- | --- |
 | Built-in Web Search | broad current discovery, terminology, primary sources, duplicate/FAQ risk | current Reddit permission or action proof |
@@ -82,7 +80,6 @@ capability is absent. A content timeout is
 or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md).
 
 ## Mission loop
-
 1. Resolve and record the exact current task ID (never the delegation
    `source_thread_id`), rename and pin that task as `Reddit 运营台`, then compile
    one immutable envelope and queue. Read back title/pin when supported; either presentation failure is non-blocking and retries next wake.
@@ -96,33 +93,45 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    retry later without blocking current-task work.
    The prompt carries only stable identity/boundaries and
    `runtime_protocol_version`; each wake reloads this installed Skill and queue.
-3. Run the formal `INITIAL` packet immediately. Later wakes may record
-   `heartbeat-observe` when available, then decide `RUN|WATCH|SKIP|DEFER` for
-   due units. Run at most one unit, one Chrome packet, and one public action per
+3. Run the formal `INITIAL` packet immediately. For any outward-authorized
+   mission, `INITIAL` and every later formal round are action-first: attempt one
+   authorized public action before finishing the round. Comments are the default
+   first lane when enabled; browsing-only missions may finish as research-only.
+   Later wakes may record `heartbeat-observe` when available, then decide
+   `RUN|WATCH|SKIP|DEFER` for due units. Run at most one unit, one Chrome packet,
+   and one public action per
    wake. ±10 minutes is normal. A late wake runs one currently due unit; no
    catch-up means no replay. A fast NOOP is only for early/duplicate, recovery,
    or genuinely exhausted/parked work; scheduler uncertainty is not a reason
    to skip current-task work, and a missing observation is not a second gate.
-4. Link work only through recorded evidence: browsing candidate pack -> atomic
-   `handoff` to comments/posts, and verified own permalink -> follow-up. An
-   `ACTION_ELIGIBLE` unit outranks more browsing. Reject one bad candidate with
-   `candidate-reject`; do not turn it into mission-wide `RULE_BLOCKED` or
-   `MATERIAL_REQUIRED`. A runtime read failure is `LIVE_GATE_UNVERIFIED`; the
+4. Action units may find their own target in the same packet. Browsing candidate
+   packs and atomic `handoff` remain useful but are optional; a candidate pack is
+   not a reason to end an action-authorized round. Link work through recorded
+   evidence; verified own permalinks arm follow-up. An
+   `ACTION_ELIGIBLE` unit outranks more browsing. For comments, continue across
+   new targets (up to 60 target reads) until the first compliant target is found;
+   stop early after one verified action. Only cutoff, no authority, a
+   content-channel failure, a visible blocker on every tested target, no
+   truthful contribution after the expanded search, or an uncertain submission
+   justifies a no-action round. Record failed self-selected candidates locally;
+   use `candidate-reject` for a handoff-supplied target, and do not turn either
+   into mission-wide `RULE_BLOCKED` or `MATERIAL_REQUIRED`. A runtime read failure
+   is `LIVE_GATE_UNVERIFIED`; the
    next wake must create/claim one fresh agent-owned tab and run one real content
    probe before continuing or yielding the same unit. URL-only checks/finalize
    do not count; retry later and never permanently park a due unit.
-5. Comments use a fast path: read the target and nearby context, one basic
-   current rule or fresh cache, and the visible composer; use zero Web Search
-   queries unless a factual/technical/unfamiliar claim needs one. Same-target
-   duplicate checking is enough. Posts keep the 4-8 query research pass and
-   fuller rule, truth, duplicate, format, session, and submit gates.
+5. Comments use a minimal action path: target/nearby context, one visible rule
+   or submit signal, and composer. Fold truth and relevance into the comment;
+   do not require account history, quality scoring, or broad research. Use zero
+   Web Search queries unless a factual/technical/unfamiliar claim needs one.
+   Same-target duplicate checking is enough. Posts keep the 4-8 query research
+   pass and fuller rule, truth, duplicate, format, session, and submit gates.
 6. Before every public action persist deterministic `MUTATION_INTENT` and
    `action_key`. Submit once and verify separately. Freeze uncertain exact keys
    permanently; never reopen or retry them. At completion/deadline enter
    `FINALIZE_ONLY`, release only owned tabs, delete the exact Heartbeat with
    proof, retire the queue, and keep the visible operating task available. Runtime receipt tokens are opaque; envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`).
 ## Load only what the current decision needs
-
 | Situation | Reference |
 | --- | --- |
 | intake | [startup intake](references/startup-intake.md) |
@@ -132,10 +141,8 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
 | selected unit | [unit guides](references/unit-guides.md) |
 | goal, KPI, coverage, threshold, scope | [mission goals and profiles](references/mission-goals-and-profiles.md) |
 | numeric/script defaults | [operation defaults](references/operation-defaults.json) |
-
 Do not load historical lane, dispatcher, worker, callback, or migration files.
 ## Compact receipt
-
 ```text
 本轮完成：<完成/暂停/阻塞的单元、有效阅读、已验证动作>。
 下轮时间：<当地时间与 UTC；终止则“无（Heartbeat 已删除）”>。

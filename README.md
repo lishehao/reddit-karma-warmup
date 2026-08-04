@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.04.7`
+Protocol version: `2026.08.04.8`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -72,6 +72,9 @@ assignment gets one concise text reminder; do not invent missing targets.
 - Built-in Web Search handles broad research; the optional official Reddit API
   is GET-only public indexing; logged-in Chrome performs every real Reddit read
   and every interactive action.
+- When comments/posts/follow-up/presence are authorized, `INITIAL` and each
+  formal round are action-first: attempt one public action, expanding comment
+  search up to 60 targets if needed. Browsing-only missions remain research-only.
 - Only current task scope, readable Chrome, and action-type gates are hard gates.
   Comments use target/context fit, a basic current rule check, composer state,
   and one verified submit; posts retain the fuller rule, truth, duplicate, and

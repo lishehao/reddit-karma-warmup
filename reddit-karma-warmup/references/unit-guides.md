@@ -10,8 +10,9 @@ Load the selected section only after the owner decides `RUN`.
 
 Read current community pages in Chrome, including enough body/context to classify
 each item. Build a dated candidate pack with a compact source reference for the
-comments/posts unit that can genuinely use it, or record `RESEARCH_ONLY`.
-Candidate discovery does not itself complete a comment or post objective. Votes are disabled
+comments/posts unit, or record `RESEARCH_ONLY`. For an action-authorized mission,
+browsing is supporting work: do not end the formal round after a candidate pack
+when an action unit can search for and attempt its own target. Votes are disabled
 unless the mission explicitly grants `browsing: VOTE_AUTHORIZED`; only then may
 this unit inspect and operate one visible vote control. No other unit touches
 votes.
@@ -23,26 +24,25 @@ post goal parked as `MATERIAL_REQUIRED` unless a revision or fresh material
 explicitly re-arms it.
 
 If the pack establishes an exact route and a truthful contribution boundary for
-an authorized comment or post, call the queue's atomic `handoff` with the
-target unit, `ACTION_ELIGIBLE`, the exact candidate reference, and a compact
-source reference before the
-browsing packet finishes. This arms the target's next task wake packet when
-available;
-it does not bypass that packet's small action gate. If no truthful boundary exists, leave the target `PENDING` or
-park it with the evidence reason—never create a pause/resume revision merely
-to alter its cadence.
+an authorized comment or post, call the queue's atomic `handoff` with the target
+unit, `ACTION_ELIGIBLE`, the exact candidate reference, and a compact source
+reference when useful. Handoff is optional because the action unit may discover
+another target in the same packet. If no truthful boundary exists, keep searching
+within the action packet before ending the round; never create a pause/resume
+revision merely to alter cadence.
 
 ## Comments
 
-Use the comment fast path: read the post, nearby context, one basic current rule
-or fresh cache, and the composer. A short context-fit comment needs no broad Web
-Search; add one focused query only for a factual, technical, or unfamiliar claim.
-With explicit comment authority, publish at most one original comment. Do not
-manufacture a quota, a personal experience, a factual claim, or product
-promotion. Check duplicates only on the same target. If the exact candidate fails a visible rule or fit gate, call
-`candidate-reject`; do not park the whole comments lane. Browsing must refill a
-different candidate at the next task wake, and the rejected exact
-candidate must not be handed back.
+Use the comment action path: read the post and nearby context, one visible current
+rule or submit signal, and the composer. A short context-fit comment needs no
+broad Web Search; add one focused query only for a factual, technical, or
+unfamiliar claim. With explicit comment authority, attempt one original comment
+in every formal action round. If a candidate fails, continue to new targets in
+the same packet, up to 60 target reads, and stop at the first compliant target.
+Do not invent a personal experience, factual claim, or product promotion. Check
+duplicates only on the same target. If all tested candidates fail, record the
+specific no-action reason and continue at the next wake; do not park the whole
+comments lane.
 If the candidate is still specific and truthful but the live rule/composer
 gate cannot be completed because Chrome or DOM reads time out, record
 `LIVE_GATE_UNVERIFIED` and finish as `YIELDED`. Do not mark the candidate

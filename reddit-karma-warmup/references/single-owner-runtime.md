@@ -22,9 +22,9 @@ environments to decide whether this task may start.
    inconsistencies are recorded locally; they are not a reason to search for a
    different task.
 2. Resolve the exact current task ID from the task context, never from a
-   delegated wrapper's `<source_thread_id>`. Task title/readback and archive
-   metadata are informational. A best-effort rename may run, but the task can
-   proceed while it is unavailable.
+   delegated wrapper's `<source_thread_id>`. Immediately rename it to
+   `Reddit 运营台`, pin it, and read back the exact title/pin when supported.
+   Presentation failure is non-blocking; retry once at the next safe wake.
 3. Compile the input with `scripts/compile_single_owner_mission.py`, then
    bootstrap `scripts/single_owner_queue.py` using that exact current task ID
    for `--owner-task-id`. The mission envelope, queue state, Heartbeat target,

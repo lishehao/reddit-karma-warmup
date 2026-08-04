@@ -34,11 +34,11 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    account name, or materials.
 4. In that same task turn run:
    `current-task scope -> envelope -> one Chrome/session gate -> INITIAL
-   packet`. The `INITIAL` packet is formal round one, not a preview or
+   packet`. Rename/pin the current task as `Reddit 运营台` and read back when
+   supported; presentation failure is non-blocking and retries next wake. The `INITIAL` packet is formal round one, not a preview or
    pre-filter, and it must do real mission work immediately. Heartbeat creation
    and readback are advisory continuation work; they must not block INITIAL.
    Do not wait for a second user message or the first Heartbeat.
-
 Use the current task as the authority. Resolve the exact current Codex task ID
 from the current task context before compiling anything. A
 `<source_thread_id>` inside a delegated wrapper is provenance only; it is the
@@ -91,8 +91,8 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
 ## Mission loop
 
 1. Resolve and record the exact current task ID (never the delegation
-   `source_thread_id`), then compile one immutable envelope and queue. Renaming
-   the task to `Reddit 运营台` is best effort and must not block the packet.
+   `source_thread_id`), rename and pin that task as `Reddit 运营台`, then compile
+   one immutable envelope and queue. Read back title/pin when supported; either presentation failure is non-blocking and retries next wake.
    Store the business goal, community scope, coverage budget, soft action
    threshold, action budget, truthful material references, and evidence/output
    targets. `high/low frequency` changes these profiles, not the timer.

@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.08.04.3",
+    "runtime_protocol_version": "2026.08.04.4",
   "runtime_evidence_policy": {
     "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -55,7 +55,8 @@
     "owner": "ONE_PRESENT_UNARCHIVED_REDDIT_TASK",
     "owner_task_binding": "EXACT_CURRENT_TASK_ID_ONLY_NEVER_DELEGATION_SOURCE_THREAD_ID",
     "owner_task_unavailable": "USE_CURRENT_TASK_CONTEXT_NO_CROSS_TASK_LOOKUP",
-    "presentation_readback": "BEST_EFFORT_NON_BLOCKING",
+    "presentation_readback": "REQUIRED_BUT_NON_BLOCKING_EXACT_TITLE_AND_PIN",
+    "presentation_actions": ["SET_THREAD_TITLE_REDDIT_OPERATING_DESK", "SET_THREAD_PINNED_TRUE"],
     "chrome_owners": 1,
     "primary_reddit_tabs": 1,
     "auxiliary_read_tabs_after_canary": 1,

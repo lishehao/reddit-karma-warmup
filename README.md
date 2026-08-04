@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.04.3`
+Protocol version: `2026.08.04.4`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -29,13 +29,11 @@ response and remain `WAITING_FOR_STARTUP_INPUT`; never infer defaults.
 
 When all three answers are complete, start in the same task turn:
 
-`current-task scope -> mission envelope -> one Chrome/session gate -> formal
-INITIAL round -> advisory Heartbeat`
+`current-task scope -> rename/pin current task -> mission envelope -> one Chrome/session gate -> formal INITIAL round -> advisory Heartbeat`
 
-The INITIAL round performs real work immediately. It is not a preview or
+Rename the current task to `Reddit 运营台`, pin it, and read back the exact task when supported; presentation failure is non-blocking and retries on the next safe wake. The INITIAL round performs real work immediately. It is not a preview or
 pre-filter and does not wait for another “继续” or for the first Heartbeat.
-Heartbeat is a continuation aid, not a prerequisite for the first round. If
-creation or readback is unavailable, record it and retry in the background
+Heartbeat is a continuation aid, not a prerequisite for the first round. If creation or readback is unavailable, record it and retry in the background
 without stopping current-task work. Delivery is advisory: a trigger within
 ±10 minutes is ordinary, and a later trigger runs one currently due unit
 without replaying missed work.

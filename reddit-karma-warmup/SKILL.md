@@ -106,7 +106,7 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
 3. Run the formal `INITIAL` packet immediately. Later wakes may record
    `heartbeat-observe` when available, then decide `RUN|WATCH|SKIP|DEFER` for
    due units. Run at most one unit, one Chrome packet, and one public action per
-   wake. ±5 minutes is normal. A late wake runs one currently due unit; no
+   wake. ±10 minutes is normal. A late wake runs one currently due unit; no
    catch-up means no replay. A fast NOOP is only for early/duplicate, recovery,
    or genuinely exhausted/parked work; scheduler uncertainty is not a reason
    to skip current-task work, and a missing observation is not a second gate.
@@ -114,8 +114,10 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    `handoff` to comments/posts, and verified own permalink -> follow-up. An
    `ACTION_ELIGIBLE` unit outranks more browsing. Reject one bad candidate with
    `candidate-reject`; do not turn it into mission-wide `RULE_BLOCKED` or
-   `MATERIAL_REQUIRED`. A runtime read failure is `LIVE_GATE_UNVERIFIED`; yield
-   the same unit and run `RECOVERY_FIRST` at the next verified Heartbeat.
+   `MATERIAL_REQUIRED`. A runtime read failure is `LIVE_GATE_UNVERIFIED`; the
+   next wake must create/claim one fresh agent-owned tab and run one real content
+   probe before continuing or yielding the same unit. URL-only checks/finalize
+   do not count; retry later and never permanently park a due unit.
 5. For comments/posts do a short research brief, then a small purpose-specific
    Web Search pass and the Chrome live gate. Use 2-4 queries for comments and
    4-8 for posts; add a query only when the selected target or a factual claim
@@ -126,7 +128,6 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    permanently; never reopen or retry them. At completion/deadline enter
    `FINALIZE_ONLY`, release only owned tabs, delete the exact Heartbeat with
    proof, retire the queue, and keep the visible operating task available. Runtime receipt tokens are opaque; envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`).
-
 ## Load only what the current decision needs
 
 | Situation | Reference |
@@ -140,7 +141,6 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
 | numeric/script defaults | [operation defaults](references/operation-defaults.json) |
 
 Do not load historical lane, dispatcher, worker, callback, or migration files.
-
 ## Compact receipt
 
 ```text

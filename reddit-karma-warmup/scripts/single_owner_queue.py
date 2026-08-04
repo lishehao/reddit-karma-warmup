@@ -22,11 +22,12 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-PROTOCOL_VERSION = "2026.07.28.8"
+PROTOCOL_VERSION = "2026.08.04.3"
+LEGACY_PROTOCOL_VERSIONS = {"2026.07.28.8"}
 SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
-ORDINARY_TRIGGER_TOLERANCE_SECONDS = 300
+ORDINARY_TRIGGER_TOLERANCE_SECONDS = 600
 CLEANUP_GRACE_MINUTES = 25
 WAKE_LEASE_SECONDS = HEARTBEAT_GRID_SECONDS
 PACKET_LEASE_SECONDS = HEARTBEAT_GRID_SECONDS
@@ -448,7 +449,7 @@ def state_from_envelope(scope, owner_task_id, envelope, now):
 def validate_state(state, scope, owner_task_id):
     if state.get("schema") != SCHEMA or state.get("state") not in MISSION_STATES:
         raise ValueError("unknown mission state")
-    if state.get("runtime_protocol_version") != PROTOCOL_VERSION:
+    if state.get("runtime_protocol_version") not in ({PROTOCOL_VERSION} | LEGACY_PROTOCOL_VERSIONS):
         raise ValueError("runtime protocol version mismatch")
     require_text("scope_sha256", state.get("scope_sha256"), 256)
     if state.get("owner_task_id") != owner_task_id:

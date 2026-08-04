@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.04.2"
+    assert version == "2026.08.04.3"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
@@ -72,14 +72,14 @@ def main() -> None:
     assert defaults["topology"]["cross_task_dispatch"] == "FORBIDDEN"
     assert defaults["topology"]["owner_task_binding"] == "EXACT_CURRENT_TASK_ID_ONLY_NEVER_DELEGATION_SOURCE_THREAD_ID"
     assert defaults["topology"]["owner_task_unavailable"] == "USE_CURRENT_TASK_CONTEXT_NO_CROSS_TASK_LOOKUP"
-    assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 300
+    assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 600
     assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
     assert defaults["scheduler"]["unit_recheck_grid_minutes"] == 15
     assert defaults["scheduler"]["no_work_wake"] == "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER"
     assert defaults["scheduler"]["runtime_timeout_policy"] == "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE"
     assert defaults["scheduler"]["unit_recheck_phase"] == "ALIGN_TO_TASK_HEARTBEAT_PHASE_WHEN_AVAILABLE_NEVER_ABSOLUTE_UTC_QUARTER_HOURS"
     assert defaults["scheduler"]["late_wake"] == "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP"
-    assert defaults["scheduler"]["recoverable_runtime_failure"] == "NEXT_DUE_DECISION_MUST_RUN_RECOVERY_FIRST_NOT_SKIP_WATCH_DEFER_OR_FAST_NOOP"
+    assert defaults["scheduler"]["recoverable_runtime_failure"] == "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING"
     assert defaults["scheduler"]["heartbeat_prompt"] == "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
     assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
     chrome_defaults = defaults["chrome"]
@@ -172,11 +172,11 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("Reddit 运营台", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±5 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
+    for phrase in ("Reddit 运营台", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
-    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay"):
+    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay", "fresh agent-owned tab", "no permanent recovery parking"):
         assert phrase in runtime, phrase
     for phrase in ("current task", "other Heartbeats", "UNCERTAIN"):
         assert phrase in runtime, phrase
@@ -472,7 +472,7 @@ def main() -> None:
         assert bad_timer["status"] == "INVALID" and "heartbeat_rrule" in bad_timer["error"]
         recorded = heartbeat_record(shared, "2026-07-27T00:05:07Z", "2026-07-27T02:25:00Z", "2026-07-27T00:15:00Z", "owner-1", proof)
         assert recorded["status"] == "HEARTBEAT_VERIFIED" and recorded["heartbeat"]["next_run_at_utc"] == "2026-07-27T00:15:00Z"
-        observed = run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:05:08Z")
+        observed = run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:04:00Z")
         assert observed["status"] == "HEARTBEAT_EARLY_OBSERVED"
         assert completed["heartbeat_interval_minutes"] == 15
         assert completed["timer_policy"] == "CONTINUE_STABLE_RECURRENCE"
@@ -490,7 +490,7 @@ def main() -> None:
         assert run(str(QUEUE), "start", *shared, "--now-utc", "2026-07-27T00:15:03Z")["status"] == "PACKET_STARTED"
         continued = run(str(QUEUE), "finish", *shared, "--outcome", "COMPLETED", "--objective-state", "CANDIDATES_READY", "--objective-reason", "active coverage frontier remains open", "--candidate-ref", "pack:sideproject:2", "--now-utc", "2026-07-27T00:15:04Z")
         assert continued["next_due_at_utc"]["browsing"] == "2026-07-27T00:30:00Z"
-        assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:20:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
+        assert run(str(QUEUE), "heartbeat-observe", *shared, "--now-utc", "2026-07-27T00:19:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
         no_work = run(str(QUEUE), "wake-open", *shared, "--expected-at-utc", "2026-07-27T00:20:00Z", "--now-utc", "2026-07-27T00:20:00Z")
         assert no_work["status"] == "NOOP" and no_work["due_units"] == []
         assert no_work["heartbeat"]["state"] == "VERIFIED"
@@ -697,20 +697,20 @@ def main() -> None:
         promote(trigger_shared, "2026-07-27T06:00:00Z", proof)
         run(str(QUEUE), "canary-pass", *trigger_shared, "--proof-sha256", proof)
         assert heartbeat_record(trigger_shared, "2026-07-27T06:00:00Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
-        assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:09:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
-        early = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:09:00Z")
+        assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:04:00Z")["status"] == "HEARTBEAT_EARLY_OBSERVED"
+        early = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:04:00Z")
         assert early["status"] == "EARLY_WAKE_NOOP" and early["heartbeat"]["state"] == "VERIFIED"
-        assert heartbeat_record(trigger_shared, "2026-07-27T06:09:01Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
-        assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:21:00Z")["status"] == "HEARTBEAT_LATE_OBSERVED"
-        late = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:21:00Z")
+        assert heartbeat_record(trigger_shared, "2026-07-27T06:04:01Z", "2026-07-27T07:25:00Z", "2026-07-27T06:15:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:26:00Z")["status"] == "HEARTBEAT_LATE_OBSERVED"
+        late = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:15:00Z", "--now-utc", "2026-07-27T06:26:00Z")
         assert late["status"] == "WAKE_OPEN" and late["due_units"] == ["browsing"]
-        assert run(str(QUEUE), "decide", *trigger_shared, "--unit", "browsing", "--decision", "RUN", "--reason", "recovery proof", "--now-utc", "2026-07-27T06:21:01Z")["status"] == "DECISION_RECORDED"
-        assert run(str(QUEUE), "start", *trigger_shared, "--now-utc", "2026-07-27T06:21:02Z")["status"] == "PACKET_STARTED"
-        assert run(str(QUEUE), "recover", *trigger_shared, "--recovery-reason", "lease still current", "--now-utc", "2026-07-27T06:21:03Z")["status"] == "RECOVERY_NOT_STALE"
-        recovered = run(str(QUEUE), "recover", *trigger_shared, "--recovery-reason", "task resumed after lease", "--recovery-action-key", "1" * 64, "--now-utc", "2026-07-27T06:36:03Z")
+        assert run(str(QUEUE), "decide", *trigger_shared, "--unit", "browsing", "--decision", "RUN", "--reason", "recovery proof", "--now-utc", "2026-07-27T06:26:01Z")["status"] == "DECISION_RECORDED"
+        assert run(str(QUEUE), "start", *trigger_shared, "--now-utc", "2026-07-27T06:26:02Z")["status"] == "PACKET_STARTED"
+        assert run(str(QUEUE), "recover", *trigger_shared, "--recovery-reason", "lease still current", "--now-utc", "2026-07-27T06:26:03Z")["status"] == "RECOVERY_NOT_STALE"
+        recovered = run(str(QUEUE), "recover", *trigger_shared, "--recovery-reason", "task resumed after lease", "--recovery-action-key", "1" * 64, "--now-utc", "2026-07-27T06:41:03Z")
         assert recovered["status"] == "RECOVERED_YIELDED" and recovered["frozen_action_key_count"] == 1 and recovered["due_units"] == ["browsing"]
         assert recovered["resume_unit"] == "browsing"
-        assert heartbeat_record(trigger_shared, "2026-07-27T06:36:04Z", "2026-07-27T07:25:00Z", "2026-07-27T06:45:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert heartbeat_record(trigger_shared, "2026-07-27T06:41:04Z", "2026-07-27T07:25:00Z", "2026-07-27T06:45:00Z", "owner-5", proof)["status"] == "HEARTBEAT_VERIFIED"
         assert run(str(QUEUE), "heartbeat-observe", *trigger_shared, "--now-utc", "2026-07-27T06:45:00Z")["status"] == "HEARTBEAT_OBSERVED"
         recovered_wake = run(str(QUEUE), "wake-open", *trigger_shared, "--expected-at-utc", "2026-07-27T06:45:00Z", "--now-utc", "2026-07-27T06:45:00Z")
         assert recovered_wake["status"] == "WAKE_OPEN" and recovered_wake["due_units"] == ["browsing"]

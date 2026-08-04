@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.04.2`
+Protocol version: `2026.08.04.3`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -36,7 +36,9 @@ The INITIAL round performs real work immediately. It is not a preview or
 pre-filter and does not wait for another “继续” or for the first Heartbeat.
 Heartbeat is a continuation aid, not a prerequisite for the first round. If
 creation or readback is unavailable, record it and retry in the background
-without stopping current-task work.
+without stopping current-task work. Delivery is advisory: a trigger within
+±10 minutes is ordinary, and a later trigger runs one currently due unit
+without replaying missed work.
 
 Normal runtime receipts use short opaque evidence tokens; SHA-256 is not
 required for each wake, Chrome read, or action receipt. Envelope re-hashing is
@@ -84,17 +86,15 @@ are complete.
   browsing instead of blocking the whole mission.
 - Every mutation has a persisted deterministic action key, one submission, and
   separate verification. An uncertain exact key is frozen and never retried.
-- Heartbeat deliveries within ±5 minutes are normal. A late wake runs one
+- Heartbeat deliveries within ±10 minutes are normal. A late wake runs one
   currently due unit without replaying missed work. At the deadline, stop
   Reddit work, release owned tabs, delete the exact Heartbeat, and retire the
   queue.
 
 Full operational rules live in the Skill's routed references; this README is
 only the install and startup contract.
-
 ## Release rule
 
 Publish updates directly to GitHub `main`: bump the version, run validators,
-build a ZIP, verify fresh public codeload and ZIP contents, then perform the
-default compatible atomic hot replacement. Only incompatible or uncertain
-active-runtime state may defer the local replacement.
+build a ZIP, verify public codeload/ZIP, then perform compatible atomic hot
+replacement. Only incompatible or uncertain active-runtime state may defer it.

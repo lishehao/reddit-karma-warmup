@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.08.04.2",
+  "runtime_protocol_version": "2026.08.04.3",
   "runtime_evidence_policy": {
     "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -82,7 +82,7 @@
   },
   "scheduler": {
     "heartbeat_interval_minutes": 15,
-    "ordinary_trigger_tolerance_seconds": 300,
+    "ordinary_trigger_tolerance_seconds": 600,
     "cleanup_grace_minutes": 25,
     "wake_lease_seconds": 900,
     "packet_lease_seconds": 900,
@@ -97,7 +97,7 @@
     "no_work_wake": "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER",
     "runtime_timeout_policy": "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE",
     "late_wake": "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP",
-    "recoverable_runtime_failure": "NEXT_DUE_DECISION_MUST_RUN_RECOVERY_FIRST_NOT_SKIP_WATCH_DEFER_OR_FAST_NOOP",
+    "recoverable_runtime_failure": "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING",
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 1,
     "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440},

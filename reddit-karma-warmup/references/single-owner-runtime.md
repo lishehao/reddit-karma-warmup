@@ -154,7 +154,7 @@ schedule a unit after the mission cutoff. A wake with no due unit atomically
 records `NOOP` and does not claim, open, or read Chrome. It is valid only for
 an early/duplicate delivery, recovery, or a genuinely exhausted/parked
 frontier; it is not normal spacing after an eligible handoff. An actual trigger
-within ±5 minutes is ordinary. A trigger beyond that window records
+within ±10 minutes is ordinary. A trigger beyond that window records
 `EARLY_WAKE` or `LATE_WAKE` with its signed delta; an early wake does no work.
 A late wake runs at most one currently due unit. “No catch-up” means no replay
 of missed packets or mutations; it never means skipping currently due work.
@@ -172,10 +172,12 @@ that unit's schedule, and close the wake normally; do not leave it open.
 
 A prior Chrome timeout is not a durable reason to skip future due work. When a
 due unit's last failure was `CHROME_CONTENT_CHANNEL_TIMEOUT`, `about:blank`,
-or a rule/composer read timeout, the next wake must run one bounded recovery or
-read probe and then either continue or yield again. `resume_unit` and
-`LIVE_GATE_UNVERIFIED` both force `RUN`/`RECOVERY_FIRST`; `WATCH`, `SKIP`,
-`DEFER`, and fast NOOP are invalid until recovery settles the unit.
+or a rule/composer read timeout, the next wake must claim or create one fresh agent-owned tab
+and run one real content probe, then either continue or yield
+again. URL-only checks and tab finalization do not settle recovery. `resume_unit`
+and `LIVE_GATE_UNVERIFIED` force `RUN`/`RECOVERY_FIRST`; `WATCH`, `SKIP`,
+`DEFER`, and fast NOOP are invalid until that probe is attempted. Later wakes
+may keep retrying the same unit; there is no permanent recovery parking.
 
 ## Permission and uncertainty
 

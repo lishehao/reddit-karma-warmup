@@ -46,8 +46,10 @@ for a due `RECOVERY_FIRST` unit. It is a bounded retry, not a chain of probes:
    separate calls. After a navigation timeout, read URL/title once before
    deciding whether the page actually loaded.
 3. If metadata works but content does not, record
-   `CHROME_CONTENT_CHANNEL_TIMEOUT`; retry once in a fresh owned tab when the
-   packet has budget, otherwise yield the same unit to the next task wake.
+   `CHROME_CONTENT_CHANNEL_TIMEOUT`; retry in one fresh owned tab when the
+   packet has budget. On a later wake, always make one fresh-tab content probe
+   before yielding again. A URL-only check or `finalize` is not a content
+   recovery.
 4. If the current Reddit page is readable, continue immediately. Do not open
    neutral canary tabs, scan other tasks, or wait for a scheduler receipt.
 5. Keep the same logged-in Chrome/profile. Never clear cookies, switch browser,
@@ -82,10 +84,10 @@ action.
   page may have loaded. Do not use `Promise.race` as faux cancellation.
   If readback is still `about:blank` or the content channel remains
   unavailable, use the next distinct ladder step in a fresh owned tab if the
-  packet has budget; otherwise yield and let the next task wake run
-  one bounded recovery probe. Immediate same-boundary retry is forbidden, but
-  a later read-only recovery is required. Do not turn the next wake into a
-  no-Chrome `SKIP` solely because navigation failed.
+  packet has budget; otherwise yield and let the next task wake run one fresh-tab
+  recovery probe. Immediate same-boundary retry is forbidden, but a later
+  read-only recovery is required. Do not turn the next wake into a no-Chrome
+  `SKIP` solely because navigation failed.
 - Build locators from a fresh snapshot. Act only on one visible, interactive,
   unique control. Refresh the snapshot after every state change.
 - React fields may ignore `fill("")`; clear with Select All then Backspace and

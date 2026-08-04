@@ -1,9 +1,16 @@
 # Startup intake
 
-Ask all three questions at once after bootstrap. Wait for all three answers
-before Chrome, research, mission compilation, queue, or Heartbeat work. Do not
-ask for an account name or handle; the later same-Chrome session gate reads it
-silently. This intake has no fourth question.
+## Direct target shortcut
+
+If the user supplies 1–32 Reddit post URLs (`target_posts`), explicit `requested_work_types`/actions, and a duration, use `direct_target_mode=true` and compile it without the three-question form. Example:
+
+```text
+持续 2 小时；只浏览、评论并跟进下面几个帖子：<URL 1> <URL 2>。
+```
+
+The compiler returns `DIRECT_TARGET_ASSIGNMENT_COMPLETE`, scopes work to those posts, and the same task immediately runs `INITIAL`. The account is read silently by Chrome. If URLs, actions, or duration are missing, send one direct-text reminder and do not create a mission or second form.
+
+Ask all three questions at once after bootstrap. Wait for all three answers before Chrome, research, mission compilation, queue, or Heartbeat work. Do not ask for an account name or handle; the same-Chrome gate reads it silently. This intake has no fourth question.
 
 Use `request_user_input` once when available, with three choices per question
 and no `autoResolutionMs`. Otherwise ask the same questions in one compact text
@@ -55,11 +62,7 @@ Ask: **这轮想围绕什么方向或哪些社区运营？**
 | `个人创作与独立项目` | solo projects, creative tools, maker practice |
 | `3D/游戏/共创` | spatial interaction, games, co-creation |
 
-账号风格、目标受众、话题和社区种子都属于这一项，不需要拆开追问。保留用户
-原话，内部兼容字段仍写入 `account_direction` 和 `direction_tags`，但这不是
-账号姓名，也不是额外的账号确认。命名社区是可选种子
-（`seeded_expandable`）；只有明确的封闭列表才是 `closed`；没有种子则为
-`discover`。
+账号风格、目标受众、话题和社区种子都属于这一项，不需要拆开追问。保留用户原话，内部写入 `account_direction`/`direction_tags`；这不是账号姓名确认。命名社区是可选种子（`seeded_expandable`）；明确封闭列表才是 `closed`，没有种子则为 `discover`。
 
 This answer grants no action authority, and do not ask a second-round question for
 scope, materials, a project link, facts, or observations. Default
@@ -85,8 +88,9 @@ authority from Question 2.
 
 ## Completion rule
 
-Write the three answers to one local JSON artifact and run
-`scripts/compile_startup_intake.py`. Only `STARTUP_ANSWERS_COMPLETE` proceeds;
+Write the three answers or direct assignment to one local JSON artifact and run
+`scripts/compile_startup_intake.py`. Only `STARTUP_ANSWERS_COMPLETE` or
+`DIRECT_TARGET_ASSIGNMENT_COMPLETE` proceeds;
 invalid or incomplete input keeps waiting.
 
 Merge the normalized artifact with the system mission ID, the silently derived

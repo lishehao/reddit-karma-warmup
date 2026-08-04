@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.04.6"
+    assert version == "2026.08.04.7"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
@@ -103,15 +103,18 @@ def main() -> None:
     assert defaults["schema"] == "reddit_single_owner_defaults/v16"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
+    assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
+    assert intake_defaults["direct_target_completion"] == "DIRECT_TARGET_ASSIGNMENT_COMPLETE"
+    assert intake_defaults["direct_target_incomplete"] == "DIRECT_TEXT_REMINDER_NO_MISSION_NO_SECOND_FORM"
     assert intake_defaults["request_user_input_auto_resolution"] == "OMIT_AUTO_RESOLUTION_MS"
     assert intake_defaults["interactive_form_attempts"] == 1
     assert intake_defaults["unanswered_form_fallback"] == "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_NO_REQUEST_USER_INPUT_REPEAT"
     assert intake_defaults["partial_reply_fallback"] == "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_WITH_RECOGNIZED_AND_MISSING_FIELDS"
-    assert intake_defaults["completion"] == "ALL_THREE_EXPLICIT_OR_STARTUP_CANCELLED_BY_USER"
+    assert intake_defaults["completion"] == "ALL_THREE_EXPLICIT_OR_DIRECT_TARGET_ASSIGNMENT_OR_STARTUP_CANCELLED_BY_USER"
     assert intake_defaults["unanswered_or_partial"] == "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH"
     assert intake_defaults["silence"] == "NEVER_IMPLICITLY_CANCELLED"
     assert intake_defaults["compiler"] == "scripts/compile_startup_intake.py"
-    assert intake_defaults["compiler_success"] == "STARTUP_ANSWERS_COMPLETE"
+    assert intake_defaults["compiler_success"] == "STARTUP_ANSWERS_COMPLETE_OR_DIRECT_TARGET_ASSIGNMENT_COMPLETE"
     assert intake_defaults["session_identity"] == "SILENT_CHROME_DERIVATION_AT_STARTUP_RECHECK_ONLY_ON_REBIND_LOGIN_CHANGE_RECOVERY_STALE_CHECKPOINT_OR_PRE_MUTATION_NO_HANDLE_IN_RECEIPTS"
     direction_defaults = defaults["direction_intake"]
     assert direction_defaults["question"] == "ONE_OPERATING_DIRECTION_PERSONA_AUDIENCE_TOPICS_AND_COMMUNITY_SEEDS_NOT_SEPARATE_FIELDS"
@@ -130,9 +133,10 @@ def main() -> None:
     ]
     assert action_scope_defaults["legacy_aliases"] == "INPUT_COMPATIBILITY_ONLY_NEVER_DISPLAY_IN_NEW_INTAKE"
     startup_transition = defaults["startup_transition"]
+    assert startup_transition["direct_target_path"] == "TARGET_POSTS_ACTIONS_DURATION_TO_COMPILER_THEN_INITIAL_NO_FORM"
     assert startup_transition["question_two_completion"] == "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP"
     assert startup_transition["missing_optional_defaults"] == "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY"
-    assert startup_transition["answer_compilation"] == "LOCAL_THREE_ANSWER_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND"
+    assert startup_transition["answer_compilation"] == "LOCAL_THREE_ANSWER_OR_DIRECT_TARGET_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND"
     assert startup_transition["after_three_answers"] == "CURRENT_TASK_SCOPE_ENVELOPE_ONE_CHROME_SESSION_INITIAL_DIRECT_THEN_ADVISORY_HEARTBEAT"
     assert startup_transition["initial_packet"] == "FORMAL_ROUND_ONE_NOT_PREVIEW_PLAN_OR_PREFILTER_WITH_ATOMIC_HANDOFF"
     assert startup_transition["technical_gates"] == "ONE_CURRENT_TASK_AND_CHROME_SESSION_GATE_NO_SCHEDULER_OR_TITLE_BLOCK"
@@ -174,11 +178,11 @@ def main() -> None:
         documents.append(repository_readme)
         readme = repository_readme.read_text(encoding="utf-8")
         assert "不要进入目标模式" not in readme
-        assert "收到完整回答后，在同一任务中立即开始第一轮正式运营" in readme
+        assert "在同一任务中立即开始第一轮正式运营" in readme
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
+    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -201,7 +205,7 @@ def main() -> None:
     intake_flat = " ".join(intake.split())
     assert len(intake.splitlines()) <= 115
     assert intake.count("## Question ") == 3
-    for phrase in ("Do not ask for an account name or handle", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "operating direction", "不需要拆开追问", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round", "Text fallback after an unanswered form", "do **not** submit `request_user_input` again", "请先回答以下三个问题", "这轮想围绕什么方向或哪些社区运营", "这轮希望做到哪一步", "all three questions"):
+    for phrase in ("Direct target shortcut", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "target_posts", "requested_work_types", "Do not ask for an account name or handle", "2 hours", "4 hours", "8 hours", "社交与社区", "个人创作与独立项目", "3D/游戏/共创", "operating direction", "不需要拆开追问", "Question 3", "模拟浏览", "参与讨论", "全面推进", "action scope", "MATERIAL_REQUIRED", "no fourth question", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_CANCELLED_BY_USER", "STARTUP_ANSWERS_COMPLETE", "compile_startup_intake.py", "silence never does", "do not ask a second-round question", "INITIAL direct packet", "not a preview, pre-filter, or separate planning round", "Text fallback after an unanswered form", "do **not** submit `request_user_input` again", "请先回答以下三个问题", "这轮想围绕什么方向或哪些社区运营", "这轮希望做到哪一步", "all three questions"):
         assert phrase in intake_flat, phrase
     assert "希望账号在 Reddit 上成为什么样的人" not in intake_flat
     assert "这轮希望账号做到哪一步" not in intake_flat
@@ -235,6 +239,34 @@ def main() -> None:
         assert compiled_intake["normalized"]["mission_strategy"]["material_refs"] == []
         assert compiled_intake["normalized"]["authority_profile"] == "discussion_participation"
         assert compiled_intake["normalized"]["requested_work_types"] == ["browsing", "comments"]
+        direct_answers = work / "direct-target.json"
+        direct_normalized = work / "direct-target-normalized.json"
+        direct_answers.write_text(json.dumps({
+            "direct_target_mode": True,
+            "target_posts": [
+                "https://old.reddit.com/r/SideProject/comments/direct1/demo/",
+                "https://www.reddit.com/r/SideProject/comments/direct2/feedback/",
+            ],
+            "requested_work_types": ["browsing", "comments", "follow-up"],
+            "duration_hours": 2,
+        }), encoding="utf-8")
+        direct_compiled = run(str(INTAKE_COMPILER), "--input", str(direct_answers), "--output", str(direct_normalized))
+        assert direct_compiled["status"] == "DIRECT_TARGET_ASSIGNMENT_COMPLETE"
+        assert direct_compiled["normalized"]["mission_strategy"]["community_scope"] == "closed"
+        assert direct_compiled["normalized"]["requested_work_types"] == ["browsing", "comments", "follow-up"]
+        direct_source = work / "direct-target-mission.json"
+        direct_envelope = work / "direct-target-envelope.json"
+        direct_payload = dict(direct_compiled["normalized"])
+        direct_payload.update({
+            "mission_id": "direct-target-contract",
+            "account": "u/example",
+            "operation_start_at": "2026-07-27T08:00:00Z",
+            "source_prompt": "explicit target posts and comments for two hours",
+        })
+        direct_source.write_text(json.dumps(direct_payload), encoding="utf-8")
+        direct_mission = run(str(COMPILER), "--input", str(direct_source), "--output", str(direct_envelope))
+        assert direct_mission["selected_units"] == ["browsing", "comments", "follow-up"]
+        assert direct_mission["explicit_user_overrides"]["target_posts"] == direct_payload["target_posts"]
         partial_answers = work / "partial-answers.json"
         partial_answers.write_text(json.dumps({"duration_hours": 2}), encoding="utf-8")
         partial = run(str(INTAKE_COMPILER), "--input", str(partial_answers))

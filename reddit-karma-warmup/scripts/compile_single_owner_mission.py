@@ -43,7 +43,7 @@ SAFE_OVERRIDE_TEXT_KEYS = {
     "community_expansion",
     "stop_condition",
 }
-SAFE_OVERRIDE_TEXT_LIST_KEYS = {"direction_tags", "target_communities"}
+SAFE_OVERRIDE_TEXT_LIST_KEYS = {"direction_tags", "target_communities", "target_posts"}
 BUSINESS_GOALS = (
     "community_discovery",
     "conversation_entry",

@@ -19,26 +19,19 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    `REMOTE_NEWER_DEFERRED` for the first safe release boundary. Do not open
    Chrome/Reddit, run research, or create a mission/queue/Heartbeat during this
    bootstrap step.
-2. Ask exactly three startup questions from
-   [startup intake](references/startup-intake.md): duration, one operating
-   direction, and action scope. Do not ask for an account name or handle. The
-   logged-in Chrome session is read silently as an internal gate; it is not a
-   startup answer and is not repeated in normal receipts. Use
-   `request_user_input` at most once and omit `autoResolutionMs`. If the form
-   is unanswered, partial, dismissed, or expires, send the prescribed normal
-   text response listing all three questions. Remain
-   `WAITING_FOR_STARTUP_INPUT`; silence never starts or cancels work.
-3. Persist the three answers and run `scripts/compile_startup_intake.py`. Only
-   `STARTUP_ANSWERS_COMPLETE` continues. One operating-direction answer is
-   complete; do not ask separately for audience, topics, communities, links,
-   account name, or materials.
-4. In that same task turn run:
-   `current-task scope -> envelope -> one Chrome/session gate -> INITIAL
-   packet`. Rename the current task to `Reddit 运营台`, pin it, and read back when
-   supported; presentation failure is non-blocking and retries next wake. The `INITIAL` packet is formal round one, not a preview or
-   pre-filter, and it must do real mission work immediately. Heartbeat creation
-   and readback are advisory continuation work; they must not block INITIAL.
-   Do not wait for a second user message or the first Heartbeat.
+2. Detect a complete direct target assignment before showing the intake form.
+   It must contain 1–32 target post URLs, explicit units/actions (for example
+   `browsing + comments + follow-up`), and a duration. Compile it with
+   `scripts/compile_startup_intake.py`; `DIRECT_TARGET_ASSIGNMENT_COMPLETE`
+   skips the three questions and starts the first formal round in this task.
+   A partial direct assignment gets one concise direct-text reminder and no
+   mission; do not invent URLs, actions, or duration.
+3. Otherwise ask exactly three startup questions from [startup intake](references/startup-intake.md): duration, one operating direction, and action scope. Do not ask for an account name or handle; the logged-in Chrome session is read silently. Use `request_user_input` at most once, omit `autoResolutionMs`, and on unanswered/partial/dismissed/expired send the prescribed normal text response listing all three questions and remain `WAITING_FOR_STARTUP_INPUT`.
+4. Persist the three answers or direct assignment and run the compiler. One operating-direction answer is enough. Only
+   `STARTUP_ANSWERS_COMPLETE` or `DIRECT_TARGET_ASSIGNMENT_COMPLETE` continues.
+   Do not ask a second round for audience, topics, links, account name, or
+   materials. In that same task turn run:
+   `current-task scope -> envelope -> one Chrome/session gate -> INITIAL packet`. Rename the current task to `Reddit 运营台`, pin it, and read back when supported; presentation failure is non-blocking. `INITIAL` is formal round one, not a preview or pre-filter, and must do real work immediately. Heartbeat creation/readback are advisory and never block INITIAL; do not wait for another user message or the first Heartbeat.
 Use the current task as the authority. Resolve the exact current Codex task ID
 from the current task context before compiling anything. A
 `<source_thread_id>` inside a delegated wrapper is provenance only; it is the

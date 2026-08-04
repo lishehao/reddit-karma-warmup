@@ -6,10 +6,11 @@ Question 3 supplies the primary business goal and action authority. Supporting
 units may run only when the recorded evidence graph arms them; neither answer
 alone bypasses a live action gate.
 
-## Three-question startup normalization
+## Startup normalization
 
-After bootstrap, obtain the three-answer artifact defined in
-[startup intake](startup-intake.md), then normalize it into the canonical
+After bootstrap, compile a complete direct target assignment when one is
+present; otherwise obtain the three-answer artifact defined in
+[startup intake](startup-intake.md). Normalize either into the canonical
 fields below. Do not ask for an account name or handle: use only the later
 same-Chrome live session proof. Question 2 carries one operating direction;
 persona, target
@@ -44,7 +45,7 @@ material_refs: real URLs, artifacts, observations, or []
 planning_targets: evidence/output targets, never forced action counts
 ```
 
-Question 2 determines `community_scope`: named communities are `closed`,
+Question 2 or explicit target post URLs determines `community_scope`: named communities are `closed`,
 expandable seeds are `seeded_expandable`, and a direction-only answer is
 `discover`. Do not request audience, topic, material, or a community list after
 Question 2; they are all optional details of the one operating direction and default to

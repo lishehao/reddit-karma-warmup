@@ -1,19 +1,22 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.04.6`
+Protocol version: `2026.08.04.7`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
 ## First-use prompt
 
 ```text
-请通过 HTTPS 读取并遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成预检并一次性询问启动问题；收到完整回答后，在同一任务中立即开始第一轮正式运营。
+请通过 HTTPS 读取并遵循 https://raw.githubusercontent.com/lishehao/reddit-karma-warmup/main/README.md，安装或升级 reddit-karma-warmup，完成预检；若 Prompt 没有给出完整目标帖子、动作和时长，再一次性询问启动问题，随后在同一任务中立即开始第一轮正式运营。
 ```
 
 ## Startup flow
 
 The initial message performs installation/upgrade and local preflight only,
-reports `BOOTSTRAP_READY`, then asks exactly three questions at once:
+reports `BOOTSTRAP_READY`, then uses one of two intake paths. A complete direct
+target assignment (target Reddit post URLs, allowed units, and duration) skips
+the form and starts the first formal round in the same task. Otherwise ask
+exactly three questions at once:
 
 1. **运行多久？** `2 小时 / 4 小时 / 8 小时`，或明确的自定义时长。
 2. **这轮想围绕什么方向或哪些社区运营？**
@@ -27,21 +30,14 @@ Use the interactive form once without `autoResolutionMs`. If it is unanswered,
 partial, dismissed, or expires, list all three questions in a normal text
 response and remain `WAITING_FOR_STARTUP_INPUT`; never infer defaults.
 
-When all three answers are complete, start in the same task turn:
+When the three answers or a complete direct target assignment are available,
+start in the same task turn:
 
 `current-task scope -> rename/pin current task -> mission envelope -> one Chrome/session gate -> formal INITIAL round -> advisory Heartbeat`
 
-Rename the current task to `Reddit 运营台`, pin it, and read back the exact task when supported; presentation failure is non-blocking and retries on the next safe wake. The INITIAL round performs real work immediately. It is not a preview or
-pre-filter and does not wait for another “继续” or for the first Heartbeat.
-Heartbeat is a continuation aid, not a prerequisite for the first round. If creation or readback is unavailable, record it and retry in the background
-without stopping current-task work. Delivery is advisory: a trigger within
-±10 minutes is ordinary, and a later trigger runs one currently due unit
-without replaying missed work.
+Rename the current task to `Reddit 运营台`, pin it, and read back when supported; presentation failure is non-blocking. The INITIAL round performs real work immediately, is not a preview or pre-filter, and does not wait for “继续” or the first Heartbeat. Heartbeat is a continuation aid; unavailable creation/readback is retried without stopping current-task work. Delivery is advisory: ±10 minutes is ordinary, and a late trigger runs one currently due unit without replaying missed work.
 
-Normal runtime receipts use short opaque evidence tokens; SHA-256 is not
-required for each wake, Chrome read, or action receipt. Envelope re-hashing is
-diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`); normal operation trusts the
-compiled envelope and checks task/scope consistency.
+Normal runtime receipts use short opaque evidence tokens; SHA-256 is not required for each wake, Chrome read, or action receipt. Envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`); normal operation trusts the compiled envelope and checks task/scope consistency.
 
 ## Installation contract
 
@@ -60,8 +56,9 @@ compiled envelope and checks task/scope consistency.
    `chrome_release=PENDING` alone is not an active fence.
 
 During installation and intake, do not open Chrome/Reddit, run research, or
-create a mission, queue, or Heartbeat. Those begin only after all three answers
-are complete.
+create a mission, queue, or Heartbeat. Those begin only after the three answers
+or a complete direct target assignment are available. An incomplete direct
+assignment gets one concise text reminder; do not invent missing targets.
 
 ## Runtime contract
 

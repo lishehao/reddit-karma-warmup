@@ -1,5 +1,9 @@
 # Unit guides
 
+For `direct_target_mode`, keep browsing, comments, and follow-up inside the
+compiled `target_posts` list. Do not expand to other communities or create a
+new target unless the user supplies a new assignment.
+
 Load the selected section only after the owner decides `RUN`.
 
 ## Browsing

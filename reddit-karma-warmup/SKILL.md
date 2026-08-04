@@ -34,7 +34,7 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    account name, or materials.
 4. In that same task turn run:
    `current-task scope -> envelope -> one Chrome/session gate -> INITIAL
-   packet`. Rename/pin the current task as `Reddit 运营台` and read back when
+   packet`. Rename the current task to `Reddit 运营台`, pin it, and read back when
    supported; presentation failure is non-blocking and retries next wake. The `INITIAL` packet is formal round one, not a preview or
    pre-filter, and it must do real mission work immediately. Heartbeat creation
    and readback are advisory continuation work; they must not block INITIAL.

@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-    "runtime_protocol_version": "2026.08.04.4",
+    "runtime_protocol_version": "2026.08.04.5",
   "runtime_evidence_policy": {
     "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",

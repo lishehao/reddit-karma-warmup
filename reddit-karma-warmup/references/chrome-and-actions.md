@@ -57,9 +57,9 @@ for a due `RECOVERY_FIRST` unit. It is a bounded retry, not a chain of probes:
 
 The classification deliberately does not guess whether the root cause is the
 network, extension transport, or renderer. It distinguishes a content timeout
-from a true browser disconnect without adding a startup blocker. A current
-live rule/composer/session gate is still required immediately before a public
-action.
+from a true browser disconnect without adding a startup blocker. A current live
+rule/composer/session gate is still required immediately before a public
+action; comments use the lightweight target/context/basic-rule version.
 
 ## Atomic boundary rules
 
@@ -99,10 +99,10 @@ action.
 ## Action gate
 
 Before a public action persist `action_key`, target, text/direction, and
-expected session proof. Recheck the fresh visible session/composer/control,
-title/body/flair,
-live rule context, and submit availability. Submit once. Verify with a separate
-targeted read. If the click/send may have occurred but proof is missing, record
+expected session proof. For comments recheck target/context, basic rule,
+composer, and submit availability; posts also recheck title/body/flair and
+duplicate/recent history. Submit once. Verify with a separate targeted read. If
+the click/send may have occurred but proof is missing, record
 `MUTATION_UNKNOWN`, freeze the exact key, and never retry it on another surface
 or tab.
 

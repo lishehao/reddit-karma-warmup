@@ -92,10 +92,11 @@ budget, soft action threshold, action budget, material references, and planning
 targets. The user may say “high/low frequency”, but that shorthand never
 changes the Heartbeat: it compiles to coverage/threshold/budget only.
 
-Hard action gates are invariant: explicit authority, live rule/format fit,
+Post/follow-up/presence gates require explicit authority, live rule/format fit,
 truthful material or claim, current session/composer state, duplicate/recent
-history, and one verified submission. The threshold only ranks candidates that
-already pass those gates.
+history, and one verified submission. Comments use the lighter target/context,
+basic-rule, truthful-text, composer, and one verified submission path. The
+threshold only ranks candidates after their action-type gate.
 
 When an enabled comment/post/follow-up/presence unit becomes `ACTION_ELIGIBLE`
 for the business goal, schedule it before more exploratory browsing. A browsing

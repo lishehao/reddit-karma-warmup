@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.04.5`
+Protocol version: `2026.08.04.6`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -75,10 +75,11 @@ are complete.
 - Built-in Web Search handles broad research; the optional official Reddit API
   is GET-only public indexing; logged-in Chrome performs every real Reddit read
   and every interactive action.
-- Only current task scope, a readable Chrome session, and public-action gates
-  (current rules, truthful evidence, composer state, duplicate check, and
-  independent verification) are hard gates. Titles, scheduler readback, stale
-  metadata, and auxiliary probes are observability, not startup blockers.
+- Only current task scope, readable Chrome, and action-type gates are hard gates.
+  Comments use target/context fit, a basic current rule check, composer state,
+  and one verified submit; posts retain the fuller rule, truth, duplicate, and
+  format review. Titles, scheduler readback, stale metadata, and auxiliary
+  probes are observability, not startup blockers.
 - Candidate evidence moves atomically from browsing to comments/posts; a
   verified own permalink can arm follow-up. One rejected candidate returns to
   browsing instead of blocking the whole mission.

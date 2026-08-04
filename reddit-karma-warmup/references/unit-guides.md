@@ -24,19 +24,18 @@ target unit, `ACTION_ELIGIBLE`, the exact candidate reference, and a compact
 source reference before the
 browsing packet finishes. This arms the target's next task wake packet when
 available;
-it does not bypass that packet's research, live-rule, duplicate, session, or
-composer gate. If no truthful boundary exists, leave the target `PENDING` or
+it does not bypass that packet's small action gate. If no truthful boundary exists, leave the target `PENDING` or
 park it with the evidence reason—never create a pause/resume revision merely
 to alter its cadence.
 
 ## Comments
 
-Complete the research/index SOP, then open only candidates with a specific,
-truthful contribution. Read the post, relevant parent, nearby replies, live
-rule context, and composer. With explicit comment authority, publish at most
-one original context-fit comment in the packet; otherwise record research only.
-Do not manufacture a quota, a personal experience, a factual claim, or product
-promotion. If the exact candidate fails a visible rule or fit gate, call
+Use the comment fast path: read the post, nearby context, one basic current rule
+or fresh cache, and the composer. A short context-fit comment needs no broad Web
+Search; add one focused query only for a factual, technical, or unfamiliar claim.
+With explicit comment authority, publish at most one original comment. Do not
+manufacture a quota, a personal experience, a factual claim, or product
+promotion. Check duplicates only on the same target. If the exact candidate fails a visible rule or fit gate, call
 `candidate-reject`; do not park the whole comments lane. Browsing must refill a
 different candidate at the next task wake, and the rejected exact
 candidate must not be handed back.

@@ -118,11 +118,11 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    next wake must create/claim one fresh agent-owned tab and run one real content
    probe before continuing or yielding the same unit. URL-only checks/finalize
    do not count; retry later and never permanently park a due unit.
-5. For comments/posts do a short research brief, then a small purpose-specific
-   Web Search pass and the Chrome live gate. Use 2-4 queries for comments and
-   4-8 for posts; add a query only when the selected target or a factual claim
-   needs it. The only action gates are current rules/format, truthful content,
-   current session/composer, duplicate/recent history, and one verified submit.
+5. Comments use a fast path: read the target and nearby context, one basic
+   current rule or fresh cache, and the visible composer; use zero Web Search
+   queries unless a factual/technical/unfamiliar claim needs one. Same-target
+   duplicate checking is enough. Posts keep the 4-8 query research pass and
+   fuller rule, truth, duplicate, format, session, and submit gates.
 6. Before every public action persist deterministic `MUTATION_INTENT` and
    `action_key`. Submit once and verify separately. Freeze uncertain exact keys
    permanently; never reopen or retry them. At completion/deadline enter

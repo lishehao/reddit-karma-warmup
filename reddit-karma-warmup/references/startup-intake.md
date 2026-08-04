@@ -77,8 +77,9 @@ Ask: **这轮希望做到哪一步？**
 | `全面推进` | eligible comments, truthful posts, follow-up, concrete presence | `project_distribution` | all five units |
 
 This is action scope, not frequency, quota, or a publication promise. All
-outward actions still require live rules, truthful evidence, session/composer
-state, duplicate checks, and verification. Accept a custom answer only when it
+outward actions still require the action-type gate: comments use current context,
+a basic rule, composer, and verification; posts use the fuller rules, truth,
+format, duplicate, and session checks. Accept a custom answer only when it
 explicitly names allowed units and one business goal; never infer write
 authority from Question 2.
 

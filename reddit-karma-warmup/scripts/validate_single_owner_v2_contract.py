@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.04.5"
+    assert version == "2026.08.04.6"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
@@ -151,10 +151,14 @@ def main() -> None:
     assert defaults["mission_profiles"]["frequency_aliases"]["low"]["action_threshold"] == "high"
     assert defaults["research"]["community_index"]["methods"] == ["GET"]
     assert defaults["research"]["community_index"]["account_or_write_endpoints"] == "FORBIDDEN"
-    assert defaults["research"]["web_search"]["comments_query_min"] == 2
-    assert defaults["research"]["web_search"]["comments_query_max"] == 4
+    assert defaults["research"]["comment_fast_path"]["web_search"] == "OPTIONAL_ONLY_FOR_FACTUAL_TECHNICAL_OR_UNFAMILIAR_CLAIMS"
+    assert defaults["research"]["comment_fast_path"]["duplicate_scope"] == "SAME_TARGET_ONLY"
+    assert defaults["research"]["comment_fast_path"]["full_account_history"] is False
+    assert defaults["research"]["web_search"]["comments_query_min"] == 0
+    assert defaults["research"]["web_search"]["comments_query_max"] == 1
     assert defaults["research"]["web_search"]["posts_query_min"] == 4
     assert defaults["research"]["web_search"]["posts_query_max"] == 8
+    assert defaults["mission_profiles"]["comment_action_gates"] == ["explicit_authority", "target_and_nearby_context", "basic_current_rule_or_fresh_cache", "truthful_context_fit", "visible_composer", "single_submission_and_verification"]
     assert defaults["runtime_fence"]["preflight"] == "CURRENT_TASK_ONLY_NO_CROSS_TASK_SCAN"
     assert defaults["runtime_fence"]["pending_chrome_release"] == "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF"
     assert defaults["runtime_fence"]["stale_reconciliation"] == "CURRENT_TASK_LOCAL_MARKER_ONLY"

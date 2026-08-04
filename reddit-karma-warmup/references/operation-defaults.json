@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-    "runtime_protocol_version": "2026.08.04.5",
+    "runtime_protocol_version": "2026.08.04.6",
   "runtime_evidence_policy": {
     "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -147,12 +147,19 @@
       "standard": {"coverage_budget": "standard", "action_threshold": "standard", "action_budget": "standard"},
       "high": {"coverage_budget": "broad", "action_threshold": "standard", "action_budget": "active"}
     },
-    "hard_action_gates": ["explicit_authority", "live_rules_and_format", "truthful_material_or_claim", "account_and_submit_state", "duplicate_and_recent_history", "single_submission_and_verification"]
+    "hard_action_gates": ["explicit_authority", "live_rules_and_format", "truthful_material_or_claim", "account_and_submit_state", "duplicate_and_recent_history", "single_submission_and_verification"],
+    "comment_action_gates": ["explicit_authority", "target_and_nearby_context", "basic_current_rule_or_fresh_cache", "truthful_context_fit", "visible_composer", "single_submission_and_verification"]
   },
   "research": {
+    "comment_fast_path": {
+      "web_search": "OPTIONAL_ONLY_FOR_FACTUAL_TECHNICAL_OR_UNFAMILIAR_CLAIMS",
+      "required_reads": ["TARGET_POST", "NEARBY_CONTEXT", "BASIC_CURRENT_RULE_OR_FRESH_CACHE", "VISIBLE_COMPOSER"],
+      "duplicate_scope": "SAME_TARGET_ONLY",
+      "full_account_history": false
+    },
     "web_search": {
-      "comments_query_min": 2,
-      "comments_query_max": 4,
+      "comments_query_min": 0,
+      "comments_query_max": 1,
       "posts_query_min": 4,
       "posts_query_max": 8,
       "selected_item_final_query_min": 1,

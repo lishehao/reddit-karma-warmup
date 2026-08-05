@@ -99,21 +99,21 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    authorized public action before finishing the round. Comments are the default
    first lane when enabled; browsing-only missions may finish as research-only.
    Later wakes may record `heartbeat-observe` when available, then decide
-   `RUN|WATCH|SKIP|DEFER` for due units. Run at most one unit, one Chrome packet,
-   and one public action per
-   wake. ±10 minutes is normal. A late wake runs one currently due unit; no
-   catch-up means no replay. A fast NOOP is only for early/duplicate, recovery,
-   or genuinely exhausted/parked work; scheduler uncertainty is not a reason
-   to skip current-task work, and a missing observation is not a second gate.
+   `RUN|WATCH|SKIP|DEFER` for due units. Run one Chrome packet per wake; an
+   action unit may submit up to two distinct public actions in that packet,
+   subject to the hourly ceiling. ±10 minutes is normal. A late wake runs one
+   currently due unit; no catch-up means no replay. A fast NOOP is only for
+   early/duplicate, recovery, or genuinely exhausted/parked work; scheduler
+   uncertainty is not a reason to skip current-task work, and a missing observation is not a second gate.
 4. Action units may find their own target in the same packet. Browsing candidate
    packs and atomic `handoff` remain useful but are optional; a candidate pack is
    not a reason to end an action-authorized round. Link work through recorded
    evidence; verified own permalinks arm follow-up. An
    `ACTION_ELIGIBLE` unit outranks more browsing. For comments, continue across
    new targets (up to 60 target reads) until the first compliant target is found;
-   stop early after one verified action. Only cutoff, no authority, a
-   content-channel failure, a visible blocker on every tested target, no
-   truthful contribution after the expanded search, or an uncertain submission
+   under an active action budget, continue to a second distinct target after
+   the first verified action until the packet or hourly cap is reached. Only
+   cutoff, no authority, a content-channel failure, a visible blocker on every tested target, no truthful contribution after the expanded search, or an uncertain submission
    justifies a no-action round. Record failed self-selected candidates locally;
    use `candidate-reject` for a handoff-supplied target, and do not turn either
    into mission-wide `RULE_BLOCKED` or `MATERIAL_REQUIRED`. A runtime read failure

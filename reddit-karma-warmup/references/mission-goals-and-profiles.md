@@ -42,7 +42,7 @@ coverage_budget: narrow | standard | broad
 action_threshold: high | standard | low
 action_budget: minimal | standard | active
 material_refs: real URLs, artifacts, observations, or []
-planning_targets: evidence/output targets, never forced action counts
+planning_targets: evidence/output targets plus soft throughput targets, never forced action counts
 ```
 
 Question 2 or explicit target post URLs determines `community_scope`: named communities are `closed`,
@@ -81,7 +81,12 @@ Use three reporting layers:
 3. **Output:** verified public actions.
 
 Planning targets describe desired evidence and output, but never force a post
-or comment. For a launch/distribution goal, an eligible post route outranks
+or comment. Active missions use soft defaults of 4 verified comments/hour
+(ceiling 5), 1 verified post per two hours, 1 useful follow-up/hour (ceiling 2),
+and 30 qualified reads/hour, with a combined public-action ceiling of 6/hour.
+Standard missions use 2 comments/hour, 1 post per two hours, and a 4/hour
+public-action ceiling. These are pacing targets, not a reason to publish filler.
+For a launch/distribution goal, an eligible post route outranks
 more browsing. If no compliant route or truthful material exists, report the
 goal as unmet with `RULE_BLOCKED` or `MATERIAL_REQUIRED`; do not disguise it as
 successful exploration or repeat the same sweep. One failed candidate or

@@ -57,7 +57,9 @@ Use `PENDING`, `CANDIDATES_READY`, `ACTION_ELIGIBLE`, `ACTION_VERIFIED`,
 `NOT_APPLICABLE`, or `RESEARCH_ONLY`. Record a compact evidence/source
 reference when a unit becomes `CANDIDATES_READY` or `ACTION_ELIGIBLE`.
 `ACTION_VERIFIED` needs both verification evidence and the resulting own
-permalink/source reference before it can arm follow-up.
+permalink/source reference before it can arm follow-up. In an `active` mission,
+it also re-arms the same action lane on the next wake; a verified action is
+success evidence, not a reason to stop the lane.
 
 - `MATERIAL_REQUIRED`: a bounded mission-wide audit established that every
   allowed truthful post format needs absent material. Supply
@@ -82,11 +84,12 @@ parked action unit. Do not use a generic cadence to revive it.
 ## Action-first rounds
 
 When any outward unit is authorized, every formal round, including `INITIAL`,
-must attempt one authorized public action before it finishes. Comments are the
+must attempt an authorized public action before it finishes. Comments are the
 default action-first unit when enabled; a comments packet may search and choose
 its own target instead of waiting for a browsing handoff. Read up to 60 new
-target posts in that packet and stop at the first target that passes the small
-live gate. This is an expansion cap, not a posting quota.
+target posts in that packet and, for an `active` mission, continue to a second
+distinct target after the first verified action until the packet or hourly cap.
+This is a throughput target with a hard ceiling, not permission to post filler.
 
 The only honest no-action outcomes are: no authority, mission cutoff, Chrome or
 content-channel failure, a visible blocker on every tested target, no truthful
@@ -125,8 +128,9 @@ action moving; record the unmet post goal honestly rather than forcing a post.
 ## Wake and units
 
 For every due enabled unit, persist one `RUN`, `WATCH`, `SKIP`, or `DEFER`
-decision. Select at most one `RUN`; it gets one Chrome packet and at most one
-public action. The unit may complete, skip, block, or yield. On finish, persist
+decision. Select one action unit for the packet; it gets one Chrome packet and
+may submit up to two distinct public actions, subject to the hourly ceiling.
+The unit may complete, skip, block, or yield. On finish, persist
 an objective state as well as the packet outcome whenever the unit has outward
 authority. A yielded unit resumes before a later unit. For an
 action-authorized mission, `RUN` must be an action-first packet unless one of
@@ -152,9 +156,10 @@ the normal expected-time window records the signed delay. Later wakes use their
 expected time window and record whether scheduler telemetry was present. They
 do not require a same-turn observation before running current due work.
 Normal unit rechecks align to the task Heartbeat phase when available—not absolute UTC
-quarter-hours: browsing 30 minutes, comments
-45, posts 180, follow-up 90 (15 for an active known chain), and presence 24
-hours. They are recheck timings, never action quotas. An `ACTION_ELIGIBLE`
+quarter-hours: browsing 30 minutes, comments 15, posts 120, follow-up 60, and
+presence 24 hours. They are recheck timings, never action quotas. An
+`ACTION_VERIFIED` comment/post in an active action budget re-arms on the next
+task wake; standard/minimal missions use the normal recheck. An `ACTION_ELIGIBLE`
 handoff is different: it is a continuation and should be due on the next task
 wake when available, not the next absolute grid boundary. For an active
 action-budget mission, runnable browsing likewise remains due on the next task

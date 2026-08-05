@@ -54,11 +54,17 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.3"
+    assert version == "2026.08.05.4"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.3"' in queue_source
-    assert '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.4"' in queue_source
+    assert '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
+    assert defaults["execution_profile"] == {
+        "preferred_model": "gpt-5.6-luna",
+        "reasoning_effort": "xhigh",
+        "request_mode": "PREFERRED_IF_HOST_SUPPORTED",
+        "evidence_state": "REQUESTED_NOT_RUNTIME_PROOF",
+    }
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
         "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -117,12 +123,24 @@ def main() -> None:
     assert defaults["scheduler"]["late_wake"] == "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP"
     assert defaults["scheduler"]["recoverable_runtime_failure"] == "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING"
     assert defaults["scheduler"]["heartbeat_prompt"] == "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
-    assert defaults["scheduler"]["recheck_minutes"]["browsing"] == 30
-    assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_COMMENTS_SELF_SELECT_TARGET_IF_NO_HANDOFF"
+    assert defaults["scheduler"]["recheck_minutes"] == {"browsing": 30, "comments": 15, "posts": 120, "follow-up": 60, "presence": 1440}
+    assert defaults["scheduler"]["max_chrome_packets_per_wake"] == 1
+    assert defaults["scheduler"]["max_public_actions_per_wake"] == 2
+    assert defaults["scheduler"]["max_public_actions_per_hour"] == 6
+    assert defaults["scheduler"]["action_packet_mode"] == "ONE_UNIT_PACKET_MAY_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP"
+    assert defaults["scheduler"]["active_action_rearm"] == "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUP_NEXT_DUE_60_MINUTES"
+    assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_REARM_ACTIVE_COMMENT_TARGETS_AND_ALLOW_TWO_DISTINCT_ACTIONS_PER_PACKET"
+    assert defaults["mission_profiles"]["throughput_targets"]["active"] == {
+        "comments_per_hour": {"target": 4, "ceiling": 5},
+        "posts_per_two_hours": {"target": 1, "ceiling": 1},
+        "followups_per_hour": {"target": 1, "ceiling": 2},
+        "qualified_reads_per_hour": 30,
+        "public_actions_per_hour_ceiling": 6,
+    }
     assert defaults["scheduler"]["action_obligation"] == {
         "enabled": "AUTHORIZED_OUTWARD_UNIT_EACH_FORMAL_ROUND",
         "initial": "ACTION_FIRST_BEFORE_BROWSING",
-        "search_expansion": "UP_TO_60_TARGET_READS_STOP_ON_FIRST_COMPLIANT_TARGET",
+        "search_expansion": "UP_TO_60_TARGET_READS_STOP_AFTER_PACKET_OR_HOURLY_CAP",
         "exceptions": ["NO_AUTHORITY", "CUTOFF", "CHROME_CONTENT_UNAVAILABLE", "VISIBLE_BLOCKER_ALL_TESTED_TARGETS", "NO_TRUTHFUL_CONTRIBUTION_AFTER_60", "SUBMISSION_UNCERTAIN"],
     }
     chrome_defaults = defaults["chrome"]
@@ -204,7 +222,8 @@ def main() -> None:
     assert defaults["research"]["comment_fast_path"]["duplicate_scope"] == "SAME_TARGET_ONLY"
     assert defaults["research"]["comment_fast_path"]["full_account_history"] is False
     assert defaults["research"]["comment_fast_path"]["max_target_reads_per_action_packet"] == 60
-    assert defaults["research"]["comment_fast_path"]["stop_after_first_eligible"] is True
+    assert defaults["research"]["comment_fast_path"]["stop_after_first_eligible"] is False
+    assert defaults["research"]["comment_fast_path"]["stop_policy"] == "ACTIVE_CONTINUE_UNTIL_PACKET_OR_HOURLY_CAP_STANDARD_STOP_AFTER_FIRST_VERIFIED"
     assert defaults["research"]["comment_fast_path"]["required_reads"] == ["TARGET_POST", "NEARBY_CONTEXT", "VISIBLE_RULE_OR_SUBMIT_SIGNAL", "VISIBLE_COMPOSER"]
     assert defaults["research"]["web_search"]["comments_query_min"] == 0
     assert defaults["research"]["web_search"]["comments_query_max"] == 1
@@ -528,6 +547,10 @@ def main() -> None:
         assert compiled["mission_strategy"]["business_goal"] == "project_distribution"
         assert compiled["mission_strategy"]["coverage_budget"] == "broad"
         assert compiled["mission_strategy"]["action_threshold"] == "high"
+        assert compiled["model_request"]["preferred_model"] == "gpt-5.6-luna"
+        assert compiled["model_request"]["reasoning_effort"] == "xhigh"
+        assert compiled["mission_strategy"]["planning_targets"]["comments_per_hour"] == 4
+        assert compiled["mission_strategy"]["planning_targets"]["qualified_reads_per_hour"] == 30
         unchanged_source = work / "unchanged-revision.json"
         unchanged_source.write_text(json.dumps({"source_prompt": "same mission with no policy change"}), encoding="utf-8")
         unchanged = run(str(COMPILER), "--input", str(unchanged_source), "--parent-envelope", str(envelope))
@@ -593,6 +616,7 @@ def main() -> None:
             "requested_work_types": ["comments", "posts", "follow-up", "presence"],
             "unit_authority": {"comments": "COMMENT_AUTHORIZED", "posts": "POST_AUTHORIZED", "follow-up": "FOLLOWUP_AUTHORIZED", "presence": "PRESENCE_AUTHORIZED"},
             "authorization_receipt": "explicit user authorization",
+            "mission_strategy": {"business_goal": "conversation_entry", "community_scope": "discover", "coverage_budget": "broad", "action_threshold": "standard", "action_budget": "active", "planning_targets": {}},
             "source_prompt": "compact objective graph"
         }), encoding="utf-8")
         run(str(COMPILER), "--input", str(action_source), "--output", str(action_envelope))
@@ -696,6 +720,7 @@ def main() -> None:
         assert rearmed["objective_state"]["posts"] == "ACTION_ELIGIBLE"
         verified = run(str(QUEUE), "objective-set", *action_shared, "--unit", "posts", "--objective-state", "ACTION_VERIFIED", "--objective-reason", "post visible after reload", "--objective-evidence-sha256", proof, "--source-ref", "https://www.reddit.com/r/example/comments/abc", "--now-utc", "2026-07-27T01:00:08Z")
         assert verified["objective_state"]["posts"] == "ACTION_VERIFIED"
+        assert verified["next_due_at_utc"]["posts"] == "2026-07-27T01:12:00Z"
         armed = run(str(QUEUE), "objective-set", *action_shared, "--unit", "follow-up", "--objective-state", "ACTION_ELIGIBLE", "--objective-reason", "verified own permalink", "--source-ref", "https://www.reddit.com/r/example/comments/abc", "--now-utc", "2026-07-27T01:00:09Z")
         assert armed["status"] == "OBJECTIVE_RECORDED"
         assert armed["objective_state"]["follow-up"] == "ACTION_ELIGIBLE"

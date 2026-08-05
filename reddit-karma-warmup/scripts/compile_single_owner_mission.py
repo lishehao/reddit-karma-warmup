@@ -71,9 +71,32 @@ GOAL_DEFAULT_SCOPE = {
 }
 MODEL_REQUEST = {
     "preferred_model": "gpt-5.6-luna",
-    "reasoning_effort": "high",
+    "reasoning_effort": "xhigh",
     "request_mode": "PREFERRED_IF_HOST_SUPPORTED",
     "evidence_state": "REQUESTED_NOT_RUNTIME_PROOF",
+}
+THROUGHPUT_TARGETS = {
+    "minimal": {
+        "comments_per_hour": 1,
+        "posts_per_two_hours": 0,
+        "followups_per_hour": 0,
+        "qualified_reads_per_hour": 12,
+        "public_actions_per_hour_ceiling": 2,
+    },
+    "standard": {
+        "comments_per_hour": 2,
+        "posts_per_two_hours": 1,
+        "followups_per_hour": 1,
+        "qualified_reads_per_hour": 20,
+        "public_actions_per_hour_ceiling": 4,
+    },
+    "active": {
+        "comments_per_hour": 4,
+        "posts_per_two_hours": 1,
+        "followups_per_hour": 1,
+        "qualified_reads_per_hour": 30,
+        "public_actions_per_hour_ceiling": 6,
+    },
 }
 
 
@@ -218,7 +241,10 @@ def normalize_strategy(raw, selected, parent):
     if action_budget not in ACTION_BUDGETS:
         fail("invalid mission_strategy.action_budget")
     material_refs = normalize_material_refs(supplied["material_refs"]) if "material_refs" in supplied else list(inherited.get("material_refs", []))
-    planning_targets = normalize_planning_targets(supplied["planning_targets"]) if "planning_targets" in supplied else dict(inherited.get("planning_targets", {}))
+    planning_targets = dict(THROUGHPUT_TARGETS[action_budget])
+    planning_targets.update(dict(inherited.get("planning_targets", {})))
+    if "planning_targets" in supplied:
+        planning_targets.update(normalize_planning_targets(supplied["planning_targets"]))
     return {
         "business_goal": business_goal,
         "community_scope": community_scope,

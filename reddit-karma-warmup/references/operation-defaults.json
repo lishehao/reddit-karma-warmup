@@ -1,6 +1,12 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.08.05.3",
+  "runtime_protocol_version": "2026.08.05.4",
+  "execution_profile": {
+    "preferred_model": "gpt-5.6-luna",
+    "reasoning_effort": "xhigh",
+    "request_mode": "PREFERRED_IF_HOST_SUPPORTED",
+    "evidence_state": "REQUESTED_NOT_RUNTIME_PROOF"
+  },
   "runtime_evidence_policy": {
     "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -130,15 +136,18 @@
     "late_wake": "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP",
     "recoverable_runtime_failure": "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING",
     "max_chrome_packets_per_wake": 1,
-    "max_public_actions_per_wake": 1,
+    "max_public_actions_per_wake": 2,
+    "max_public_actions_per_hour": 6,
+    "action_packet_mode": "ONE_UNIT_PACKET_MAY_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP",
+    "active_action_rearm": "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUP_NEXT_DUE_60_MINUTES",
     "action_obligation": {
       "enabled": "AUTHORIZED_OUTWARD_UNIT_EACH_FORMAL_ROUND",
       "initial": "ACTION_FIRST_BEFORE_BROWSING",
-      "search_expansion": "UP_TO_60_TARGET_READS_STOP_ON_FIRST_COMPLIANT_TARGET",
+      "search_expansion": "UP_TO_60_TARGET_READS_STOP_AFTER_PACKET_OR_HOURLY_CAP",
       "exceptions": ["NO_AUTHORITY", "CUTOFF", "CHROME_CONTENT_UNAVAILABLE", "VISIBLE_BLOCKER_ALL_TESTED_TARGETS", "NO_TRUTHFUL_CONTRIBUTION_AFTER_60", "SUBMISSION_UNCERTAIN"]
     },
-    "recheck_minutes": {"browsing": 30, "comments": 45, "posts": 180, "follow-up": 90, "presence": 1440},
-    "continuation_policy": "ACTION_FIRST_EACH_FORMAL_ROUND_COMMENTS_SELF_SELECT_TARGET_IF_NO_HANDOFF",
+    "recheck_minutes": {"browsing": 30, "comments": 15, "posts": 120, "follow-up": 60, "presence": 1440},
+    "continuation_policy": "ACTION_FIRST_EACH_FORMAL_ROUND_REARM_ACTIVE_COMMENT_TARGETS_AND_ALLOW_TWO_DISTINCT_ACTIONS_PER_PACKET",
     "action_window_guard": "AUTHORIZED_PENDING_OR_CANDIDATE_READY_COMMENTS_POSTS_CLAMP_TO_NEXT_TASK_WAKE_WHEN_AVAILABLE_IF_DEFAULT_RECHECK_WOULD_CROSS_CUTOFF",
     "heartbeat_prompt": "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY",
     "scheduler_gate": "ADVISORY_NEVER_BLOCK_INITIAL_OR_CURRENT_TASK_WAKE",
@@ -178,6 +187,11 @@
       "low": "adequate_relevance_and_truthful_nonduplicative_value"
     },
     "action_budgets": ["minimal", "standard", "active"],
+    "throughput_targets": {
+      "minimal": {"comments_per_hour": {"target": 1, "ceiling": 2}, "posts_per_two_hours": {"target": 0, "ceiling": 1}, "followups_per_hour": {"target": 0, "ceiling": 1}, "qualified_reads_per_hour": 12, "public_actions_per_hour_ceiling": 2},
+      "standard": {"comments_per_hour": {"target": 2, "ceiling": 3}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 1, "ceiling": 2}, "qualified_reads_per_hour": 20, "public_actions_per_hour_ceiling": 4},
+      "active": {"comments_per_hour": {"target": 4, "ceiling": 5}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 1, "ceiling": 2}, "qualified_reads_per_hour": 30, "public_actions_per_hour_ceiling": 6}
+    },
     "frequency_aliases": {
       "low": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},
       "standard": {"coverage_budget": "standard", "action_threshold": "standard", "action_budget": "standard"},
@@ -193,7 +207,8 @@
       "duplicate_scope": "SAME_TARGET_ONLY",
       "full_account_history": false,
       "max_target_reads_per_action_packet": 60,
-      "stop_after_first_eligible": true
+      "stop_after_first_eligible": false,
+      "stop_policy": "ACTIVE_CONTINUE_UNTIL_PACKET_OR_HOURLY_CAP_STANDARD_STOP_AFTER_FIRST_VERIFIED"
     },
     "web_search": {
       "comments_query_min": 0,

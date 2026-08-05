@@ -54,11 +54,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.4"
+    assert version == "2026.08.05.5"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.4"' in queue_source
-    assert '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.5"' in queue_source
+    assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
         "reasoning_effort": "xhigh",
@@ -125,15 +125,17 @@ def main() -> None:
     assert defaults["scheduler"]["heartbeat_prompt"] == "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
     assert defaults["scheduler"]["recheck_minutes"] == {"browsing": 30, "comments": 15, "posts": 120, "follow-up": 60, "presence": 1440}
     assert defaults["scheduler"]["max_chrome_packets_per_wake"] == 1
-    assert defaults["scheduler"]["max_public_actions_per_wake"] == 2
+    assert defaults["scheduler"]["max_public_actions_per_wake"] == 3
     assert defaults["scheduler"]["max_public_actions_per_hour"] == 6
-    assert defaults["scheduler"]["action_packet_mode"] == "ONE_UNIT_PACKET_MAY_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP"
-    assert defaults["scheduler"]["active_action_rearm"] == "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUP_NEXT_DUE_60_MINUTES"
+    assert defaults["scheduler"]["max_followups_per_packet"] == 3
+    assert defaults["scheduler"]["max_followups_per_hour"] == 5
+    assert defaults["scheduler"]["action_packet_mode"] == "ONE_UNIT_PACKET_MAY_BATCH_FOLLOWUPS_OR_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP"
+    assert defaults["scheduler"]["active_action_rearm"] == "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUPS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED"
     assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_REARM_ACTIVE_COMMENT_TARGETS_AND_ALLOW_TWO_DISTINCT_ACTIONS_PER_PACKET"
     assert defaults["mission_profiles"]["throughput_targets"]["active"] == {
         "comments_per_hour": {"target": 4, "ceiling": 5},
         "posts_per_two_hours": {"target": 1, "ceiling": 1},
-        "followups_per_hour": {"target": 1, "ceiling": 2},
+        "followups_per_hour": {"target": 3, "ceiling": 5},
         "qualified_reads_per_hour": 30,
         "public_actions_per_hour_ceiling": 6,
     }
@@ -725,6 +727,9 @@ def main() -> None:
         assert armed["status"] == "OBJECTIVE_RECORDED"
         assert armed["objective_state"]["follow-up"] == "ACTION_ELIGIBLE"
         assert armed["next_due_at_utc"]["follow-up"] == "2026-07-27T01:12:00Z", armed
+        followup_verified = run(str(QUEUE), "objective-set", *action_shared, "--unit", "follow-up", "--objective-state", "ACTION_VERIFIED", "--objective-reason", "reply visible after reload", "--objective-evidence-sha256", proof, "--source-ref", "https://www.reddit.com/r/example/comments/abc#reply", "--now-utc", "2026-07-27T01:00:10Z")
+        assert followup_verified["objective_state"]["follow-up"] == "ACTION_VERIFIED"
+        assert followup_verified["next_due_at_utc"]["follow-up"] == "2026-07-27T01:12:00Z"
         priority_source = work / "priority-mission.json"
         priority_envelope = work / "priority-envelope.json"
         priority_source.write_text(json.dumps({

@@ -86,14 +86,14 @@ THROUGHPUT_TARGETS = {
     "standard": {
         "comments_per_hour": 2,
         "posts_per_two_hours": 1,
-        "followups_per_hour": 1,
+        "followups_per_hour": 2,
         "qualified_reads_per_hour": 20,
         "public_actions_per_hour_ceiling": 4,
     },
     "active": {
         "comments_per_hour": 4,
         "posts_per_two_hours": 1,
-        "followups_per_hour": 1,
+        "followups_per_hour": 3,
         "qualified_reads_per_hour": 30,
         "public_actions_per_hour_ceiling": 6,
     },

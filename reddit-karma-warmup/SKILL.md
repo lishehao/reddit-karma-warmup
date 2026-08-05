@@ -99,9 +99,9 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    authorized public action before finishing the round. Comments are the default
    first lane when enabled; browsing-only missions may finish as research-only.
    Later wakes may record `heartbeat-observe` when available, then decide
-   `RUN|WATCH|SKIP|DEFER` for due units. Run one Chrome packet per wake; an
-   action unit may submit up to two distinct public actions in that packet,
-   subject to the hourly ceiling. ±10 minutes is normal. A late wake runs one
+   `RUN|WATCH|SKIP|DEFER` for due units. Run one Chrome packet per wake;
+   comments/posts may submit up to two distinct actions, while follow-up may
+   batch up to three verified permalinks, subject to the hourly ceiling. ±10 minutes is normal. A late wake runs one
    currently due unit; no catch-up means no replay. A fast NOOP is only for
    early/duplicate, recovery, or genuinely exhausted/parked work; scheduler
    uncertainty is not a reason to skip current-task work, and a missing observation is not a second gate.

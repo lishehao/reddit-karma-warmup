@@ -22,8 +22,8 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-PROTOCOL_VERSION = "2026.08.05.4"
-LEGACY_PROTOCOL_VERSIONS = {"2026.08.05.3", "2026.08.05.2", "2026.08.05.1", "2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
+PROTOCOL_VERSION = "2026.08.05.5"
+LEGACY_PROTOCOL_VERSIONS = {"2026.08.05.4", "2026.08.05.3", "2026.08.05.2", "2026.08.05.1", "2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
 SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
@@ -111,6 +111,7 @@ ACTION_ORIENTED_GOALS = {
 }
 ACTION_FIRST_UNITS = ("comments", "posts", "follow-up", "presence")
 ACTION_WINDOW_UNITS = {"comments", "posts"}
+ACTION_BATCH_UNITS = {"comments", "posts", "follow-up"}
 UPSTREAM_HANDOFFS = {
     "browsing": {"comments", "posts"},
 }
@@ -213,7 +214,7 @@ def action_window_guard(state, unit, decision):
     value = state["units"][unit]
     return (
         decision != "RUN"
-        and unit in ACTION_WINDOW_UNITS
+        and unit in ACTION_BATCH_UNITS
         and state["mission_strategy"]["business_goal"] in ACTION_ORIENTED_GOALS
         and outward_authority(unit, value["authority"])
         and value["objective"]["state"] in {"PENDING", "CANDIDATES_READY"}
@@ -926,11 +927,11 @@ def schedule_objective(state, unit, now, normal_minutes):
     elif (
         value["objective"]["state"] == "ACTION_VERIFIED"
         and state["mission_strategy"]["action_budget"] == "active"
-        and unit in ACTION_WINDOW_UNITS
+        and unit in ACTION_BATCH_UNITS
     ):
         # A verified action is evidence of success, not the end of an active
-        # lane. Re-arm comments/posts on the next mission wake so an active
-        # mission can pursue its soft hourly target without a new handoff.
+        # lane. Re-arm comments/posts/follow-up on the next mission wake so an
+        # active mission can pursue its soft hourly target without a new handoff.
         if not schedule_next_heartbeat(state, unit, now):
             clear_schedule(state, unit)
     elif (

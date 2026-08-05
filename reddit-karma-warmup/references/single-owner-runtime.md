@@ -128,9 +128,10 @@ action moving; record the unmet post goal honestly rather than forcing a post.
 ## Wake and units
 
 For every due enabled unit, persist one `RUN`, `WATCH`, `SKIP`, or `DEFER`
-decision. Select one action unit for the packet; it gets one Chrome packet and
-may submit up to two distinct public actions, subject to the hourly ceiling.
-The unit may complete, skip, block, or yield. On finish, persist
+decision. Select one action unit for the packet; it gets one Chrome packet.
+Comments/posts may submit up to two distinct actions; follow-up may batch up to
+three verified own permalinks, subject to the hourly ceiling. The unit may
+complete, skip, block, or yield. On finish, persist
 an objective state as well as the packet outcome whenever the unit has outward
 authority. A yielded unit resumes before a later unit. For an
 action-authorized mission, `RUN` must be an action-first packet unless one of
@@ -158,8 +159,9 @@ do not require a same-turn observation before running current due work.
 Normal unit rechecks align to the task Heartbeat phase when available—not absolute UTC
 quarter-hours: browsing 30 minutes, comments 15, posts 120, follow-up 60, and
 presence 24 hours. They are recheck timings, never action quotas. An
-`ACTION_VERIFIED` comment/post in an active action budget re-arms on the next
-task wake; standard/minimal missions use the normal recheck. An `ACTION_ELIGIBLE`
+`ACTION_VERIFIED` comment/post/follow-up in an active action budget re-arms on
+the next task wake; a follow-up packet may batch up to three verified own
+permalinks. Standard/minimal missions use the normal recheck. An `ACTION_ELIGIBLE`
 handoff is different: it is a continuation and should be due on the next task
 wake when available, not the next absolute grid boundary. For an active
 action-budget mission, runnable browsing likewise remains due on the next task

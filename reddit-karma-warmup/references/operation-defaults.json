@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.08.05.4",
+  "runtime_protocol_version": "2026.08.05.5",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -136,10 +136,12 @@
     "late_wake": "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP",
     "recoverable_runtime_failure": "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING",
     "max_chrome_packets_per_wake": 1,
-    "max_public_actions_per_wake": 2,
+    "max_public_actions_per_wake": 3,
     "max_public_actions_per_hour": 6,
-    "action_packet_mode": "ONE_UNIT_PACKET_MAY_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP",
-    "active_action_rearm": "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUP_NEXT_DUE_60_MINUTES",
+    "max_followups_per_packet": 3,
+    "max_followups_per_hour": 5,
+    "action_packet_mode": "ONE_UNIT_PACKET_MAY_BATCH_FOLLOWUPS_OR_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP",
+    "active_action_rearm": "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUPS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED",
     "action_obligation": {
       "enabled": "AUTHORIZED_OUTWARD_UNIT_EACH_FORMAL_ROUND",
       "initial": "ACTION_FIRST_BEFORE_BROWSING",
@@ -189,8 +191,8 @@
     "action_budgets": ["minimal", "standard", "active"],
     "throughput_targets": {
       "minimal": {"comments_per_hour": {"target": 1, "ceiling": 2}, "posts_per_two_hours": {"target": 0, "ceiling": 1}, "followups_per_hour": {"target": 0, "ceiling": 1}, "qualified_reads_per_hour": 12, "public_actions_per_hour_ceiling": 2},
-      "standard": {"comments_per_hour": {"target": 2, "ceiling": 3}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 1, "ceiling": 2}, "qualified_reads_per_hour": 20, "public_actions_per_hour_ceiling": 4},
-      "active": {"comments_per_hour": {"target": 4, "ceiling": 5}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 1, "ceiling": 2}, "qualified_reads_per_hour": 30, "public_actions_per_hour_ceiling": 6}
+      "standard": {"comments_per_hour": {"target": 2, "ceiling": 3}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 2, "ceiling": 3}, "qualified_reads_per_hour": 20, "public_actions_per_hour_ceiling": 4},
+      "active": {"comments_per_hour": {"target": 4, "ceiling": 5}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 3, "ceiling": 5}, "qualified_reads_per_hour": 30, "public_actions_per_hour_ceiling": 6}
     },
     "frequency_aliases": {
       "low": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},

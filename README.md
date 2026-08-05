@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.05.4`
+Protocol version: `2026.08.05.5`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -77,8 +77,7 @@ assignment gets one concise text reminder; do not invent missing targets.
 - Mission compilation requests `gpt-5.6-luna` with `xhigh` reasoning when the host supports it. Public writing defaults to short, conversational, human-sounding text with contextual discourse markers and contractions; vary the voice and never manufacture typos, repeated catchphrases, or personal facts.
 - When comments/posts/follow-up/presence are authorized, `INITIAL` and each
   formal round are action-first: one Chrome packet may submit up to two distinct
-  actions under the hourly ceiling, expanding comment search up to 60 targets.
-  Active missions re-arm verified comment/post lanes on later wakes; browsing-only missions remain research-only.
+  comment/post actions, or batch up to three verified follow-ups, under the hourly ceiling. Active missions re-arm verified action lanes on later wakes; browsing-only missions remain research-only.
 - Only current task scope, readable Chrome, and action-type gates are hard gates.
   Comments use target/context fit, a basic current rule check, composer state,
   and one verified submit; posts retain the fuller rule, truth, duplicate, and

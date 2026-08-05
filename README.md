@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.04.8`
+Protocol version: `2026.08.05.1`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -72,6 +72,8 @@ assignment gets one concise text reminder; do not invent missing targets.
 - Built-in Web Search handles broad research; the optional official Reddit API
   is GET-only public indexing; logged-in Chrome performs every real Reddit read
   and every interactive action.
+- Voting is removed: no vote controls or mutations; compatibility is always
+  `vote_policy=DISABLED`.
 - When comments/posts/follow-up/presence are authorized, `INITIAL` and each
   formal round are action-first: attempt one public action, expanding comment
   search up to 60 targets if needed. Browsing-only missions remain research-only.
@@ -90,8 +92,7 @@ assignment gets one concise text reminder; do not invent missing targets.
   Reddit work, release owned tabs, delete the exact Heartbeat, and retire the
   queue.
 
-Full operational rules live in the Skill's routed references; this README is
-only the install and startup contract.
+Full operational rules live in the Skill's routed references; this README is only the install and startup contract.
 ## Release rule
 
 Publish updates directly to GitHub `main`: bump the version, run validators,

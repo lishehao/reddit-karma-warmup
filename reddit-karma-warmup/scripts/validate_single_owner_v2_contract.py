@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.04.8"
+    assert version == "2026.08.05.1"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
@@ -74,6 +74,16 @@ def main() -> None:
     assert defaults["topology"]["owner_task_unavailable"] == "USE_CURRENT_TASK_CONTEXT_NO_CROSS_TASK_LOOKUP"
     assert defaults["topology"]["presentation_readback"] == "REQUIRED_BUT_NON_BLOCKING_EXACT_TITLE_AND_PIN"
     assert defaults["topology"]["presentation_actions"] == ["SET_THREAD_TITLE_REDDIT_OPERATING_DESK", "SET_THREAD_PINNED_TRUE"]
+    assert defaults["voting"] == {
+        "enabled": False,
+        "policy": "REMOVED",
+        "compatibility_field": "vote_policy=DISABLED",
+    }
+    assert defaults["units"]["browsing"] == {
+        "default_authority": "READ_ONLY",
+        "explicit_authority": None,
+        "votes": "DISABLED",
+    }
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 600
     assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
     assert defaults["scheduler"]["unit_recheck_grid_minutes"] == 15

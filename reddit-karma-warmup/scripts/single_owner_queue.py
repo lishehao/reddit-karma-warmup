@@ -22,8 +22,8 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-PROTOCOL_VERSION = "2026.08.04.8"
-LEGACY_PROTOCOL_VERSIONS = {"2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
+PROTOCOL_VERSION = "2026.08.05.1"
+LEGACY_PROTOCOL_VERSIONS = {"2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
 SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
@@ -77,7 +77,7 @@ DEFAULT_AUTHORITY = {
     "presence": "RESEARCH_ONLY",
 }
 ALLOWED_AUTHORITY = {
-    "browsing": ("READ_ONLY", "VOTE_AUTHORIZED"),
+    "browsing": ("READ_ONLY",),
     "comments": ("RESEARCH_ONLY", "COMMENT_AUTHORIZED"),
     "posts": ("RESEARCH_ONLY", "POST_AUTHORIZED"),
     "follow-up": ("RESEARCH_ONLY", "FOLLOWUP_AUTHORIZED"),
@@ -310,14 +310,20 @@ def load_envelope(path):
     authority = raw.get("unit_authority")
     if not isinstance(authority, dict) or set(authority) != set(selected):
         raise ValueError("invalid unit_authority")
+    if authority.get("browsing") == "VOTE_AUTHORIZED":
+        # Legacy envelope migration: voting is no longer an available
+        # authority, so an old browsing vote grant becomes read-only.
+        authority = dict(authority)
+        authority["browsing"] = "READ_ONLY"
     for unit in selected:
         if authority[unit] not in ALLOWED_AUTHORITY[unit]:
             raise ValueError("invalid authority")
     vote_policy = raw.get("vote_policy")
-    if vote_policy not in ("DISABLED", "BROWSING_ONLY"):
+    if vote_policy not in (None, "DISABLED", "BROWSING_ONLY"):
         raise ValueError("invalid vote policy")
-    if (vote_policy == "BROWSING_ONLY") != (authority.get("browsing") == "VOTE_AUTHORIZED"):
-        raise ValueError("vote policy mismatch")
+    # Keep the field for old queue/envelope schemas, but never emit a voting
+    # policy from the current runtime.
+    vote_policy = "DISABLED"
     strategy = validate_strategy(raw.get("mission_strategy"))
     start = parse_utc("operation_start_at", raw.get("operation_start_at"))
     stop = parse_utc("operation_stop_at", raw.get("operation_stop_at"))
@@ -463,6 +469,16 @@ def validate_state(state, scope, owner_task_id):
     require_text("scope_sha256", state.get("scope_sha256"), 256)
     if state.get("owner_task_id") != owner_task_id:
         raise ValueError("single owner mismatch")
+    # Normalize legacy vote fields before validating the rest of the queue.
+    # Existing missions remain readable, but no current command can retain or
+    # execute their old vote capability.
+    if state.get("vote_policy") in (None, "BROWSING_ONLY"):
+        state["vote_policy"] = "DISABLED"
+    browsing = state.get("units", {}).get("browsing")
+    if isinstance(browsing, dict) and browsing.get("authority") == "VOTE_AUTHORIZED":
+        browsing["authority"] = "READ_ONLY"
+    if state.get("vote_policy") != "DISABLED":
+        raise ValueError("voting capability removed")
     presentation = state.get("presentation")
     if not isinstance(presentation, dict) or presentation.get("state") not in PRESENTATION_STATES:
         raise ValueError("invalid presentation state")

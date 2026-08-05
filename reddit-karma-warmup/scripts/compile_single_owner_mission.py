@@ -26,7 +26,7 @@ DEFAULT_AUTHORITY = {
     "presence": "RESEARCH_ONLY",
 }
 ALLOWED_AUTHORITY = {
-    "browsing": ("READ_ONLY", "VOTE_AUTHORIZED"),
+    "browsing": ("READ_ONLY",),
     "comments": ("RESEARCH_ONLY", "COMMENT_AUTHORIZED"),
     "posts": ("RESEARCH_ONLY", "POST_AUTHORIZED"),
     "follow-up": ("RESEARCH_ONLY", "FOLLOWUP_AUTHORIZED"),
@@ -270,6 +270,12 @@ def normalize_authority(raw, selected, parent, receipt):
     parent_authority = parent.get("unit_authority", {}) if parent else {}
     for unit in selected:
         authority = supplied.get(unit, parent_authority.get(unit, DEFAULT_AUTHORITY[unit]))
+        # Missions compiled before voting was removed may carry the legacy
+        # authority in their parent envelope.  Migrate that state to the only
+        # supported browsing authority instead of carrying a vote capability
+        # into a new revision.
+        if unit == "browsing" and authority == "VOTE_AUTHORIZED":
+            authority = "READ_ONLY"
         if authority not in ALLOWED_AUTHORITY[unit]:
             fail("invalid authority for " + unit)
         result[unit] = authority
@@ -282,18 +288,11 @@ def normalize_authority(raw, selected, parent, receipt):
 
 def normalize_vote_policy(raw, selected, authority, parent, receipt):
     policy = raw if raw is not None else (parent.get("vote_policy") if parent else "DISABLED")
-    if policy not in ("DISABLED", "BROWSING_ONLY"):
+    if policy not in (None, "DISABLED", "BROWSING_ONLY"):
         fail("invalid vote_policy")
-    browsing_authority = authority.get("browsing")
-    if policy == "BROWSING_ONLY":
-        if "browsing" not in selected or browsing_authority != "VOTE_AUTHORIZED":
-            fail("BROWSING_ONLY requires browsing VOTE_AUTHORIZED")
-        if not parent or parent.get("vote_policy") != "BROWSING_ONLY":
-            if receipt is None:
-                fail("vote authority requires authorization_receipt")
-    if browsing_authority == "VOTE_AUTHORIZED" and policy != "BROWSING_ONLY":
-        fail("VOTE_AUTHORIZED requires BROWSING_ONLY")
-    return policy
+    # `BROWSING_ONLY` is accepted only as a legacy input so an existing
+    # mission can be revised safely.  It is never emitted again.
+    return "DISABLED"
 
 
 def plan_status(selected, paused):

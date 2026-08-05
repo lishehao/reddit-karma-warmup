@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.08.04.8",
+  "runtime_protocol_version": "2026.08.05.1",
   "runtime_evidence_policy": {
     "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -79,11 +79,16 @@
     "handoff_inspection": "NOT_REQUIRED_AT_STARTUP"
   },
   "units": {
-    "browsing": {"default_authority": "READ_ONLY", "explicit_authority": "VOTE_AUTHORIZED", "votes": "BROWSING_ONLY"},
+    "browsing": {"default_authority": "READ_ONLY", "explicit_authority": null, "votes": "DISABLED"},
     "comments": {"default_authority": "RESEARCH_ONLY", "explicit_authority": "COMMENT_AUTHORIZED", "votes": "DISABLED"},
     "posts": {"default_authority": "RESEARCH_ONLY", "explicit_authority": "POST_AUTHORIZED", "votes": "DISABLED"},
     "follow-up": {"default_authority": "RESEARCH_ONLY", "explicit_authority": "FOLLOWUP_AUTHORIZED", "votes": "DISABLED"},
     "presence": {"default_authority": "RESEARCH_ONLY", "explicit_authority": "PRESENCE_AUTHORIZED", "votes": "DISABLED"}
+  },
+  "voting": {
+    "enabled": false,
+    "policy": "REMOVED",
+    "compatibility_field": "vote_policy=DISABLED"
   },
   "scheduler": {
     "heartbeat_interval_minutes": 15,

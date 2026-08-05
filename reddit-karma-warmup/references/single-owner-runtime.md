@@ -210,7 +210,7 @@ for an authority increase.
 ## End
 
 At deadline stop new Reddit work. Enter `FINALIZE_ONLY`; it may not browse,
-publish, vote, or make another Reddit mutation. It may only recover a stale
+publish, or make another Reddit mutation. It may only recover a stale
 boundary, release agent-owned tabs, delete the exact Heartbeat, and retire the
 queue. The cleanup grace gives the recurring timer time to reach this state; it
 does not extend permission for Reddit work. Retirement requires a finalize

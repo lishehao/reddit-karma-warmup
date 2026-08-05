@@ -56,15 +56,15 @@ second Chrome owner.
 
 | Unit | Owns | Never owns |
 | --- | --- | --- |
-| `browsing` | qualified reads, candidate packs, and explicitly authorized votes | publication, replies, profile changes |
-| `comments` | candidate research and proactive comments | votes, posts, replies, profile changes |
-| `posts` | rule-qualified native posts using truthful material | votes, comments, replies, profile changes |
-| `follow-up` | verified own permalinks, notifications, and authorized replies | votes, unrelated discovery, new posts |
-| `presence` | explicit truthful profile/community/flair changes | votes, publication, replies |
+| `browsing` | qualified reads and candidate packs | publication, replies, profile changes, votes |
+| `comments` | candidate research and proactive comments | posts, replies, profile changes, votes |
+| `posts` | rule-qualified native posts using truthful material | comments, replies, profile changes, votes |
+| `follow-up` | verified own permalinks, notifications, and authorized replies | unrelated discovery, new posts, profile changes, votes |
+| `presence` | explicit truthful profile/community/flair changes | publication, replies, votes |
 
-Default authority is research-only. Votes require explicit
-`browsing=VOTE_AUTHORIZED`; every other unit has vote cap zero and must not
-inspect vote controls.
+Default authority is research-only. Voting is removed: no unit inspects vote
+controls or emits upvote/downvote mutations. Legacy `vote_policy` is retained
+only for queue compatibility and always normalizes to `DISABLED`.
 
 ## Surface contract
 | Surface | Use | Never treat as |

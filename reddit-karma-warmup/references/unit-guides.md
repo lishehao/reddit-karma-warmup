@@ -12,10 +12,9 @@ Read current community pages in Chrome, including enough body/context to classif
 each item. Build a dated candidate pack with a compact source reference for the
 comments/posts unit, or record `RESEARCH_ONLY`. For an action-authorized mission,
 browsing is supporting work: do not end the formal round after a candidate pack
-when an action unit can search for and attempt its own target. Votes are disabled
-unless the mission explicitly grants `browsing: VOTE_AUTHORIZED`; only then may
-this unit inspect and operate one visible vote control. No other unit touches
-votes.
+when an action unit can search for and attempt its own target. Voting is not a
+supported operation: do not inspect vote controls or emit upvote/downvote
+mutations from any unit.
 
 For `discover` or `seeded_expandable` scope, prefer communities not already
 audited in the current mission. Coverage budget changes the breadth of this
@@ -83,7 +82,7 @@ one attempt.
 Inspect only known own verified permalinks, supplied URLs, notifications, and
 recent account activity. Without a verified own permalink record
 `NOT_APPLICABLE` and do not poll. An explicit follow-up authority may permit one useful reply;
-otherwise it is read-only. Do not discover unrelated threads, vote, or delete
+otherwise it is read-only. Do not discover unrelated threads or delete
 content automatically. Moderator instructions or a pending/removed result are
 risks to report, not permission to repost.
 
@@ -91,4 +90,4 @@ risks to report, not permission to repost.
 
 Inspect or change profile, membership, flair, or tags only when explicitly
 authorized, truthful, and tied to a concrete requested change. Otherwise record
-`NOT_APPLICABLE`; it never publishes text or touches votes.
+`NOT_APPLICABLE`; it never publishes text or touches vote controls.

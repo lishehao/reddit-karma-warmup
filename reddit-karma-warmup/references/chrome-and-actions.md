@@ -1,7 +1,9 @@
 # Chrome and actions
 
-Use the same logged-in Chrome and one primary agent-owned Reddit tab for actual
-Reddit consumption and every interactive action. Read the installed
+Use the same logged-in Chrome and one primary Reddit tab for actual Reddit
+consumption and every interactive action. For session-bound work, first claim a
+visible user tab from `browser.user.openTabs()`; a temporary `tabs.new()` tab is
+recovery-only and is never proof of the logged-in Reddit session. Read the installed
 `$chrome:control-chrome` protocol before first browser work.
 
 ## Health and routing
@@ -42,7 +44,7 @@ for a due `RECOVERY_FIRST` unit. It is a bounded retry, not a chain of probes:
 1. Establish or reuse the existing Chrome binding and read tab metadata. Only
    an explicit browser-disconnected error permits one reconnect; a blank page,
    navigation timeout, or DOM timeout is a content-channel failure.
-2. Claim or reuse the current task's Reddit tab and perform navigation/read as
+2. Claim or reuse the current task's visible user Reddit tab and perform navigation/read as
    separate calls. After a navigation timeout, read URL/title once before
    deciding whether the page actually loaded.
 3. If metadata works but content does not, record
@@ -64,10 +66,12 @@ action; comments use the lightweight target/context/basic-rule version.
 ## Atomic boundary rules
 
 - Create/claim a tab, navigate, read DOM/screenshot, fill, click, submit, and
-  verify in separate calls. Allow a configurable outer budget (normally up to
-  120 seconds) only when the current wrapper supports an explicit per-call
-  timeout; otherwise record the actual wrapper timeout and never pretend a
-  shorter ambient timeout proves failure.
+  verify in separate calls. When the wrapper supports it, set the explicit
+  outer timeout to 120 seconds on every browser call; do not rely on its short
+  ambient default. If a tool returns `Script running` or a pending cell, await
+  that result instead of reissuing the same browser action. A background
+  telemetry timeout is not a browser failure unless the browser call or its
+  readback also fails.
 - One browser-client operation means one call boundary. Never combine
   `tabs.new()` with `goto`, or `goto` with DOM/screenshot. The sole permitted
   metadata pair is URL plus title in one metadata step.

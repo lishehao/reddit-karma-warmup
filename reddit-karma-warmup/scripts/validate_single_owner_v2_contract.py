@@ -54,7 +54,7 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.1"
+    assert version == "2026.08.05.2"
     assert defaults["runtime_protocol_version"] == version
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
@@ -103,7 +103,10 @@ def main() -> None:
     }
     chrome_defaults = defaults["chrome"]
     assert chrome_defaults["outer_operation_budget_ms"] == 120000
-    assert chrome_defaults["outer_budget_policy"] == "USE_ONLY_WHEN_CURRENT_WRAPPER_SUPPORTS_EXPLICIT_PER_CALL_TIMEOUT"
+    assert chrome_defaults["outer_budget_policy"] == "SET_EXPLICIT_PER_CALL_TIMEOUT_MS_120000_WHEN_WRAPPER_SUPPORTS_IT; NEVER_USE_DEFAULT_AMBIENT_BUDGET"
+    assert chrome_defaults["await_policy"] == "AWAIT_SCRIPT_RUNNING_OR_PENDING_CELL; NEVER_REISSUE_THE_SAME_BROWSER_ACTION"
+    assert chrome_defaults["session_tab_policy"] == "CLAIM_VISIBLE_USER_CHROME_TAB_FIRST;_TEMP_TABS_NEW_ARE_RECOVERY_ONLY_AND_NOT_SESSION_PROOF"
+    assert chrome_defaults["telemetry_timeout_policy"] == "BACKGROUND_TELEMETRY_TIMEOUT_IS_NOT_BROWSER_FAILURE_UNLESS_BROWSER_CALL_OR_READBACK_FAILS"
     assert chrome_defaults["startup_neutral_probe_limit"] == 2
     assert chrome_defaults["startup_neutral_probe_urls"] == ["https://example.com/", "https://www.iana.org/domains/reserved/"]
     assert chrome_defaults["reconnect_limit_after_explicit_disconnect"] == 1

@@ -49,10 +49,11 @@ diagnostic tool, not a startup-wide scan.
 
 ## One task, five internal units
 
-Run one present Reddit operating task. It owns one mission record, one queue,
-an advisory Heartbeat when available, one Chrome binding, and one primary
-Reddit tab. Never create unit tasks, a browser dispatcher, a lock daemon, or a
-second Chrome owner.
+Run one present Reddit operating task. It owns one mission record, one queue, an
+advisory Heartbeat when available, one Chrome binding, and one primary Reddit
+tab; session-bound work claims a visible user Chrome tab first, while temporary
+tabs are recovery-only and do not prove login. Never create unit tasks, a
+browser dispatcher, a lock daemon, or a second Chrome owner.
 
 | Unit | Owns | Never owns |
 | --- | --- | --- |
@@ -141,8 +142,7 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
 | selected unit | [unit guides](references/unit-guides.md) |
 | goal, KPI, coverage, threshold, scope | [mission goals and profiles](references/mission-goals-and-profiles.md) |
 | numeric/script defaults | [operation defaults](references/operation-defaults.json) |
-Do not load historical lane, dispatcher, worker, callback, or migration files.
-## Compact receipt
+Do not load historical lane, dispatcher, worker, callback, or migration files. Compact receipt:
 ```text
 本轮完成：<完成/暂停/阻塞的单元、有效阅读、已验证动作>。
 下轮时间：<当地时间与 UTC；终止则“无（Heartbeat 已删除）”>。

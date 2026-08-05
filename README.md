@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.05.2`
+Protocol version: `2026.08.05.3`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -74,6 +74,7 @@ assignment gets one concise text reminder; do not invent missing targets.
   and every interactive action.
 - Voting is removed: no vote controls or mutations; compatibility is always
   `vote_policy=DISABLED`.
+- Public writing defaults to short, conversational, human-sounding text with contextual discourse markers and contractions; vary the voice and never manufacture typos, repeated catchphrases, or personal facts.
 - When comments/posts/follow-up/presence are authorized, `INITIAL` and each
   formal round are action-first: attempt one public action, expanding comment
   search up to 60 targets if needed. Browsing-only missions remain research-only.
@@ -95,6 +96,4 @@ assignment gets one concise text reminder; do not invent missing targets.
 Full operational rules live in the Skill's routed references; this README is only the install and startup contract.
 ## Release rule
 
-Publish updates directly to GitHub `main`: bump the version, run validators,
-build a ZIP, verify public codeload/ZIP, then perform compatible atomic hot
-replacement. Only incompatible or uncertain active-runtime state may defer it.
+Publish updates directly to GitHub `main`: bump the version, run validators, build a ZIP, verify public codeload/ZIP, then perform compatible atomic hot replacement. Only incompatible or uncertain active-runtime state may defer it.

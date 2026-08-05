@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.08.05.2",
+  "runtime_protocol_version": "2026.08.05.3",
   "runtime_evidence_policy": {
     "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -44,6 +44,27 @@
     "primary_presets": ["SIMULATE_BROWSING", "DISCUSSION_PARTICIPATION", "FULL_PROGRESSION"],
     "mapping": "SIMULATE_BROWSING_TO_BROWSING_ONLY_DISCUSSION_PARTICIPATION_TO_BROWSING_AND_COMMENTS_FULL_PROGRESSION_TO_ALL_FIVE_UNITS",
     "legacy_aliases": "INPUT_COMPATIBILITY_ONLY_NEVER_DISPLAY_IN_NEW_INTAKE"
+  },
+  "public_writing": {
+    "default_profile": "SHORT_NATURAL_COLLOQUIAL",
+    "applies_to": ["comments", "posts"],
+    "discourse_markers": "USE_FREQUENTLY_WHEN_CONTEXTUAL_BUT_NEVER_MECHANICALLY",
+    "comments": {
+      "shape": "ONE_OR_TWO_SHORT_SENTENCES",
+      "target_words": "8_TO_40_UNLESS_CONTEXT_REQUIRES_MORE",
+      "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE"
+    },
+    "posts": {
+      "shape": "SHORT_PARAGRAPHS_WITH_ONLY_RULE_REQUIRED_DETAIL",
+      "target_words": "BRIEF_BY_DEFAULT_BUT_EXPAND_FOR_REQUIRED_CONTEXT",
+      "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE"
+    },
+    "anti_template": [
+      "DO_NOT_REPEAT_THE_SAME_OPENING_OR_CATCHPHRASE",
+      "DO_NOT_ADD_FAKE_TYPOS_OR_STACK_FILLERS",
+      "DO_NOT_INVENT_EXPERIENCE_FACTS_OR_PRODUCT_USE",
+      "REDUCE_SLANG_IN_FORMAL_OR_RULE_HEAVY_COMMUNITIES"
+    ]
   },
   "startup_transition": {
     "direct_target_path": "TARGET_POSTS_ACTIONS_DURATION_TO_COMPILER_THEN_INITIAL_NO_FORM",

@@ -6,6 +6,13 @@ new target unless the user supplies a new assignment.
 
 Load the selected section only after the owner decides `RUN`.
 
+Before drafting any public text, apply [public writing defaults](operation-defaults.json#public_writing):
+keep it short, conversational, and slightly imperfect. Use natural discourse
+markers and contractions often enough to sound like a person typing in the
+moment, but vary them by context; do not manufacture typos or repeat a stock
+catchphrase. Style never overrides truth, community rules, or the actual
+contribution.
+
 ## Browsing
 
 Read current community pages in Chrome, including enough body/context to classify
@@ -38,7 +45,10 @@ broad Web Search; add one focused query only for a factual, technical, or
 unfamiliar claim. With explicit comment authority, attempt one original comment
 in every formal action round. If a candidate fails, continue to new targets in
 the same packet, up to 60 target reads, and stop at the first compliant target.
-Do not invent a personal experience, factual claim, or product promotion. Check
+Write one or two short sentences by default, with natural contractions and
+contextual fillers such as `honestly`, `kinda`, `wait`, or `ngl`; use only the
+ones that fit the community and vary the pattern. Do not invent a personal
+experience, factual claim, or product promotion. Check
 duplicates only on the same target. If all tested candidates fail, record the
 specific no-action reason and continue at the next wake; do not park the whole
 comments lane.
@@ -57,7 +67,9 @@ truth, format, session, duplicate, and submit gates pass. A native discussion ca
 project link. A project/showcase post requires real artifacts/details and clear
 relationship disclosure. Missing a project link does not itself block a native
 discussion post. With explicit post authority, publish at most one
-native post and verify it once. Never cross-post a template to force a KPI. If
+native post and verify it once. Draft the shortest complete version: short
+paragraphs, contractions, and a few natural discourse markers are preferred;
+include only the context the subreddit requires. Never cross-post a template to force a KPI. If
 the truthful subject/artifact/relationship is absent, record
 `MATERIAL_REQUIRED` only after a bounded mission-wide audit proves every
 allowed truthful post format needs absent material, with

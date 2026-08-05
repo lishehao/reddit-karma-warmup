@@ -54,8 +54,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.2"
+    assert version == "2026.08.05.3"
     assert defaults["runtime_protocol_version"] == version
+    queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
+    assert 'PROTOCOL_VERSION = "2026.08.05.3"' in queue_source
+    assert '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
         "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
@@ -78,6 +81,27 @@ def main() -> None:
         "enabled": False,
         "policy": "REMOVED",
         "compatibility_field": "vote_policy=DISABLED",
+    }
+    assert defaults["public_writing"] == {
+        "default_profile": "SHORT_NATURAL_COLLOQUIAL",
+        "applies_to": ["comments", "posts"],
+        "discourse_markers": "USE_FREQUENTLY_WHEN_CONTEXTUAL_BUT_NEVER_MECHANICALLY",
+        "comments": {
+            "shape": "ONE_OR_TWO_SHORT_SENTENCES",
+            "target_words": "8_TO_40_UNLESS_CONTEXT_REQUIRES_MORE",
+            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE",
+        },
+        "posts": {
+            "shape": "SHORT_PARAGRAPHS_WITH_ONLY_RULE_REQUIRED_DETAIL",
+            "target_words": "BRIEF_BY_DEFAULT_BUT_EXPAND_FOR_REQUIRED_CONTEXT",
+            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE",
+        },
+        "anti_template": [
+            "DO_NOT_REPEAT_THE_SAME_OPENING_OR_CATCHPHRASE",
+            "DO_NOT_ADD_FAKE_TYPOS_OR_STACK_FILLERS",
+            "DO_NOT_INVENT_EXPERIENCE_FACTS_OR_PRODUCT_USE",
+            "REDUCE_SLANG_IN_FORMAL_OR_RULE_HEAVY_COMMUNITIES",
+        ],
     }
     assert defaults["units"]["browsing"] == {
         "default_authority": "READ_ONLY",
@@ -215,6 +239,8 @@ def main() -> None:
     for phrase in ("current task", "other Heartbeats", "UNCERTAIN"):
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
+    assert "public writing defaults" in guides
+    assert "contextual fillers" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
     for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true"):
         assert phrase in chrome, phrase

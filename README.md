@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.05.13`
+Protocol version: `2026.08.06.1`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -16,21 +16,22 @@ The initial message performs installation/upgrade and local preflight only,
 reports `BOOTSTRAP_READY`, then uses one of two intake paths. A complete direct
 target assignment (target Reddit post URLs, allowed units, and duration) skips
 the form and starts the first formal round in the same task. Otherwise ask
-exactly three questions at once:
+exactly four questions at once:
 
 1. **运行多久？** `2 小时 / 4 小时 / 8 小时`，或明确的自定义时长。
 2. **这轮想围绕什么方向或哪些社区运营？**
    可选：`社交与社区 / 个人创作与独立项目 / 3D/游戏/共创`，也可自由描述。
 3. **这轮希望做到哪一步？** `模拟浏览 / 参与讨论 / 全面推进`。
+4. **互动节奏希望怎样？** `低 / 标准 / 高`。
 
 Do not ask for an account name or handle. The logged-in Chrome session is the
 internal source of truth; read it silently once at startup and only recheck it
 after a tab rebind, login change, recovery, or immediately before a mutation.
 Use the interactive form once without `autoResolutionMs`. If it is unanswered,
-partial, dismissed, or expires, list all three questions in a normal text
+partial, dismissed, or expires, list all four questions in a normal text
 response and remain `WAITING_FOR_STARTUP_INPUT`; never infer defaults.
 
-When the three answers or a complete direct target assignment are available,
+When the four answers or a complete direct target assignment are available,
 start in the same task turn:
 
 `current-task scope -> rename/pin current task -> mission envelope -> one Chrome/session gate -> formal INITIAL round -> advisory Heartbeat`
@@ -56,7 +57,7 @@ Normal runtime receipts use short opaque evidence tokens; SHA-256 is not require
    `chrome_release=PENDING` alone is not an active fence.
 
 During installation and intake, do not open Chrome/Reddit, run research, or
-create a mission, queue, or Heartbeat. Those begin only after the three answers
+create a mission, queue, or Heartbeat. Those begin only after the four answers
 or a complete direct target assignment are available. An incomplete direct
 assignment gets one concise text reminder; do not invent missing targets.
 

@@ -18,7 +18,7 @@ AUTHORITY = {
         "business_goal": "community_discovery",
         "requested_work_types": ["browsing"],
         "unit_authority": {"browsing": "READ_ONLY"},
-        "profile": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},
+        "profile": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "standard"},
     },
     "discussion_participation": {
         "aliases": {"discussion_participation", "discussion participation", "参与讨论", "discussion_first", "discussion first", "评论优先"},
@@ -38,8 +38,13 @@ AUTHORITY = {
             "follow-up": "FOLLOWUP_AUTHORIZED",
             "presence": "PRESENCE_AUTHORIZED",
         },
-        "profile": {"coverage_budget": "broad", "action_threshold": "standard", "action_budget": "active"},
+        "profile": {"coverage_budget": "standard", "action_threshold": "standard", "action_budget": "standard"},
     },
+}
+FREQUENCY_ALIASES = {
+    "low": {"low", "minimal", "低", "低频", "慢"},
+    "standard": {"standard", "normal", "默认", "标准", "中", "中频"},
+    "high": {"high", "active", "高", "高频", "快"},
 }
 PRESET_TAGS = {
     "社交与社区": ["social", "community", "community-ux"],
@@ -63,11 +68,12 @@ CUSTOM_UNIT_AUTHORITY = {
 }
 
 TEXT_FALLBACK = (
-    "请先回答以下三个问题（可直接按 `1) … 2) … 3) …` 回复）：\n"
+    "请先回答以下四个问题（可直接按 `1) … 2) … 3) … 4) …` 回复）：\n"
     "1) 运行多久？可选：2 小时 / 4 小时 / 8 小时。\n"
     "2) 这轮想围绕什么方向或哪些社区运营？"
     "可选：社交与社区 / 个人创作与独立项目 / 3D/游戏/共创。\n"
-    "3) 这轮希望做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。"
+    "3) 这轮希望做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。\n"
+    "4) 互动节奏希望怎样？可选：低 / 标准 / 高。"
 )
 
 DIRECT_TARGET_FALLBACK = (
@@ -93,6 +99,20 @@ EXCLUDED_COMMUNITIES = {"r/saas"}
 
 def fail(message):
     raise ValueError(message)
+
+
+def normalize_frequency(value, default=None):
+    if value in (None, ""):
+        if default is None:
+            fail("frequency is required")
+        return default
+    if not isinstance(value, str):
+        fail("invalid frequency")
+    answer = value.strip().lower()
+    for canonical, aliases in FREQUENCY_ALIASES.items():
+        if answer in aliases:
+            return canonical
+    fail("frequency must be low, standard, or high")
 
 
 def text(value, name, minimum=1, maximum=2000):
@@ -234,6 +254,7 @@ def normalize_direct_target(raw):
     units = direct_units(raw)
     direction = raw.get("direction", raw.get("account_direction", "targeted Reddit post discussions"))
     direction = text(direction, "direction", 3, 2000)
+    frequency = normalize_frequency(raw.get("frequency", raw.get("interaction_frequency")), "standard")
     named = target_communities(urls)
     supplied_community_scope = raw.get("community_scope")
     if supplied_community_scope not in (None, "closed"):
@@ -263,9 +284,10 @@ def normalize_direct_target(raw):
     strategy = {
         "business_goal": business_goal,
         "community_scope": "closed",
-        "coverage_budget": "narrow",
-        "action_threshold": "standard",
-        "action_budget": "standard",
+        "coverage_budget": {"low": "standard", "standard": "standard", "high": "broad"}[frequency],
+        "action_threshold": {"low": "high", "standard": "standard", "high": "standard"}[frequency],
+        "action_budget": {"low": "minimal", "standard": "standard", "high": "active"}[frequency],
+        "frequency": frequency,
         "material_refs": material_refs,
         "planning_targets": {},
     }
@@ -273,6 +295,7 @@ def normalize_direct_target(raw):
         "duration_hours": duration,
         "direction": direction,
         "authority_profile": "direct_target",
+        "frequency": frequency,
         "requested_work_types": units,
         "unit_authority": {unit: authority[unit] for unit in units},
         "authorization_receipt": text(raw.get("authorization_receipt", "explicit target assignment"), "authorization_receipt", 1, 10000),
@@ -378,12 +401,15 @@ def normalize(raw):
         missing.append("direction")
     if raw.get("authority_profile") in (None, ""):
         missing.append("authority_profile")
+    if raw.get("frequency", raw.get("interaction_frequency")) in (None, ""):
+        missing.append("frequency")
     if missing:
         return waiting_response(missing)
 
     duration = duration_hours(raw.get("duration_hours", raw.get("duration")))
     direction = text(direction_value, "direction", 3, 2000)
     profile_name, profile = resolve_profile(raw["authority_profile"], raw.get("custom_authority"))
+    frequency = normalize_frequency(raw.get("frequency", raw.get("interaction_frequency")))
     named_communities = normalized_list(raw.get("named_communities"), "named_communities", 64, "r/")
     if any(item.lower() in EXCLUDED_COMMUNITIES for item in named_communities):
         fail("excluded community: r/saas")
@@ -409,6 +435,10 @@ def normalize(raw):
         "business_goal": profile["business_goal"],
         "community_scope": scope,
         **profile["profile"],
+        "frequency": frequency,
+        "coverage_budget": {"low": "standard", "standard": "standard", "high": "broad"}[frequency],
+        "action_threshold": {"low": "high", "standard": "standard", "high": "standard"}[frequency],
+        "action_budget": {"low": "minimal", "standard": "standard", "high": "active"}[frequency],
         "material_refs": material_refs,
         "planning_targets": {},
     }
@@ -416,6 +446,7 @@ def normalize(raw):
         "duration_hours": duration,
         "direction": direction,
         "authority_profile": profile_name,
+        "frequency": frequency,
         "requested_work_types": profile["requested_work_types"],
         "unit_authority": profile["unit_authority"],
         "authorization_receipt": text(raw.get("authorization_receipt", raw["authority_profile"]), "authorization_receipt", 1, 10000),
@@ -450,7 +481,7 @@ def self_test():
     waiting = normalize({"duration_hours": 2})
     assert waiting["schema"] == "reddit_startup_intake/v1"
     assert waiting["status"] == "WAITING_FOR_STARTUP_INPUT"
-    assert waiting["missing"] == ["direction", "authority_profile"]
+    assert waiting["missing"] == ["direction", "authority_profile", "frequency"]
     assert waiting["text_fallback"] == {
         "channel": "DIRECT_TEXT",
         "request_user_input_repeat": False,
@@ -461,16 +492,20 @@ def self_test():
         "duration": "2 小时",
         "direction": "个人创作与独立项目",
         "authority_profile": "全面推进",
+        "frequency": "高",
     })
     assert result["status"] == "STARTUP_ANSWERS_COMPLETE"
     assert result["normalized"]["mission_strategy"]["community_scope"] == "discover"
     assert result["normalized"]["authority_profile"] == "full_progression"
     assert result["normalized"]["requested_work_types"] == list(LANE_ORDER)
     assert result["normalized"]["mission_strategy"]["material_refs"] == []
+    assert result["normalized"]["frequency"] == "high"
+    assert result["normalized"]["mission_strategy"]["action_budget"] == "active"
     seeded = normalize({
         "duration_hours": 4,
         "direction": "custom direction",
         "authority_profile": "参与讨论",
+        "frequency": "standard",
         "named_communities": ["r/SideProject"],
     })
     assert seeded["normalized"]["authority_profile"] == "discussion_participation"
@@ -479,19 +514,23 @@ def self_test():
         "duration_hours": 4,
         "direction": "社交与社区",
         "authority_profile": "模拟浏览",
+        "frequency": "low",
     })
     assert browse_only["normalized"]["authority_profile"] == "simulate_browsing"
     assert browse_only["normalized"]["requested_work_types"] == ["browsing"]
+    assert browse_only["normalized"]["mission_strategy"]["action_budget"] == "minimal"
     account_direction_only = normalize({
         "duration_hours": 4,
         "account_direction": "a practical builder around personal creative tools",
         "authority_profile": "模拟浏览",
+        "frequency": "low",
     })
     assert account_direction_only["normalized"]["direction"] == "a practical builder around personal creative tools"
     custom = normalize({
         "duration_hours": 2,
         "direction": "custom direction",
         "authority_profile": "comments only, standard",
+        "frequency": "标准",
         "custom_authority": {
             "business_goal": "conversation_entry",
             "requested_work_types": ["browsing", "comments"],
@@ -507,6 +546,7 @@ def self_test():
     })
     assert direct["status"] == "DIRECT_TARGET_ASSIGNMENT_COMPLETE"
     assert direct["normalized"]["mission_strategy"]["community_scope"] == "closed"
+    assert direct["normalized"]["frequency"] == "standard"
     assert direct["normalized"]["requested_work_types"] == ["browsing", "comments", "follow-up"]
     assert direct["normalized"]["explicit_user_overrides"]["target_posts"] == ["https://old.reddit.com/r/SideProject/comments/abc123/demo/"]
     incomplete_direct = normalize({"direct_target_mode": True, "target_posts": ["https://old.reddit.com/r/SideProject/comments/abc123/demo/"]})
@@ -517,6 +557,7 @@ def self_test():
             "duration_hours": 2,
             "direction": "custom direction",
             "authority_profile": "模拟浏览",
+            "frequency": "标准",
             "named_communities": ["r/saas"],
         })
     except ValueError as exc:

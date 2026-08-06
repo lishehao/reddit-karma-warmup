@@ -2,21 +2,23 @@
 
 Question 2 supplies one operating direction, from which community-discovery
 vectors are derived.
-Question 3 supplies the primary business goal and action authority. Supporting
+Question 3 supplies the primary business goal and action authority. Question 4
+supplies the workload rhythm. Supporting
 units may run only when the recorded evidence graph arms them; neither answer
 alone bypasses a live action gate.
 
 ## Startup normalization
 
 After bootstrap, compile a complete direct target assignment when one is
-present; otherwise obtain the three-answer artifact defined in
+present; otherwise obtain the four-answer artifact defined in
 [startup intake](startup-intake.md). Normalize either into the canonical
 fields below. Do not ask for an account name or handle: use only the later
 same-Chrome live session proof. Question 2 carries one operating direction;
 persona, target
 people, topic cluster, and optional community seeds are interchangeable ways
 to express it. Question 3 carries the user-visible action scope, business
-goal, authority, and operating limits. Truthful materials are optional at startup and required only for the
+goal, and authority. Question 4 carries the workload rhythm independently.
+Truthful materials are optional at startup and required only for the
 specific action that needs them.
 
 | Goal | Derived from Question 3 | Primary result |
@@ -40,6 +42,7 @@ direction_tags: derived community-discovery vectors
 community_scope: closed | seeded_expandable | discover
 coverage_budget: narrow | standard | broad
 action_threshold: high | standard | low
+frequency: low | standard | high
 action_budget: minimal | standard | active
 material_refs: real URLs, artifacts, observations, or []
 planning_targets: evidence/output targets plus soft throughput targets, never forced action counts
@@ -50,10 +53,10 @@ expandable seeds are `seeded_expandable`, and a direction-only answer is
 `discover`. Do not request audience, topic, material, or a community list after
 Question 2; they are all optional details of the one operating direction and default to
 `[]` / `discover` where relevant. It does not determine
-`business_goal` or grant a write. If the user only says “low frequency”, map it to
-`standard/high/minimal`; “high frequency” maps to `broad/standard/active`.
-State that mapping in the envelope. If they say “broad but strict”, preserve
-`broad/high/<chosen budget>` instead. Do not change the 15-minute Heartbeat.
+`business_goal` or grant a write. Question 4 maps `低 / 标准 / 高` to the
+independent workload profiles below; it never changes the 15-minute Heartbeat.
+Direct target assignments default to `标准` unless they explicitly include a
+rhythm.
 
 ## Hard gates versus soft threshold
 
@@ -83,15 +86,19 @@ Use three reporting layers:
 3. **Output:** verified public actions.
 
 Planning targets describe desired evidence and output, but never force a post
-or comment. Full-progression/active missions now bias toward conversation: use
-soft defaults of 5 verified comments/hour (ceiling 6), no fixed post target but
-at most 1 verified post per two hours, 3 useful follow-ups/hour (ceiling 5),
-and 30 qualified reads/hour, with a combined public-action ceiling of 6/hour.
-Posts remain enabled; the lower target only prevents them from crowding out
-useful comments and does not justify filler or bypassing the post gates.
-Standard missions use 2 comments/hour, 1 post per two hours, 2 follow-ups/hour,
-and a 4/hour public-action ceiling. These are pacing targets, not a reason to
-publish filler.
+or comment. The three rhythm profiles are:
+
+| Rhythm | Reads/hour | Comments/hour | Follow-ups/hour | Posts | Public actions/hour |
+| --- | ---: | ---: | ---: | --- | ---: |
+| `低` | 12 | 1 (ceiling 2) | 1 (ceiling 2) | at most 1/4h | 2 |
+| `标准` | 20 | 2 (ceiling 3) | 2 (ceiling 3) | at most 1/2h | 4 |
+| `高` | 30 | 5 (ceiling 6) | 3 (ceiling 5) | at most 1/2h | 6 |
+
+The action scope still decides which units are authorized. For example,
+`模拟浏览 + 高` means more reading, not comments or posts; `全面推进 + 高`
+enables all five units at the high profile. Hourly counters reset by UTC hour
+bucket, so a completed hour does not permanently consume the mission's future
+capacity. These are pacing targets, not a reason to publish filler.
 For a launch/distribution goal, an eligible post route outranks
 more browsing. If no compliant route or truthful material exists, report the
 goal as unmet with `RULE_BLOCKED` or `MATERIAL_REQUIRED`; do not disguise it as

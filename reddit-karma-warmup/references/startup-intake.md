@@ -2,7 +2,7 @@
 
 ## Direct target shortcut
 
-If the user supplies 1–32 Reddit post URLs (`target_posts`), explicit `requested_work_types`/actions, and a duration, use `direct_target_mode=true` and compile it without the three-question form. Example:
+If the user supplies 1–32 Reddit post URLs (`target_posts`), explicit `requested_work_types`/actions, and a duration, use `direct_target_mode=true` and compile it without the four-question form. Example:
 
 ```text
 持续 2 小时；只浏览、评论并跟进下面几个帖子：<URL 1> <URL 2>。
@@ -10,7 +10,7 @@ If the user supplies 1–32 Reddit post URLs (`target_posts`), explicit `request
 
 The compiler returns `DIRECT_TARGET_ASSIGNMENT_COMPLETE`, scopes work to those posts, and the same task immediately runs `INITIAL`. The account is read silently by Chrome. If URLs, actions, or duration are missing, send one direct-text reminder and do not create a mission or second form.
 
-Ask all three questions at once after bootstrap. Wait for all three answers before Chrome, research, mission compilation, queue, or Heartbeat work. Do not ask for an account name or handle; the same-Chrome gate reads it silently. This intake has no fourth question.
+Ask all four questions at once after bootstrap. Wait for all four answers before Chrome, research, mission compilation, queue, or Heartbeat work. Do not ask for an account name or handle; the same-Chrome gate reads it silently. Frequency controls workload, not the Heartbeat interval.
 
 Use `request_user_input` once when available, with three choices per question
 and no `autoResolutionMs`. Otherwise ask the same questions in one compact text
@@ -27,13 +27,14 @@ No response, a partial response, dismissal, or expiry is
 ## Text fallback after an unanswered form
 
 Send this normal-text reminder and keep waiting. Mention recognized/missing
-answers, but always repeat all three questions:
+answers, but always repeat all four questions:
 
 ```text
-请先回答以下三个问题（可直接按 `1) … 2) … 3) …` 回复）：
+请先回答以下四个问题（可直接按 `1) … 2) … 3) … 4) …` 回复）：
 1) 运行多久？可选：2 小时 / 4 小时 / 8 小时。
 2) 这轮想围绕什么方向或哪些社区运营？可选：社交与社区 / 个人创作与独立项目 / 3D/游戏/共创。
 3) 这轮希望做到哪一步？可选：模拟浏览 / 参与讨论 / 全面推进。
+4) 互动节奏希望怎样？可选：低 / 标准 / 高。
 ```
 
 This is the same intake, not a second-round question. Use the compiler's exact
@@ -86,9 +87,25 @@ format, duplicate, and session checks. Accept a custom answer only when it
 explicitly names allowed units and one business goal; never infer write
 authority from Question 2.
 
+## Question 4 — interaction rhythm
+
+Ask: **互动节奏希望怎样？**
+
+| Choice | Typical pace |
+| --- | --- |
+| `低` | 约 12 个有效阅读/小时；评论 1/小时；跟进 1/小时；主帖最多 1 个/4 小时；公开动作上限 2/小时。 |
+| `标准` | 约 20 个有效阅读/小时；评论 2/小时；跟进 2/小时；主帖最多 1 个/2 小时；公开动作上限 4/小时。 |
+| `高` | 约 30 个有效阅读/小时；评论 5/小时；跟进 3/小时；主帖最多 1 个/2 小时；公开动作上限 6/小时。 |
+
+These are pacing targets and ceilings, not a promise to publish filler. The
+chosen rhythm is independent of action scope: `模拟浏览` can read more without
+writing, while `全面推进` can use all authorized units at the same pace. Hourly
+counters reset at each UTC hour bucket; they are not lifetime mission quotas.
+The 15-minute Heartbeat remains unchanged.
+
 ## Completion rule
 
-Write the three answers or direct assignment to one local JSON artifact and run
+Write the four answers or direct assignment to one local JSON artifact and run
 `scripts/compile_startup_intake.py`. Only `STARTUP_ANSWERS_COMPLETE` or
 `DIRECT_TARGET_ASSIGNMENT_COMPLETE` proceeds;
 invalid or incomplete input keeps waiting.

@@ -22,11 +22,11 @@ Treat an HTTPS install/upgrade request as the start of one intake flow:
    It must contain 1–32 target post URLs, explicit units/actions (for example
    `browsing + comments + follow-up`), and a duration. Compile it with
    `scripts/compile_startup_intake.py`; `DIRECT_TARGET_ASSIGNMENT_COMPLETE`
-   skips the three questions and starts the first formal round in this task.
+   skips the four questions and starts the first formal round in this task.
    A partial direct assignment gets one concise direct-text reminder and no
    mission; do not invent URLs, actions, or duration.
-3. Otherwise ask exactly three startup questions from [startup intake](references/startup-intake.md): duration, one operating direction, and action scope. Do not ask for an account name or handle; the logged-in Chrome session is read silently. Use `request_user_input` at most once, omit `autoResolutionMs`, and on unanswered/partial/dismissed/expired send the prescribed normal text response listing all three questions and remain `WAITING_FOR_STARTUP_INPUT`.
-4. Persist the three answers or direct assignment and run the compiler. One operating-direction answer is enough. Only
+3. Otherwise ask exactly four startup questions from [startup intake](references/startup-intake.md): duration, one operating direction, action scope, and interaction rhythm (`低 / 标准 / 高`). Do not ask for an account name or handle; the logged-in Chrome session is read silently. Use `request_user_input` at most once, omit `autoResolutionMs`, and on unanswered/partial/dismissed/expired send the prescribed normal text response listing all four questions and remain `WAITING_FOR_STARTUP_INPUT`.
+4. Persist the four answers or direct assignment and run the compiler. One operating-direction answer is enough. Only
    `STARTUP_ANSWERS_COMPLETE` or `DIRECT_TARGET_ASSIGNMENT_COMPLETE` continues.
    Do not ask a second round for audience, topics, links, account name, or
    materials. In that same task turn run:
@@ -43,7 +43,7 @@ fields; do not perform a cross-task search to resolve it.
 Inspect only its own mission/queue and
 its own Heartbeat when one already exists. Do not scan other tasks, other
 Heartbeats, other environments, locks, or historical handoffs. If this task
-has no mission yet, create its queue after the three answers; do not block on
+has no mission yet, create its queue after the four answers; do not block on
 an unrelated runtime. `scripts/runtime_fence.py` remains an explicit
 diagnostic tool, not a startup-wide scan.
 
@@ -82,7 +82,8 @@ Global community exclusion: `r/saas`; never search, open, read, index, comment, 
    one immutable envelope and queue. Read back title/pin when supported; either presentation failure is non-blocking and retries next wake.
    Store the business goal, community scope, coverage budget, soft action
    threshold, action budget, truthful material references, and evidence/output
-   targets. `high/low frequency` changes these profiles, not the timer.
+   targets. `低 / 标准 / 高` changes workload profiles, not the timer. Scope controls what
+   units may act; rhythm controls how much each enabled unit attempts.
 2. Establish one readable same-Chrome session gate. Do not create a separate
    neutral canary tab just to prove the browser. Start INITIAL as soon as this
    gate passes. In parallel, make a best-effort 15-minute Heartbeat attempt;

@@ -80,20 +80,23 @@ THROUGHPUT_TARGETS = {
     "minimal": {
         "comments_per_hour": 1,
         "posts_per_two_hours": 0,
-        "followups_per_hour": 0,
+        "posts_per_four_hours": 1,
+        "followups_per_hour": 1,
         "qualified_reads_per_hour": 12,
         "public_actions_per_hour_ceiling": 2,
     },
     "standard": {
         "comments_per_hour": 2,
         "posts_per_two_hours": 1,
+        "posts_per_four_hours": 1,
         "followups_per_hour": 2,
         "qualified_reads_per_hour": 20,
         "public_actions_per_hour_ceiling": 4,
     },
     "active": {
         "comments_per_hour": 5,
-        "posts_per_two_hours": 0,
+        "posts_per_two_hours": 1,
+        "posts_per_four_hours": 1,
         "followups_per_hour": 3,
         "qualified_reads_per_hour": 30,
         "public_actions_per_hour_ceiling": 6,
@@ -230,9 +233,14 @@ def normalize_strategy(raw, selected, parent):
         fail("invalid parent mission_strategy")
     frequency_input = supplied.get("frequency")
     frequency = frequency_input if frequency_input is not None else inherited.get("frequency_alias")
-    if frequency is not None and frequency not in FREQUENCY_ALIASES:
+    if frequency is None:
+        frequency = "standard"
+    if frequency not in FREQUENCY_ALIASES:
         fail("mission_strategy.frequency must be low, standard, or high")
-    alias = FREQUENCY_ALIASES.get(frequency_input, {})
+    # A hot-plug revision that omits frequency must preserve the parent's
+    # explicit coverage/threshold/budget values.  Apply the alias only when
+    # the caller actually selected a new rhythm.
+    alias = FREQUENCY_ALIASES.get(frequency, {}) if frequency_input is not None else {}
     business_goal = supplied.get("business_goal", inherited.get("business_goal", derived_business_goal(selected)))
     if business_goal not in BUSINESS_GOALS:
         fail("invalid mission_strategy.business_goal")

@@ -16,7 +16,7 @@ environments to decide whether this task may start.
 
 ## Start
 
-1. After the three-answer intake, inspect only this task's own queue and
+1. After the four-answer intake, inspect only this task's own queue and
    mission, if present. If no current mission exists, continue and create one.
    Do not scan other Heartbeats, environments, locks, or handoffs. Queue
    inconsistencies are recorded locally; they are not a reason to search for a
@@ -110,9 +110,11 @@ browsing wake for every failed target.
 ## Goal profile and priority
 
 The mission envelope stores one business goal plus community scope, coverage
-budget, soft action threshold, action budget, material references, and planning
-targets. The user may say “high/low frequency”, but that shorthand never
-changes the Heartbeat: it compiles to coverage/threshold/budget only.
+budget, soft action threshold, rhythm, action budget, material references, and
+planning targets. The fourth startup answer (`低 / 标准 / 高`) compiles to
+coverage/threshold/budget only; it never changes the Heartbeat. Hourly action
+counters reset by UTC hour bucket rather than persisting as a mission-wide
+lifetime quota.
 
 Post/follow-up/presence gates require explicit authority, live rule/format fit,
 truthful material or claim, current session/composer state, duplicate/recent

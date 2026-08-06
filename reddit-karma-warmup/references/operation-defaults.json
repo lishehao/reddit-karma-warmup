@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v21",
-  "runtime_protocol_version": "2026.08.05.13",
+  "schema": "reddit_single_owner_defaults/v22",
+  "runtime_protocol_version": "2026.08.06.1",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -26,15 +26,15 @@
     "pending_apply": "FIRST_PROVEN_RELEASE_BOUNDARY"
   },
   "startup_intake": {
-    "question_count": 3,
+    "question_count": 4,
     "direct_target_mode": "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM",
     "direct_target_completion": "DIRECT_TARGET_ASSIGNMENT_COMPLETE",
     "direct_target_incomplete": "DIRECT_TEXT_REMINDER_NO_MISSION_NO_SECOND_FORM",
     "request_user_input_auto_resolution": "OMIT_AUTO_RESOLUTION_MS",
     "interactive_form_attempts": 1,
-    "unanswered_form_fallback": "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_NO_REQUEST_USER_INPUT_REPEAT",
-    "partial_reply_fallback": "DIRECT_TEXT_LIST_ALL_THREE_QUESTIONS_WITH_RECOGNIZED_AND_MISSING_FIELDS",
-    "completion": "ALL_THREE_EXPLICIT_OR_DIRECT_TARGET_ASSIGNMENT_OR_STARTUP_CANCELLED_BY_USER",
+    "unanswered_form_fallback": "DIRECT_TEXT_LIST_ALL_FOUR_QUESTIONS_NO_REQUEST_USER_INPUT_REPEAT",
+    "partial_reply_fallback": "DIRECT_TEXT_LIST_ALL_FOUR_QUESTIONS_WITH_RECOGNIZED_AND_MISSING_FIELDS",
+    "completion": "ALL_FOUR_EXPLICIT_OR_DIRECT_TARGET_ASSIGNMENT_OR_STARTUP_CANCELLED_BY_USER",
     "unanswered_or_partial": "WAITING_FOR_STARTUP_INPUT_NO_MISSION_QUEUE_HEARTBEAT_CHROME_OR_RESEARCH",
     "silence": "NEVER_IMPLICITLY_CANCELLED",
     "compiler": "scripts/compile_startup_intake.py",
@@ -51,10 +51,18 @@
     "material_refs": "OPTIONAL_AT_STARTUP_MISSING_LINK_REQUIRES_TRUTHFUL_FORMAT_AUDIT_NOT_AUTOMATIC_POST_PARKING"
   },
   "action_scope_intake": {
-    "question": "USER_VISIBLE_ACTION_SCOPE_NOT_FREQUENCY_QUOTA_OR_INTERNAL_PROFILE",
+    "question": "USER_VISIBLE_ACTION_SCOPE_SEPARATE_FROM_WORKLOAD_FREQUENCY",
     "primary_presets": ["SIMULATE_BROWSING", "DISCUSSION_PARTICIPATION", "FULL_PROGRESSION"],
     "mapping": "SIMULATE_BROWSING_TO_BROWSING_ONLY_DISCUSSION_PARTICIPATION_TO_BROWSING_AND_COMMENTS_FULL_PROGRESSION_TO_ALL_FIVE_UNITS",
     "legacy_aliases": "INPUT_COMPATIBILITY_ONLY_NEVER_DISPLAY_IN_NEW_INTAKE"
+  },
+  "frequency_intake": {
+    "question": "USER_VISIBLE_WORKLOAD_RHYTHM_LOW_STANDARD_HIGH_NOT_TIMER",
+    "choices": ["LOW", "STANDARD", "HIGH"],
+    "mapping": "LOW_TO_MINIMAL_STANDARD_TO_STANDARD_HIGH_TO_ACTIVE",
+    "independent_of_action_scope": true,
+    "heartbeat_unchanged": true,
+    "hourly_counter_reset": "UTC_HOUR_BUCKET"
   },
   "public_writing": {
     "default_profile": "SHORT_NATURAL_COLLOQUIAL",
@@ -87,8 +95,8 @@
     "direct_target_path": "TARGET_POSTS_ACTIONS_DURATION_TO_COMPILER_THEN_INITIAL_NO_FORM",
     "question_two_completion": "DIRECTION_AND_IP_ONLY_NO_SCOPE_OR_MATERIAL_FOLLOWUP",
     "missing_optional_defaults": "COMMUNITY_SCOPE_DISCOVER_OR_NAMED_SEEDS_EXPANDABLE_MATERIAL_REFS_EMPTY",
-    "answer_compilation": "LOCAL_THREE_ANSWER_OR_DIRECT_TARGET_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND",
-    "after_three_answers": "CURRENT_TASK_SCOPE_ENVELOPE_ONE_CHROME_SESSION_INITIAL_DIRECT_THEN_ADVISORY_HEARTBEAT",
+    "answer_compilation": "LOCAL_FOUR_ANSWER_OR_DIRECT_TARGET_COMPILER_BEFORE_CURRENT_TASK_SCOPE_NO_SECOND_ROUND",
+    "after_four_answers": "CURRENT_TASK_SCOPE_ENVELOPE_ONE_CHROME_SESSION_INITIAL_DIRECT_THEN_ADVISORY_HEARTBEAT",
     "initial_packet": "FORMAL_ROUND_ONE_ACTION_FIRST_NOT_PREVIEW_WITH_OPTIONAL_HANDOFF",
     "technical_gates": "ONE_CURRENT_TASK_AND_CHROME_SESSION_GATE_NO_SCHEDULER_OR_TITLE_BLOCK",
     "initial_start": "DIRECT_AFTER_ONE_CHROME_SESSION_GATE_HEARTBEAT_ADVISORY"
@@ -156,6 +164,7 @@
     "max_chrome_packets_per_wake": 1,
     "max_public_actions_per_wake": 3,
     "max_public_actions_per_hour": 6,
+    "hourly_counter_reset": "RESET_AT_EACH_UTC_HOUR_BUCKET_NOT_MISSION_LIFETIME",
     "max_followups_per_packet": 3,
     "max_followups_per_hour": 5,
     "action_packet_mode": "ONE_UNIT_PACKET_MAY_BATCH_FOLLOWUPS_OR_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP",
@@ -208,9 +217,9 @@
     },
     "action_budgets": ["minimal", "standard", "active"],
     "throughput_targets": {
-      "minimal": {"comments_per_hour": {"target": 1, "ceiling": 2}, "posts_per_two_hours": {"target": 0, "ceiling": 1}, "followups_per_hour": {"target": 0, "ceiling": 1}, "qualified_reads_per_hour": 12, "public_actions_per_hour_ceiling": 2},
-      "standard": {"comments_per_hour": {"target": 2, "ceiling": 3}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 2, "ceiling": 3}, "qualified_reads_per_hour": 20, "public_actions_per_hour_ceiling": 4},
-      "active": {"comments_per_hour": {"target": 5, "ceiling": 6}, "posts_per_two_hours": {"target": 0, "ceiling": 1}, "followups_per_hour": {"target": 3, "ceiling": 5}, "qualified_reads_per_hour": 30, "public_actions_per_hour_ceiling": 6}
+      "minimal": {"comments_per_hour": {"target": 1, "ceiling": 2}, "posts_per_two_hours": {"target": 0, "ceiling": 1}, "posts_per_four_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 1, "ceiling": 2}, "qualified_reads_per_hour": 12, "public_actions_per_hour_ceiling": 2},
+      "standard": {"comments_per_hour": {"target": 2, "ceiling": 3}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "posts_per_four_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 2, "ceiling": 3}, "qualified_reads_per_hour": 20, "public_actions_per_hour_ceiling": 4},
+      "active": {"comments_per_hour": {"target": 5, "ceiling": 6}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "posts_per_four_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 3, "ceiling": 5}, "qualified_reads_per_hour": 30, "public_actions_per_hour_ceiling": 6}
     },
     "frequency_aliases": {
       "low": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},

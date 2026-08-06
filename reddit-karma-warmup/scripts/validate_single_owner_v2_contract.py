@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.7"
+    assert version == "2026.08.05.8"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.7"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.8"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
@@ -169,6 +169,16 @@ def main() -> None:
     assert chrome_defaults["global_neutral_failure"] == "CHROME_CONTENT_CHANNEL_TIMEOUT_GLOBAL_SUSPECTED_NETWORK_EXTENSION_OR_RENDERER_UNRESOLVED"
     assert chrome_defaults["route_failure_after_neutral_success"] == "REDDIT_ROUTE_OR_CLIENT_FILTER_SUSPECTED"
     assert chrome_defaults["cua_address_bar_after_neutral_goto_timeout"] == "FORBIDDEN"
+    assert chrome_defaults["post_submit_verification"] == {
+        "completed_submit_no_feedback": "ONE_BOUNDED_STATUS_READ_THEN_ONE_SAME_TARGET_REFRESH_THEN_FRESH_VERIFY",
+        "max_refreshes_per_action": 1,
+        "refresh_step_kind": "refresh",
+        "refresh_is_read_only": True,
+        "refresh_scope": "EXACT_TARGET_URL_SAME_LOGGED_IN_CHROME",
+        "unknown_submit": "OPTIONAL_ONE_READ_ONLY_SAME_TARGET_REFRESH_BUT_ACTION_KEY_STAYS_FROZEN",
+        "if_still_absent": "MUTATION_UNKNOWN_OR_SUBMISSION_UNCERTAIN_FREEZE_EXACT_KEY",
+        "resubmit_after_refresh": False,
+    }
     assert defaults["objective_linking"]["packet_outcome_is_not_objective_completion"] is True
     assert defaults["objective_linking"]["never_schedule_after_mission_cutoff"] is True
     assert defaults["objective_linking"]["recoverable_states"] == ["LIVE_GATE_UNVERIFIED"]
@@ -177,7 +187,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v18"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v19"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -277,7 +287,7 @@ def main() -> None:
     assert "account-wide sweep" in guides
     assert "FOLLOW_UP_SWEEP_EMPTY" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
-    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true", "actual browser call", "30-second Node/REPL", "outer_timeout_ms"):
+    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true", "actual browser call", "30-second Node/REPL", "outer_timeout_ms", "POST_SUBMIT_FEEDBACK_PENDING", "exact target URL", "read-only", "resubmit"):
         assert phrase in chrome, phrase
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("atomic `handoff`", "BOOTSTRAP_READY", "MUTATION_INTENT"):

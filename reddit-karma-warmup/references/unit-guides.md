@@ -54,7 +54,9 @@ specific no-action reason and continue at the next wake; do not park the whole
 comments lane.
 If the candidate is still specific and truthful but the live rule/composer
 gate cannot be completed because Chrome or DOM reads time out, record
-`LIVE_GATE_UNVERIFIED` and finish as `YIELDED`. Do not mark the candidate
+`LIVE_GATE_UNVERIFIED` and finish as `YIELDED`. After a completed submit that
+stays visually pending, use at most one same-target refresh/read-only verification;
+never submit a second time. Do not mark the candidate
 `RULE_BLOCKED` unless the blocking rule, approval message, form state, or mod
 instruction was actually visible.
 
@@ -67,7 +69,9 @@ truth, format, session, duplicate, and submit gates pass. A native discussion ca
 project link. A project/showcase post requires real artifacts/details and clear
 relationship disclosure. Missing a project link does not itself block a native
 discussion post. With explicit post authority, publish at most one
-native post and verify it once. Draft the shortest complete version: short
+native post and verify it once. If a completed submit has no immediate UI echo,
+use at most one same-target refresh/read-only verification, never a second post.
+Draft the shortest complete version: short
 paragraphs, contractions, and a few natural discourse markers are preferred;
 include only the context the subreddit requires. Never cross-post a template to force a KPI. If
 the truthful subject/artifact/relationship is absent, record
@@ -102,7 +106,9 @@ This sweep is independent of the business direction and community-discovery
 filter: maintain every eligible account-owned conversation, but never discover
 or reply to unrelated third-party threads. For each queued item, read the
 parent and nearby context, confirm the current rule/composer, persist one
-action key, submit one concise truthful reply, and verify it. Process all
+action key, submit one concise truthful reply, and verify it. If a completed
+submit stays visually pending, use one same-target refresh/read-only verification
+before deciding it is uncertain. Process all
 eligible items found until the packet/hourly cap; carry the remainder to the
 next wake. A sweep with no eligible items records `FOLLOW_UP_SWEEP_EMPTY`, not
 `NOT_APPLICABLE`. Moderator instructions, pending/removed content, closed

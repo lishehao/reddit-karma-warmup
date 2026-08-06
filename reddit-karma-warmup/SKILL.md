@@ -128,10 +128,10 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    Same-target duplicate checking is enough. Posts keep the 4-8 query research
    pass and fuller rule, truth, duplicate, format, session, and submit gates.
 6. Before every public action persist deterministic `MUTATION_INTENT` and
-   `action_key`. Submit once and verify separately. Freeze uncertain exact keys
-   permanently; never reopen or retry them. At completion/deadline enter
-   `FINALIZE_ONLY`, release only owned tabs, delete the exact Heartbeat with
-   proof, retire the queue, and keep the visible operating task available. Runtime receipt tokens are opaque; envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`).
+   `action_key`. Submit once and verify separately; if it stays `submitting...` with no echo,
+   allow one same-target refresh/read, never a second submit. Freeze uncertain exact keys
+   permanently; never reopen or retry them. At completion/deadline enter `FINALIZE_ONLY`,
+   release only owned tabs, delete the exact Heartbeat with proof, retire the queue, and keep the visible operating task available. Runtime receipt tokens are opaque; envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`).
 ## Load only what the current decision needs
 | Situation | Reference |
 | --- | --- |

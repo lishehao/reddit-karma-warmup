@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v18",
-  "runtime_protocol_version": "2026.08.05.7",
+  "schema": "reddit_single_owner_defaults/v19",
+  "runtime_protocol_version": "2026.08.05.8",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -261,6 +261,16 @@
     "cua_address_bar_after_neutral_goto_timeout": "FORBIDDEN",
     "surface_default": "OLD_REDDIT_FIRST",
     "content_timeout_class": "CHROME_CONTENT_CHANNEL_TIMEOUT",
-    "uncertain_mutation": "FREEZE_EXACT_ACTION_KEY_NO_RETRY"
+    "uncertain_mutation": "FREEZE_EXACT_ACTION_KEY_NO_RETRY",
+    "post_submit_verification": {
+      "completed_submit_no_feedback": "ONE_BOUNDED_STATUS_READ_THEN_ONE_SAME_TARGET_REFRESH_THEN_FRESH_VERIFY",
+      "max_refreshes_per_action": 1,
+      "refresh_step_kind": "refresh",
+      "refresh_is_read_only": true,
+      "refresh_scope": "EXACT_TARGET_URL_SAME_LOGGED_IN_CHROME",
+      "unknown_submit": "OPTIONAL_ONE_READ_ONLY_SAME_TARGET_REFRESH_BUT_ACTION_KEY_STAYS_FROZEN",
+      "if_still_absent": "MUTATION_UNKNOWN_OR_SUBMISSION_UNCERTAIN_FREEZE_EXACT_KEY",
+      "resubmit_after_refresh": false
+    }
   }
 }

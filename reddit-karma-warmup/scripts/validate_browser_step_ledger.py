@@ -9,7 +9,7 @@ import sys
 
 STEP_KINDS = {
     "claim", "metadata", "navigate", "read_projection", "fill", "click",
-    "submit", "verify", "finalize",
+    "submit", "refresh", "verify", "finalize",
 }
 FRESH_SNAPSHOT_KINDS = {"fill", "click", "submit", "verify"}
 NAVIGATION_OUTCOMES = {"PASS", "TIMEOUT", "ERROR", "UNKNOWN"}
@@ -53,9 +53,17 @@ def validate(records):
             if boundary_kind != "metadata" or record.get("post_timeout_readback") is not True:
                 raise ValueError("record %d timeout must be followed by metadata readback" % index)
             timeout_readback_required[packet_id] = False
-        if boundary_kind == "navigate":
+        if boundary_kind in {"navigate", "refresh"}:
             if record.get("outcome") not in NAVIGATION_OUTCOMES:
-                raise ValueError("record %d navigate requires valid outcome" % index)
+                raise ValueError("record %d navigation/refresh requires valid outcome" % index)
+        if boundary_kind == "refresh":
+            if record.get("verification_only") is not True:
+                raise ValueError("record %d refresh must be verification_only" % index)
+            if record.get("same_target") is not True:
+                raise ValueError("record %d refresh must keep same_target" % index)
+            if not isinstance(record.get("target_url"), str) or not record["target_url"]:
+                raise ValueError("record %d refresh requires target_url" % index)
+        if boundary_kind in {"navigate", "refresh"}:
             if record["outcome"] == "TIMEOUT":
                 timeout_readback_required[packet_id] = True
         if boundary_kind in FRESH_SNAPSHOT_KINDS and record.get("fresh_snapshot") is not True:
@@ -83,6 +91,8 @@ def self_test():
         {"packet_id": "p", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "PASS"},
         {"packet_id": "p", "step_seq": 3, "boundary_kind": "read_projection", "boundary_operation_count": 1, "outer_timeout_ms": 120000},
         {"packet_id": "p", "step_seq": 4, "boundary_kind": "submit", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "fresh_snapshot": True},
+        {"packet_id": "p", "step_seq": 5, "boundary_kind": "refresh", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "PASS", "verification_only": True, "same_target": True, "target_url": "https://old.reddit.com/r/example/comments/1/"},
+        {"packet_id": "p", "step_seq": 6, "boundary_kind": "verify", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "fresh_snapshot": True},
     ]
     assert validate(valid)["status"] == "PASS"
     try:
@@ -114,6 +124,12 @@ def self_test():
         assert "outer_timeout_ms" in str(exc)
     else:
         raise AssertionError("short browser timeout accepted")
+    try:
+        validate([{"packet_id": "bad-refresh", "step_seq": 1, "boundary_kind": "refresh", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "PASS", "same_target": True, "target_url": "https://old.reddit.com/"}])
+    except ValueError as exc:
+        assert "verification_only" in str(exc)
+    else:
+        raise AssertionError("non-verification refresh accepted")
 
 
 def main():

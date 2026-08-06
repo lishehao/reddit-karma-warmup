@@ -80,7 +80,7 @@ action; comments use the lightweight target/context/basic-rule version.
   title in one metadata step.
 - Record every browser call in the packet's `browser-steps.jsonl` as exactly
   one `claim`, `metadata`, `navigate`, `read_projection`, `fill`, `click`,
-  `submit`, `verify`, or `finalize` step. `metadata` may read URL and title
+  `submit`, `refresh`, `verify`, or `finalize` step. `metadata` may read URL and title
   together, but it must never include navigation or DOM work. Every record
   must include the actual `outer_timeout_ms`; a value below the configured
   minimum is invalid. Before a public
@@ -113,7 +113,15 @@ composer, and submit availability; posts also recheck title/body/flair and
 duplicate/recent history. Submit once. Verify with a separate targeted read. If
 the click/send may have occurred but proof is missing, record
 `MUTATION_UNKNOWN`, freeze the exact key, and never retry it on another surface
-or tab.
+or tab. If the browser submit call completed but the page remains
+`submitting...` or shows no new text after a bounded status read, do not click
+again: record `POST_SUBMIT_FEEDBACK_PENDING`, perform at most one read-only
+`refresh` on the exact target URL in the same logged-in Chrome session, then take
+a fresh targeted read. A visible own author/text/permalink verifies the original
+action; continued absence or ambiguity remains `MUTATION_UNKNOWN`/
+`SUBMISSION_UNCERTAIN` and the key stays frozen. If the submit call itself timed
+out or errored, the same refresh is optional observation only and never permits a
+resubmit.
 
 Release agent-owned research tabs before turn end. Keep a tab only when a
 mission must continue from it; never retain or manipulate an unrelated user tab.

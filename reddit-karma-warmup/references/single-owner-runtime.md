@@ -75,7 +75,9 @@ next wake; a verified action is success evidence, not a reason to stop the lane.
   finish the packet as `YIELDED`, preserve the candidate/action-key state, and
   resume the same unit at the next task wake when available.
 - `SUBMISSION_UNCERTAIN`: freeze the exact action key permanently; never use a
-  recovery wake to resend it.
+  recovery wake to resend it. A completed submit with delayed/no UI feedback may
+  use one same-target read-only refresh for verification; it never creates a new
+  action. If the refreshed target still lacks proof, keep the key uncertain.
 - `NOT_APPLICABLE`: follow-up is not authorized outside `全面推进`, or no
   concrete presence change. In `全面推进`, an empty account sweep is recorded
   as `FOLLOW_UP_SWEEP_EMPTY`, not as a reason to disable the unit.

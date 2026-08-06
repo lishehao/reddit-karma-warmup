@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.05.7`
+Protocol version: `2026.08.05.8`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -89,12 +89,12 @@ assignment gets one concise text reminder; do not invent missing targets.
   verified own permalink can arm follow-up. One rejected candidate returns to
   browsing instead of blocking the whole mission.
 - Every mutation has a persisted deterministic action key, one submission, and
-  separate verification. An uncertain exact key is frozen and never retried.
+  separate verification; if a completed submit has no UI echo, allow one
+  same-target refresh/read only; an uncertain key stays frozen, never retried.
 - Heartbeat deliveries within ±10 minutes are normal. A late wake runs one
   currently due unit without replaying missed work. At the deadline, stop
   Reddit work, release owned tabs, delete the exact Heartbeat, and retire the
   queue.
-
 Full operational rules live in the Skill's routed references; this README is only the install and startup contract.
 ## Release rule
 Publish updates directly to GitHub `main`: bump the version, run validators, build a ZIP, verify public codeload/ZIP, then perform compatible atomic hot replacement. Only incompatible or uncertain active-runtime state may defer it.

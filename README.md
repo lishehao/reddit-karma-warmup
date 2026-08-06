@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.05.5`
+Protocol version: `2026.08.05.6`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -37,7 +37,7 @@ start in the same task turn:
 
 Rename the current task to `Reddit 运营台`, pin it, and read back when supported; presentation failure is non-blocking. The INITIAL round performs real work immediately, is not a preview or pre-filter, and does not wait for “继续” or the first Heartbeat. Heartbeat is a continuation aid; unavailable creation/readback is retried without stopping current-task work. Delivery is advisory: ±10 minutes is ordinary, and a late trigger runs one currently due unit without replaying missed work.
 
-Normal runtime receipts use short opaque evidence tokens; SHA-256 is not required for each wake, Chrome read, or action receipt. Envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`); normal operation trusts the compiled envelope and checks task/scope consistency. Chrome calls use an explicit 120-second outer budget; await `Script running` instead of reissuing it, and claim a visible user tab before session-bound Reddit work.
+Normal runtime receipts use short opaque evidence tokens; SHA-256 is not required for each wake, Chrome read, or action receipt. Envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`); normal operation trusts the compiled envelope and checks task/scope consistency. Chrome calls must carry an explicit 120-second outer budget at the actual call site (not only in the ledger); await `Script running` instead of reissuing it, and claim a visible user tab before session-bound Reddit work.
 
 ## Installation contract
 

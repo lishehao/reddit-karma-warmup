@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.5"
+    assert version == "2026.08.05.6"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.5"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.6"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
@@ -148,6 +148,10 @@ def main() -> None:
     chrome_defaults = defaults["chrome"]
     assert chrome_defaults["outer_operation_budget_ms"] == 120000
     assert chrome_defaults["outer_budget_policy"] == "SET_EXPLICIT_PER_CALL_TIMEOUT_MS_120000_WHEN_WRAPPER_SUPPORTS_IT; NEVER_USE_DEFAULT_AMBIENT_BUDGET"
+    assert chrome_defaults["outer_timeout_enforcement"] == "CALL_SITE_REQUIRED_AND_LEDGER_REQUIRED"
+    assert chrome_defaults["minimum_outer_timeout_ms"] == 120000
+    assert chrome_defaults["short_default_timeout_policy"] == "REJECT_30_SECOND_OR_AMBIENT_BROWSER_DEFAULT"
+    assert chrome_defaults["call_plan"] == "CLAIM_OR_NEW_THEN_METADATA_THEN_NAVIGATE_THEN_METADATA_THEN_READ_PROJECTION_AS_SEPARATE_CALLS"
     assert chrome_defaults["await_policy"] == "AWAIT_SCRIPT_RUNNING_OR_PENDING_CELL; NEVER_REISSUE_THE_SAME_BROWSER_ACTION"
     assert chrome_defaults["session_tab_policy"] == "CLAIM_VISIBLE_USER_CHROME_TAB_FIRST;_TEMP_TABS_NEW_ARE_RECOVERY_ONLY_AND_NOT_SESSION_PROOF"
     assert chrome_defaults["telemetry_timeout_policy"] == "BACKGROUND_TELEMETRY_TIMEOUT_IS_NOT_BROWSER_FAILURE_UNLESS_BROWSER_CALL_OR_READBACK_FAILS"
@@ -165,7 +169,7 @@ def main() -> None:
     assert defaults["objective_linking"]["candidate_handoff"] == "OPTIONAL_ATOMIC_HANDOFF_COMMENTS_OR_POSTS_MAY_SELF_SELECT_TARGET_IN_SAME_ACTION_PACKET"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v16"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v17"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -263,7 +267,7 @@ def main() -> None:
     assert "public writing defaults" in guides
     assert "contextual fillers" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
-    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true"):
+    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true", "actual browser call", "30-second Node/REPL", "outer_timeout_ms"):
         assert phrase in chrome, phrase
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("atomic `handoff`", "BOOTSTRAP_READY", "MUTATION_INTENT"):

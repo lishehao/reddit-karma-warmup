@@ -22,7 +22,7 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-PROTOCOL_VERSION = "2026.08.05.5"
+PROTOCOL_VERSION = "2026.08.05.6"
 LEGACY_PROTOCOL_VERSIONS = {"2026.08.05.4", "2026.08.05.3", "2026.08.05.2", "2026.08.05.1", "2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
 SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15

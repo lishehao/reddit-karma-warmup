@@ -66,19 +66,24 @@ action; comments use the lightweight target/context/basic-rule version.
 ## Atomic boundary rules
 
 - Create/claim a tab, navigate, read DOM/screenshot, fill, click, submit, and
-  verify in separate calls. When the wrapper supports it, set the explicit
-  outer timeout to 120 seconds on every browser call; do not rely on its short
-  ambient default. If a tool returns `Script running` or a pending cell, await
-  that result instead of reissuing the same browser action. A background
-  telemetry timeout is not a browser failure unless the browser call or its
-  readback also fails.
+  verify in separate calls. Set `timeout_ms=120000` (or the configured
+  `chrome.minimum_outer_timeout_ms`) on the actual browser call; writing the
+  value only into a ledger is invalid. Never inherit a 30-second Node/REPL or
+  ambient browser default. If a tool returns `Script running` or a pending
+  cell, await that result instead of reissuing the same browser action. A
+  background telemetry timeout is not a browser failure unless the browser
+  call or its readback also fails.
 - One browser-client operation means one call boundary. Never combine
-  `tabs.new()` with `goto`, or `goto` with DOM/screenshot. The sole permitted
-  metadata pair is URL plus title in one metadata step.
+  `tabs.new()` with `goto`, `goto` with DOM/screenshot, or session naming with
+  navigation. The normal call plan is `claim/new -> metadata -> navigate ->
+  metadata -> read_projection`; the sole permitted metadata pair is URL plus
+  title in one metadata step.
 - Record every browser call in the packet's `browser-steps.jsonl` as exactly
   one `claim`, `metadata`, `navigate`, `read_projection`, `fill`, `click`,
   `submit`, `verify`, or `finalize` step. `metadata` may read URL and title
-  together, but it must never include navigation or DOM work. Before a public
+  together, but it must never include navigation or DOM work. Every record
+  must include the actual `outer_timeout_ms`; a value below the configured
+  minimum is invalid. Before a public
   action or packet finish, run `scripts/validate_browser_step_ledger.py` on
   that file; mixed `url/title/goto` calls are invalid. Every new `navigate`
   record includes `outcome=PASS|TIMEOUT|ERROR|UNKNOWN`; a `TIMEOUT` must be

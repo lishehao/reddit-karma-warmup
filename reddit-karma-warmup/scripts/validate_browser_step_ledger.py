@@ -13,6 +13,7 @@ STEP_KINDS = {
 }
 FRESH_SNAPSHOT_KINDS = {"fill", "click", "submit", "verify"}
 NAVIGATION_OUTCOMES = {"PASS", "TIMEOUT", "ERROR", "UNKNOWN"}
+MIN_OUTER_TIMEOUT_MS = 120000
 
 
 def validate(records):
@@ -38,6 +39,16 @@ def validate(records):
             raise ValueError("record %d invalid boundary_kind" % index)
         if record.get("boundary_operation_count") != 1:
             raise ValueError("record %d mixed browser boundary" % index)
+        outer_timeout_ms = record.get("outer_timeout_ms")
+        if (
+            not isinstance(outer_timeout_ms, int)
+            or isinstance(outer_timeout_ms, bool)
+            or outer_timeout_ms < MIN_OUTER_TIMEOUT_MS
+        ):
+            raise ValueError(
+                "record %d outer_timeout_ms must be at least %d"
+                % (index, MIN_OUTER_TIMEOUT_MS)
+            )
         if timeout_readback_required.get(packet_id):
             if boundary_kind != "metadata" or record.get("post_timeout_readback") is not True:
                 raise ValueError("record %d timeout must be followed by metadata readback" % index)
@@ -68,35 +79,41 @@ def load(path):
 
 def self_test():
     valid = [
-        {"packet_id": "p", "step_seq": 1, "boundary_kind": "metadata", "boundary_operation_count": 1},
-        {"packet_id": "p", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "PASS"},
-        {"packet_id": "p", "step_seq": 3, "boundary_kind": "read_projection", "boundary_operation_count": 1},
-        {"packet_id": "p", "step_seq": 4, "boundary_kind": "submit", "boundary_operation_count": 1, "fresh_snapshot": True},
+        {"packet_id": "p", "step_seq": 1, "boundary_kind": "metadata", "boundary_operation_count": 1, "outer_timeout_ms": 120000},
+        {"packet_id": "p", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "PASS"},
+        {"packet_id": "p", "step_seq": 3, "boundary_kind": "read_projection", "boundary_operation_count": 1, "outer_timeout_ms": 120000},
+        {"packet_id": "p", "step_seq": 4, "boundary_kind": "submit", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "fresh_snapshot": True},
     ]
     assert validate(valid)["status"] == "PASS"
     try:
-        validate([{"packet_id": "p", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 2}])
+        validate([{"packet_id": "p", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 2, "outer_timeout_ms": 120000}])
     except ValueError as exc:
         assert "mixed browser boundary" in str(exc)
     else:
         raise AssertionError("mixed boundary accepted")
     recovery = [
-        {"packet_id": "r", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "TIMEOUT"},
-        {"packet_id": "r", "step_seq": 2, "boundary_kind": "metadata", "boundary_operation_count": 1, "post_timeout_readback": True},
-        {"packet_id": "r", "step_seq": 3, "boundary_kind": "claim", "boundary_operation_count": 1},
-        {"packet_id": "r", "step_seq": 4, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "TIMEOUT"},
-        {"packet_id": "r", "step_seq": 5, "boundary_kind": "metadata", "boundary_operation_count": 1, "post_timeout_readback": True},
+        {"packet_id": "r", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "TIMEOUT"},
+        {"packet_id": "r", "step_seq": 2, "boundary_kind": "metadata", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "post_timeout_readback": True},
+        {"packet_id": "r", "step_seq": 3, "boundary_kind": "claim", "boundary_operation_count": 1, "outer_timeout_ms": 120000},
+        {"packet_id": "r", "step_seq": 4, "boundary_kind": "navigate", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "TIMEOUT"},
+        {"packet_id": "r", "step_seq": 5, "boundary_kind": "metadata", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "post_timeout_readback": True},
     ]
     assert validate(recovery)["status"] == "PASS"
     try:
         validate([
-            {"packet_id": "t", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "TIMEOUT"},
-            {"packet_id": "t", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1, "outcome": "PASS"},
+            {"packet_id": "t", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "TIMEOUT"},
+            {"packet_id": "t", "step_seq": 2, "boundary_kind": "navigate", "boundary_operation_count": 1, "outer_timeout_ms": 120000, "outcome": "PASS"},
         ])
     except ValueError as exc:
         assert "timeout must be followed" in str(exc)
     else:
         raise AssertionError("timeout retry accepted")
+    try:
+        validate([{"packet_id": "short", "step_seq": 1, "boundary_kind": "navigate", "boundary_operation_count": 1, "outer_timeout_ms": 30000, "outcome": "TIMEOUT"}])
+    except ValueError as exc:
+        assert "outer_timeout_ms" in str(exc)
+    else:
+        raise AssertionError("short browser timeout accepted")
 
 
 def main():

@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v16",
-  "runtime_protocol_version": "2026.08.05.5",
+  "schema": "reddit_single_owner_defaults/v17",
+  "runtime_protocol_version": "2026.08.05.6",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -237,6 +237,10 @@
   "chrome": {
     "outer_operation_budget_ms": 120000,
     "outer_budget_policy": "SET_EXPLICIT_PER_CALL_TIMEOUT_MS_120000_WHEN_WRAPPER_SUPPORTS_IT; NEVER_USE_DEFAULT_AMBIENT_BUDGET",
+    "outer_timeout_enforcement": "CALL_SITE_REQUIRED_AND_LEDGER_REQUIRED",
+    "minimum_outer_timeout_ms": 120000,
+    "short_default_timeout_policy": "REJECT_30_SECOND_OR_AMBIENT_BROWSER_DEFAULT",
+    "call_plan": "CLAIM_OR_NEW_THEN_METADATA_THEN_NAVIGATE_THEN_METADATA_THEN_READ_PROJECTION_AS_SEPARATE_CALLS",
     "await_policy": "AWAIT_SCRIPT_RUNNING_OR_PENDING_CELL; NEVER_REISSUE_THE_SAME_BROWSER_ACTION",
     "session_tab_policy": "CLAIM_VISIBLE_USER_CHROME_TAB_FIRST;_TEMP_TABS_NEW_ARE_RECOVERY_ONLY_AND_NOT_SESSION_PROOF",
     "telemetry_timeout_policy": "BACKGROUND_TELEMETRY_TIMEOUT_IS_NOT_BROWSER_FAILURE_UNLESS_BROWSER_CALL_OR_READBACK_FAILS",

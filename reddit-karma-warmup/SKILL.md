@@ -126,7 +126,7 @@ or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md)
    do not require account history, quality scoring, or broad research. Use zero
    Web Search queries unless a factual/technical/unfamiliar claim needs one.
    Same-target duplicate checking is enough. Posts keep the 4-8 query research
-   pass and fuller rule, truth, duplicate, format, session, and submit gates.
+   pass and fuller rule, truth, duplicate, format, Flair, session, and submit gates.
 6. Before every public action persist deterministic `MUTATION_INTENT` and
    `action_key`. Submit once and verify separately; if it stays `submitting...` with no echo,
    allow one same-target refresh/read, never a second submit. Freeze uncertain exact keys

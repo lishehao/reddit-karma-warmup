@@ -60,7 +60,9 @@ State that mapping in the envelope. If they say “broad but strict”, preserve
 For posts and other full actions require all hard gates: explicit unit authority;
 current live rule and format fit; truthful material or claim; account and
 submit-state fit; no duplicate/recent-history conflict; one submission plus
-verification. Comments use the lighter target/context/basic-rule/composer path
+verification. For posts, the live Flair control is part of the format gate:
+select the most specific truthful Flair when required, and stop if no truthful
+option exists. Comments use the lighter target/context/basic-rule/composer path
 with same-target duplicate protection.
 
 Apply `action_threshold` only after those gates pass:

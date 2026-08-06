@@ -85,6 +85,15 @@ the truthful subject/artifact/relationship is absent, record
 allowed truthful post format needs absent material, with
 `--block-scope MISSION` and evidence. A failed candidate/community instead
 uses `candidate-reject` and returns to browsing.
+
+Before `MUTATION_INTENT`, read the live post-Flair control and its available
+options. If the community or form requires Flair, choose the most specific
+truthful option and record its visible label/ID. If Flair is optional, select it
+only when the fit is clear; otherwise leave it unset. Never invent a Flair name,
+choose a random promotional label, or use profile Flair as a substitute. A
+required Flair with no truthful match is a visible `RULE_BLOCKED` post route;
+an unreadable Flair control is `LIVE_GATE_UNVERIFIED`.
+
 If the final route appears viable but Chrome cannot read the current rules,
 format, duplicate, session, or composer state, yield with
 `LIVE_GATE_UNVERIFIED`; do not convert an unread gate into `RULE_BLOCKED`.

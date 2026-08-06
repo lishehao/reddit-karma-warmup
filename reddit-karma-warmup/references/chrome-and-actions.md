@@ -109,8 +109,11 @@ action; comments use the lightweight target/context/basic-rule version.
 
 Before a public action persist `action_key`, target, text/direction, and
 expected session proof. For comments recheck target/context, basic rule,
-composer, and submit availability; posts also recheck title/body/flair and
-duplicate/recent history. Submit once. Verify with a separate targeted read. If
+composer, and submit availability; posts also recheck title/body, the live
+Flair option/selection, and duplicate/recent history. If Flair is required,
+select the most specific truthful option and record its visible label or ID;
+if no truthful option exists, treat that route as `RULE_BLOCKED`. Submit once.
+Verify with a separate targeted read. If
 the click/send may have occurred but proof is missing, record
 `MUTATION_UNKNOWN`, freeze the exact key, and never retry it on another surface
 or tab. If the browser submit call completed but the page remains

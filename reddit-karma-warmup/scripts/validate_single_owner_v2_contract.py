@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.11"
+    assert version == "2026.08.05.12"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.11"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.12"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
@@ -260,6 +260,15 @@ def main() -> None:
     assert defaults["research"]["web_search"]["posts_query_min"] == 4
     assert defaults["research"]["web_search"]["posts_query_max"] == 8
     assert defaults["mission_profiles"]["comment_action_gates"] == ["explicit_authority", "target_and_nearby_context", "visible_rule_or_submit_signal", "visible_composer", "single_submission_and_verification"]
+    assert defaults["mission_profiles"]["post_action_gates"] == ["explicit_authority", "live_rules_and_format", "flair_selection_when_required", "truthful_material_or_claim", "account_and_submit_state", "duplicate_and_recent_history", "single_submission_and_verification"]
+    assert defaults["mission_profiles"]["post_flair"] == {
+        "owner": "posts",
+        "selection": "READ_LIVE_OPTIONS_AND_CHOOSE_MOST_SPECIFIC_TRUTHFUL_FIT",
+        "required_behavior": "IF_THE_COMMUNITY_OR_FORM_REQUIRES_FLAIR_SELECT_ONE_BEFORE_SUBMIT",
+        "optional_behavior": "SELECT_WHEN_CLEARLY_FIT; OTHERWISE_LEAVE_UNSET",
+        "no_truthful_match": "RULE_BLOCKED_NO_RANDOM_OR_PROMOTIONAL_FLAIR",
+        "record": "LIVE_LABEL_OR_ID_AND_REQUIRED_OR_OPTIONAL_STATE_IN_ACTION_CHECKPOINT",
+    }
     assert defaults["runtime_fence"]["preflight"] == "CURRENT_TASK_ONLY_NO_CROSS_TASK_SCAN"
     assert defaults["runtime_fence"]["pending_chrome_release"] == "LEDGER_EVIDENCE_ONLY_NOT_A_LIVE_OCCUPANCY_PROOF"
     assert defaults["runtime_fence"]["stale_reconciliation"] == "CURRENT_TASK_LOCAL_MARKER_ONLY"
@@ -293,10 +302,12 @@ def main() -> None:
     assert "at least one contextual marker" in guides
     assert "question-led beginner discussion" in guides
     assert "one clear, easy-to-answer question" in guides
+    assert "live post-Flair control" in guides
+    assert "most specific" in guides
     assert "account-wide sweep" in guides
     assert "FOLLOW_UP_SWEEP_EMPTY" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
-    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true", "actual browser call", "30-second Node/REPL", "outer_timeout_ms", "POST_SUBMIT_FEEDBACK_PENDING", "exact target URL", "read-only", "resubmit"):
+    for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true", "actual browser call", "30-second Node/REPL", "outer_timeout_ms", "POST_SUBMIT_FEEDBACK_PENDING", "exact target URL", "read-only", "resubmit", "live\nFlair option/selection", "most specific truthful option"):
         assert phrase in chrome, phrase
     installed_text = " ".join(SKILL.read_text(encoding="utf-8").split())
     for phrase in ("atomic `handoff`", "BOOTSTRAP_READY", "MUTATION_INTENT"):

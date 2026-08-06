@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v21",
-  "runtime_protocol_version": "2026.08.05.11",
+  "runtime_protocol_version": "2026.08.05.12",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -213,6 +213,15 @@
       "high": {"coverage_budget": "broad", "action_threshold": "standard", "action_budget": "active"}
     },
     "hard_action_gates": ["explicit_authority", "live_rules_and_format", "truthful_material_or_claim", "account_and_submit_state", "duplicate_and_recent_history", "single_submission_and_verification"],
+    "post_action_gates": ["explicit_authority", "live_rules_and_format", "flair_selection_when_required", "truthful_material_or_claim", "account_and_submit_state", "duplicate_and_recent_history", "single_submission_and_verification"],
+    "post_flair": {
+      "owner": "posts",
+      "selection": "READ_LIVE_OPTIONS_AND_CHOOSE_MOST_SPECIFIC_TRUTHFUL_FIT",
+      "required_behavior": "IF_THE_COMMUNITY_OR_FORM_REQUIRES_FLAIR_SELECT_ONE_BEFORE_SUBMIT",
+      "optional_behavior": "SELECT_WHEN_CLEARLY_FIT; OTHERWISE_LEAVE_UNSET",
+      "no_truthful_match": "RULE_BLOCKED_NO_RANDOM_OR_PROMOTIONAL_FLAIR",
+      "record": "LIVE_LABEL_OR_ID_AND_REQUIRED_OR_OPTIONAL_STATE_IN_ACTION_CHECKPOINT"
+    },
     "comment_action_gates": ["explicit_authority", "target_and_nearby_context", "visible_rule_or_submit_signal", "visible_composer", "single_submission_and_verification"]
   },
   "research": {

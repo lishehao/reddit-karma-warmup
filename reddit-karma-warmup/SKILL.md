@@ -122,7 +122,9 @@ Global community exclusion: `r/saas`; never search, open, read, index, comment, 
    is `LIVE_GATE_UNVERIFIED`; the
    next wake must create/claim one fresh agent-owned tab and run one real content
    probe before continuing or yielding the same unit. URL-only checks/finalize
-   do not count; retry later and never permanently park a due unit.
+   do not count; retry later and never permanently park a due unit. A yielded
+   unit may leave the late wake's remaining serial slot(s) for independent due
+   units; it never authorizes resending the uncertain action.
 5. Comments use a minimal action path: target/nearby context, one visible rule or submit signal, and composer. Fold truth and relevance into the comment; do not require account history, quality scoring, or broad research. Use zero Web Search queries unless a factual/technical/unfamiliar claim needs one.
    Same-target duplicate checking is enough. Posts keep the 4-8 query research pass and fuller rule, truth, duplicate, format, Flair, session, and submit gates.
 6. Before every public action persist deterministic `MUTATION_INTENT` and

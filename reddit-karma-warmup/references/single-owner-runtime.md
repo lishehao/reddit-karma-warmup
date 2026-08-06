@@ -194,9 +194,11 @@ within ±10 minutes is ordinary. A trigger beyond that window records
 `EARLY_WAKE` or `LATE_WAKE` with its signed delta; an early wake does no work.
 The queue records `packet_slots`, `packets_started`, and `completed_units` in
 the open wake. “No catch-up” means no replay of missed packets or mutations;
-it never means skipping currently due work. If a Chrome packet yields or a
-mutation becomes uncertain, the wake settles immediately and only that unit is
-resumed later; the remaining slots are not used to bypass uncertainty.
+it never means skipping currently due work. If one packet yields or a mutation
+becomes uncertain, freeze/resume that exact unit, but use any remaining serial
+slot for an independent selected unit. A global content-channel failure will
+usually make that next probe fail quickly and close the wake; it must not create
+an unbounded retry loop.
 Neither case creates a second timer.
 
 Every open wake and running packet has one 15-minute lease. If the owning task

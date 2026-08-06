@@ -1489,14 +1489,29 @@ def command(args):
             state["history"].append({"kind": "PACKET", **active})
             state["active_packet"] = None
             if outcome == "YIELDED":
+                wake = state.get("wake")
                 if due_objective(state["units"][unit]["objective"]["state"]):
                     state["resume_unit"] = unit
+                    if wake is not None:
+                        wake.setdefault("completed_units", []).append(unit)
+                        next_units = selected_packet_units(state)
+                        if next_units and wake.get("packets_started", 0) < wake.get("packet_slots", 1):
+                            next_unit = next_units[0]
+                            open_next_packet(state, next_unit, now)
+                            return write_and_return(
+                                state_path,
+                                state,
+                                "PACKET_YIELDED_CONTINUE",
+                                now,
+                                {"unit": unit, "next_unit": next_unit, "packet_slots": wake.get("packet_slots", 1)},
+                            )
                     settle_wake(state, "YIELDED", now)
                 else:
                     state["resume_unit"] = None
                     settle_wake(state, "PARKED", now)
             else:
-                state["resume_unit"] = None
+                prior_resume = state.get("resume_unit")
+                state["resume_unit"] = prior_resume if prior_resume and prior_resume != unit else None
                 schedule_objective(state, unit, now, active["next_due_minutes"])
                 wake = state.get("wake")
                 if wake is not None:

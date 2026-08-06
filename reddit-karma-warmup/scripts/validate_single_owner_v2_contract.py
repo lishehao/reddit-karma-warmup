@@ -972,19 +972,18 @@ def main() -> None:
         assert run(str(QUEUE), "decide", *late_multi_shared, "--unit", "posts", "--decision", "RUN", "--reason", "late wake second due unit", "--now-utc", "2026-07-27T07:26:02Z")["status"] == "DECISION_RECORDED"
         assert run(str(QUEUE), "start", *late_multi_shared, "--now-utc", "2026-07-27T07:26:03Z")["unit"] == "comments"
         first_continue = run(
-            str(QUEUE), "finish", *late_multi_shared, "--outcome", "COMPLETED",
-            "--objective-state", "ACTION_VERIFIED", "--objective-reason", "comment verified",
-            "--objective-evidence-sha256", proof, "--source-ref", "https://old.reddit.com/r/example/comments/c1",
+            str(QUEUE), "finish", *late_multi_shared, "--outcome", "YIELDED",
+            "--objective-state", "LIVE_GATE_UNVERIFIED", "--objective-reason", "CHROME_CONTENT_CHANNEL_TIMEOUT on comment target",
             "--now-utc", "2026-07-27T07:26:04Z",
         )
-        assert first_continue["status"] == "PACKET_COMPLETED_CONTINUE" and first_continue["unit"] == "comments" and first_continue["next_unit"] == "posts"
+        assert first_continue["status"] == "PACKET_YIELDED_CONTINUE" and first_continue["unit"] == "comments" and first_continue["next_unit"] == "posts"
         second_done = run(
             str(QUEUE), "finish", *late_multi_shared, "--outcome", "COMPLETED",
             "--objective-state", "CANDIDATES_READY", "--objective-reason", "post candidate pack recorded",
             "--candidate-ref", "pack:late:post", "--source-ref", "pack:late:source",
             "--now-utc", "2026-07-27T07:26:05Z",
         )
-        assert second_done["status"] == "COMPLETED" and second_done.get("wake") is None
+        assert second_done["status"] == "COMPLETED" and second_done.get("wake") is None and second_done["resume_unit"] == "comments"
 
         revised = work / "v2-revision.json"
         revised_payload = json.loads(envelope.read_text(encoding="utf-8"))

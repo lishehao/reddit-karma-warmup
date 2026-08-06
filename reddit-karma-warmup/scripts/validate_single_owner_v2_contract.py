@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.8"
+    assert version == "2026.08.05.9"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.8"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.9"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
@@ -91,16 +91,19 @@ def main() -> None:
     assert defaults["public_writing"] == {
         "default_profile": "SHORT_NATURAL_COLLOQUIAL",
         "applies_to": ["comments", "posts"],
-        "discourse_markers": "USE_FREQUENTLY_WHEN_CONTEXTUAL_BUT_NEVER_MECHANICALLY",
+        "discourse_markers": "REQUIRE_AT_LEAST_ONE_CONTEXTUAL_MARKER_BY_DEFAULT; VARY_MARKERS_AND_NEVER_REPEAT_THE_SAME_MARKER_CONSECUTIVELY",
+        "marker_pool": ["honestly", "tbh", "kinda", "wait", "ngl", "lowkey", "like", "I mean", "yeah", "right"],
+        "marker_minimums": {"comments": 1, "posts": 1},
+        "marker_exceptions": "RULE_TEXT_FORM_FIELDS_FORMAL_TECHNICAL_CONTEXTS_OR_WHEN_A_MARKER_WOULD_DISTORT_MEANING",
         "comments": {
             "shape": "ONE_OR_TWO_SHORT_SENTENCES",
             "target_words": "8_TO_40_UNLESS_CONTEXT_REQUIRES_MORE",
-            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE",
+            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_AND_OPTIONALLY_TWO",
         },
         "posts": {
             "shape": "SHORT_PARAGRAPHS_WITH_ONLY_RULE_REQUIRED_DETAIL",
             "target_words": "BRIEF_BY_DEFAULT_BUT_EXPAND_FOR_REQUIRED_CONTEXT",
-            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE",
+            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_IN_FIRST_PARAGRAPH",
         },
         "anti_template": [
             "DO_NOT_REPEAT_THE_SAME_OPENING_OR_CATCHPHRASE",
@@ -187,7 +190,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v19"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v20"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -283,7 +286,8 @@ def main() -> None:
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
     assert "public writing defaults" in guides
-    assert "contextual fillers" in guides
+    assert "contextual filler" in guides
+    assert "at least one contextual marker" in guides
     assert "account-wide sweep" in guides
     assert "FOLLOW_UP_SWEEP_EMPTY" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")

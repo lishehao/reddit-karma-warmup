@@ -48,7 +48,7 @@ comment/post/reply/profile change exists, and it must not close an action goal.
 ```text
 browsing candidate pack ──> optional atomic `handoff` ──> comments/posts ACTION_ELIGIBLE
 exact candidate/community rejection ──> `candidate-reject` ──> browsing PENDING
-verified own post/comment permalink ──> follow-up ACTION_ELIGIBLE
+account-wide own-content sweep ──> follow-up ACTION_ELIGIBLE
 explicit requested profile change ──> presence ACTION_ELIGIBLE
 ```
 
@@ -57,9 +57,10 @@ Use `PENDING`, `CANDIDATES_READY`, `ACTION_ELIGIBLE`, `ACTION_VERIFIED`,
 `NOT_APPLICABLE`, or `RESEARCH_ONLY`. Record a compact evidence/source
 reference when a unit becomes `CANDIDATES_READY` or `ACTION_ELIGIBLE`.
 `ACTION_VERIFIED` needs both verification evidence and the resulting own
-permalink/source reference before it can arm follow-up. In an `active` mission,
-it also re-arms the same action lane on the next wake; a verified action is
-success evidence, not a reason to stop the lane.
+permalink/source reference when it is used to arm a specific follow-up. In
+`全面推进`, the account-wide own-content sweep does not require an upstream
+handoff. In an `active` mission, it also re-arms the same action lane on the
+next wake; a verified action is success evidence, not a reason to stop the lane.
 
 - `MATERIAL_REQUIRED`: a bounded mission-wide audit established that every
   allowed truthful post format needs absent material. Supply
@@ -75,8 +76,9 @@ success evidence, not a reason to stop the lane.
   resume the same unit at the next task wake when available.
 - `SUBMISSION_UNCERTAIN`: freeze the exact action key permanently; never use a
   recovery wake to resend it.
-- `NOT_APPLICABLE`: no verified own permalink for follow-up, or no concrete
-  presence change. It is not a recurring inspection task.
+- `NOT_APPLICABLE`: follow-up is not authorized outside `全面推进`, or no
+  concrete presence change. In `全面推进`, an empty account sweep is recorded
+  as `FOLLOW_UP_SWEEP_EMPTY`, not as a reason to disable the unit.
 
 Only a mission revision or a recorded upstream evidence handoff may re-arm a
 parked action unit. Do not use a generic cadence to revive it.
@@ -124,6 +126,9 @@ unit may also self-select in the same packet. Do not finish an
 action-authorized round with only a candidate pack. If a post is parked as
 `MATERIAL_REQUIRED` or `RULE_BLOCKED`, keep comments or another authorized
 action moving; record the unmet post goal honestly rather than forcing a post.
+In `全面推进`, follow-up may start from the account-wide own-content sweep
+without an upstream permalink handoff; direction and community-discovery
+filters do not narrow that sweep.
 
 ## Wake and units
 

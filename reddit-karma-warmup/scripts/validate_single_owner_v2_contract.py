@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.6"
+    assert version == "2026.08.05.7"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.6"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.7"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
@@ -114,6 +114,13 @@ def main() -> None:
         "explicit_authority": None,
         "votes": "DISABLED",
     }
+    assert defaults["follow_up"] == {
+        "full_progression_scope": "ACCOUNT_WIDE_OWN_CONTENT_SWEEP",
+        "sources": ["OWN_POSTS", "OWN_COMMENTS", "NOTIFICATIONS", "INBOX_REPLIES", "KNOWN_OWN_PERMALINKS"],
+        "direction_filter": "NONE_IN_FULL_PROGRESSION",
+        "eligible_items": "NEW_REPLY_UNANSWERED_DIRECT_QUESTION_OR_OPEN_OWN_THREAD",
+        "processing": "BATCH_ALL_ELIGIBLE_FOUND_UNTIL_PACKET_OR_HOURLY_CAP_CARRY_REMAINDER_TO_NEXT_WAKE",
+    }
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 600
     assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
     assert defaults["scheduler"]["unit_recheck_grid_minutes"] == 15
@@ -167,9 +174,10 @@ def main() -> None:
     assert defaults["objective_linking"]["recoverable_states"] == ["LIVE_GATE_UNVERIFIED"]
     assert defaults["objective_linking"]["candidate_rejection"] == "EXACT_CANDIDATE_OR_COMMUNITY_REJECTION_RETURNS_TO_BROWSING_NEXT_HEARTBEAT_AND_CANNOT_BE_REARMED"
     assert defaults["objective_linking"]["candidate_handoff"] == "OPTIONAL_ATOMIC_HANDOFF_COMMENTS_OR_POSTS_MAY_SELF_SELECT_TARGET_IN_SAME_ACTION_PACKET"
+    assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v17"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v18"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -259,13 +267,15 @@ def main() -> None:
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
-    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "same packet", "Action-first rounds", "up to 60 new", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay", "fresh agent-owned tab", "no permanent recovery parking"):
+    for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "same packet", "Action-first rounds", "up to 60 new", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay", "fresh agent-owned tab", "no permanent recovery parking", "account-wide own-content sweep", "FOLLOW_UP_SWEEP_EMPTY"):
         assert phrase in runtime, phrase
-    for phrase in ("current task", "other Heartbeats", "UNCERTAIN"):
+    for phrase in ("current task", "other Heartbeats", "UNCERTAIN", "account-wide own-content sweep", "全面推进"):
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
     assert "public writing defaults" in guides
     assert "contextual fillers" in guides
+    assert "account-wide sweep" in guides
+    assert "FOLLOW_UP_SWEEP_EMPTY" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")
     for phrase in ("not `RULE_BLOCKED`", "Bounded startup and recovery", "CHROME_CONTENT_CHANNEL_TIMEOUT", "scheduler receipt", "same logged-in Chrome", "Do not use `Promise.race`", "post_timeout_readback=true", "actual browser call", "30-second Node/REPL", "outer_timeout_ms"):
         assert phrase in chrome, phrase

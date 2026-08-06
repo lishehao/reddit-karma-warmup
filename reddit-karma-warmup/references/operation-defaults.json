@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v17",
-  "runtime_protocol_version": "2026.08.05.6",
+  "schema": "reddit_single_owner_defaults/v18",
+  "runtime_protocol_version": "2026.08.05.7",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -112,6 +112,13 @@
     "follow-up": {"default_authority": "RESEARCH_ONLY", "explicit_authority": "FOLLOWUP_AUTHORIZED", "votes": "DISABLED"},
     "presence": {"default_authority": "RESEARCH_ONLY", "explicit_authority": "PRESENCE_AUTHORIZED", "votes": "DISABLED"}
   },
+  "follow_up": {
+    "full_progression_scope": "ACCOUNT_WIDE_OWN_CONTENT_SWEEP",
+    "sources": ["OWN_POSTS", "OWN_COMMENTS", "NOTIFICATIONS", "INBOX_REPLIES", "KNOWN_OWN_PERMALINKS"],
+    "direction_filter": "NONE_IN_FULL_PROGRESSION",
+    "eligible_items": "NEW_REPLY_UNANSWERED_DIRECT_QUESTION_OR_OPEN_OWN_THREAD",
+    "processing": "BATCH_ALL_ELIGIBLE_FOUND_UNTIL_PACKET_OR_HOURLY_CAP_CARRY_REMAINDER_TO_NEXT_WAKE"
+  },
   "voting": {
     "enabled": false,
     "policy": "REMOVED",
@@ -159,7 +166,7 @@
     "packet_outcome_is_not_objective_completion": true,
     "candidate_handoff": "OPTIONAL_ATOMIC_HANDOFF_COMMENTS_OR_POSTS_MAY_SELF_SELECT_TARGET_IN_SAME_ACTION_PACKET",
     "candidate_rejection": "EXACT_CANDIDATE_OR_COMMUNITY_REJECTION_RETURNS_TO_BROWSING_NEXT_HEARTBEAT_AND_CANNOT_BE_REARMED",
-    "follow_up_handoff": "verified_own_permalink_to_follow_up",
+    "follow_up_handoff": "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK",
     "presence_requires": "explicit_concrete_change",
     "recoverable_states": ["LIVE_GATE_UNVERIFIED"],
     "parked_states": ["MATERIAL_REQUIRED", "RULE_BLOCKED", "SUBMISSION_UNCERTAIN", "NOT_APPLICABLE"],

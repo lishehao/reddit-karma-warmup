@@ -91,12 +91,27 @@ one attempt.
 
 ## Follow-up
 
-Inspect only known own verified permalinks, supplied URLs, notifications, and
-recent account activity. Without a verified own permalink record
-`NOT_APPLICABLE` and do not poll. An explicit follow-up authority may permit one useful reply;
-otherwise it is read-only. Do not discover unrelated threads or delete
-content automatically. Moderator instructions or a pending/removed result are
-risks to report, not permission to repost.
+When `全面推进` authorizes follow-up, run an account-wide sweep instead of
+waiting for a browsing handoff. In the same logged-in Chrome inspect the user's
+own posts, own comments, notifications/inbox replies, recent account activity,
+and previously recorded own permalinks. Build one de-duplicated queue of
+conversations with a new reply, an unanswered direct question, or an open own
+thread that still needs a truthful response.
+
+This sweep is independent of the business direction and community-discovery
+filter: maintain every eligible account-owned conversation, but never discover
+or reply to unrelated third-party threads. For each queued item, read the
+parent and nearby context, confirm the current rule/composer, persist one
+action key, submit one concise truthful reply, and verify it. Process all
+eligible items found until the packet/hourly cap; carry the remainder to the
+next wake. A sweep with no eligible items records `FOLLOW_UP_SWEEP_EMPTY`, not
+`NOT_APPLICABLE`. Moderator instructions, pending/removed content, closed
+threads, or an unread Chrome gate are recorded per item and do not block the
+rest of the queue.
+
+Outside `全面推进`, follow-up remains read-only unless explicit follow-up
+authority is present. Do not delete content automatically or repost after an
+uncertain submission.
 
 ## Presence
 

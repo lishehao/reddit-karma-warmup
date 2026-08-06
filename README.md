@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.05.6`
+Protocol version: `2026.08.05.7`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -78,6 +78,8 @@ assignment gets one concise text reminder; do not invent missing targets.
 - When comments/posts/follow-up/presence are authorized, `INITIAL` and each
   formal round are action-first: one Chrome packet may submit up to two distinct
   comment/post actions, or batch up to three verified follow-ups, under the hourly ceiling. Active missions re-arm verified action lanes on later wakes; browsing-only missions remain research-only.
+- In `全面推进`, follow-up sweeps the user's own posts/comments,
+  notifications, and known permalinks independent of business direction; it handles every eligible unanswered/new-reply conversation and carries the remainder to the next wake.
 - Only current task scope, readable Chrome, and action-type gates are hard gates.
   Comments use target/context fit, a basic current rule check, composer state,
   and one verified submit; posts retain the fuller rule, truth, duplicate, and
@@ -95,5 +97,4 @@ assignment gets one concise text reminder; do not invent missing targets.
 
 Full operational rules live in the Skill's routed references; this README is only the install and startup contract.
 ## Release rule
-
 Publish updates directly to GitHub `main`: bump the version, run validators, build a ZIP, verify public codeload/ZIP, then perform compatible atomic hot replacement. Only incompatible or uncertain active-runtime state may defer it.

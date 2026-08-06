@@ -60,10 +60,10 @@ browser dispatcher, a lock daemon, or a second Chrome owner.
 | `browsing` | qualified reads and candidate packs | publication, replies, profile changes, votes |
 | `comments` | candidate research and proactive comments | posts, replies, profile changes, votes |
 | `posts` | rule-qualified native posts using truthful material | comments, replies, profile changes, votes |
-| `follow-up` | verified own permalinks, notifications, and authorized replies | unrelated discovery, new posts, profile changes, votes |
+| `follow-up` | account-wide sweep of own posts/comments, notifications, known permalinks, and authorized replies | unrelated discovery, new posts, profile changes, votes |
 | `presence` | explicit truthful profile/community/flair changes | publication, replies, votes |
 
-Default authority is research-only. Voting is removed: no unit inspects vote
+Default authority is research-only. In `全面推进`, follow-up ignores the business-direction filter and sweeps all eligible account-owned conversations. Voting is removed: no unit inspects vote
 controls or emits upvote/downvote mutations. Legacy `vote_policy` is retained
 only for queue compatibility and always normalizes to `DISABLED`.
 

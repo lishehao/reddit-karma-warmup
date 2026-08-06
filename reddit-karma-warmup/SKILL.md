@@ -63,9 +63,7 @@ browser dispatcher, a lock daemon, or a second Chrome owner.
 | `follow-up` | account-wide sweep of own posts/comments, notifications, known permalinks, and authorized replies | unrelated discovery, new posts, profile changes, votes |
 | `presence` | explicit truthful profile/community/flair changes | publication, replies, votes |
 
-Default authority is research-only. In `全面推进`, follow-up ignores the business-direction filter and sweeps all eligible account-owned conversations. Voting is removed: no unit inspects vote
-controls or emits upvote/downvote mutations. Legacy `vote_policy` is retained
-only for queue compatibility and always normalizes to `DISABLED`.
+Default authority is research-only. In `全面推进`, follow-up ignores the business-direction filter and sweeps all eligible account-owned conversations. Voting is removed: no unit inspects vote controls or emits upvote/downvote mutations; legacy `vote_policy` only normalizes to `DISABLED`.
 
 ## Surface contract
 | Surface | Use | Never treat as |
@@ -74,11 +72,9 @@ only for queue compatibility and always normalizes to `DISABLED`.
 | Official Reddit API via `scripts/community_index.py` | optional GET-only public community metadata, rules, and up to three hot pointers | browsing, account access, writes, or a Chrome fallback |
 | Logged-in Chrome | every real Reddit read, live rule/session/composer gate, action, and verification | parallel task control or evasion |
 
-Missing API credentials are normal. Start with Old Reddit for ordinary text
-work and use one equivalent current-Reddit fallback only when the required live
-capability is absent. A content timeout is
-`CHROME_CONTENT_CHANNEL_TIMEOUT`, not a disconnect, missing tab, session risk,
-or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md).
+Missing API credentials are normal. Start with Old Reddit for ordinary text work and use one equivalent current-Reddit fallback only when the required live capability is absent. A content timeout is `CHROME_CONTENT_CHANNEL_TIMEOUT`, not a disconnect, missing tab, session risk, or `RULE_BLOCKED`; follow [Chrome and actions](references/chrome-and-actions.md).
+
+Global community exclusion: `r/saas`; never search, open, read, index, comment, post, follow up, or change presence there. Drop it from discovery results and reject any direct target or handoff that normalizes to `r/saas`; this does not block the rest of a mission.
 
 ## Mission loop
 1. Resolve and record the exact current task ID (never the delegation

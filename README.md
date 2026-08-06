@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.05.12`
+Protocol version: `2026.08.05.13`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -69,9 +69,8 @@ assignment gets one concise text reminder; do not invent missing targets.
   the current task context directly; do not scan other tasks to resolve it.
 - Startup trusts only this task's own mission, queue, and Heartbeat. Unrelated
   tasks, Heartbeats, environments, locks, and handoffs are not scanned.
-- Built-in Web Search handles broad research; the optional official Reddit API
-  is GET-only public indexing; logged-in Chrome performs every real Reddit read
-  and every interactive action.
+- Built-in Web Search handles broad research; the optional official Reddit API is GET-only public indexing; logged-in Chrome performs every real Reddit read and interactive action.
+- `r/saas` is globally excluded: discovery, API indexing, direct targets, and all browser actions skip or reject it.
 - Voting is removed: no vote controls or mutations; compatibility is always
   `vote_policy=DISABLED`.
 - Mission compilation requests `gpt-5.6-luna` with `xhigh` reasoning when the host supports it. Public writing defaults to short, conversational, human-sounding text with at least one contextual discourse marker in each comment and post opening; vary the voice and never manufacture typos, repeated catchphrases, or personal facts.

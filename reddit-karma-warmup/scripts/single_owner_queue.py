@@ -22,8 +22,8 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-PROTOCOL_VERSION = "2026.08.05.12"
-LEGACY_PROTOCOL_VERSIONS = {"2026.08.05.11", "2026.08.05.10", "2026.08.05.9", "2026.08.05.8", "2026.08.05.7", "2026.08.05.6", "2026.08.05.4", "2026.08.05.3", "2026.08.05.2", "2026.08.05.1", "2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
+PROTOCOL_VERSION = "2026.08.05.13"
+LEGACY_PROTOCOL_VERSIONS = {"2026.08.05.12", "2026.08.05.11", "2026.08.05.10", "2026.08.05.9", "2026.08.05.8", "2026.08.05.7", "2026.08.05.6", "2026.08.05.4", "2026.08.05.3", "2026.08.05.2", "2026.08.05.1", "2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
 SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
@@ -31,6 +31,7 @@ ORDINARY_TRIGGER_TOLERANCE_SECONDS = 600
 CLEANUP_GRACE_MINUTES = 25
 WAKE_LEASE_SECONDS = HEARTBEAT_GRID_SECONDS
 PACKET_LEASE_SECONDS = HEARTBEAT_GRID_SECONDS
+EXCLUDED_COMMUNITIES = {"r/saas"}
 DECISIONS = ("RUN", "WATCH", "SKIP", "DEFER")
 OUTCOMES = ("COMPLETED", "SKIPPED", "BLOCKED", "YIELDED")
 MISSION_STATES = {"ACTIVE", "FINALIZING", "RETIRED"}
@@ -148,6 +149,18 @@ def validate_strategy(value):
     if not isinstance(value.get("material_refs"), list) or not isinstance(value.get("planning_targets"), dict):
         raise ValueError("invalid mission_strategy evidence")
     return value
+
+
+def reject_excluded_targets(raw):
+    overrides = raw.get("explicit_user_overrides", {})
+    if not isinstance(overrides, dict):
+        raise ValueError("invalid explicit_user_overrides")
+    communities = overrides.get("target_communities", [])
+    if any(isinstance(item, str) and item.strip().lower() in EXCLUDED_COMMUNITIES for item in communities):
+        raise ValueError("excluded community: r/saas")
+    posts = overrides.get("target_posts", [])
+    if any(isinstance(item, str) and "/r/saas/" in item.strip().lower() for item in posts):
+        raise ValueError("excluded community: r/saas")
 
 
 def initial_objective(unit, plan, authority):
@@ -303,6 +316,7 @@ def load_envelope(path):
         raise ValueError("mission envelope integrity mismatch")
     if raw.get("execution_topology") != "single_owner_v1":
         raise ValueError("mission envelope integrity mismatch")
+    reject_excluded_targets(raw)
     selected = canonical_units(raw.get("selected_units"), "selected_units")
     paused = canonical_units(raw.get("paused_units", []), "paused_units", allow_empty=True)
     if any(unit not in selected for unit in paused):

@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v21",
-  "runtime_protocol_version": "2026.08.05.12",
+  "runtime_protocol_version": "2026.08.05.13",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -12,6 +12,11 @@
     "sha256_scope": "PACKAGE_MANIFEST_AND_MISSION_ENVELOPE_BOUNDARIES_ONLY",
     "legacy_sha256_field_names": "ACCEPT_AS_OPAQUE_TOKENS",
     "strict_integrity_opt_in": "REDDIT_STRICT_INTEGRITY=1"
+  },
+  "community_policy": {
+    "excluded_communities": ["r/saas"],
+    "normalization": "LOWERCASE_R_PREFIX",
+    "enforcement": "REJECT_DIRECT_TARGETS_AND_SKIP_ALL_DISCOVERY_READS_AND_ACTIONS"
   },
   "upgrade": {
     "default_mode": "ATOMIC_HOT_REPLACE",

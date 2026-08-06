@@ -16,6 +16,10 @@ public community shortlist needs refreshing.
 
 Never use a lower layer to claim a higher layer passed.
 
+Global exclusion: `r/saas` is never an allowed research or action target. Do not
+open it in Chrome or query it through the optional API index; remove it from
+candidate packs and reject direct assignments to it.
+
 ## Web Search SOP
 
 Posts require a compact `research_brief` and distinct-purpose query plan before

@@ -4,6 +4,9 @@ For `direct_target_mode`, keep browsing, comments, and follow-up inside the
 compiled `target_posts` list. Do not expand to other communities or create a
 new target unless the user supplies a new assignment.
 
+Before any route is opened, normalize its subreddit. Skip `r/saas` in every
+unit; direct targets and handoffs for it are rejected by the compilers.
+
 Load the selected section only after the owner decides `RUN`.
 
 Before drafting any public text, apply [public writing defaults](operation-defaults.json#public_writing):

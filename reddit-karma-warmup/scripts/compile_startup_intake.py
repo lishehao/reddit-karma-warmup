@@ -88,6 +88,7 @@ DIRECT_AUTHORITY = {
     "follow-up": "FOLLOWUP_AUTHORIZED",
     "presence": "PRESENCE_AUTHORIZED",
 }
+EXCLUDED_COMMUNITIES = {"r/saas"}
 
 
 def fail(message):
@@ -169,6 +170,8 @@ def target_communities(urls):
         match = re.search(r"/(?:r|u)/([^/]+)(?:/|$)", urlsplit(url).path, re.IGNORECASE)
         if match and urlsplit(url).path.lower().split("/")[1:2] == ["r"]:
             name = "r/" + match.group(1)
+            if name.lower() in EXCLUDED_COMMUNITIES:
+                fail("excluded community: " + name.lower())
             if name not in result:
                 result.append(name)
     return result
@@ -382,6 +385,8 @@ def normalize(raw):
     direction = text(direction_value, "direction", 3, 2000)
     profile_name, profile = resolve_profile(raw["authority_profile"], raw.get("custom_authority"))
     named_communities = normalized_list(raw.get("named_communities"), "named_communities", 64, "r/")
+    if any(item.lower() in EXCLUDED_COMMUNITIES for item in named_communities):
+        fail("excluded community: r/saas")
     supplied_scope = raw.get("community_scope")
     if supplied_scope is None:
         scope = "seeded_expandable" if named_communities else "discover"
@@ -507,6 +512,28 @@ def self_test():
     incomplete_direct = normalize({"direct_target_mode": True, "target_posts": ["https://old.reddit.com/r/SideProject/comments/abc123/demo/"]})
     assert incomplete_direct["status"] == "WAITING_FOR_DIRECT_TARGET_INPUT"
     assert incomplete_direct["missing"] == ["duration_hours", "requested_work_types"]
+    try:
+        normalize({
+            "duration_hours": 2,
+            "direction": "custom direction",
+            "authority_profile": "模拟浏览",
+            "named_communities": ["r/saas"],
+        })
+    except ValueError as exc:
+        assert str(exc) == "excluded community: r/saas"
+    else:
+        raise AssertionError("excluded community was accepted")
+    try:
+        normalize({
+            "direct_target_mode": True,
+            "target_posts": ["https://old.reddit.com/r/saas/comments/abc123/demo/"],
+            "requested_work_types": ["browsing"],
+            "duration_hours": 2,
+        })
+    except ValueError as exc:
+        assert str(exc) == "excluded community: r/saas"
+    else:
+        raise AssertionError("excluded direct target was accepted")
     return {"status": "PASS", "schema": "reddit_startup_intake/v1"}
 
 

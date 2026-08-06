@@ -28,6 +28,7 @@ MAX_HOT_POINTERS = 3
 MAX_QPM = 30
 RULES_TTL_SECONDS = 86_400
 HOT_TTL_SECONDS = 21_600
+EXCLUDED_COMMUNITIES = {"saas"}
 
 
 def utc_now() -> str:
@@ -49,6 +50,8 @@ def canonical_subreddit(value: str) -> str:
         name = name[2:]
     if not name or any(char not in "abcdefghijklmnopqrstuvwxyz0123456789_" for char in name):
         raise ValueError("invalid subreddit")
+    if name in EXCLUDED_COMMUNITIES:
+        raise ValueError("excluded community: r/" + name)
     return name
 
 

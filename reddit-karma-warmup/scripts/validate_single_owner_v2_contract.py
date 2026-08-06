@@ -54,16 +54,22 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.12"
+    assert version == "2026.08.05.13"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.12"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.13"' in queue_source
+    assert '"2026.08.05.12"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
         "reasoning_effort": "xhigh",
         "request_mode": "PREFERRED_IF_HOST_SUPPORTED",
         "evidence_state": "REQUESTED_NOT_RUNTIME_PROOF",
+    }
+    assert defaults["community_policy"] == {
+        "excluded_communities": ["r/saas"],
+        "normalization": "LOWERCASE_R_PREFIX",
+        "enforcement": "REJECT_DIRECT_TARGETS_AND_SKIP_ALL_DISCOVERY_READS_AND_ACTIONS",
     }
     assert defaults["runtime_evidence_policy"] == {
         "normal_receipts": "OPAQUE_TOKEN_NO_SHA256_FORMAT_CHECK",
@@ -288,10 +294,12 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat"):
+    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "high/low frequency", "business goal", "exactly three", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat", "r/saas"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
+    research_index = (ROOT / "references" / "research-and-community-index.md").read_text(encoding="utf-8")
+    assert "r/saas" in research_index
     for phrase in ("ACTION_WINDOW_CLAMPED_TO_NEXT_HEARTBEAT", "single_owner_queue.py handoff", "same packet", "Action-first rounds", "up to 60 new", "next task wake", "genuinely exhausted/parked", "candidate-reject", "runtime_protocol_version", "no replay", "fresh agent-owned tab", "no permanent recovery parking", "account-wide own-content sweep", "FOLLOW_UP_SWEEP_EMPTY"):
         assert phrase in runtime, phrase
     for phrase in ("current task", "other Heartbeats", "UNCERTAIN", "account-wide own-content sweep", "全面推进"):
@@ -338,6 +346,8 @@ def main() -> None:
         assert status["status"] == "READY" and status["community_count"] == 0
         unavailable = run(str(INDEX), "--root", str(work / "index"), "refresh", "--subreddit", "r/SideProject")
         assert unavailable["status"] == "UNCONFIGURED_OFFICIAL_REDDIT_API"
+        excluded_index = run(str(INDEX), "--root", str(work / "index"), "show", "--subreddit", "r/saas")
+        assert excluded_index["status"] == "ERROR" and excluded_index["error"] == "excluded community: r/saas"
         # Full startup path: exactly three answers -> normalized intake ->
         # immutable envelope -> scheduler receipt -> first formal packet.
         # No Chrome or Reddit call is performed by this simulation.
@@ -369,6 +379,32 @@ def main() -> None:
         assert direct_compiled["status"] == "DIRECT_TARGET_ASSIGNMENT_COMPLETE"
         assert direct_compiled["normalized"]["mission_strategy"]["community_scope"] == "closed"
         assert direct_compiled["normalized"]["requested_work_types"] == ["browsing", "comments", "follow-up"]
+        excluded_direct = work / "excluded-target.json"
+        excluded_direct.write_text(json.dumps({
+            "direct_target_mode": True,
+            "target_posts": ["https://old.reddit.com/r/saas/comments/blocked/demo/"],
+            "requested_work_types": ["browsing"],
+            "duration_hours": 2,
+        }), encoding="utf-8")
+        excluded_result = run(str(INTAKE_COMPILER), "--input", str(excluded_direct))
+        assert excluded_result["status"] == "INVALID_STARTUP_INPUT" and excluded_result["error"] == "excluded community: r/saas"
+        excluded_mission = work / "excluded-mission.json"
+        excluded_mission.write_text(json.dumps({
+            "mission_id": "excluded-mission-contract",
+            "account": "u/example",
+            "direction": "custom direction",
+            "duration_hours": 2,
+            "operation_start_at": "2026-07-27T08:00:00Z",
+            "requested_work_types": ["browsing"],
+            "unit_authority": {"browsing": "READ_ONLY"},
+            "authorization_receipt": "excluded target regression",
+            "source_prompt": "excluded target regression",
+            "explicit_user_overrides": {
+                "target_communities": ["r/saas"],
+            },
+        }), encoding="utf-8")
+        excluded_mission_result = run(str(COMPILER), "--input", str(excluded_mission))
+        assert excluded_mission_result["status"] == "INVALID" and excluded_mission_result["error"] == "excluded community: r/saas"
         direct_source = work / "direct-target-mission.json"
         direct_envelope = work / "direct-target-envelope.json"
         direct_payload = dict(direct_compiled["normalized"])

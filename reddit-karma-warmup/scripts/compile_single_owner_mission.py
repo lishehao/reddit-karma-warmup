@@ -44,6 +44,7 @@ SAFE_OVERRIDE_TEXT_KEYS = {
     "stop_condition",
 }
 SAFE_OVERRIDE_TEXT_LIST_KEYS = {"direction_tags", "target_communities", "target_posts"}
+EXCLUDED_COMMUNITIES = {"r/saas"}
 BUSINESS_GOALS = (
     "community_discovery",
     "conversation_entry",
@@ -164,10 +165,17 @@ def normalize_overrides(raw):
         elif key in SAFE_OVERRIDE_TEXT_LIST_KEYS:
             if not isinstance(value, list) or not value or len(value) > 64:
                 fail("invalid explicit_user_overrides." + key)
-            normalized[key] = [
+            normalized_values = [
                 text_field(item, "explicit_user_overrides." + key, 1, 256)
                 for item in value
             ]
+            for item in normalized_values:
+                lowered = item.lower()
+                if key == "target_communities" and lowered in EXCLUDED_COMMUNITIES:
+                    fail("excluded community: r/saas")
+                if key == "target_posts" and "/r/saas/" in lowered:
+                    fail("excluded community: r/saas")
+            normalized[key] = normalized_values
         else:
             fail("unsupported explicit_user_overrides key")
     return normalized

@@ -96,34 +96,35 @@ Global community exclusion: `r/saas`; never search, open, read, index, comment, 
    authorized public action before finishing the round. Comments are the default
    first lane when enabled; browsing-only missions may finish as research-only.
    Later wakes may record `heartbeat-observe` when available, then decide
-   `RUN|WATCH|SKIP|DEFER` for due units. Run one Chrome packet per wake;
-   comments/posts may submit up to two distinct actions, while follow-up may
-   batch up to three verified permalinks, subject to the hourly ceiling. ±10 minutes is normal. A late wake runs one
-   currently due unit; no catch-up means no replay. A fast NOOP is only for
-   early/duplicate, recovery, or genuinely exhausted/parked work; scheduler
-   uncertainty is not a reason to skip current-task work, and a missing observation is not a second gate.
+   `RUN|WATCH|SKIP|DEFER` for due units. A normal wake runs one Chrome packet;
+   a wake delayed more than five minutes may run up to three packets sequentially
+   for currently due units, never concurrently. The queue opens the next
+   selected packet after a completed one; keep working until the wake is settled.
+   Comments/posts may submit up to two distinct actions, while
+   follow-up may batch up to three verified permalinks, subject to the hourly
+   ceiling. ±10 minutes is normal. A delayed wake expands work; no catch-up
+   means no replay of missed packets or mutations. A fast NOOP is only for
+   early/duplicate, recovery, or genuinely exhausted/parked work; scheduler uncertainty
+   or a missing observation is not a reason to skip current-task work.
 4. Action units may find their own target in the same packet. Browsing candidate
    packs and atomic `handoff` remain useful but are optional; a candidate pack is
-   not a reason to end an action-authorized round. Link work through recorded
-   evidence; verified own permalinks arm follow-up. An
+   not a reason to end an action-authorized round. On an expanded late wake,
+   mark useful currently due units `RUN` up to the reported packet slots, then
+   process them in priority order. Link work through recorded evidence;
+   verified own permalinks arm follow-up. An
    `ACTION_ELIGIBLE` unit outranks more browsing. For comments, continue across
    new targets (up to 60 target reads) until the first compliant target is found;
    under an active action budget, continue to a second distinct target after
    the first verified action until the packet or hourly cap is reached. Only
-   cutoff, no authority, a content-channel failure, a visible blocker on every tested target, no truthful contribution after the expanded search, or an uncertain submission
-   justifies a no-action round. Record failed self-selected candidates locally;
-   use `candidate-reject` for a handoff-supplied target, and do not turn either
+   cutoff, no authority, a content-channel failure, a visible blocker on every tested target, no truthful contribution after the expanded search, or an uncertain submission justifies a no-action round. Record failed self-selected candidates locally;
+   use `candidate-reject` for a handoff-supplied target; do not turn either
    into mission-wide `RULE_BLOCKED` or `MATERIAL_REQUIRED`. A runtime read failure
    is `LIVE_GATE_UNVERIFIED`; the
    next wake must create/claim one fresh agent-owned tab and run one real content
    probe before continuing or yielding the same unit. URL-only checks/finalize
    do not count; retry later and never permanently park a due unit.
-5. Comments use a minimal action path: target/nearby context, one visible rule
-   or submit signal, and composer. Fold truth and relevance into the comment;
-   do not require account history, quality scoring, or broad research. Use zero
-   Web Search queries unless a factual/technical/unfamiliar claim needs one.
-   Same-target duplicate checking is enough. Posts keep the 4-8 query research
-   pass and fuller rule, truth, duplicate, format, Flair, session, and submit gates.
+5. Comments use a minimal action path: target/nearby context, one visible rule or submit signal, and composer. Fold truth and relevance into the comment; do not require account history, quality scoring, or broad research. Use zero Web Search queries unless a factual/technical/unfamiliar claim needs one.
+   Same-target duplicate checking is enough. Posts keep the 4-8 query research pass and fuller rule, truth, duplicate, format, Flair, session, and submit gates.
 6. Before every public action persist deterministic `MUTATION_INTENT` and
    `action_key`. Submit once and verify separately; if it stays `submitting...` with no echo,
    allow one same-target refresh/read, never a second submit. Freeze uncertain exact keys

@@ -137,8 +137,12 @@ filters do not narrow that sweep.
 ## Wake and units
 
 For every due enabled unit, persist one `RUN`, `WATCH`, `SKIP`, or `DEFER`
-decision. Select one action unit for the packet; it gets one Chrome packet.
-Comments/posts may submit up to two distinct actions; follow-up may batch up to
+decision. A normal wake selects one action unit and gets one Chrome packet.
+When the wake is delayed by more than five minutes, the queue exposes up to
+three packet slots; select useful currently due units up to that cap. They are
+opened and completed **serially** on the same Chrome owner, never concurrently.
+The queue starts the next selected unit automatically after a completed packet,
+and returns `PACKET_COMPLETED_CONTINUE` so the task keeps working. Comments/posts may submit up to two distinct actions; follow-up may batch up to
 three verified own permalinks, subject to the hourly ceiling. The unit may
 complete, skip, block, or yield. On finish, persist
 an objective state as well as the packet outcome whenever the unit has outward
@@ -154,8 +158,9 @@ advances the next occurrence. A missing or conflicting receipt is
 current-task wake. A normal closed wake keeps any verified timer; there is no
 second readback gate, and a missing observation never blocks a valid wake.
 More than one elapsed interval records `SCHEDULER_GAP_SUSPECTED`; do not replay
-missed actions, but run the currently due unit once. A timer with a valid future
-occurrence remains healthy.
+missed actions, but expand the current wake to its bounded serial packet slots.
+A delay of five to twenty minutes yields two slots; longer delays may yield
+three, never more. A timer with a valid future occurrence remains healthy.
 Keep the automation prompt to identity and immutable boundary facts: mission
 ID, owner task ID, queue/envelope paths, cutoff, authority, and the queue's
 `runtime_protocol_version`. Do not copy cadence, NOOP, catch-up, or
@@ -187,8 +192,11 @@ an early/duplicate delivery, recovery, or a genuinely exhausted/parked
 frontier; it is not normal spacing after an eligible handoff. An actual trigger
 within ±10 minutes is ordinary. A trigger beyond that window records
 `EARLY_WAKE` or `LATE_WAKE` with its signed delta; an early wake does no work.
-A late wake runs at most one currently due unit. “No catch-up” means no replay
-of missed packets or mutations; it never means skipping currently due work.
+The queue records `packet_slots`, `packets_started`, and `completed_units` in
+the open wake. “No catch-up” means no replay of missed packets or mutations;
+it never means skipping currently due work. If a Chrome packet yields or a
+mutation becomes uncertain, the wake settles immediately and only that unit is
+resumed later; the remaining slots are not used to bypass uncertainty.
 Neither case creates a second timer.
 
 Every open wake and running packet has one 15-minute lease. If the owning task

@@ -22,12 +22,14 @@ import time
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 DEFAULT_ROOT = CODEX_HOME / "reddit-karma-warmup" / "single-owner" / "missions"
 UNIT_ORDER = ("browsing", "comments", "posts", "follow-up", "presence")
-PROTOCOL_VERSION = "2026.08.06.1"
-LEGACY_PROTOCOL_VERSIONS = {"2026.08.05.13", "2026.08.05.12", "2026.08.05.11", "2026.08.05.10", "2026.08.05.9", "2026.08.05.8", "2026.08.05.7", "2026.08.05.6", "2026.08.05.4", "2026.08.05.3", "2026.08.05.2", "2026.08.05.1", "2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
+PROTOCOL_VERSION = "2026.08.06.2"
+LEGACY_PROTOCOL_VERSIONS = {"2026.08.06.1", "2026.08.05.13", "2026.08.05.12", "2026.08.05.11", "2026.08.05.10", "2026.08.05.9", "2026.08.05.8", "2026.08.05.7", "2026.08.05.6", "2026.08.05.4", "2026.08.05.3", "2026.08.05.2", "2026.08.05.1", "2026.08.04.8", "2026.08.04.7", "2026.08.04.6", "2026.08.04.5", "2026.08.04.4", "2026.08.04.3", "2026.07.28.8"}
 SCHEMA = "reddit_single_owner_queue/v10"
 HEARTBEAT_INTERVAL_MINUTES = 15
 HEARTBEAT_GRID_SECONDS = HEARTBEAT_INTERVAL_MINUTES * 60
 ORDINARY_TRIGGER_TOLERANCE_SECONDS = 600
+LATE_WORK_EXPANSION_THRESHOLD_SECONDS = 300
+MAX_PACKETS_PER_WAKE = 3
 CLEANUP_GRACE_MINUTES = 25
 WAKE_LEASE_SECONDS = HEARTBEAT_GRID_SECONDS
 PACKET_LEASE_SECONDS = HEARTBEAT_GRID_SECONDS
@@ -186,6 +188,22 @@ def runtime_failure_reason(reason):
 def next_grid_epoch(now):
     """Pre-receipt fallback only; live missions use the verified Heartbeat phase."""
     return int(now // HEARTBEAT_GRID_SECONDS + 1) * HEARTBEAT_GRID_SECONDS
+
+
+def late_work_packet_slots(signed_delta):
+    """Return bounded sequential work slots for a delayed delivery.
+
+    The queue never replays a missed mutation and never runs Chrome calls in
+    parallel.  A small delivery delay is normal; once it exceeds five minutes,
+    the wake may consume the other currently-due units in the same serial
+    session.  The cap prevents a very late scheduler event from monopolizing
+    the browser or creating a burst of public actions.
+    """
+    delay = max(0, int(signed_delta))
+    if delay <= LATE_WORK_EXPANSION_THRESHOLD_SECONDS:
+        return 1
+    extra = (delay - LATE_WORK_EXPANSION_THRESHOLD_SECONDS + HEARTBEAT_GRID_SECONDS - 1) // HEARTBEAT_GRID_SECONDS
+    return min(MAX_PACKETS_PER_WAKE, 1 + max(1, extra))
 
 
 def heartbeat_epoch_at_or_after(state, target):
@@ -574,6 +592,15 @@ def validate_state(state, scope, owner_task_id):
         if wake.get("state") != "OPEN" or not isinstance(wake.get("due_units"), list) or not isinstance(wake.get("lease_expires_at_utc"), str):
             raise ValueError("invalid wake")
         parse_utc("wake_lease_expires_at_utc", wake["lease_expires_at_utc"])
+        packet_slots = wake.get("packet_slots", 1)
+        packets_started = wake.get("packets_started", 0)
+        completed_units = wake.get("completed_units", [])
+        if not isinstance(packet_slots, int) or isinstance(packet_slots, bool) or not 1 <= packet_slots <= MAX_PACKETS_PER_WAKE:
+            raise ValueError("invalid wake packet slots")
+        if not isinstance(packets_started, int) or isinstance(packets_started, bool) or not 0 <= packets_started <= packet_slots:
+            raise ValueError("invalid wake packet count")
+        if not isinstance(completed_units, list) or len(completed_units) != len(set(completed_units)) or any(unit not in wake["due_units"] for unit in completed_units):
+            raise ValueError("invalid wake completed units")
     if state.get("resume_unit") is not None and state["resume_unit"] not in UNIT_ORDER:
         raise ValueError("invalid resume unit")
     for key in state.get("frozen_action_keys", []):
@@ -670,6 +697,17 @@ def public(state, status, now, detail=None):
         "objective_state": {unit: state["units"][unit]["objective"]["state"] for unit in UNIT_ORDER},
         "updated_at_utc": utc(now),
     }
+    if state.get("wake") is not None:
+        result["wake"] = {
+            "state": "OPEN",
+            "trigger_state": state["wake"].get("trigger_state"),
+            "trigger_delta_seconds": state["wake"].get("trigger_delta_seconds"),
+            "due_units": state["wake"].get("due_units", []),
+            "packet_slots": state["wake"].get("packet_slots", 1),
+            "packets_started": state["wake"].get("packets_started", 0),
+            "completed_units": state["wake"].get("completed_units", []),
+            "late_work_mode": state["wake"].get("late_work_mode", "STANDARD"),
+        }
     if detail:
         result.update(detail)
     return result
@@ -856,6 +894,42 @@ def schedule_next_heartbeat(state, unit, now):
     state["units"][unit]["next_due_epoch"] = scheduled
     state["units"][unit]["next_due_at_utc"] = utc(scheduled)
     return True
+
+
+def selected_packet_units(state):
+    wake = state.get("wake")
+    if wake is None:
+        return []
+    completed = set(wake.get("completed_units", []))
+    return [
+        unit for unit, item in wake["decisions"].items()
+        if item["decision"] == "RUN" and unit not in completed
+    ]
+
+
+def open_next_packet(state, unit, now):
+    """Open the next serial packet in an already-open wake."""
+    wake = state["wake"]
+    if state.get("active_packet") is not None:
+        raise ValueError("packet already active")
+    slots = wake.get("packet_slots", 1)
+    started = wake.get("packets_started", 0)
+    if started >= slots:
+        return None
+    wake["packets_started"] = started + 1
+    packet_id = hashlib.sha256((wake["wake_id"] + ":" + unit + ":" + str(wake["packets_started"])).encode("utf-8")).hexdigest()
+    state["active_packet"] = {
+        "packet_id": packet_id,
+        "unit": unit,
+        "state": "RUNNING",
+        "started_at_utc": utc(now),
+        "lease_expires_at_utc": utc(now + PACKET_LEASE_SECONDS),
+        "next_due_minutes": wake["decisions"][unit]["next_due_minutes"],
+        "wake_packet_index": wake["packets_started"],
+        "boundary": None,
+        "frozen_action_keys": [],
+    }
+    return state["active_packet"]
 
 
 def clear_schedule(state, unit):
@@ -1156,6 +1230,7 @@ def command(args):
             if not due:
                 append_idle_wake(state, "NOOP", now, args.expected_at_utc, trigger, signed_delta)
                 return write_and_return(state_path, state, "NOOP", now)
+            packet_slots = late_work_packet_slots(signed_delta)
             state["wake"] = {
                 "state": "OPEN",
                 "wake_id": hashlib.sha256((state["mission_id"] + ":" + str(now)).encode("utf-8")).hexdigest(),
@@ -1165,6 +1240,10 @@ def command(args):
                 "trigger_state": trigger,
                 "due_units": due,
                 "decisions": {},
+                "packet_slots": packet_slots,
+                "packets_started": 0,
+                "completed_units": [],
+                "late_work_mode": "EXPANDED_SERIAL" if packet_slots > 1 else "STANDARD",
                 "scheduler_status": "ADVISORY_UNVERIFIED_CONTINUING" if scheduler_advisory else "VERIFIED",
                 "lease_expires_at_utc": utc(now + WAKE_LEASE_SECONDS),
             }
@@ -1176,8 +1255,10 @@ def command(args):
                 return public(state, "UNIT_NOT_DUE", now)
             if unit in wake["decisions"] or args.decision not in DECISIONS:
                 return public(state, "DECISION_INVALID", now)
-            if args.decision == "RUN" and any(item["decision"] == "RUN" for item in wake["decisions"].values()):
-                return public(state, "RUN_ALREADY_SELECTED", now)
+            if args.decision == "RUN":
+                run_count = sum(item["decision"] == "RUN" for item in wake["decisions"].values())
+                if run_count >= wake.get("packet_slots", 1):
+                    return public(state, "RUN_PACKET_SLOT_LIMIT", now, {"packet_slots": wake.get("packet_slots", 1)})
             if args.decision != "RUN" and unit_requires_recovery_first(state, unit):
                 return public(state, "RECOVERABLE_RUNTIME_FAILURE_REQUIRES_RUN", now, {"unit": unit})
             minutes = args.next_due_minutes if args.next_due_minutes is not None else DEFAULT_RECHECK_MINUTES[unit]
@@ -1214,21 +1295,14 @@ def command(args):
             wake = state.get("wake")
             if wake is None or set(wake["decisions"]) != set(wake["due_units"]):
                 return public(state, "DECISIONS_INCOMPLETE", now)
-            selected = [unit for unit, item in wake["decisions"].items() if item["decision"] == "RUN"]
+            if state.get("active_packet") is not None:
+                return public(state, "PACKET_ALREADY_ACTIVE", now)
+            selected = selected_packet_units(state)
             if not selected:
                 settle_wake(state, "NO_RUN", now)
                 return write_and_return(state_path, state, "NO_PACKET", now)
             unit = selected[0]
-            state["active_packet"] = {
-                "packet_id": hashlib.sha256((wake["wake_id"] + ":" + unit).encode("utf-8")).hexdigest(),
-                "unit": unit,
-                "state": "RUNNING",
-                "started_at_utc": utc(now),
-                "lease_expires_at_utc": utc(now + PACKET_LEASE_SECONDS),
-                "next_due_minutes": wake["decisions"][unit]["next_due_minutes"],
-                "boundary": None,
-                "frozen_action_keys": [],
-            }
+            open_next_packet(state, unit, now)
             return write_and_return(state_path, state, "PACKET_STARTED", now, {"unit": unit})
         if args.command == "boundary-open":
             active = state.get("active_packet")
@@ -1424,6 +1498,20 @@ def command(args):
             else:
                 state["resume_unit"] = None
                 schedule_objective(state, unit, now, active["next_due_minutes"])
+                wake = state.get("wake")
+                if wake is not None:
+                    wake.setdefault("completed_units", []).append(unit)
+                    next_units = selected_packet_units(state)
+                    if next_units and wake.get("packets_started", 0) < wake.get("packet_slots", 1):
+                        next_unit = next_units[0]
+                        open_next_packet(state, next_unit, now)
+                        return write_and_return(
+                            state_path,
+                            state,
+                            "PACKET_COMPLETED_CONTINUE",
+                            now,
+                            {"unit": unit, "next_unit": next_unit, "packet_slots": wake.get("packet_slots", 1)},
+                        )
                 settle_wake(state, outcome, now)
             return write_and_return(state_path, state, outcome, now, {"unit": unit})
         if args.command == "recover":

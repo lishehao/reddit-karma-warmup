@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v22",
-  "runtime_protocol_version": "2026.08.06.1",
+  "runtime_protocol_version": "2026.08.06.2",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -159,9 +159,11 @@
     "unit_recheck_phase": "ALIGN_TO_TASK_HEARTBEAT_PHASE_WHEN_AVAILABLE_NEVER_ABSOLUTE_UTC_QUARTER_HOURS",
     "no_work_wake": "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER",
     "runtime_timeout_policy": "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE",
-    "late_wake": "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP",
+    "late_wake": "EXPAND_TO_BOUNDED_SERIAL_PACKETS_AFTER_5_MINUTES_NO_REPLAY_OR_PARALLEL_CHROME",
     "recoverable_runtime_failure": "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING",
-    "max_chrome_packets_per_wake": 1,
+    "max_chrome_packets_per_wake": 3,
+    "late_work_expansion_threshold_seconds": 300,
+    "late_work_expansion": "1_PACKET_UNTIL_5_MINUTES_THEN_UP_TO_3_SEQUENTIAL_PACKETS_FOR_CURRENTLY_DUE_UNITS",
     "max_public_actions_per_wake": 3,
     "max_public_actions_per_hour": 6,
     "hourly_counter_reset": "RESET_AT_EACH_UTC_HOUR_BUCKET_NOT_MISSION_LIFETIME",
@@ -176,7 +178,7 @@
       "exceptions": ["NO_AUTHORITY", "CUTOFF", "CHROME_CONTENT_UNAVAILABLE", "VISIBLE_BLOCKER_ALL_TESTED_TARGETS", "NO_TRUTHFUL_CONTRIBUTION_AFTER_60", "SUBMISSION_UNCERTAIN"]
     },
     "recheck_minutes": {"browsing": 30, "comments": 15, "posts": 120, "follow-up": 60, "presence": 1440},
-    "continuation_policy": "ACTION_FIRST_EACH_FORMAL_ROUND_REARM_ACTIVE_COMMENT_TARGETS_AND_ALLOW_TWO_DISTINCT_ACTIONS_PER_PACKET",
+    "continuation_policy": "ACTION_FIRST_EACH_FORMAL_ROUND_LATE_WAKE_RUNS_DUE_UNITS_SERIALLY_UNTIL_SLOT_CAP_OR_EXHAUSTION",
     "action_window_guard": "AUTHORIZED_PENDING_OR_CANDIDATE_READY_COMMENTS_POSTS_CLAMP_TO_NEXT_TASK_WAKE_WHEN_AVAILABLE_IF_DEFAULT_RECHECK_WOULD_CROSS_CUTOFF",
     "heartbeat_prompt": "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY",
     "scheduler_gate": "ADVISORY_NEVER_BLOCK_INITIAL_OR_CURRENT_TASK_WAKE",

@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.06.1"
+    assert version == "2026.08.06.2"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.06.1"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.06.2"' in queue_source
     assert '"2026.08.05.13"' in queue_source
     assert '"2026.08.05.12"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
@@ -140,18 +140,20 @@ def main() -> None:
     assert defaults["scheduler"]["no_work_wake"] == "FAST_NOOP_NO_CHROME_ONLY_FOR_EARLY_DUPLICATE_RECOVERY_OR_EXHAUSTED_FRONTIER"
     assert defaults["scheduler"]["runtime_timeout_policy"] == "CHROME_OR_DOM_TIMEOUT_YIELDS_LIVE_GATE_UNVERIFIED_NOT_RULE_BLOCKED_AND_NEXT_DUE_RUNS_RECOVERY_PROBE"
     assert defaults["scheduler"]["unit_recheck_phase"] == "ALIGN_TO_TASK_HEARTBEAT_PHASE_WHEN_AVAILABLE_NEVER_ABSOLUTE_UTC_QUARTER_HOURS"
-    assert defaults["scheduler"]["late_wake"] == "RUN_AT_MOST_ONE_CURRENTLY_DUE_UNIT_NO_CATCH_UP_MEANS_NO_REPLAY_NOT_SKIP"
+    assert defaults["scheduler"]["late_wake"] == "EXPAND_TO_BOUNDED_SERIAL_PACKETS_AFTER_5_MINUTES_NO_REPLAY_OR_PARALLEL_CHROME"
     assert defaults["scheduler"]["recoverable_runtime_failure"] == "NEXT_DUE_DECISION_MUST_RUN_ONE_FRESH_TAB_CONTENT_PROBE_THEN_CONTINUE_OR_YIELD_NO_PERMANENT_PARKING"
     assert defaults["scheduler"]["heartbeat_prompt"] == "IDENTITY_AND_BOUNDARIES_ONLY_LOAD_INSTALLED_SKILL_AND_QUEUE_AT_EACH_WAKE_NO_EMBEDDED_CADENCE_OR_NOOP_POLICY"
     assert defaults["scheduler"]["recheck_minutes"] == {"browsing": 30, "comments": 15, "posts": 120, "follow-up": 60, "presence": 1440}
-    assert defaults["scheduler"]["max_chrome_packets_per_wake"] == 1
+    assert defaults["scheduler"]["max_chrome_packets_per_wake"] == 3
+    assert defaults["scheduler"]["late_work_expansion_threshold_seconds"] == 300
+    assert defaults["scheduler"]["late_work_expansion"] == "1_PACKET_UNTIL_5_MINUTES_THEN_UP_TO_3_SEQUENTIAL_PACKETS_FOR_CURRENTLY_DUE_UNITS"
     assert defaults["scheduler"]["max_public_actions_per_wake"] == 3
     assert defaults["scheduler"]["max_public_actions_per_hour"] == 6
     assert defaults["scheduler"]["max_followups_per_packet"] == 3
     assert defaults["scheduler"]["max_followups_per_hour"] == 5
     assert defaults["scheduler"]["action_packet_mode"] == "ONE_UNIT_PACKET_MAY_BATCH_FOLLOWUPS_OR_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP"
     assert defaults["scheduler"]["active_action_rearm"] == "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUPS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED"
-    assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_REARM_ACTIVE_COMMENT_TARGETS_AND_ALLOW_TWO_DISTINCT_ACTIONS_PER_PACKET"
+    assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_LATE_WAKE_RUNS_DUE_UNITS_SERIALLY_UNTIL_SLOT_CAP_OR_EXHAUSTION"
     assert defaults["mission_profiles"]["throughput_targets"]["active"] == {
         "comments_per_hour": {"target": 5, "ceiling": 6},
         "posts_per_two_hours": {"target": 1, "ceiling": 1},
@@ -938,6 +940,51 @@ def main() -> None:
         assert run(str(QUEUE), "start", *trigger_shared, "--now-utc", "2026-07-27T06:45:03Z")["status"] == "PACKET_STARTED"
         recovered_done = run(str(QUEUE), "finish", *trigger_shared, "--outcome", "COMPLETED", "--objective-state", "CANDIDATES_READY", "--objective-reason", "fresh tab read succeeded", "--candidate-ref", "pack:recovered:1", "--now-utc", "2026-07-27T06:45:04Z")
         assert recovered_done["status"] == "COMPLETED" and recovered_done["resume_unit"] is None
+
+        # A delayed wake must expand work rather than silently dropping the
+        # other due unit.  The packets remain serial and the second one is
+        # auto-opened only after the first has settled.
+        late_multi_source = work / "late-multi-mission.json"
+        late_multi_envelope = work / "late-multi-envelope.json"
+        late_multi_source.write_text(json.dumps({
+            "mission_id": "late-multi-contract",
+            "account": "u/example",
+            "direction": "late wake expansion",
+            "operation_start_at": "2026-07-27T07:00:00Z",
+            "duration_hours": 1,
+            "requested_work_types": ["comments", "posts"],
+            "unit_authority": {"comments": "COMMENT_AUTHORIZED", "posts": "POST_AUTHORIZED"},
+            "authorization_receipt": "explicit action authority",
+            "mission_strategy": {"business_goal": "conversation_entry", "community_scope": "discover", "frequency": "high", "action_threshold": "standard", "action_budget": "active", "planning_targets": {}},
+            "source_prompt": "delayed wake should run both currently due units"
+        }), encoding="utf-8")
+        run(str(COMPILER), "--input", str(late_multi_source), "--output", str(late_multi_envelope))
+        late_multi_shared = ("--root", str(queue_root), "--scope", "late-multi-contract", "--owner-task-id", "owner-late", "--mission-envelope", str(late_multi_envelope))
+        assert run(str(QUEUE), "bootstrap", *late_multi_shared, "--now-utc", "2026-07-27T07:00:00Z")["status"] == "BOOTSTRAPPED"
+        promote(late_multi_shared, "2026-07-27T07:00:00Z", proof)
+        run(str(QUEUE), "canary-pass", *late_multi_shared, "--proof-sha256", proof)
+        assert heartbeat_record(late_multi_shared, "2026-07-27T07:00:00Z", "2026-07-27T08:25:00Z", "2026-07-27T07:15:00Z", "owner-late", proof)["status"] == "HEARTBEAT_VERIFIED"
+        assert run(str(QUEUE), "heartbeat-observe", *late_multi_shared, "--now-utc", "2026-07-27T07:26:00Z")["status"] == "HEARTBEAT_LATE_OBSERVED"
+        expanded = run(str(QUEUE), "wake-open", *late_multi_shared, "--expected-at-utc", "2026-07-27T07:15:00Z", "--now-utc", "2026-07-27T07:26:00Z")
+        assert expanded["status"] == "WAKE_OPEN" and expanded["wake"]["packet_slots"] == 2
+        assert expanded["due_units"] == ["comments", "posts"], expanded
+        assert run(str(QUEUE), "decide", *late_multi_shared, "--unit", "comments", "--decision", "RUN", "--reason", "late wake action first", "--now-utc", "2026-07-27T07:26:01Z")["status"] == "DECISION_RECORDED"
+        assert run(str(QUEUE), "decide", *late_multi_shared, "--unit", "posts", "--decision", "RUN", "--reason", "late wake second due unit", "--now-utc", "2026-07-27T07:26:02Z")["status"] == "DECISION_RECORDED"
+        assert run(str(QUEUE), "start", *late_multi_shared, "--now-utc", "2026-07-27T07:26:03Z")["unit"] == "comments"
+        first_continue = run(
+            str(QUEUE), "finish", *late_multi_shared, "--outcome", "COMPLETED",
+            "--objective-state", "ACTION_VERIFIED", "--objective-reason", "comment verified",
+            "--objective-evidence-sha256", proof, "--source-ref", "https://old.reddit.com/r/example/comments/c1",
+            "--now-utc", "2026-07-27T07:26:04Z",
+        )
+        assert first_continue["status"] == "PACKET_COMPLETED_CONTINUE" and first_continue["unit"] == "comments" and first_continue["next_unit"] == "posts"
+        second_done = run(
+            str(QUEUE), "finish", *late_multi_shared, "--outcome", "COMPLETED",
+            "--objective-state", "CANDIDATES_READY", "--objective-reason", "post candidate pack recorded",
+            "--candidate-ref", "pack:late:post", "--source-ref", "pack:late:source",
+            "--now-utc", "2026-07-27T07:26:05Z",
+        )
+        assert second_done["status"] == "COMPLETED" and second_done.get("wake") is None
 
         revised = work / "v2-revision.json"
         revised_payload = json.loads(envelope.read_text(encoding="utf-8"))

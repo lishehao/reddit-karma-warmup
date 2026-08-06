@@ -81,9 +81,12 @@ Use three reporting layers:
 3. **Output:** verified public actions.
 
 Planning targets describe desired evidence and output, but never force a post
-or comment. Active missions use soft defaults of 4 verified comments/hour
-(ceiling 5), 1 verified post per two hours, 3 useful follow-ups/hour (ceiling 5),
+or comment. Full-progression/active missions now bias toward conversation: use
+soft defaults of 5 verified comments/hour (ceiling 6), no fixed post target but
+at most 1 verified post per two hours, 3 useful follow-ups/hour (ceiling 5),
 and 30 qualified reads/hour, with a combined public-action ceiling of 6/hour.
+Posts remain enabled; the lower target only prevents them from crowding out
+useful comments and does not justify filler or bypassing the post gates.
 Standard missions use 2 comments/hour, 1 post per two hours, 2 follow-ups/hour,
 and a 4/hour public-action ceiling. These are pacing targets, not a reason to
 publish filler.

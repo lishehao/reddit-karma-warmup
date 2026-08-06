@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v21",
-  "runtime_protocol_version": "2026.08.05.10",
+  "runtime_protocol_version": "2026.08.05.11",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -205,7 +205,7 @@
     "throughput_targets": {
       "minimal": {"comments_per_hour": {"target": 1, "ceiling": 2}, "posts_per_two_hours": {"target": 0, "ceiling": 1}, "followups_per_hour": {"target": 0, "ceiling": 1}, "qualified_reads_per_hour": 12, "public_actions_per_hour_ceiling": 2},
       "standard": {"comments_per_hour": {"target": 2, "ceiling": 3}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 2, "ceiling": 3}, "qualified_reads_per_hour": 20, "public_actions_per_hour_ceiling": 4},
-      "active": {"comments_per_hour": {"target": 4, "ceiling": 5}, "posts_per_two_hours": {"target": 1, "ceiling": 1}, "followups_per_hour": {"target": 3, "ceiling": 5}, "qualified_reads_per_hour": 30, "public_actions_per_hour_ceiling": 6}
+      "active": {"comments_per_hour": {"target": 5, "ceiling": 6}, "posts_per_two_hours": {"target": 0, "ceiling": 1}, "followups_per_hour": {"target": 3, "ceiling": 5}, "qualified_reads_per_hour": 30, "public_actions_per_hour_ceiling": 6}
     },
     "frequency_aliases": {
       "low": {"coverage_budget": "standard", "action_threshold": "high", "action_budget": "minimal"},

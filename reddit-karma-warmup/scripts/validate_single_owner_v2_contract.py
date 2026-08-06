@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.10"
+    assert version == "2026.08.05.11"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.10"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.11"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
@@ -146,8 +146,8 @@ def main() -> None:
     assert defaults["scheduler"]["active_action_rearm"] == "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUPS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED"
     assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_REARM_ACTIVE_COMMENT_TARGETS_AND_ALLOW_TWO_DISTINCT_ACTIONS_PER_PACKET"
     assert defaults["mission_profiles"]["throughput_targets"]["active"] == {
-        "comments_per_hour": {"target": 4, "ceiling": 5},
-        "posts_per_two_hours": {"target": 1, "ceiling": 1},
+        "comments_per_hour": {"target": 5, "ceiling": 6},
+        "posts_per_two_hours": {"target": 0, "ceiling": 1},
         "followups_per_hour": {"target": 3, "ceiling": 5},
         "qualified_reads_per_hour": 30,
         "public_actions_per_hour_ceiling": 6,
@@ -584,7 +584,7 @@ def main() -> None:
         assert compiled["mission_strategy"]["action_threshold"] == "high"
         assert compiled["model_request"]["preferred_model"] == "gpt-5.6-luna"
         assert compiled["model_request"]["reasoning_effort"] == "xhigh"
-        assert compiled["mission_strategy"]["planning_targets"]["comments_per_hour"] == 4
+        assert compiled["mission_strategy"]["planning_targets"]["comments_per_hour"] == 5
         assert compiled["mission_strategy"]["planning_targets"]["qualified_reads_per_hour"] == 30
         unchanged_source = work / "unchanged-revision.json"
         unchanged_source.write_text(json.dumps({"source_prompt": "same mission with no policy change"}), encoding="utf-8")

@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.06.2"
+    assert version == "2026.08.06.3"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.06.2"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.06.3"' in queue_source
     assert '"2026.08.05.13"' in queue_source
     assert '"2026.08.05.12"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source

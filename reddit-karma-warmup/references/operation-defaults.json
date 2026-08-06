@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v22",
-  "runtime_protocol_version": "2026.08.06.2",
+  "runtime_protocol_version": "2026.08.06.3",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",

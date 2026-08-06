@@ -3,6 +3,7 @@
 
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -19,6 +20,7 @@ QUEUE = ROOT / "scripts" / "single_owner_queue.py"
 BROWSER_LEDGER = ROOT / "scripts" / "validate_browser_step_ledger.py"
 STARTUP_INTAKE = ROOT / "references" / "startup-intake.md"
 RUNTIME_FENCE = ROOT / "scripts" / "runtime_fence.py"
+REMOTE_SYNC = ROOT / "scripts" / "resolve_remote_sync.py"
 
 
 def run(*args: str) -> dict:
@@ -54,10 +56,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.06.3"
+    assert version == "2026.08.06.4"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.06.3"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.06.4"' in queue_source
+    assert '"2026.08.06.3"' in queue_source
     assert '"2026.08.05.13"' in queue_source
     assert '"2026.08.05.12"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
@@ -80,6 +83,14 @@ def main() -> None:
     }
     upgrade = defaults["upgrade"]
     assert upgrade["default_mode"] == "ATOMIC_HOT_REPLACE"
+    assert upgrade["remote_sync"] == "MANDATORY_AFTER_SUCCESSFUL_FETCH"
+    assert upgrade["sync_helper"] == "scripts/resolve_remote_sync.py --apply"
+    assert upgrade["tree_comparison"] == "COMPLETE_SKILL_TREE_CONTENT_COMPARE_NO_PER_FILE_SHA_LEDGER"
+    assert upgrade["same_version_drift"] == "HOT_REPLACE_SAME_VERSION_DRIFT"
+    assert upgrade["same_version_same_tree"] == "NOOP_ALREADY_SYNCED"
+    assert upgrade["older_remote"] == "REMOTE_OLDER_IGNORED_NO_IMPLICIT_DOWNGRADE"
+    assert upgrade["remote_read_without_local_apply"] == "INVALID_BOOTSTRAP"
+    assert upgrade["post_replace_readback"] == "INSTALLED_VALIDATOR_AND_MANIFEST_TREE_READBACK_REQUIRED"
     assert upgrade["compatible_active_runtime"] == "HOT_REPLACE_WHILE_MISSION_REMAINS_PINNED_TO_RECORDED_PROTOCOL_AND_NO_MUTATION_IS_IN_FLIGHT"
     assert upgrade["defer_only"] == ["INCOMPATIBLE_SCHEMA_OR_QUEUE_PROTOCOL", "IN_FLIGHT_MUTATION_UNSETTLED", "UNCERTAIN_RUNTIME_FACTS"]
     assert upgrade["remote_newer_status"] == "REMOTE_NEWER_DEFERRED_NOT_NOOP"
@@ -307,7 +318,7 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "REMOTE_NEWER_DEFERRED", "低 / 标准 / 高", "business goal", "exactly four", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat", "r/saas"):
+    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "HOT_REPLACED_SAME_VERSION_DRIFT", "NOOP_ALREADY_SYNCED", "REMOTE_OLDER_IGNORED", "resolve_remote_sync.py --apply", "REMOTE_NEWER_DEFERRED", "低 / 标准 / 高", "business goal", "exactly four", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat", "r/saas"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -349,12 +360,33 @@ def main() -> None:
     # are part of the Skill contract; generated directories must not make an
     # otherwise complete installation fail validation.
     scripts = {path.name for path in (ROOT / "scripts").iterdir() if path.is_file()}
-    assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
+    assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "resolve_remote_sync.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
     assert run(str(INTAKE_COMPILER), "--self-test")["status"] == "PASS"
     assert run(str(BROWSER_LEDGER), "--self-test")["status"] == "PASS"
     assert run(str(RUNTIME_FENCE), "--self-test")["status"] == "PASS"
     with tempfile.TemporaryDirectory() as temporary:
         work = Path(temporary)
+        # Remote bootstrap must apply compatible content, including same-version
+        # drift, while refusing an implicit downgrade.
+        remote = work / "remote-skill"
+        installed = work / "installed-skill"
+        shutil.copytree(ROOT, remote)
+        shutil.copytree(ROOT, installed)
+        synced = run(str(REMOTE_SYNC), "--staged", str(remote), "--installed", str(installed))
+        assert synced["decision"] == "NOOP_ALREADY_SYNCED"
+        (installed / "SKILL.md").write_text((installed / "SKILL.md").read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        drift = run(str(REMOTE_SYNC), "--staged", str(remote), "--installed", str(installed))
+        assert drift["decision"] == "HOT_REPLACE_SAME_VERSION_DRIFT"
+        applied = run(str(REMOTE_SYNC), "--staged", str(remote), "--installed", str(installed), "--apply", "--backup", str(work / "backup"))
+        assert applied["decision"] == "APPLIED_HOT_REPLACE_SAME_VERSION_DRIFT"
+        assert (installed / "SKILL.md").read_text(encoding="utf-8") == (remote / "SKILL.md").read_text(encoding="utf-8")
+        older = work / "older-skill"
+        shutil.copytree(ROOT, older)
+        older_manifest = json.loads((older / "manifest.json").read_text(encoding="utf-8"))
+        older_manifest["version"] = "2026.08.06.3"
+        (older / "manifest.json").write_text(json.dumps(older_manifest), encoding="utf-8")
+        ignored = run(str(REMOTE_SYNC), "--staged", str(older), "--installed", str(installed))
+        assert ignored["decision"] == "REMOTE_OLDER_IGNORED"
         status = run(str(INDEX), "--root", str(work / "index"), "status")
         assert status["status"] == "READY" and status["community_count"] == 0
         unavailable = run(str(INDEX), "--root", str(work / "index"), "refresh", "--subreddit", "r/SideProject")

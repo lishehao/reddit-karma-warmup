@@ -1,6 +1,6 @@
 {
   "schema": "reddit_single_owner_defaults/v22",
-  "runtime_protocol_version": "2026.08.06.3",
+  "runtime_protocol_version": "2026.08.06.4",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -20,6 +20,14 @@
   },
   "upgrade": {
     "default_mode": "ATOMIC_HOT_REPLACE",
+    "remote_sync": "MANDATORY_AFTER_SUCCESSFUL_FETCH",
+    "sync_helper": "scripts/resolve_remote_sync.py --apply",
+    "tree_comparison": "COMPLETE_SKILL_TREE_CONTENT_COMPARE_NO_PER_FILE_SHA_LEDGER",
+    "same_version_drift": "HOT_REPLACE_SAME_VERSION_DRIFT",
+    "same_version_same_tree": "NOOP_ALREADY_SYNCED",
+    "older_remote": "REMOTE_OLDER_IGNORED_NO_IMPLICIT_DOWNGRADE",
+    "remote_read_without_local_apply": "INVALID_BOOTSTRAP",
+    "post_replace_readback": "INSTALLED_VALIDATOR_AND_MANIFEST_TREE_READBACK_REQUIRED",
     "compatible_active_runtime": "HOT_REPLACE_WHILE_MISSION_REMAINS_PINNED_TO_RECORDED_PROTOCOL_AND_NO_MUTATION_IS_IN_FLIGHT",
     "defer_only": ["INCOMPATIBLE_SCHEMA_OR_QUEUE_PROTOCOL", "IN_FLIGHT_MUTATION_UNSETTLED", "UNCERTAIN_RUNTIME_FACTS"],
     "remote_newer_status": "REMOTE_NEWER_DEFERRED_NOT_NOOP",

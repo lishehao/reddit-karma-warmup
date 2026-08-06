@@ -8,16 +8,16 @@ description: Run authorized Reddit research, browsing, native posts, comments, f
 
 Treat an HTTPS install/upgrade request as the start of one intake flow:
 
-1. Verify the raw/codeload source, manifest, installed tree, offline validator,
-   current task, and required tools. If the staged release is newer and its
-   schema/queue protocol is compatible, atomically hot-replace the complete
-   local Skill by default and report `HOT_REPLACED` before `BOOTSTRAP_READY`;
-   never merge trees or call a remote-newer install `NOOP`. An active mission stays pinned to its
-   recorded protocol. Defer only for an unsettled mutation, incompatible
-   schema/queue protocol, or `UNCERTAIN` runtime facts, recording
-   `REMOTE_NEWER_DEFERRED` for the first safe release boundary. Do not open
-   Chrome/Reddit, run research, or create a mission/queue/Heartbeat during this
-   bootstrap step.
+1. Fetch and validate the raw/codeload Skill, then run
+   `scripts/resolve_remote_sync.py --apply` against the managed local tree.
+   Any compatible difference is applied atomically: newer remote ->
+   `HOT_REPLACED`, same-version tree drift -> `HOT_REPLACED_SAME_VERSION_DRIFT`;
+   identical -> `NOOP_ALREADY_SYNCED`, older -> `REMOTE_OLDER_IGNORED`.
+   Read back the installed manifest/tree and rerun the validator before
+   `BOOTSTRAP_READY`; remote read without local sync is not complete. Defer only
+   for incompatible schema, unsettled mutation, or `UNCERTAIN` runtime facts,
+   recording `REMOTE_NEWER_DEFERRED`. Do not open Chrome/Reddit, run research,
+   or create a mission/queue/Heartbeat during bootstrap.
 2. Detect a complete direct target assignment before showing the intake form.
    It must contain 1–32 target post URLs, explicit units/actions (for example
    `browsing + comments + follow-up`), and a duration. Compile it with

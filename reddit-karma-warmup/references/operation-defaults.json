@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v20",
-  "runtime_protocol_version": "2026.08.05.9",
+  "schema": "reddit_single_owner_defaults/v21",
+  "runtime_protocol_version": "2026.08.05.10",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -64,9 +64,12 @@
       "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_AND_OPTIONALLY_TWO"
     },
     "posts": {
-      "shape": "SHORT_PARAGRAPHS_WITH_ONLY_RULE_REQUIRED_DETAIL",
-      "target_words": "BRIEF_BY_DEFAULT_BUT_EXPAND_FOR_REQUIRED_CONTEXT",
-      "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_IN_FIRST_PARAGRAPH"
+      "shape": "QUESTION_LED_BEGINNER_DISCUSSION_WITH_CONCRETE_BACKGROUND",
+      "target_words": "BRIEF_BACKGROUND_PLUS_ONE_CLEAR_QUESTION",
+      "background": "2_TO_4_CONCRETE_SENTENCES_COMMON_BEGINNER_PROBLEM",
+      "question_hook": "ONE_EASY_ANSWERABLE_QUESTION_INVITING_ONE_SENTENCE_REPLIES",
+      "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_IN_FIRST_PARAGRAPH",
+      "authenticity": "NATURAL_SPECIFIC_NON_TEMPLATE;_NEVER_INVENT_EXPERIENCE_OR_UNTRUE_PRODUCT_USE"
     },
     "anti_template": [
       "DO_NOT_REPEAT_THE_SAME_OPENING_OR_CATCHPHRASE",

@@ -73,7 +73,10 @@ relationship disclosure. Missing a project link does not itself block a native
 discussion post. With explicit post authority, publish at most one
 native post and verify it once. If a completed submit has no immediate UI echo,
 use at most one same-target refresh/read-only verification, never a second post.
-Draft the shortest complete version: short
+Default to a question-led beginner discussion: explain the common problem in 2–4
+concrete background sentences, then ask one clear, easy-to-answer question that
+invites a one-sentence reply. Do not pretend to be a beginner or invent a lived
+experience; use first person only when true. Draft the shortest complete version: short
 paragraphs, contractions, and at least one natural discourse marker in the
 opening paragraph are required by default; add more only when they fit;
 include only the context the subreddit requires. Never cross-post a template to force a KPI. If

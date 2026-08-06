@@ -54,10 +54,10 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.05.9"
+    assert version == "2026.08.05.10"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.05.9"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.05.10"' in queue_source
     assert '"2026.08.05.4"' in queue_source and '"2026.08.05.3"' in queue_source and '"2026.08.05.2"' in queue_source and '"2026.08.05.1"' in queue_source
     assert defaults["execution_profile"] == {
         "preferred_model": "gpt-5.6-luna",
@@ -101,9 +101,12 @@ def main() -> None:
             "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_AND_OPTIONALLY_TWO",
         },
         "posts": {
-            "shape": "SHORT_PARAGRAPHS_WITH_ONLY_RULE_REQUIRED_DETAIL",
-            "target_words": "BRIEF_BY_DEFAULT_BUT_EXPAND_FOR_REQUIRED_CONTEXT",
+            "shape": "QUESTION_LED_BEGINNER_DISCUSSION_WITH_CONCRETE_BACKGROUND",
+            "target_words": "BRIEF_BACKGROUND_PLUS_ONE_CLEAR_QUESTION",
+            "background": "2_TO_4_CONCRETE_SENTENCES_COMMON_BEGINNER_PROBLEM",
+            "question_hook": "ONE_EASY_ANSWERABLE_QUESTION_INVITING_ONE_SENTENCE_REPLIES",
             "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_IN_FIRST_PARAGRAPH",
+            "authenticity": "NATURAL_SPECIFIC_NON_TEMPLATE;_NEVER_INVENT_EXPERIENCE_OR_UNTRUE_PRODUCT_USE",
         },
         "anti_template": [
             "DO_NOT_REPEAT_THE_SAME_OPENING_OR_CATCHPHRASE",
@@ -190,7 +193,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v20"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v21"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 3
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -288,6 +291,8 @@ def main() -> None:
     assert "public writing defaults" in guides
     assert "contextual filler" in guides
     assert "at least one contextual marker" in guides
+    assert "question-led beginner discussion" in guides
+    assert "one clear, easy-to-answer question" in guides
     assert "account-wide sweep" in guides
     assert "FOLLOW_UP_SWEEP_EMPTY" in guides
     chrome = (ROOT / "references" / "chrome-and-actions.md").read_text(encoding="utf-8")

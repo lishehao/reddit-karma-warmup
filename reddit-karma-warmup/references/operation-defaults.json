@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v25",
-  "runtime_protocol_version": "2026.08.07.3",
+  "schema": "reddit_single_owner_defaults/v26",
+  "runtime_protocol_version": "2026.08.07.4",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -241,7 +241,7 @@
     },
     "community_scope_modes": ["closed", "seeded_expandable", "discover"],
     "coverage_budgets": {
-      "narrow": {"community_route_target": 4, "candidate_pack_target": 1},
+      "narrow": {"community_route_target": 5, "candidate_pack_target": 1},
       "standard": {"community_route_target": 8, "candidate_pack_target": 2},
       "broad": {"community_route_target": 12, "candidate_pack_target": 3}
     },
@@ -254,6 +254,18 @@
       "repeat_policy": "DEFER_SAME_COMMUNITY_UNTIL_FOUR_OR_FIVE_DISTINCT_ROUTES_ATTEMPTED",
       "closed_scope": "KEEP_EXACT_TARGETS_NO_EXPANSION",
       "failure_policy": "ROUTE_FAILURE_REPLENISH_FROM_DISCOVERY_NO_FILLER_ACTION"
+    },
+    "packet_flow": {
+      "priority_by_scope": {
+        "模拟浏览": ["browsing"],
+        "参与讨论": ["comments", "browsing"],
+        "全面推进": ["follow-up", "comments", "posts", "presence", "browsing"]
+      },
+      "recovery_override": "RECOVERY_FIRST",
+      "tie_breakers": ["DUE_ACTION", "UNSEEN_COMMUNITY", "OLDER_DUE", "BROWSING_REFILL"],
+      "serial_continuation": "AFTER_PACKET_COMPLETE_OPEN_NEXT_DUE_AUTHORIZED_UNIT_WHILE_SLOT_REMAINS",
+      "no_work_rule": "NOOP_ONLY_AFTER_DUE_UNITS_EXHAUSTED_OR_PARKED",
+      "direct_target_rule": "CLOSED_TARGETS_OVERRIDE_COMMUNITY_ROTATION"
     },
     "action_thresholds": {
       "high": "strong_direct_relevance_and_specific_truthful_value",

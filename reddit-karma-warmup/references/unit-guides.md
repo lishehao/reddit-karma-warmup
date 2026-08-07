@@ -58,6 +58,11 @@ another target in the same packet. If no truthful boundary exists, keep searchin
 within the action packet before ending the round; never create a pause/resume
 revision merely to alter cadence.
 
+Packet order follows the runtime ladder: recover a yielded unit first, then
+follow-up, comments, posts, presence, and browsing. A completed packet should
+open the next due authorized unit when a serial slot remains; a candidate pack
+alone is never a reason to end an action-authorized wake.
+
 ## Comments
 
 Use the comment action path: read the post and nearby context, one visible current

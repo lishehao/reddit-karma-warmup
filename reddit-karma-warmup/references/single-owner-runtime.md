@@ -150,6 +150,13 @@ authority. A yielded unit resumes before a later unit. For an
 action-authorized mission, `RUN` must be an action-first packet unless one of
 the explicit no-action outcomes above is recorded.
 
+Use one deterministic selection ladder: `RECOVERY_FIRST`, then `follow-up`,
+`comments`, `posts`, `presence`, and `browsing`, restricted to units enabled and
+due for this scope. Break ties by due action, unseen community, and older due
+work. After a packet completes, open the next due unit while a serial slot
+remains; do not stop after a candidate pack. `NOOP` is valid only after this
+ladder finds no runnable unit or every remaining unit is parked.
+
 The task attempts one stable 15-minute recurring Heartbeat through the mission
 window plus cleanup grace. Readback is telemetry. At each delivered turn run
 `heartbeat-observe` when possible; it records the signed delivery gap and

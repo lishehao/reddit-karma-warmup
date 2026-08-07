@@ -57,10 +57,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.07.3"
+    assert version == "2026.08.07.4"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.07.3"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.07.4"' in queue_source
+    assert '"2026.08.07.3"' in queue_source
     assert '"2026.08.07.2"' in queue_source
     assert '"2026.08.07.1"' in queue_source
     assert '"2026.08.06.4"' in queue_source
@@ -172,6 +173,18 @@ def main() -> None:
         "closed_scope": "KEEP_EXACT_TARGETS_NO_EXPANSION",
         "failure_policy": "ROUTE_FAILURE_REPLENISH_FROM_DISCOVERY_NO_FILLER_ACTION",
     }
+    assert defaults["mission_profiles"]["packet_flow"] == {
+        "priority_by_scope": {
+            "模拟浏览": ["browsing"],
+            "参与讨论": ["comments", "browsing"],
+            "全面推进": ["follow-up", "comments", "posts", "presence", "browsing"],
+        },
+        "recovery_override": "RECOVERY_FIRST",
+        "tie_breakers": ["DUE_ACTION", "UNSEEN_COMMUNITY", "OLDER_DUE", "BROWSING_REFILL"],
+        "serial_continuation": "AFTER_PACKET_COMPLETE_OPEN_NEXT_DUE_AUTHORIZED_UNIT_WHILE_SLOT_REMAINS",
+        "no_work_rule": "NOOP_ONLY_AFTER_DUE_UNITS_EXHAUSTED_OR_PARKED",
+        "direct_target_rule": "CLOSED_TARGETS_OVERRIDE_COMMUNITY_ROTATION",
+    }
     assert defaults["units"]["browsing"] == {
         "default_authority": "READ_ONLY",
         "explicit_authority": None,
@@ -253,7 +266,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v25"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v26"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 4
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -374,6 +387,7 @@ def main() -> None:
     assert "Variation means" in guides
     assert "five distinct communities" in guides
     assert "This is a routing" in guides
+    assert "Packet order follows the runtime ladder" in guides
     assert "5–14, 15–30, or 31–50 words" in guides
     assert "70 words is an absolute ceiling" in guides
     assert "question-led, observation-led, or tradeoff-led discussion" in guides

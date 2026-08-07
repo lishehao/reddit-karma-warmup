@@ -45,7 +45,6 @@ Heartbeats, other environments, locks, or historical handoffs. If this task
 has no mission yet, create its queue after the four answers; do not block on
 an unrelated runtime. `scripts/runtime_fence.py` remains an explicit
 diagnostic tool, not a startup-wide scan.
-
 ## One task, five internal units
 Run one present Reddit operating task. It owns one mission record, one queue, an
 advisory Heartbeat when available, one Chrome binding, and one primary Reddit
@@ -58,7 +57,7 @@ browser dispatcher, a lock daemon, or a second Chrome owner.
 | `browsing` | qualified reads and candidate packs | publication, replies, profile changes, votes |
 | `comments` | candidate research and proactive comments | posts, replies, profile changes, votes |
 | `posts` | rule-qualified native posts using truthful material | comments, replies, profile changes, votes |
-| `follow-up` | account-wide sweep of own posts/comments, notifications, known permalinks, and authorized replies | unrelated discovery, new posts, profile changes, votes |
+| `follow-up` | account-wide sweep of own profile posts/comments, notifications, known permalinks, authorized replies, and negative-score cleanup of own posts | unrelated discovery, new posts, profile bio/membership changes, votes |
 | `presence` | explicit truthful profile/community/flair changes | publication, replies, votes |
 
 Default authority is research-only. In `全面推进`, follow-up ignores the business-direction filter and sweeps all eligible account-owned conversations. Voting is removed: no unit inspects vote controls or emits upvote/downvote mutations; legacy `vote_policy` only normalizes to `DISABLED`.
@@ -117,8 +116,9 @@ Global community exclusion: `r/saas`; never search, open, read, index, comment, 
    the first verified action until the packet or hourly cap is reached. Only
    cutoff, no authority, a content-channel failure, a visible blocker on every tested target, no truthful contribution after the expanded search, or an uncertain submission justifies a no-action round. Record failed self-selected candidates locally;
    use `candidate-reject` for a handoff-supplied target; do not turn either
-   into mission-wide `RULE_BLOCKED` or `MATERIAL_REQUIRED`. A runtime read failure
-   is `LIVE_GATE_UNVERIFIED`; the
+   into mission-wide `RULE_BLOCKED` or `MATERIAL_REQUIRED`. An archived/locked
+   target is `TARGET_ARCHIVED`/`TARGET_LOCKED`, not an account ban;
+   discard it and continue. A runtime read failure is `LIVE_GATE_UNVERIFIED`; the
    next wake must create/claim one fresh agent-owned tab and run one real content
    probe before continuing or yielding the same unit. URL-only checks/finalize
    do not count; retry later and never permanently park a due unit. A yielded

@@ -16,6 +16,10 @@ missing tab, or account enforcement.
 This is not a Reddit rule result. If such a timeout prevents reading rules,
 composer state, duplicates, or session proof, the affected unit must use
 `LIVE_GATE_UNVERIFIED`/`YIELDED`, not `RULE_BLOCKED`.
+An explicit target signal such as “This is an archived post. You won't be able
+to vote or comment.” is a target-level `TARGET_ARCHIVED`/`TARGET_LOCKED` result,
+not `LIVE_GATE_UNVERIFIED`, `RULE_BLOCKED`, or `ACCOUNT_BANNED`. Discard that
+target and continue the search; it never implies that the account is banned.
 The next task wake resumes that same unit with `RECOVERY_FIRST`; it must not
 use `WATCH`, `SKIP`, `DEFER`, or fast NOOP merely because the previous tab was
 blank.

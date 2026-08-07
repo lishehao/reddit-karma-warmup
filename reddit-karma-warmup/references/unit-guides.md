@@ -89,6 +89,9 @@ stays visually pending, use at most one same-target refresh/read-only verificati
 never submit a second time. Do not mark the candidate
 `RULE_BLOCKED` unless the blocking rule, approval message, form state, or mod
 instruction was actually visible.
+If the target itself visibly says it is archived or locked, record the
+per-target label `TARGET_ARCHIVED`/`TARGET_LOCKED`, discard it, and continue;
+do not describe that target result as an account ban or a comment ban.
 
 ## Posts
 
@@ -140,7 +143,7 @@ one attempt.
 
 When `全面推进` authorizes follow-up, run an account-wide sweep instead of
 waiting for a browsing handoff. In the same logged-in Chrome inspect the user's
-own posts, own comments, notifications/inbox replies, recent account activity,
+own profile posts, own comments, notifications/inbox replies, recent account activity,
 and previously recorded own permalinks. Build one de-duplicated queue of
 conversations with a new reply, an unanswered direct question, or an open own
 thread that still needs a truthful response.
@@ -159,9 +162,18 @@ eligible items to the next wake. A sweep with no eligible items records
 threads, or an unread Chrome gate are recorded per item and do not block the
 rest of the queue.
 
+As part of every due sweep, read the user's own profile posts. If a post is
+owned by the current session and its live score is `-2` or lower, create a
+separate deterministic cleanup action: hide it when Reddit exposes a hide
+control; otherwise delete it. Reload the profile or target and verify it is
+hidden or absent. This cleanup is limited to own posts, is separate from reply
+and new-action caps, and never touches comments or another author's content.
+If ownership or score is uncertain, freeze that cleanup key and continue the
+rest of the queue without retrying it.
+
 Outside `全面推进`, follow-up remains read-only unless explicit follow-up
-authority is present. Do not delete content automatically or repost after an
-uncertain submission.
+authority is present. Do not delete content automatically outside this explicit
+negative-score cleanup, or repost after an uncertain submission.
 
 ## Presence
 

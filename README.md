@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.07.5`
+Protocol version: `2026.08.07.6`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -82,6 +82,8 @@ assignment gets one concise text reminder; do not invent missing targets.
   Active missions re-arm verified action lanes on later wakes; browsing-only missions remain research-only.
 - In `全面推进`, follow-up sweeps the user's own posts/comments,
   notifications, and known permalinks independent of business direction; it handles every eligible unanswered/new-reply conversation and carries the remainder to the next wake.
+  It also reviews own profile posts; score `<= -2` uses hide-first/delete-fallback
+  cleanup, with ownership and post-state verification.
 - Only current task scope, readable Chrome, and action-type gates are hard gates.
   Comments use target/context fit, a basic current rule check, composer state,
   and one verified submit; posts retain the fuller rule, truth, duplicate, and

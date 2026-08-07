@@ -56,6 +56,10 @@ Use `PENDING`, `CANDIDATES_READY`, `ACTION_ELIGIBLE`, `ACTION_VERIFIED`,
 `LIVE_GATE_UNVERIFIED`, `MATERIAL_REQUIRED`, `RULE_BLOCKED`, `SUBMISSION_UNCERTAIN`,
 `NOT_APPLICABLE`, or `RESEARCH_ONLY`. Record a compact evidence/source
 reference when a unit becomes `CANDIDATES_READY` or `ACTION_ELIGIBLE`.
+When a target explicitly says it is archived or locked, record the per-target
+evidence label `TARGET_ARCHIVED` or `TARGET_LOCKED` and continue with another
+candidate. These are post-level labels, never account enforcement and never a
+reason to disable the comments unit or park its mission objective.
 `ACTION_VERIFIED` needs both verification evidence and the resulting own
 permalink/source reference when it is used to arm a specific follow-up. In
 `全面推进`, the account-wide own-content sweep does not require an upstream

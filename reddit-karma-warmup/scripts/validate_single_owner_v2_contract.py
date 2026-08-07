@@ -56,10 +56,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.06.4"
+    assert version == "2026.08.07.1"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.06.4"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.07.1"' in queue_source
+    assert '"2026.08.06.4"' in queue_source
     assert '"2026.08.06.3"' in queue_source
     assert '"2026.08.05.13"' in queue_source
     assert '"2026.08.05.12"' in queue_source
@@ -107,27 +108,39 @@ def main() -> None:
         "compatibility_field": "vote_policy=DISABLED",
     }
     assert defaults["public_writing"] == {
-        "default_profile": "SHORT_NATURAL_COLLOQUIAL",
+        "default_profile": "SHORT_NATURAL_COLLOQUIAL_VARIANT",
         "applies_to": ["comments", "posts"],
-        "discourse_markers": "REQUIRE_AT_LEAST_ONE_CONTEXTUAL_MARKER_BY_DEFAULT; VARY_MARKERS_AND_NEVER_REPEAT_THE_SAME_MARKER_CONSECUTIVELY",
+        "discourse_markers": "OPTIONAL_ZERO_OR_ONE; USE_ONLY_WHEN_NATURAL; VARY_MARKERS_AND_NEVER_REPEAT_RECENT_MARKERS",
         "marker_pool": ["honestly", "tbh", "kinda", "wait", "ngl", "lowkey", "like", "I mean", "yeah", "right"],
-        "marker_minimums": {"comments": 1, "posts": 1},
-        "marker_exceptions": "RULE_TEXT_FORM_FIELDS_FORMAL_TECHNICAL_CONTEXTS_OR_WHEN_A_MARKER_WOULD_DISTORT_MEANING",
+        "marker_minimums": {"comments": 0, "posts": 0},
+        "marker_maximums": {"comments": 1, "posts": 1},
+        "marker_reuse_window": {"comments": 5, "posts": 3},
+        "opening_reuse_window": {"comments": 8, "posts": 5},
+        "marker_exceptions": "MARKERS_ARE_OPTIONAL; OMIT_IN_FORMAL_OR_TECHNICAL_CONTEXTS_OR_WHEN_THEY_DISTORT_MEANING",
+        "variation_modes": ["REACTION", "QUESTION", "ONE_SUGGESTION", "COUNTERPOINT", "EXAMPLE", "PLAYFUL_ASIDE", "CONCISE_AGREEMENT"],
+        "mode_selection": "ONE_PRIMARY_MOVE_PER_COMMENT;_MAX_TWO_MOVES_ONLY_WHEN_NEEDED_FOR_TRUTH",
+        "recent_style_ledger": ["word_bucket", "opening", "marker", "sentence_count", "primary_move"],
         "comments": {
-            "shape": "ONE_OR_TWO_SHORT_SENTENCES",
-            "target_words": "8_TO_40_UNLESS_CONTEXT_REQUIRES_MORE",
-            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_AND_OPTIONALLY_TWO",
+            "shape": "ONE_PRIMARY_MOVE;_ONE_OR_TWO_SHORT_SENTENCES",
+            "target_words": "MICRO_5_TO_14_OR_SHORT_15_TO_30_OR_MEDIUM_31_TO_50",
+            "hard_max_words": 50,
+            "detailed_feedback_exception_max_words": 70,
+            "detailed_feedback_exception": "ONLY_WHEN_TARGET_EXPLICITLY_REQUESTS_DETAILED_FEEDBACK",
+            "voice": "CONVERSATIONAL_CONTRACTIONS;_MARKER_OPTIONAL;_NO_FORCED_SLANG_OR_TYPOS",
         },
         "posts": {
-            "shape": "QUESTION_LED_BEGINNER_DISCUSSION_WITH_CONCRETE_BACKGROUND",
-            "target_words": "BRIEF_BACKGROUND_PLUS_ONE_CLEAR_QUESTION",
-            "background": "2_TO_4_CONCRETE_SENTENCES_COMMON_BEGINNER_PROBLEM",
-            "question_hook": "ONE_EASY_ANSWERABLE_QUESTION_INVITING_ONE_SENTENCE_REPLIES",
-            "voice": "CONVERSATIONAL_CONTRACTIONS_LIGHT_FILLERS_AND_OCCASIONAL_LOWERCASE;_AT_LEAST_ONE_MARKER_IN_FIRST_PARAGRAPH",
+            "shape": "QUESTION_LED_OR_OBSERVATION_LED_OR_TRADEOFF_LED",
+            "target_words": "40_TO_90",
+            "hard_max_words": 120,
+            "background": "1_TO_2_CONCRETE_SENTENCES_COMMON_PROBLEM_OR_CONTEXT",
+            "question_hook": "OPTIONAL_ONE_EASY_ANSWERABLE_QUESTION_INVITING_SHORT_REPLIES",
+            "voice": "CONVERSATIONAL_CONTRACTIONS;_MARKER_OPTIONAL;_VARY_OPENING_AND_BODY_SHAPE",
             "authenticity": "NATURAL_SPECIFIC_NON_TEMPLATE;_NEVER_INVENT_EXPERIENCE_OR_UNTRUE_PRODUCT_USE",
         },
         "anti_template": [
             "DO_NOT_REPEAT_THE_SAME_OPENING_OR_CATCHPHRASE",
+            "DO_NOT_REPEAT_THE_SAME_PRIMARY_MOVE_AND_SENTENCE_SHAPE_CONSECUTIVELY",
+            "DO_NOT_USE_PRAISE_RISK_SUGGESTION_QUESTION_AS_A_DEFAULT_TEMPLATE",
             "DO_NOT_ADD_FAKE_TYPOS_OR_STACK_FILLERS",
             "DO_NOT_INVENT_EXPERIENCE_FACTS_OR_PRODUCT_USE",
             "REDUCE_SLANG_IN_FORMAL_OR_RULE_HEAVY_COMMUNITIES",
@@ -214,7 +227,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v22"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v23"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 4
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -330,10 +343,12 @@ def main() -> None:
         assert phrase in runtime, phrase
     assert "live_gate_checkpoint" in guides
     assert "public writing defaults" in guides
-    assert "contextual filler" in guides
-    assert "at least one contextual marker" in guides
-    assert "question-led beginner discussion" in guides
-    assert "one clear, easy-to-answer question" in guides
+    assert "A contextual marker is" in guides and "optional" in guides
+    assert "variation ledger" in guides
+    assert "5–14, 15–30, or 31–50 words" in guides
+    assert "70 words is an absolute ceiling" in guides
+    assert "question-led, observation-led, or tradeoff-led discussion" in guides
+    assert "easy-to-answer" in guides
     assert "live post-Flair control" in guides
     assert "most specific" in guides
     assert "account-wide sweep" in guides

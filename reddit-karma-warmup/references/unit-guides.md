@@ -10,12 +10,19 @@ unit; direct targets and handoffs for it are rejected by the compilers.
 Load the selected section only after the owner decides `RUN`.
 
 Before drafting any public text, apply [public writing defaults](operation-defaults.json#public_writing):
-keep it short, conversational, and slightly imperfect. Every ordinary comment
-must contain at least one contextual marker, and every post's opening paragraph
-must contain at least one; a second marker is welcome when it sounds natural.
-Rotate markers by context; do not manufacture typos or repeat a stock catchphrase.
-Formal rules, form fields, and technical passages are the explicit exceptions.
-Style never overrides truth, community rules, or the actual contribution.
+keep it short, conversational, and slightly imperfect. A contextual marker is
+optional: use zero or one only when it sounds natural, and never add a filler to
+meet a quota. Rotate markers, openings, sentence shapes, and rhetorical moves;
+do not manufacture typos, stack slang, or repeat a stock catchphrase. Formal
+rules, form fields, and technical passages may use a cleaner voice. Style never
+overrides truth, community rules, or the actual contribution.
+
+Use the variation ledger before each public action. Track the recent word-count
+bucket, opening, marker (if any), sentence count, and primary move. Reject and
+rewrite a draft when it repeats the same opening within the last 8 comments, the
+same marker within the last 5, or the same praise-risk-suggestion-question
+sequence twice in a row. Variation means choosing a different useful shape, not
+adding random slang.
 
 ## Browsing
 
@@ -49,10 +56,13 @@ broad Web Search; add one focused query only for a factual, technical, or
 unfamiliar claim. With explicit comment authority, attempt one original comment
 in every formal action round. If a candidate fails, continue to new targets in
 the same packet, up to 60 target reads, and stop at the first compliant target.
-Write one or two short sentences by default, with natural contractions and at
-least one contextual filler such as `honestly`, `kinda`, `wait`, or `ngl`; use
-only the ones that fit the community, vary the pattern, and optionally add a
-second. Do not invent a personal
+Write one primary move by default: a short reaction, a concrete question, one
+suggestion, a counterpoint, an example, a playful aside, or a concise agreement.
+Use one or two sentences and the shortest complete wording. A marker such as
+`honestly`, `kinda`, `wait`, or `ngl` is optional, not required. Comments normally
+fall into 5–14, 15–30, or 31–50 words; over 50 words requires a target that
+explicitly asks for detailed feedback, and 70 words is an absolute ceiling.
+Do not invent a personal
 experience, factual claim, or product promotion. Check
 duplicates only on the same target. If all tested candidates fail, record the
 specific no-action reason and continue at the next wake; do not park the whole
@@ -76,13 +86,13 @@ relationship disclosure. Missing a project link does not itself block a native
 discussion post. With explicit post authority, publish at most one
 native post and verify it once. If a completed submit has no immediate UI echo,
 use at most one same-target refresh/read-only verification, never a second post.
-Default to a question-led beginner discussion: explain the common problem in 2–4
-concrete background sentences, then ask one clear, easy-to-answer question that
-invites a one-sentence reply. Do not pretend to be a beginner or invent a lived
-experience; use first person only when true. Draft the shortest complete version: short
-paragraphs, contractions, and at least one natural discourse marker in the
-opening paragraph are required by default; add more only when they fit;
-include only the context the subreddit requires. Never cross-post a template to force a KPI. If
+Default to a question-led, observation-led, or tradeoff-led discussion: give 1–2
+concrete background sentences and optionally ask one clear, easy-to-answer
+question. Do not pretend to be a beginner or invent a lived experience; use first
+person only when true. Draft the shortest complete version, normally 40–90 words
+and never over 120. A marker is optional. Vary whether the post opens with a
+question, observation, example, or concrete problem; never cross-post a template
+to force a KPI. If
 the truthful subject/artifact/relationship is absent, record
 `MATERIAL_REQUIRED` only after a bounded mission-wide audit proves every
 allowed truthful post format needs absent material, with

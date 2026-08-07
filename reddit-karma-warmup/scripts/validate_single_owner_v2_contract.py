@@ -57,10 +57,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.07.2"
+    assert version == "2026.08.07.3"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.07.2"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.07.3"' in queue_source
+    assert '"2026.08.07.2"' in queue_source
     assert '"2026.08.07.1"' in queue_source
     assert '"2026.08.06.4"' in queue_source
     assert '"2026.08.06.3"' in queue_source
@@ -161,6 +162,16 @@ def main() -> None:
         "rewrite_on": ["EXACT_DUPLICATE", "HIGH_TEXT_SIMILARITY", "SAME_OPENING_AND_MOVE", "RECENT_MARKER_REUSE"],
         "failure_policy": "LIBRARY_READ_FAILURE_DOES_NOT_BLOCK_ACTION;_RECORD_LOCAL_WARNING_AND_USE_MANUAL_VARIATION_CHECK",
     }
+    assert defaults["mission_profiles"]["community_diversity"] == {
+        "scopes": ["seeded_expandable", "discover"],
+        "coverage_block_distinct_target": 5,
+        "coverage_block_distinct_floor": 4,
+        "public_action_distinct_target": 5,
+        "public_action_distinct_floor": 4,
+        "repeat_policy": "DEFER_SAME_COMMUNITY_UNTIL_FOUR_OR_FIVE_DISTINCT_ROUTES_ATTEMPTED",
+        "closed_scope": "KEEP_EXACT_TARGETS_NO_EXPANSION",
+        "failure_policy": "ROUTE_FAILURE_REPLENISH_FROM_DISCOVERY_NO_FILLER_ACTION",
+    }
     assert defaults["units"]["browsing"] == {
         "default_authority": "READ_ONLY",
         "explicit_authority": None,
@@ -242,7 +253,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v24"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v25"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 4
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -361,6 +372,8 @@ def main() -> None:
     assert "A contextual marker is" in guides and "optional" in guides
     assert "recent_public_content.py check" in guides
     assert "Variation means" in guides
+    assert "five distinct communities" in guides
+    assert "This is a routing" in guides
     assert "5–14, 15–30, or 31–50 words" in guides
     assert "70 words is an absolute ceiling" in guides
     assert "question-led, observation-led, or tradeoff-led discussion" in guides

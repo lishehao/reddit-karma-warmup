@@ -1,6 +1,6 @@
 # Reddit Karma Warmup
 
-Protocol version: `2026.08.07.2`
+Protocol version: `2026.08.07.3`
 
 This repository contains one production Skill: `reddit-karma-warmup/`.
 
@@ -74,7 +74,7 @@ assignment gets one concise text reminder; do not invent missing targets.
 - `r/saas` is globally excluded: discovery, API indexing, direct targets, and all browser actions skip or reject it.
 - Voting is removed: no vote controls or mutations; compatibility is always
   `vote_policy=DISABLED`.
-- Mission compilation requests `gpt-5.6-luna` with `xhigh` reasoning when the host supports it. Public writing defaults to short, conversational, varied text; markers are optional, comments normally stay within 5–50 words (70 only for explicitly detailed feedback), and posts within 40–120 words. Before each draft, read the bounded per-account recent-public-content library and rewrite exact or template-similar text. Rotate openings and rhetorical moves without manufacturing typos, repeated catchphrases, or personal facts.
+- Mission compilation requests `gpt-5.6-luna` with `xhigh` reasoning when the host supports it. Public writing defaults to short, conversational, varied text; markers are optional, comments normally stay within 5–50 words (70 only for explicitly detailed feedback), and posts within 40–120 words. Before each draft, read the bounded per-account recent-public-content library and rewrite exact or template-similar text. In discover/expandable scope, cover four or five distinct communities before repeating one; this is a routing target, not a filler quota. Rotate openings and rhetorical moves without manufacturing typos, repeated catchphrases, or personal facts.
 - When comments/posts/follow-up/presence are authorized, `INITIAL` and each
   formal round are action-first: one Chrome packet may submit up to two distinct
   comment/post actions, or batch up to three verified follow-ups, under the hourly ceiling. Active missions re-arm verified action lanes on later wakes; browsing-only missions remain research-only.

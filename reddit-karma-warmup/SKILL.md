@@ -104,7 +104,7 @@ Global community exclusion: `r/saas`; never search, open, read, index, comment, 
    means no replay of missed packets or mutations. A fast NOOP is only for
    early/duplicate, recovery, or genuinely exhausted/parked work; scheduler uncertainty
    or a missing observation is not a reason to skip current-task work.
-4. Action units may find their own target in the same packet. Browsing candidate
+4. Action units may find their own target in the same packet. In `discover` or `seeded_expandable`, rotate through five distinct communities (four if a route fails) before repeating one; this is a routing target, not a filler quota. Browsing candidate
    packs and atomic `handoff` remain useful but are optional; a candidate pack is
    not a reason to end an action-authorized round. On an expanded late wake,
    mark useful currently due units `RUN` up to the reported packet slots, then

@@ -42,10 +42,13 @@ supported operation: do not inspect vote controls or emit upvote/downvote
 mutations from any unit.
 
 For `discover` or `seeded_expandable` scope, prefer communities not already
-audited in the current mission. Coverage budget changes the breadth of this
-packet, not the Heartbeat. Do not rescan a route parked as `RULE_BLOCKED` or a
-post goal parked as `MATERIAL_REQUIRED` unless a revision or fresh material
-explicitly re-arms it.
+audited in the current mission. Each coverage block should sample five distinct
+communities, with a minimum of four when a route fails; spread public actions
+across four or five distinct communities before repeating one. This is a routing
+target, not a filler quota. Coverage budget changes packet breadth, not the
+Heartbeat. Do not rescan a route parked as `RULE_BLOCKED` or a post goal parked
+as `MATERIAL_REQUIRED` unless a revision or fresh material explicitly re-arms
+it. `closed` direct-target assignments never expand.
 
 If the pack establishes an exact route and a truthful contribution boundary for
 an authorized comment or post, call the queue's atomic `handoff` with the target

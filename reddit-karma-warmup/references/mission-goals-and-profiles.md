@@ -58,6 +58,13 @@ independent workload profiles below; it never changes the 15-minute Heartbeat.
 Direct target assignments default to `标准` unless they explicitly include a
 rhythm.
 
+For `discover` and `seeded_expandable`, use community-diverse coverage by
+default: each coverage block should sample five distinct communities, with a
+minimum of four when a route fails. Spread public actions across four or five
+distinct communities before repeating one. This is a routing target, not a
+filler quota: live rules, truthful contribution, and fit still decide whether
+anything is published. `closed` direct-target assignments stay closed.
+
 ## Hard gates versus soft threshold
 
 For posts and other full actions require all hard gates: explicit unit authority;

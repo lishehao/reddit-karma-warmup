@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v24",
-  "runtime_protocol_version": "2026.08.07.2",
+  "schema": "reddit_single_owner_defaults/v25",
+  "runtime_protocol_version": "2026.08.07.3",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -244,6 +244,16 @@
       "narrow": {"community_route_target": 4, "candidate_pack_target": 1},
       "standard": {"community_route_target": 8, "candidate_pack_target": 2},
       "broad": {"community_route_target": 12, "candidate_pack_target": 3}
+    },
+    "community_diversity": {
+      "scopes": ["seeded_expandable", "discover"],
+      "coverage_block_distinct_target": 5,
+      "coverage_block_distinct_floor": 4,
+      "public_action_distinct_target": 5,
+      "public_action_distinct_floor": 4,
+      "repeat_policy": "DEFER_SAME_COMMUNITY_UNTIL_FOUR_OR_FIVE_DISTINCT_ROUTES_ATTEMPTED",
+      "closed_scope": "KEEP_EXACT_TARGETS_NO_EXPANSION",
+      "failure_policy": "ROUTE_FAILURE_REPLENISH_FROM_DISCOVERY_NO_FILLER_ACTION"
     },
     "action_thresholds": {
       "high": "strong_direct_relevance_and_specific_truthful_value",

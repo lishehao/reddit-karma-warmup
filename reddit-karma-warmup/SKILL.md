@@ -99,8 +99,9 @@ Global community exclusion: `r/saas`; never search, open, read, index, comment, 
    for currently due units, never concurrently. The queue opens the next
    selected packet after a completed one; keep working until the wake is settled.
    Comments/posts may submit up to two distinct actions, while
-   follow-up may batch up to three verified permalinks, subject to the hourly
-   ceiling. ±10 minutes is normal. A delayed wake expands work; no catch-up
+   follow-up may batch up to five verified own permalinks and drain its own
+   hourly cap; follow-up does not consume the new comment/post/presence action
+   cap. ±10 minutes is normal. A delayed wake expands work; no catch-up
    means no replay of missed packets or mutations. A fast NOOP is only for
    early/duplicate, recovery, or genuinely exhausted/parked work; scheduler uncertainty
    or a missing observation is not a reason to skip current-task work.

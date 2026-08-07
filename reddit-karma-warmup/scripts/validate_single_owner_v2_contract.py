@@ -57,10 +57,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.07.4"
+    assert version == "2026.08.07.5"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.07.4"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.07.5"' in queue_source
+    assert '"2026.08.07.4"' in queue_source
     assert '"2026.08.07.3"' in queue_source
     assert '"2026.08.07.2"' in queue_source
     assert '"2026.08.07.1"' in queue_source
@@ -195,7 +196,9 @@ def main() -> None:
         "sources": ["OWN_POSTS", "OWN_COMMENTS", "NOTIFICATIONS", "INBOX_REPLIES", "KNOWN_OWN_PERMALINKS"],
         "direction_filter": "NONE_IN_FULL_PROGRESSION",
         "eligible_items": "NEW_REPLY_UNANSWERED_DIRECT_QUESTION_OR_OPEN_OWN_THREAD",
-        "processing": "BATCH_ALL_ELIGIBLE_FOUND_UNTIL_PACKET_OR_HOURLY_CAP_CARRY_REMAINDER_TO_NEXT_WAKE",
+        "priority": "FIRST_IN_FULL_PROGRESSION",
+        "queue_policy": "SWEEP_ALL_ACCOUNT_OWNED_SOURCES_DEDUPE_THEN_DRAIN",
+        "processing": "DRAIN_ALL_ELIGIBLE_ITEMS_TO_FOLLOWUP_CAP_CARRY_REMAINDER_TO_NEXT_WAKE",
     }
     assert defaults["scheduler"]["ordinary_trigger_tolerance_seconds"] == 600
     assert defaults["scheduler"]["heartbeat_interval_minutes"] == 15
@@ -212,16 +215,17 @@ def main() -> None:
     assert defaults["scheduler"]["late_work_expansion"] == "1_PACKET_UNTIL_5_MINUTES_THEN_UP_TO_3_SEQUENTIAL_PACKETS_FOR_CURRENTLY_DUE_UNITS"
     assert defaults["scheduler"]["max_public_actions_per_wake"] == 3
     assert defaults["scheduler"]["max_public_actions_per_hour"] == 6
-    assert defaults["scheduler"]["max_followups_per_packet"] == 3
-    assert defaults["scheduler"]["max_followups_per_hour"] == 5
-    assert defaults["scheduler"]["action_packet_mode"] == "ONE_UNIT_PACKET_MAY_BATCH_FOLLOWUPS_OR_SUBMIT_MULTIPLE_DISTINCT_TARGET_ACTIONS_UNTIL_PACKET_OR_HOURLY_CAP"
+    assert defaults["scheduler"]["max_followups_per_packet"] == 5
+    assert defaults["scheduler"]["max_followups_per_hour"] == 10
+    assert defaults["scheduler"]["follow_up_counts_against_public_action_cap"] is False
+    assert defaults["scheduler"]["action_packet_mode"] == "ONE_UNIT_PACKET_MAY_BATCH_FOLLOWUPS_TO_SEPARATE_CAP_OR_SUBMIT_MULTIPLE_DISTINCT_NEW_ACTIONS_TO_PUBLIC_ACTION_CAP"
     assert defaults["scheduler"]["active_action_rearm"] == "COMMENTS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED_POSTS_NEXT_DUE_120_MINUTES_FOLLOWUPS_NEXT_WAKE_UNTIL_HOURLY_TARGET_OR_FRONTIER_EXHAUSTED"
     assert defaults["scheduler"]["continuation_policy"] == "ACTION_FIRST_EACH_FORMAL_ROUND_LATE_WAKE_RUNS_DUE_UNITS_SERIALLY_UNTIL_SLOT_CAP_OR_EXHAUSTION"
     assert defaults["mission_profiles"]["throughput_targets"]["active"] == {
         "comments_per_hour": {"target": 5, "ceiling": 6},
         "posts_per_two_hours": {"target": 1, "ceiling": 1},
         "posts_per_four_hours": {"target": 1, "ceiling": 1},
-        "followups_per_hour": {"target": 3, "ceiling": 5},
+        "followups_per_hour": {"target": 6, "ceiling": 10},
         "qualified_reads_per_hour": 30,
         "public_actions_per_hour_ceiling": 6,
     }
@@ -266,7 +270,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v26"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v27"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 4
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -367,7 +371,7 @@ def main() -> None:
         readme = repository_readme.read_text(encoding="utf-8")
         assert "不要进入目标模式" not in readme
         assert "在同一任务中立即开始第一轮正式运营" in readme
-        assert len(readme.splitlines()) <= 100
+        assert len(readme.splitlines()) <= 105
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
     for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "recent_public_content.py", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "HOT_REPLACED_SAME_VERSION_DRIFT", "NOOP_ALREADY_SYNCED", "REMOTE_OLDER_IGNORED", "resolve_remote_sync.py --apply", "REMOTE_NEWER_DEFERRED", "低 / 标准 / 高", "business goal", "exactly four", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat", "r/saas"):

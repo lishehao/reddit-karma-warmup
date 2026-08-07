@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Maintain a bounded per-account library of verified Reddit public writing."""
 
+from __future__ import annotations
+
 import argparse
 import datetime as dt
 import fcntl

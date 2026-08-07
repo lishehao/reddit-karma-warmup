@@ -151,10 +151,11 @@ or reply to unrelated third-party threads. For each queued item, read the
 parent and nearby context, confirm the current rule/composer, persist one
 action key, submit one concise truthful reply, and verify it. If a completed
 submit stays visually pending, use one same-target refresh/read-only verification
-before deciding it is uncertain. Process all
-eligible items found until the packet/hourly cap; carry the remainder to the
-next wake. A sweep with no eligible items records `FOLLOW_UP_SWEEP_EMPTY`, not
-`NOT_APPLICABLE`. Moderator instructions, pending/removed content, closed
+before deciding it is uncertain. Drain every eligible item found, up to five
+per packet and the selected rhythm's follow-up hourly cap; this follow-up cap is
+separate from the new comment/post/presence action cap. Carry any remaining
+eligible items to the next wake. A sweep with no eligible items records
+`FOLLOW_UP_SWEEP_EMPTY`, not `NOT_APPLICABLE`. Moderator instructions, pending/removed content, closed
 threads, or an unread Chrome gate are recorded per item and do not block the
 rest of the queue.
 

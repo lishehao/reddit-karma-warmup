@@ -95,17 +95,20 @@ Use three reporting layers:
 Planning targets describe desired evidence and output, but never force a post
 or comment. The three rhythm profiles are:
 
-| Rhythm | Reads/hour | Comments/hour | Follow-ups/hour | Posts | Public actions/hour |
+| Rhythm | Reads/hour | Comments/hour | Follow-ups/hour | Posts | New public actions/hour |
 | --- | ---: | ---: | ---: | --- | ---: |
-| `低` | 12 | 1 (ceiling 2) | 1 (ceiling 2) | at most 1/4h | 2 |
-| `标准` | 20 | 2 (ceiling 3) | 2 (ceiling 3) | at most 1/2h | 4 |
-| `高` | 30 | 5 (ceiling 6) | 3 (ceiling 5) | at most 1/2h | 6 |
+| `低` | 12 | 1 (ceiling 2) | 2 (ceiling 4) | at most 1/4h | 2 |
+| `标准` | 20 | 2 (ceiling 3) | 4 (ceiling 6) | at most 1/2h | 4 |
+| `高` | 30 | 5 (ceiling 6) | 6 (ceiling 10) | at most 1/2h | 6 |
 
 The action scope still decides which units are authorized. For example,
 `模拟浏览 + 高` means more reading, not comments or posts; `全面推进 + 高`
 enables all five units at the high profile. Hourly counters reset by UTC hour
 bucket, so a completed hour does not permanently consume the mission's future
-capacity. These are pacing targets, not a reason to publish filler.
+capacity. Follow-up has its own cap because it replies only to already-owned
+conversations; it does not consume the new comment/post/presence action cap.
+These are pacing targets, not a reason to publish filler or manufacture a
+reply where no eligible own conversation exists.
 For a launch/distribution goal, an eligible post route outranks
 more browsing. If no compliant route or truthful material exists, report the
 goal as unmet with `RULE_BLOCKED` or `MATERIAL_REQUIRED`; do not disguise it as

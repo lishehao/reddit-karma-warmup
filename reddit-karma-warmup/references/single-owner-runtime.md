@@ -143,7 +143,8 @@ three packet slots; select useful currently due units up to that cap. They are
 opened and completed **serially** on the same Chrome owner, never concurrently.
 The queue starts the next selected unit automatically after a completed packet,
 and returns `PACKET_COMPLETED_CONTINUE` so the task keeps working. Comments/posts may submit up to two distinct actions; follow-up may batch up to
-three verified own permalinks, subject to the hourly ceiling. The unit may
+five verified own permalinks and drain its separate follow-up cap. Follow-up
+does not consume the new comment/post/presence action cap. The unit may
 complete, skip, block, or yield. On finish, persist
 an objective state as well as the packet outcome whenever the unit has outward
 authority. A yielded unit resumes before a later unit. For an
@@ -181,8 +182,9 @@ Normal unit rechecks align to the task Heartbeat phase when available—not abso
 quarter-hours: browsing 30 minutes, comments 15, posts 120, follow-up 60, and
 presence 24 hours. They are recheck timings, never action quotas. An
 `ACTION_VERIFIED` comment/post/follow-up in an active action budget re-arms on
-the next task wake; a follow-up packet may batch up to three verified own
-permalinks. Standard/minimal missions use the normal recheck. An `ACTION_ELIGIBLE`
+the next task wake; a follow-up packet may batch up to five verified own
+permalinks and continues until its separate rhythm/hourly cap or the eligible
+queue is empty. Standard/minimal missions use the normal recheck. An `ACTION_ELIGIBLE`
 handoff is different: it is a continuation and should be due on the next task
 wake when available, not the next absolute grid boundary. For an active
 action-budget mission, runnable browsing likewise remains due on the next task

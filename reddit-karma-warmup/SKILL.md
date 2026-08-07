@@ -3,7 +3,6 @@ name: reddit-karma-warmup
 description: Run authorized Reddit research, browsing, native posts, comments, follow-up, and profile/community work through one persistent user-visible Reddit operating task and the user's logged-in Chrome. Use when a user asks to operate, warm up, publish to, research, or monitor a Reddit account or community.
 ---
 # Reddit Community Operations
-
 ## Startup state machine
 
 Treat an HTTPS install/upgrade request as the start of one intake flow:
@@ -48,7 +47,6 @@ an unrelated runtime. `scripts/runtime_fence.py` remains an explicit
 diagnostic tool, not a startup-wide scan.
 
 ## One task, five internal units
-
 Run one present Reddit operating task. It owns one mission record, one queue, an
 advisory Heartbeat when available, one Chrome binding, and one primary Reddit
 tab; session-bound work claims a visible user Chrome tab first, while temporary
@@ -130,7 +128,8 @@ Global community exclusion: `r/saas`; never search, open, read, index, comment, 
 6. Before every public action persist deterministic `MUTATION_INTENT` and
    `action_key`. Submit once and verify separately; if it stays `submitting...` with no echo,
    allow one same-target refresh/read, never a second submit. Freeze uncertain exact keys
-   permanently; never reopen or retry them. At completion/deadline enter `FINALIZE_ONLY`,
+   permanently; never reopen or retry them. Before drafting, read the bounded per-account recent-public-content library with `scripts/recent_public_content.py` and rewrite exact or template-similar
+   text; after independent verification append the new item. At completion/deadline enter `FINALIZE_ONLY`,
    release only owned tabs, delete the exact Heartbeat with proof, retire the queue, and keep the visible operating task available. Runtime receipt tokens are opaque; envelope re-hashing is diagnostic-only (`REDDIT_STRICT_INTEGRITY=1`).
 ## Load only what the current decision needs
 | Situation | Reference |

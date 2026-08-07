@@ -17,12 +17,19 @@ do not manufacture typos, stack slang, or repeat a stock catchphrase. Formal
 rules, form fields, and technical passages may use a cleaner voice. Style never
 overrides truth, community rules, or the actual contribution.
 
-Use the variation ledger before each public action. Track the recent word-count
+Use `scripts/recent_public_content.py check` before each public action, then
+track the recent word-count
 bucket, opening, marker (if any), sentence count, and primary move. Reject and
 rewrite a draft when it repeats the same opening within the last 8 comments, the
 same marker within the last 5, or the same praise-risk-suggestion-question
 sequence twice in a row. Variation means choosing a different useful shape, not
 adding random slang.
+
+After a public action is independently verified, append it with
+`scripts/recent_public_content.py append`. Store only the bounded recent window
+for the logged-in account; do not append drafts, rejected candidates, or
+submission-uncertain actions. If the library cannot be read, continue with a
+manual variation check and record the warning rather than blocking the lane.
 
 ## Browsing
 

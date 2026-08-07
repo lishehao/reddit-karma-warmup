@@ -21,6 +21,7 @@ BROWSER_LEDGER = ROOT / "scripts" / "validate_browser_step_ledger.py"
 STARTUP_INTAKE = ROOT / "references" / "startup-intake.md"
 RUNTIME_FENCE = ROOT / "scripts" / "runtime_fence.py"
 REMOTE_SYNC = ROOT / "scripts" / "resolve_remote_sync.py"
+RECENT_CONTENT = ROOT / "scripts" / "recent_public_content.py"
 
 
 def run(*args: str) -> dict:
@@ -56,10 +57,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.07.1"
+    assert version == "2026.08.07.2"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.07.1"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.07.2"' in queue_source
+    assert '"2026.08.07.1"' in queue_source
     assert '"2026.08.06.4"' in queue_source
     assert '"2026.08.06.3"' in queue_source
     assert '"2026.08.05.13"' in queue_source
@@ -146,6 +148,19 @@ def main() -> None:
             "REDUCE_SLANG_IN_FORMAL_OR_RULE_HEAVY_COMMUNITIES",
         ],
     }
+    assert defaults["recent_content_library"] == {
+        "helper": "scripts/recent_public_content.py",
+        "storage": "$CODEX_HOME/reddit-karma-warmup/recent-public-content/<normalized-account>.jsonl",
+        "scope": "ACCOUNT_LOCAL_PUBLIC_CONTENT",
+        "window_entries": 24,
+        "max_age_days": 30,
+        "units": ["comments", "posts", "follow-up"],
+        "record_when": "AFTER_VERIFIED_PUBLIC_ACTION_ONLY",
+        "read_before": "EVERY_PUBLIC_DRAFT",
+        "required_fields": ["published_at", "unit", "community", "target_url", "text", "word_count", "opening", "marker", "primary_move"],
+        "rewrite_on": ["EXACT_DUPLICATE", "HIGH_TEXT_SIMILARITY", "SAME_OPENING_AND_MOVE", "RECENT_MARKER_REUSE"],
+        "failure_policy": "LIBRARY_READ_FAILURE_DOES_NOT_BLOCK_ACTION;_RECORD_LOCAL_WARNING_AND_USE_MANUAL_VARIATION_CHECK",
+    }
     assert defaults["units"]["browsing"] == {
         "default_authority": "READ_ONLY",
         "explicit_authority": None,
@@ -227,7 +242,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v23"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v24"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 4
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -331,7 +346,7 @@ def main() -> None:
         assert len(readme.splitlines()) <= 100
     assert len(SKILL.read_text(encoding="utf-8").splitlines()) <= 150
     text = " ".join("\n".join(path.read_text(encoding="utf-8") for path in documents).split())
-    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "HOT_REPLACED_SAME_VERSION_DRIFT", "NOOP_ALREADY_SYNCED", "REMOTE_OLDER_IGNORED", "resolve_remote_sync.py --apply", "REMOTE_NEWER_DEFERRED", "低 / 标准 / 高", "business goal", "exactly four", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat", "r/saas"):
+    for phrase in ("Reddit 运营台", "pin it", "presentation failure is non-blocking", "canary", "heartbeat-observe", "Official Reddit API", "Chrome", "MUTATION_INTENT", "recent_public_content.py", "±10 minutes", "fast NOOP", "atomic `handoff`", "action-first", "up to 60 target reads", "BOOTSTRAP_READY", "HOT_REPLACED", "HOT_REPLACED_SAME_VERSION_DRIFT", "NOOP_ALREADY_SYNCED", "REMOTE_OLDER_IGNORED", "resolve_remote_sync.py --apply", "REMOTE_NEWER_DEFERRED", "低 / 标准 / 高", "business goal", "exactly four", "Do not ask for an account name or handle", "same-Chrome", "One operating-direction answer", "current task", "source_thread_id", "other Heartbeats", "startup-wide scan", "autoResolutionMs", "WAITING_FOR_STARTUP_INPUT", "STARTUP_ANSWERS_COMPLETE", "DIRECT_TARGET_ASSIGNMENT_COMPLETE", "direct target", "target post", "compile_startup_intake.py", "INITIAL` packet", "preview or pre-filter", "LIVE_GATE_UNVERIFIED", "normal text response", "at most once", "advisory Heartbeat", "r/saas"):
         assert phrase in text, phrase
     runtime = (ROOT / "references" / "single-owner-runtime.md").read_text(encoding="utf-8")
     guides = (ROOT / "references" / "unit-guides.md").read_text(encoding="utf-8")
@@ -344,7 +359,8 @@ def main() -> None:
     assert "live_gate_checkpoint" in guides
     assert "public writing defaults" in guides
     assert "A contextual marker is" in guides and "optional" in guides
-    assert "variation ledger" in guides
+    assert "recent_public_content.py check" in guides
+    assert "Variation means" in guides
     assert "5–14, 15–30, or 31–50 words" in guides
     assert "70 words is an absolute ceiling" in guides
     assert "question-led, observation-led, or tradeoff-led discussion" in guides
@@ -375,10 +391,11 @@ def main() -> None:
     # are part of the Skill contract; generated directories must not make an
     # otherwise complete installation fail validation.
     scripts = {path.name for path in (ROOT / "scripts").iterdir() if path.is_file()}
-    assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "resolve_remote_sync.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
+    assert scripts == {"compile_startup_intake.py", "compile_single_owner_mission.py", "single_owner_queue.py", "community_index.py", "runtime_fence.py", "resolve_remote_sync.py", "recent_public_content.py", "validate_browser_step_ledger.py", "validate_single_owner_v2_contract.py"}, scripts
     assert run(str(INTAKE_COMPILER), "--self-test")["status"] == "PASS"
     assert run(str(BROWSER_LEDGER), "--self-test")["status"] == "PASS"
     assert run(str(RUNTIME_FENCE), "--self-test")["status"] == "PASS"
+    assert run(str(RECENT_CONTENT), "--self-test")["status"] == "PASS"
     with tempfile.TemporaryDirectory() as temporary:
         work = Path(temporary)
         # Remote bootstrap must apply compatible content, including same-version

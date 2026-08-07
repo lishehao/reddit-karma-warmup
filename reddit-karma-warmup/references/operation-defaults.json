@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v23",
-  "runtime_protocol_version": "2026.08.07.1",
+  "schema": "reddit_single_owner_defaults/v24",
+  "runtime_protocol_version": "2026.08.07.2",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -110,6 +110,19 @@
       "DO_NOT_INVENT_EXPERIENCE_FACTS_OR_PRODUCT_USE",
       "REDUCE_SLANG_IN_FORMAL_OR_RULE_HEAVY_COMMUNITIES"
     ]
+  },
+  "recent_content_library": {
+    "helper": "scripts/recent_public_content.py",
+    "storage": "$CODEX_HOME/reddit-karma-warmup/recent-public-content/<normalized-account>.jsonl",
+    "scope": "ACCOUNT_LOCAL_PUBLIC_CONTENT",
+    "window_entries": 24,
+    "max_age_days": 30,
+    "units": ["comments", "posts", "follow-up"],
+    "record_when": "AFTER_VERIFIED_PUBLIC_ACTION_ONLY",
+    "read_before": "EVERY_PUBLIC_DRAFT",
+    "required_fields": ["published_at", "unit", "community", "target_url", "text", "word_count", "opening", "marker", "primary_move"],
+    "rewrite_on": ["EXACT_DUPLICATE", "HIGH_TEXT_SIMILARITY", "SAME_OPENING_AND_MOVE", "RECENT_MARKER_REUSE"],
+    "failure_policy": "LIBRARY_READ_FAILURE_DOES_NOT_BLOCK_ACTION;_RECORD_LOCAL_WARNING_AND_USE_MANUAL_VARIATION_CHECK"
   },
   "startup_transition": {
     "direct_target_path": "TARGET_POSTS_ACTIONS_DURATION_TO_COMPILER_THEN_INITIAL_NO_FORM",

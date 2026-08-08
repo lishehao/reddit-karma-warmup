@@ -57,10 +57,11 @@ def main() -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     defaults = json.loads(DEFAULTS.read_text(encoding="utf-8"))
     version = manifest["version"]
-    assert version == "2026.08.07.6"
+    assert version == "2026.08.07.7"
     assert defaults["runtime_protocol_version"] == version
     queue_source = (ROOT / "scripts" / "single_owner_queue.py").read_text(encoding="utf-8")
-    assert 'PROTOCOL_VERSION = "2026.08.07.6"' in queue_source
+    assert 'PROTOCOL_VERSION = "2026.08.07.7"' in queue_source
+    assert '"2026.08.07.6"' in queue_source
     assert '"2026.08.07.5"' in queue_source
     assert '"2026.08.07.4"' in queue_source
     assert '"2026.08.07.3"' in queue_source
@@ -123,8 +124,14 @@ def main() -> None:
         "marker_reuse_window": {"comments": 5, "posts": 3},
         "opening_reuse_window": {"comments": 8, "posts": 5},
         "marker_exceptions": "MARKERS_ARE_OPTIONAL; OMIT_IN_FORMAL_OR_TECHNICAL_CONTEXTS_OR_WHEN_THEY_DISTORT_MEANING",
-        "variation_modes": ["REACTION", "QUESTION", "ONE_SUGGESTION", "COUNTERPOINT", "EXAMPLE", "PLAYFUL_ASIDE", "CONCISE_AGREEMENT"],
+        "variation_modes": ["REACTION", "QUESTION", "ONE_SUGGESTION", "COUNTERPOINT", "EXAMPLE", "PLAYFUL_ASIDE", "CONCISE_AGREEMENT", "PERSPECTIVE_SHIFT"],
         "mode_selection": "ONE_PRIMARY_MOVE_PER_COMMENT;_MAX_TWO_MOVES_ONLY_WHEN_NEEDED_FOR_TRUTH",
+        "perspective_shift": {
+            "when": "QUESTION_IS_BROAD_UNCLEAR_OR_MIXES_MULTIPLE_DECISIONS",
+            "sequence": "NAME_HIDDEN_TRADEOFF_OR_DECISION -> OFFER_ONE_EVIDENCE_BOUND_LENS -> ASK_ONE_EASY_FOLLOWUP_IF_USEFUL",
+            "default": "FALLBACK_NOT_EVERY_COMMENT",
+            "constraints": "USE_VISIBLE_CONTEXT_ONLY; FRAME_AS_INFERENCE; NEVER_HIJACK_OR_DIAGNOSE_AUTHOR",
+        },
         "recent_style_ledger": ["word_bucket", "opening", "marker", "sentence_count", "primary_move"],
         "comments": {
             "shape": "ONE_PRIMARY_MOVE;_ONE_OR_TWO_SHORT_SENTENCES",
@@ -280,7 +287,7 @@ def main() -> None:
     assert defaults["objective_linking"]["follow_up_handoff"] == "ACCOUNT_WIDE_OWN_CONTENT_SWEEP_OR_VERIFIED_OWN_PERMALINK"
     assert defaults["objective_linking"]["rule_block_scope"] == "RULE_BLOCKED_REQUIRES_MISSION_WIDE_EVIDENCE_CANDIDATE_OR_COMMUNITY_BLOCK_USES_CANDIDATE_REJECT"
     assert defaults["objective_linking"]["material_block_scope"] == "MATERIAL_REQUIRED_REQUIRES_MISSION_WIDE_ALL_FORMAT_AUDIT_AND_EVIDENCE"
-    assert defaults["schema"] == "reddit_single_owner_defaults/v28"
+    assert defaults["schema"] == "reddit_single_owner_defaults/v29"
     intake_defaults = defaults["startup_intake"]
     assert intake_defaults["question_count"] == 4
     assert intake_defaults["direct_target_mode"] == "COMPLETE_TARGET_POSTS_ACTIONS_AND_DURATION_SKIP_FORM"
@@ -405,6 +412,9 @@ def main() -> None:
     assert "5–14, 15–30, or 31–50 words" in guides
     assert "70 words is an absolute ceiling" in guides
     assert "question-led, observation-led, or tradeoff-led discussion" in guides
+    assert "PERSPECTIVE_SHIFT" in guides
+    assert "hidden tradeoff" in guides
+    assert "do not force an “insight” angle" in guides
     assert "easy-to-answer" in guides
     assert "live post-Flair control" in guides
     assert "most specific" in guides

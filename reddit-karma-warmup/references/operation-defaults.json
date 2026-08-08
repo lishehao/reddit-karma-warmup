@@ -1,6 +1,6 @@
 {
-  "schema": "reddit_single_owner_defaults/v28",
-  "runtime_protocol_version": "2026.08.07.6",
+  "schema": "reddit_single_owner_defaults/v29",
+  "runtime_protocol_version": "2026.08.07.7",
   "execution_profile": {
     "preferred_model": "gpt-5.6-luna",
     "reasoning_effort": "xhigh",
@@ -82,8 +82,14 @@
     "marker_reuse_window": {"comments": 5, "posts": 3},
     "opening_reuse_window": {"comments": 8, "posts": 5},
     "marker_exceptions": "MARKERS_ARE_OPTIONAL; OMIT_IN_FORMAL_OR_TECHNICAL_CONTEXTS_OR_WHEN_THEY_DISTORT_MEANING",
-    "variation_modes": ["REACTION", "QUESTION", "ONE_SUGGESTION", "COUNTERPOINT", "EXAMPLE", "PLAYFUL_ASIDE", "CONCISE_AGREEMENT"],
+    "variation_modes": ["REACTION", "QUESTION", "ONE_SUGGESTION", "COUNTERPOINT", "EXAMPLE", "PLAYFUL_ASIDE", "CONCISE_AGREEMENT", "PERSPECTIVE_SHIFT"],
     "mode_selection": "ONE_PRIMARY_MOVE_PER_COMMENT;_MAX_TWO_MOVES_ONLY_WHEN_NEEDED_FOR_TRUTH",
+    "perspective_shift": {
+      "when": "QUESTION_IS_BROAD_UNCLEAR_OR_MIXES_MULTIPLE_DECISIONS",
+      "sequence": "NAME_HIDDEN_TRADEOFF_OR_DECISION -> OFFER_ONE_EVIDENCE_BOUND_LENS -> ASK_ONE_EASY_FOLLOWUP_IF_USEFUL",
+      "default": "FALLBACK_NOT_EVERY_COMMENT",
+      "constraints": "USE_VISIBLE_CONTEXT_ONLY; FRAME_AS_INFERENCE; NEVER_HIJACK_OR_DIAGNOSE_AUTHOR"
+    },
     "recent_style_ledger": ["word_bucket", "opening", "marker", "sentence_count", "primary_move"],
     "comments": {
       "shape": "ONE_PRIMARY_MOVE;_ONE_OR_TWO_SHORT_SENTENCES",
